@@ -5,6 +5,15 @@ import { Metadata } from 'next';
 import { DataRepository } from '../../../lib/data/db';
 import { EvidenceBadge } from '../../../components/EvidenceBadge';
 import { formatCurrency, formatDealType } from '../../../components/DealTable';
+import {
+  ArrowRight,
+  ExternalLink,
+  ShieldCheck,
+  Calendar,
+  Building2,
+  FileCheck2,
+  Scale,
+} from 'lucide-react';
 
 interface DealPageProps {
   params: Promise<{
@@ -23,7 +32,7 @@ export async function generateMetadata({ params }: DealPageProps): Promise<Metad
   }
 
   return {
-    title: `${deal.title} — AI Capital Tracker`,
+    title: `${deal.title} — Term Sheet & Capital Structure`,
     description: deal.summary,
     alternates: {
       canonical: `/deals/${deal.slug}`,
@@ -44,166 +53,185 @@ export default async function DealDetailPage({ params }: DealPageProps) {
     notFound();
   }
 
-  const primarySource = deal.sources?.find((s) => s.is_primary_support)?.source || deal.sources?.[0]?.source;
-
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       {/* Breadcrumbs */}
-      <nav className="text-xs text-slate-500 flex items-center space-x-2">
-        <Link href="/" className="hover:text-slate-800">Home</Link>
+      <nav className="text-xs text-zinc-500 font-mono flex items-center space-x-2">
+        <Link href="/" className="hover:text-zinc-950">HOME</Link>
         <span>/</span>
-        <Link href="/deals" className="hover:text-slate-800">Deals</Link>
+        <Link href="/deals" className="hover:text-zinc-950">DEALS</Link>
         <span>/</span>
-        <span className="text-slate-800 font-medium truncate max-w-xs">{deal.slug}</span>
+        <span className="text-zinc-800 font-medium truncate max-w-sm">{deal.slug}</span>
       </nav>
 
-      {/* Main Header */}
-      <div className="bg-white border border-slate-200 rounded-lg p-6 sm:p-8 shadow-xs space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <EvidenceBadge level={deal.evidence_level} />
-          <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-700 uppercase">
-            {formatDealType(deal.deal_type)}
-          </span>
-          <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-700 uppercase">
-            Status: {deal.status}
-          </span>
+      {/* Main Term Sheet Dossier Header */}
+      <div className="border border-zinc-200 rounded-lg bg-white p-6 sm:p-8 space-y-6 shadow-xs">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 pb-4">
+          <div className="flex items-center gap-2 flex-wrap">
+            <EvidenceBadge level={deal.evidence_level} />
+            <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-zinc-100 text-zinc-700 uppercase font-medium">
+              {formatDealType(deal.deal_type)}
+            </span>
+            <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-zinc-100 text-zinc-700 uppercase font-medium">
+              STATUS: {deal.status}
+            </span>
+          </div>
+
+          <div className="text-[11px] font-mono text-zinc-400">
+            RECORD ID: <span className="text-zinc-600">{deal.id.slice(0, 8)}...</span>
+          </div>
         </div>
 
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
-          {deal.title}
-        </h1>
+        <div className="space-y-3">
+          <h1 className="text-2xl sm:text-4xl font-black text-zinc-950 tracking-tight leading-tight">
+            {deal.title}
+          </h1>
+          <p className="text-sm sm:text-base text-zinc-600 leading-relaxed max-w-4xl">
+            {deal.summary}
+          </p>
+        </div>
 
-        <p className="text-sm sm:text-base text-slate-700 leading-relaxed max-w-3xl">
-          {deal.summary}
-        </p>
+        {/* Amount & Capital Basis Callout Box */}
+        <div className="p-4 sm:p-5 bg-zinc-50 border border-zinc-200 rounded-lg grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-semibold">
+              Disclosed Amount
+            </div>
+            <div className="text-2xl sm:text-3xl font-extrabold font-mono text-zinc-950 tabular-nums mt-0.5">
+              {deal.amount_disclosed ? formatCurrency(deal.amount_value, deal.amount_currency) : 'Undisclosed'}
+            </div>
+            <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
+              {deal.amount_disclosed ? 'Documented figure' : 'Amount terms non-disclosed'}
+            </div>
+          </div>
 
-        {/* Confidence note */}
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-semibold">
+              Capital Basis
+            </div>
+            <div className="text-sm font-bold font-mono text-zinc-800 uppercase mt-1">
+              {deal.amount_basis ? deal.amount_basis.replace(/_/g, ' ') : 'N/A'}
+            </div>
+            <div className="text-[10px] text-zinc-400 font-mono mt-0.5">
+              {deal.amount_period || 'Standard term'}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-semibold">
+              Announcement Date
+            </div>
+            <div className="text-sm font-bold font-mono text-zinc-800 mt-1">
+              {deal.announcement_date || 'Undisclosed'}
+            </div>
+            <div className="text-[10px] text-zinc-400 font-mono mt-0.5">
+              Effective: {deal.effective_date || 'N/A'}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-semibold">
+              Jurisdiction / Grid
+            </div>
+            <div className="text-sm font-bold text-zinc-800 mt-1">
+              {deal.geography || 'Global'}
+            </div>
+            <div className="text-[10px] text-zinc-400 font-mono mt-0.5">
+              Maturity: {deal.maturity_date || 'N/A'}
+            </div>
+          </div>
+        </div>
+
+        {/* Verification & Editorial Note */}
         {deal.confidence_note && (
-          <div className="p-3 bg-slate-50 border-l-2 border-slate-400 text-xs text-slate-600 italic">
-            <strong>Verification Note:</strong> {deal.confidence_note}
+          <div className="p-3.5 bg-amber-500/10 border border-amber-600/20 rounded text-xs text-amber-900 flex items-start gap-2.5">
+            <Scale className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+            <div className="leading-relaxed">
+              <strong className="font-semibold font-mono text-[11px] block">AUDIT VERIFICATION NOTE:</strong>
+              {deal.confidence_note}
+            </div>
           </div>
         )}
       </div>
 
-      {/* Structured Terms Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Deal Terms */}
-        <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-xs space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-2">
-            Disclosed Terms & Amount
-          </h2>
-          <dl className="grid grid-cols-2 gap-y-3 text-xs">
-            <dt className="text-slate-500">Disclosed Amount</dt>
-            <dd className="font-semibold text-slate-900 font-mono">
-              {deal.amount_disclosed ? formatCurrency(deal.amount_value, deal.amount_currency) : 'Undisclosed'}
-            </dd>
+      {/* Two-Column Grid: Counterparties and Primary Citations */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Counterparty Structure */}
+        <div className="border border-zinc-200 rounded-lg bg-white p-6 space-y-4 shadow-xs">
+          <div className="flex items-center gap-2 border-b border-zinc-100 pb-3">
+            <Building2 className="w-4 h-4 text-zinc-500" />
+            <h2 className="text-xs font-mono uppercase tracking-wider text-zinc-950 font-bold">
+              Transaction Counterparties & Roles
+            </h2>
+          </div>
 
-            <dt className="text-slate-500">Amount Basis</dt>
-            <dd className="text-slate-800 font-mono">
-              {deal.amount_basis ? deal.amount_basis.replace(/_/g, ' ') : 'N/A'}
-            </dd>
-
-            <dt className="text-slate-500">Period / Term</dt>
-            <dd className="text-slate-800">
-              {deal.amount_period || 'N/A'}
-            </dd>
-
-            <dt className="text-slate-500">Geography</dt>
-            <dd className="text-slate-800">
-              {deal.geography || 'Global'}
-            </dd>
-          </dl>
-        </div>
-
-        {/* Chronology */}
-        <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-xs space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-2">
-            Timeline & Dates
-          </h2>
-          <dl className="grid grid-cols-2 gap-y-3 text-xs">
-            <dt className="text-slate-500">Announcement Date</dt>
-            <dd className="font-mono text-slate-800">{deal.announcement_date || 'Undisclosed'}</dd>
-
-            <dt className="text-slate-500">Effective Date</dt>
-            <dd className="font-mono text-slate-800">{deal.effective_date || 'Undisclosed'}</dd>
-
-            <dt className="text-slate-500">Maturity / Expiry</dt>
-            <dd className="font-mono text-slate-800">{deal.maturity_date || 'N/A'}</dd>
-
-            <dt className="text-slate-500">Last Reviewed</dt>
-            <dd className="font-mono text-slate-500">
-              {deal.last_reviewed_at ? new Date(deal.last_reviewed_at).toLocaleDateString() : 'Recent'}
-            </dd>
-          </dl>
-        </div>
-      </div>
-
-      {/* Counterparties & Roles */}
-      <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-xs space-y-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-2">
-          Participating Entities & Transaction Roles
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {deal.parties?.map((party) => (
-            <div key={party.id} className="p-4 border border-slate-200 rounded bg-slate-50/50 space-y-1">
-              <div className="flex items-center justify-between">
-                <Link
-                  href={`/companies/${party.company?.slug}`}
-                  className="font-bold text-slate-900 hover:text-brand-600 transition-colors text-sm"
-                >
-                  {party.company?.name}
-                </Link>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-200 text-slate-800 uppercase">
-                  {party.role}
-                </span>
+          <div className="space-y-3">
+            {deal.parties?.map((party) => (
+              <div
+                key={party.id}
+                className="p-4 border border-zinc-200 rounded-md bg-zinc-50/50 hover:bg-zinc-50 transition-colors flex flex-col justify-between"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <Link
+                    href={`/companies/${party.company?.slug}`}
+                    className="font-bold text-zinc-950 hover:text-blue-600 transition-colors text-sm"
+                  >
+                    {party.company?.name}
+                  </Link>
+                  <span className="font-mono text-[10px] uppercase font-semibold px-2 py-0.5 rounded bg-zinc-200 text-zinc-800">
+                    {party.role}
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-500 mt-1 leading-normal">
+                  {party.direction_note || 'Direct counterparty in disclosed agreement.'}
+                </p>
+                <div className="mt-2 text-[10px] font-mono text-zinc-400">
+                  Sector: {party.company?.company_type.replace(/_/g, ' ')}
+                  {party.company?.ticker && ` • Ticker: $${party.company.ticker}`}
+                </div>
               </div>
-              <p className="text-xs text-slate-500">{party.direction_note || 'Participant in transaction.'}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Sources & Citations */}
-      <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900">
-            Source Citations & Evidence
-          </h2>
-          <span className="text-xs text-slate-400 font-mono">
-            {deal.sources?.length || 0} cited document{(deal.sources?.length || 0) === 1 ? '' : 's'}
-          </span>
+            ))}
+          </div>
         </div>
 
-        <ul className="divide-y divide-slate-100 space-y-3">
-          {deal.sources?.map((ds, idx) => (
-            <li key={idx} className="pt-3 first:pt-0 space-y-1 text-xs">
-              <div className="flex items-baseline justify-between gap-4">
-                <a
-                  href={ds.source?.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-brand-600 hover:underline flex items-center gap-1"
-                >
-                  <span>{ds.source?.title || 'External Citation'}</span>
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-                <span className="text-slate-400 font-mono text-[11px] whitespace-nowrap">
-                  {ds.source?.published_date || 'Date unrecorded'}
-                </span>
-              </div>
-              <p className="text-slate-600">
-                <strong>Supporting claim:</strong> {ds.supporting_note}
-              </p>
-              <div className="text-[11px] text-slate-400 flex gap-2">
-                <span>Publisher: {ds.source?.publisher || 'Primary issuer'}</span>
-                <span>•</span>
-                <span className="uppercase font-mono">{ds.source?.source_type.replace('_', ' ')}</span>
-              </div>
-            </li>
-          ))}
-        </ul>
+        {/* Primary Citations & Statutory Filings */}
+        <div className="border border-zinc-200 rounded-lg bg-white p-6 space-y-4 shadow-xs">
+          <div className="flex items-center gap-2 border-b border-zinc-100 pb-3">
+            <FileCheck2 className="w-4 h-4 text-zinc-500" />
+            <h2 className="text-xs font-mono uppercase tracking-wider text-zinc-950 font-bold">
+              Primary Statutory Citations ({deal.sources?.length || 0})
+            </h2>
+          </div>
+
+          <ul className="divide-y divide-zinc-100 space-y-3">
+            {deal.sources?.map((ds, idx) => (
+              <li key={idx} className="pt-3 first:pt-0 space-y-1.5 text-xs">
+                <div className="flex items-baseline justify-between gap-4">
+                  <a
+                    href={ds.source?.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold text-blue-600 hover:underline flex items-center gap-1 leading-snug"
+                  >
+                    <span>{ds.source?.title || 'Document Link'}</span>
+                    <ExternalLink className="w-3 h-3 shrink-0" />
+                  </a>
+                  <span className="text-zinc-400 font-mono text-[10px] whitespace-nowrap">
+                    {ds.source?.published_date || 'Date unrecorded'}
+                  </span>
+                </div>
+                <p className="text-zinc-600 leading-normal text-xs">
+                  <span className="font-semibold text-zinc-900">Documented claim:</span> {ds.supporting_note}
+                </p>
+                <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-400">
+                  <span>Publisher: {ds.source?.publisher || 'Official issuer'}</span>
+                  <span>•</span>
+                  <span className="uppercase">{ds.source?.source_type.replace(/_/g, ' ')}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );

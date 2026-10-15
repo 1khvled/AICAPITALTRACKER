@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { DiscoveryCandidate } from '../../../lib/types';
+import { ShieldAlert, ExternalLink, CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,30 +39,27 @@ export default async function AdminDiscoveryPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
       {/* Breadcrumb & Header */}
       <div>
-        <nav className="text-xs text-slate-500 flex items-center space-x-2 mb-2">
-          <Link href="/admin" className="hover:underline">Admin</Link>
+        <nav className="text-xs text-zinc-500 font-mono flex items-center space-x-2 mb-2">
+          <Link href="/admin" className="hover:underline">ADMIN</Link>
           <span>/</span>
-          <span className="text-slate-800 font-medium">Discovery Monitor</span>
+          <span className="text-zinc-800 font-medium">DISCOVERY QUEUE</span>
         </nav>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-              Source Discovery & Lead Queue
-            </h1>
-            <p className="text-xs text-slate-500 mt-1">
-              Polite monitor inspecting public regulatory endpoints and research sites for candidate transactions.
-            </p>
-          </div>
+        <div className="border-b border-zinc-200 pb-4">
+          <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 tracking-tight">
+            Discovery Monitor & Lead Quarantine Queue
+          </h1>
+          <p className="text-xs text-zinc-500 mt-1">
+            Polite monitor inspecting public regulatory endpoints and research sites for candidate transactions.
+          </p>
         </div>
       </div>
 
       {/* Mandatory Editorial Integrity Warning Banner */}
-      <div className="p-4 bg-amber-50 border border-amber-300 rounded-lg flex items-start gap-3">
-        <svg className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
+      <div className="p-4 bg-amber-500/10 border border-amber-600/30 rounded-lg flex items-start gap-3">
+        <ShieldAlert className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
         <div className="text-xs text-amber-900 leading-relaxed">
-          <strong className="font-bold">Strict Editorial Rule:</strong> Discovery candidates are research leads only and are{' '}
+          <strong className="font-mono font-bold block text-[11px]">QUARANTINE ENFORCEMENT:</strong>
+          Discovery candidates are research leads only and are{' '}
           <strong>never published automatically</strong>. You cannot publish a candidate to the public site without independently verifying the original SEC filing or primary corporate disclosure. Competitor sites must never serve as the sole citation.
         </div>
       </div>
@@ -71,11 +69,11 @@ export default async function AdminDiscoveryPage() {
         {INITIAL_DISCOVERY_CANDIDATES.map((candidate) => (
           <div
             key={candidate.id}
-            className="p-6 bg-white border border-slate-200 rounded-lg shadow-xs space-y-3"
+            className="p-6 bg-white border border-zinc-200 rounded-lg shadow-xs space-y-4"
           >
-            <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-100 pb-3">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-zinc-100 text-zinc-700 font-medium">
                   {candidate.source_site}
                 </span>
                 <span className={`text-[10px] font-mono px-2 py-0.5 rounded uppercase font-semibold ${
@@ -86,19 +84,21 @@ export default async function AdminDiscoveryPage() {
                   {candidate.review_status.replace(/_/g, ' ')}
                 </span>
               </div>
-              <span className="text-[11px] font-mono text-slate-400">
+              <span className="text-[11px] font-mono text-zinc-400">
                 Discovered: {new Date(candidate.discovered_at).toLocaleString()}
               </span>
             </div>
 
-            <h2 className="text-base font-bold text-slate-900">{candidate.page_title}</h2>
-            <p className="text-xs text-slate-600 leading-relaxed">{candidate.candidate_summary}</p>
+            <div className="space-y-1">
+              <h2 className="text-base font-bold text-zinc-950">{candidate.page_title}</h2>
+              <p className="text-xs text-zinc-600 leading-relaxed">{candidate.candidate_summary}</p>
+            </div>
 
             {/* Candidate Entities Detected */}
             <div className="flex flex-wrap gap-1.5 items-center text-xs">
-              <span className="text-slate-500 font-semibold text-[11px]">Entities Detected:</span>
+              <span className="text-zinc-500 font-mono text-[11px] font-semibold">Entities Detected:</span>
               {candidate.candidate_company_names.map((name, i) => (
-                <span key={i} className="px-2 py-0.5 rounded bg-slate-100 font-medium text-slate-800 text-[11px]">
+                <span key={i} className="px-2 py-0.5 rounded bg-zinc-100 font-mono text-zinc-800 text-[11px]">
                   {name}
                 </span>
               ))}
@@ -106,21 +106,19 @@ export default async function AdminDiscoveryPage() {
 
             {/* Outbound primary sources found on the page */}
             {candidate.outbound_source_urls.length > 0 && (
-              <div className="pt-2 border-t border-slate-100 text-xs space-y-1">
-                <span className="text-slate-500 font-semibold text-[11px]">Outbound Source Links Detected:</span>
-                <ul className="space-y-0.5">
+              <div className="pt-2 border-t border-zinc-100 text-xs space-y-1">
+                <span className="text-zinc-500 font-mono text-[11px] font-semibold">Outbound Document Links Detected:</span>
+                <ul className="space-y-1">
                   {candidate.outbound_source_urls.map((url, i) => (
                     <li key={i}>
                       <a
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-brand-600 hover:underline font-mono text-[11px] break-all inline-flex items-center gap-1"
+                        className="text-blue-600 hover:underline font-mono text-[11px] break-all inline-flex items-center gap-1"
                       >
                         <span>{url}</span>
-                        <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
+                        <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                       </a>
                     </li>
                   ))}
@@ -129,17 +127,18 @@ export default async function AdminDiscoveryPage() {
             )}
 
             {/* Action buttons */}
-            <div className="pt-3 border-t border-slate-100 flex flex-wrap gap-2 items-center justify-between">
+            <div className="pt-3 border-t border-zinc-100 flex flex-wrap gap-2 items-center justify-between">
               <div className="flex gap-2">
                 <Link
                   href={`/admin/deals/new`}
-                  className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs rounded transition-colors"
+                  className="px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white font-mono text-xs uppercase tracking-wider font-semibold rounded transition-colors inline-flex items-center gap-1.5"
                 >
-                  Verify & Create Deal &rarr;
+                  <span>Verify & Create Deal</span>
+                  <ArrowRight className="w-3 h-3" />
                 </Link>
                 <button
                   type="button"
-                  className="px-3 py-1.5 border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium text-xs rounded transition-colors"
+                  className="px-3 py-1.5 border border-zinc-300 text-zinc-700 hover:bg-zinc-50 font-mono text-xs uppercase tracking-wider rounded transition-colors"
                 >
                   Mark Under Review
                 </button>
@@ -147,7 +146,7 @@ export default async function AdminDiscoveryPage() {
 
               <button
                 type="button"
-                className="text-xs text-rose-600 hover:underline font-medium"
+                className="font-mono text-xs text-rose-600 hover:underline font-semibold"
               >
                 Reject Lead
               </button>

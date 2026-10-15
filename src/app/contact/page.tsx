@@ -1,6 +1,7 @@
 import React from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { Mail, MessageSquare, ArrowRight } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Contact Editorial Desk — AI Capital Tracker',
@@ -9,31 +10,55 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-6">
-      <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Contact the Editorial Desk</h1>
-      <p className="text-sm text-slate-700 leading-relaxed">
-        Have questions about our data, want to report an official SEC filing or company announcement, or have inquiries regarding our research methodology? Reach out directly.
-      </p>
-
-      <div className="bg-white border border-slate-200 rounded-lg p-6 space-y-4">
-        <div>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">General Editorial Inquiries</h2>
-          <p className="text-sm font-mono text-slate-900 mt-0.5">contact@aicapitaltracker.com</p>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
+      <div className="border-b border-zinc-200 pb-5">
+        <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-bold">
+          <MessageSquare className="w-3.5 h-3.5 text-zinc-400" />
+          <span>EDITORIAL CONTACT</span>
         </div>
+        <h1 className="text-3xl sm:text-4xl font-black text-zinc-950 tracking-tight mt-1">
+          Contact the Research Desk
+        </h1>
+        <p className="text-sm text-zinc-500 mt-2">
+          Connect with our analysts, report official SEC filings or company announcements, or suggest new data sources.
+        </p>
+      </div>
 
-        <div>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Corrections & Dispute Verification</h2>
-          <p className="text-sm font-mono text-slate-900 mt-0.5">editorial@aicapitaltracker.com</p>
-          <div className="mt-1">
-            <Link href="/corrections" className="text-xs text-brand-600 hover:underline">
-              Review Corrections Policy &rarr;
-            </Link>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="p-6 bg-white border border-zinc-200 rounded-lg space-y-2">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-bold">
+            General Inquiries
           </div>
+          <div className="text-sm font-mono font-bold text-zinc-950">
+            contact@aicapitaltracker.com
+          </div>
+          <p className="text-xs text-zinc-500">
+            Platform inquiries, data methodology questions, and general feedback.
+          </p>
         </div>
 
-        <div>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Press & Research Access</h2>
-          <p className="text-sm font-mono text-slate-900 mt-0.5">press@aicapitaltracker.com</p>
+        <div className="p-6 bg-white border border-zinc-200 rounded-lg space-y-2">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-bold">
+            Editorial & Audit
+          </div>
+          <div className="text-sm font-mono font-bold text-zinc-950">
+            editorial@aicapitaltracker.com
+          </div>
+          <p className="text-xs text-zinc-500">
+            Submit statutory filings, amendments, or factual corrections.
+          </p>
+        </div>
+
+        <div className="p-6 bg-white border border-zinc-200 rounded-lg space-y-2">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-bold">
+            Press & Citations
+          </div>
+          <div className="text-sm font-mono font-bold text-zinc-950">
+            press@aicapitaltracker.com
+          </div>
+          <p className="text-xs text-zinc-500">
+            Academic, journalistic, and institutional research requests.
+          </p>
         </div>
       </div>
     </div>

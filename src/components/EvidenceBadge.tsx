@@ -4,67 +4,76 @@ import { EvidenceLevel } from '../lib/types';
 interface EvidenceBadgeProps {
   level: EvidenceLevel;
   className?: string;
+  size?: 'sm' | 'default';
 }
 
-export function EvidenceBadge({ level, className = '' }: EvidenceBadgeProps) {
+export function EvidenceBadge({ level, className = '', size = 'default' }: EvidenceBadgeProps) {
+  const isSm = size === 'sm';
+  const py = isSm ? 'py-0.5' : 'py-1';
+  const px = isSm ? 'px-2' : 'px-2.5';
+  const textSize = isSm ? 'text-[10px]' : 'text-[11px]';
+
   switch (level) {
     case 'confirmed_primary':
       return (
         <span
-          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800 ${className}`}
-          title="Verified against official primary documents (SEC Form 10-K/10-Q/8-K or official company IR release)"
+          className={`inline-flex items-center gap-1.5 ${px} ${py} rounded border font-mono ${textSize} font-medium tracking-tight bg-emerald-500/10 text-emerald-800 border-emerald-600/25 ${className}`}
+          title="PRIMARY AUDIT: Sourced directly from statutory regulatory filings (SEC 10-K, 10-Q, 8-K) or official company investor releases."
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5" />
-          Confirmed Primary
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-600"></span>
+          </span>
+          Primary Filing
         </span>
       );
     case 'reported_secondary':
       return (
         <span
-          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-800 border border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800 ${className}`}
-          title="Reported by verified reputable financial press (Reuters, Bloomberg, FT, etc.)"
+          className={`inline-flex items-center gap-1.5 ${px} ${py} rounded border font-mono ${textSize} font-medium tracking-tight bg-sky-500/10 text-sky-800 border-sky-600/25 ${className}`}
+          title="SECONDARY REPORT: Corroborated by tier-1 financial journalism (Reuters, Bloomberg, FT) citing term sheets or participating syndicate lenders."
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5" />
-          Reported Secondary
+          <span className="h-1.5 w-1.5 rounded-full bg-sky-600" />
+          Secondary Report
         </span>
       );
     case 'announced_not_completed':
       return (
         <span
-          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800 ${className}`}
-          title="Announced commitment or proposal not yet finalized or closed"
+          className={`inline-flex items-center gap-1.5 ${px} ${py} rounded border font-mono ${textSize} font-medium tracking-tight bg-amber-500/10 text-amber-900 border-amber-600/25 ${className}`}
+          title="PENDING / ANNOUNCED: Publicly announced commitment or non-binding framework; closing conditions or final funding tranches pending."
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5" />
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
           Announced (Pending)
         </span>
       );
     case 'estimated':
       return (
         <span
-          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-800 border border-purple-200 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800 ${className}`}
-          title="Analyst or industry estimate; not confirmed by parties"
+          className={`inline-flex items-center gap-1.5 ${px} ${py} rounded border font-mono ${textSize} font-medium tracking-tight bg-purple-500/10 text-purple-900 border-purple-600/25 ${className}`}
+          title="ANALYST ESTIMATE: Independent benchmark valuation or calculated estimate; not officially confirmed by counterparties."
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mr-1.5" />
+          <span className="h-1.5 w-1.5 rounded-full bg-purple-500" />
           Estimated
         </span>
       );
     case 'disputed':
       return (
         <span
-          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-800 border border-rose-200 dark:bg-rose-950/50 dark:text-rose-300 dark:border-rose-800 ${className}`}
-          title="Disputed or conflicting reports among parties"
+          className={`inline-flex items-center gap-1.5 ${px} ${py} rounded border font-mono ${textSize} font-medium tracking-tight bg-rose-500/10 text-rose-900 border-rose-600/25 ${className}`}
+          title="DISPUTED: Counterparties offer conflicting accounts or terms are legally contested."
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5" />
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-600" />
           Disputed
         </span>
       );
     case 'superseded':
       return (
         <span
-          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 border border-gray-300 dark:bg-gray-800 dark:text-gray-300 ${className}`}
-          title="Superseded or amended by newer transaction"
+          className={`inline-flex items-center gap-1.5 ${px} ${py} rounded border font-mono ${textSize} font-medium tracking-tight bg-zinc-100 text-zinc-700 border-zinc-300 ${className}`}
+          title="SUPERSEDED: Replaced or amended by a subsequent debt extension or financing restructuring."
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-1.5" />
+          <span className="h-1.5 w-1.5 rounded-full bg-zinc-400" />
           Superseded
         </span>
       );
