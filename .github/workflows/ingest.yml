@@ -1,0 +1,47 @@
+name: Daily AI Capital Ingestion & Crawler Pipeline
+
+on:
+  schedule:
+    # Run twice daily at 06:00 and 18:00 UTC
+    - cron: '0 6,18 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions UI
+
+permissions:
+  contents: write
+
+jobs:
+  ingest:
+    name: Run SEC EDGAR & IR Ingestion
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Automated Ingestion Crawler
+        env:
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || 'AICapitalTracker/1.0 (contact@aicapitaltracker.com)' }}
+        run: npx tsx scripts/ingest.ts
+
+      - name: Run Test Suite
+        run: npm test
+
+      - name: Commit & Push Updated Discovered Filings
+        run: |
+          git config --local user.email "bot@aicapitaltracker.com"
+          git config --local user.name "AICapitalTracker Ingestion Bot"
+          if [ -f data/discovery_queue.json ]; then
+            git add data/discovery_queue.json
+            git diff --staged --quiet || (git commit -m "chore(data): auto-update SEC EDGAR discovery filings [skip ci]" && git push)
+          fi
