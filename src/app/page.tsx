@@ -1,7 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { DataRepository } from '../lib/data/db';
-import { DealTable, formatCurrency } from '../components/DealTable';
+import { DealTable } from '../components/DealTable';
+import { formatCurrency } from '../lib/formatters';
 import {
   ArrowRight,
   ShieldCheck,

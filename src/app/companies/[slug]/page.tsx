@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { DataRepository } from '../../../lib/data/db';
-import { DealTable, formatCurrency } from '../../../components/DealTable';
+import { DealTable } from '../../../components/DealTable';
+import { formatCurrency } from '../../../lib/formatters';
 import { EvidenceBadge } from '../../../components/EvidenceBadge';
 import {
   Building2,

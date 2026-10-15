@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { DataRepository } from '../../../lib/data/db';
 import { EvidenceBadge } from '../../../components/EvidenceBadge';
-import { formatCurrency, formatDealType } from '../../../components/DealTable';
+import { formatCurrency, formatDealType } from '../../../lib/formatters';
 import {
   ArrowRight,
   ExternalLink,

@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { DataRepository } from '../../../lib/data/db';
 import { EvidenceBadge } from '../../../components/EvidenceBadge';
-import { formatCurrency, formatDealType } from '../../../components/DealTable';
+import { formatCurrency, formatDealType } from '../../../lib/formatters';
 import { Plus, Database, ExternalLink } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';

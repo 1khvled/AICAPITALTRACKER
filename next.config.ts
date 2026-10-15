@@ -3,7 +3,14 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+  },
   headers: async () => {
+    // Only apply restrictive frame headers in production so development overlay & tools are unaffected
+    if (process.env.NODE_ENV !== 'production') {
+      return [];
+    }
     return [
       {
         source: "/(.*)",
@@ -17,16 +24,8 @@ const nextConfig: NextConfig = {
             value: "DENY",
           },
           {
-            key: "X-XSS-Protection",
-            value: "1; mode=block",
-          },
-          {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
-          },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
           },
         ],
       },
