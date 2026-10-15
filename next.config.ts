@@ -3,9 +3,6 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  experimental: {
-    optimizePackageImports: ['lucide-react'],
-  },
   headers: async () => {
     // Only apply restrictive frame headers in production so development overlay & tools are unaffected
     if (process.env.NODE_ENV !== 'production') {
