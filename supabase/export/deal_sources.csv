@@ -15,6 +15,8 @@ deal_id,source_id,supporting_note,is_primary_support
 20000000-0000-0000-0000-000000000103,10000000-0000-0000-0000-000000000135,Independent report confirming the $10B Berkshire / $30B underwritten / $40B open-market structure.,false
 20000000-0000-0000-0000-000000000139,10000000-0000-0000-0000-000000000196,"Official Anthropic Series H announcement with leads, co-leads, and the Amazon inclusion.",true
 20000000-0000-0000-0000-000000000138,10000000-0000-0000-0000-000000000195,Official Anduril announcement of the $5B Series H at $61B led by Thrive Capital and Andreessen Horowitz.,true
+20000000-0000-0000-0000-000000000146,10000000-0000-0000-0000-000000000207,"CoreWeave 8-K disclosing the March 31, 2026 order form and the ~$21B initial commitment through December 20, 2032.",true
+20000000-0000-0000-0000-000000000146,10000000-0000-0000-0000-000000000208,Reuters confirmation that the $21B deal is incremental to the September 2025 $14.2B agreement.,false
 20000000-0000-0000-0000-000000000136,10000000-0000-0000-0000-000000000192,Official OpenAI release: closed with $122B committed capital at $852B post-money; anchors and co-leads named.,true
 20000000-0000-0000-0000-000000000136,10000000-0000-0000-0000-000000000193,"CNBC confirmation of the closed $122B round, growth from the $110B February announcement, and investor pool details.",false
 20000000-0000-0000-0000-000000000026,10000000-0000-0000-0000-000000000027,CoreWeave SEC Form 8-K documenting DDTL 4.0 credit agreement.,true
@@ -50,6 +52,8 @@ deal_id,source_id,supporting_note,is_primary_support
 20000000-0000-0000-0000-000000000096,10000000-0000-0000-0000-000000000120,Reuters account of the record $30B sale funding AI infrastructure expansion.,false
 20000000-0000-0000-0000-000000000112,10000000-0000-0000-0000-000000000152,Microsoft blog stating the incremental $250B contracted Azure purchase.,true
 20000000-0000-0000-0000-000000000112,10000000-0000-0000-0000-000000000153,OpenAI blog co-announcement of the definitive next-phase agreement.,false
+20000000-0000-0000-0000-000000000148,10000000-0000-0000-0000-000000000213,"Anthropic announcement of up to 1M TPUs and the ""tens of billions of dollars"" expansion.",true
+20000000-0000-0000-0000-000000000148,10000000-0000-0000-0000-000000000214,Google Cloud release confirming the up-to-1M-TPU expansion and 2026 capacity timeline.,true
 20000000-0000-0000-0000-000000000031,10000000-0000-0000-0000-000000000031,NextEra Energy press release on 25-year Duane Arnold restart agreement with Google.,true
 20000000-0000-0000-0000-000000000070,10000000-0000-0000-0000-000000000076,Official Meta announcement closing the ~$27B Hyperion joint venture.,true
 20000000-0000-0000-0000-000000000070,10000000-0000-0000-0000-000000000077,Reuters early reporting of the $29B Hyperion financing structure.,false
@@ -63,10 +67,16 @@ deal_id,source_id,supporting_note,is_primary_support
 20000000-0000-0000-0000-000000000082,10000000-0000-0000-0000-000000000113,"CNBC confirmation of $1.1B round led by Aker with Nvidia, Nokia, and Dell backing.",false
 20000000-0000-0000-0000-000000000117,10000000-0000-0000-0000-000000000161,"SEC-filed press release: $1.4B Google backstop, ~5.4% pro forma warrants, 168 MW lease, ~$3.0B contracted revenue.",true
 20000000-0000-0000-0000-000000000117,10000000-0000-0000-0000-000000000162,"SEC-filed expansion release: +$333M backstop to $1.73B total, full 300 MW leased, ~$3.8B partnership contracted revenue.",false
+20000000-0000-0000-0000-000000000147,10000000-0000-0000-0000-000000000209,"CoreWeave 8-K disclosing the September 23, 2025 order form and the up-to-$6.5B commitment through May 31, 2031.",true
+20000000-0000-0000-0000-000000000147,10000000-0000-0000-0000-000000000210,"CoreWeave release stating the $6.5B contract value, the May 2025 $4B expansion, and the ~$22.4B cumulative total.",true
+20000000-0000-0000-0000-000000000147,10000000-0000-0000-0000-000000000211,Reuters exclusive confirming the $6.5B expansion and ~$22.4B total.,false
+20000000-0000-0000-0000-000000000147,10000000-0000-0000-0000-000000000212,"Reuters report on the May 2025 up-to-$4B add-on through April 2029, referenced for expansion context.",false
 20000000-0000-0000-0000-000000000095,10000000-0000-0000-0000-000000000118,"SEC 424(b)(2) prospectus supplement confirming $18B tranches, settlement, use of proceeds, and J.P. Morgan bookrunner role.",true
 20000000-0000-0000-0000-000000000095,10000000-0000-0000-0000-000000000119,Reuters account of the $18B raise to fund cloud infrastructure for AI demand.,false
 20000000-0000-0000-0000-000000000075,10000000-0000-0000-0000-000000000086,Joint LOI announcement of 10 GW deployment and up-to-$100B investment plan.,true
 20000000-0000-0000-0000-000000000075,10000000-0000-0000-0000-000000000087,Later reporting that the $100B plan stalled with no definitive agreement.,false
+20000000-0000-0000-0000-000000000149,10000000-0000-0000-0000-000000000216,CNBC report of Oracle’s on-record confirmation that Meta is one of four customers in $65B of new cloud commitments.,true
+20000000-0000-0000-0000-000000000149,10000000-0000-0000-0000-000000000215,Reuters/Bloomberg reporting of the ~$20B multi-year deal value per people familiar.,false
 20000000-0000-0000-0000-000000000107,10000000-0000-0000-0000-000000000142,NVIDIA press release announcing the $5B investment at $23.28/share and the product collaboration.,true
 20000000-0000-0000-0000-000000000107,10000000-0000-0000-0000-000000000143,"Intel Form 10-K confirming the September 15, 2025 agreement and December 26, 2025 completion.",true
 20000000-0000-0000-0000-000000000107,10000000-0000-0000-0000-000000000144,Reuters independent reporting of the $5B stake and price per share.,false

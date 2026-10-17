@@ -17,6 +17,8 @@ p-raise2-139-1,20000000-0000-0000-0000-000000000139,00000000-0000-0000-0000-0000
 p-raise2-139-2,20000000-0000-0000-0000-000000000139,00000000-0000-0000-0000-000000000005,investor,$5B of its April 2026 commitment included in the round's $15B of previously committed hyperscaler investments
 p-raise2-138-1,20000000-0000-0000-0000-000000000138,00000000-0000-0000-0000-000000000099,investee,"Raised $5B Series H at $61B valuation for manufacturing, R&D and defense systems at scale"
 p-raise2-138-2,20000000-0000-0000-0000-000000000138,00000000-0000-0000-0000-000000000063,investor,Co-lead investor alongside Thrive Capital
+p-cwm21b-1,20000000-0000-0000-0000-000000000146,00000000-0000-0000-0000-000000000017,customer,"Initially committed ~$21B for dedicated AI cloud capacity through December 2032, scaling inference workloads"
+p-cwm21b-2,20000000-0000-0000-0000-000000000146,00000000-0000-0000-0000-000000000002,cloud_provider,Provides dedicated multi-site AI cloud capacity including initial NVIDIA Vera Rubin deployments under the 2023 MSA
 p-raise2-136-1,20000000-0000-0000-0000-000000000136,00000000-0000-0000-0000-000000000004,investee,"Closed $122B committed capital at $852B post-money for compute, data centers and talent ahead of a planned IPO"
 p-raise2-136-2,20000000-0000-0000-0000-000000000136,00000000-0000-0000-0000-000000000030,investor,Co-lead investor committing $30B alongside Amazon ($50B) and NVIDIA ($30B)
 p-cw-ddtl-1,20000000-0000-0000-0000-000000000026,00000000-0000-0000-0000-000000000002,borrower,Borrower securing $8.5B capacity to finance global Blackwell and H200 fleet operations
@@ -56,6 +58,8 @@ p-sweep-bigtech-096-1,20000000-0000-0000-0000-000000000096,00000000-0000-0000-00
 p-sweep-bigtech-096-2,20000000-0000-0000-0000-000000000096,00000000-0000-0000-0000-000000000036,lender,Joint book-running manager of the $30B senior notes offering
 p-250b-1,20000000-0000-0000-0000-000000000112,00000000-0000-0000-0000-000000000004,customer,Contracts an incremental $250B of Azure services under the next-phase agreement
 p-250b-2,20000000-0000-0000-0000-000000000112,00000000-0000-0000-0000-000000000003,cloud_provider,Remains primary cloud provider with the $250B purchase commitment; right of first refusal dropped
+p-agtpu-1,20000000-0000-0000-0000-000000000148,00000000-0000-0000-0000-000000000006,customer,Expands Google Cloud usage to up to 1M TPUs and well over 1 GW online in 2026 to train and serve Claude
+p-agtpu-2,20000000-0000-0000-0000-000000000148,00000000-0000-0000-0000-000000000016,cloud_provider,Supplies TPU capacity and Google Cloud services described as worth tens of billions of dollars
 p-nee-goog-1,20000000-0000-0000-0000-000000000031,00000000-0000-0000-0000-000000000039,utility,Plant operator recommissioning 615 MW nuclear reactor for targeted 2029 energization
 p-nee-goog-2,20000000-0000-0000-0000-000000000031,00000000-0000-0000-0000-000000000016,customer,Hyperscale offtaker contracting 100% of restarted nuclear output under 25-year agreement
 p70a,20000000-0000-0000-0000-000000000070,00000000-0000-0000-0000-000000000017,project_owner,Meta developing the Hyperion AI supercluster campus in Louisiana
@@ -76,10 +80,14 @@ p-dd2-082-1,20000000-0000-0000-0000-000000000082,00000000-0000-0000-0000-0000000
 p-dd2-082-2,20000000-0000-0000-0000-000000000082,00000000-0000-0000-0000-000000000075,investor,Leads round with $285M cash-plus-Narvik-assets commitment for 9.3% stake
 p-bk-117-1,20000000-0000-0000-0000-000000000117,00000000-0000-0000-0000-000000000016,investor,"Google LLC backstops $1.4B of Fluidstack’s lease obligations (expanded by $333M to $1.73B on Nov 20, 2025) and receives Cipher warrants as consideration"
 p-bk-117-2,20000000-0000-0000-0000-000000000117,00000000-0000-0000-0000-000000000084,investee,"Site host issuing Google warrants for 24,178,576 shares (~5.4% pro forma) and leasing 168 MW (later the full 300 MW) at Barber Lake to Fluidstack"
+p-cwo65b-1,20000000-0000-0000-0000-000000000147,00000000-0000-0000-0000-000000000004,customer,"Committed up to ~$6.5B through May 31, 2031 for capacity to train next-generation models"
+p-cwo65b-2,20000000-0000-0000-0000-000000000147,00000000-0000-0000-0000-000000000002,cloud_provider,"Supplies reserved cloud computing capacity under the May 2025 MSA, diversifying CoreWeave revenue beyond Microsoft"
 p-sweep-bigtech-095-1,20000000-0000-0000-0000-000000000095,00000000-0000-0000-0000-000000000007,borrower,Issuer raising debt capacity for cloud infrastructure and AI capex
 p-sweep-bigtech-095-2,20000000-0000-0000-0000-000000000095,00000000-0000-0000-0000-000000000035,lender,Joint book-running manager of the $18B senior notes offering
 p-nv100-1,20000000-0000-0000-0000-000000000075,00000000-0000-0000-0000-000000000001,investor,Intends progressive up-to-$100B investment tied to gigawatt deployment milestones
 p-nv100-2,20000000-0000-0000-0000-000000000075,00000000-0000-0000-0000-000000000004,investee,Builds and deploys at least 10 GW of NVIDIA-system data centers
+p-mo20b-1,20000000-0000-0000-0000-000000000149,00000000-0000-0000-0000-000000000017,customer,Buys reported ~$20B of multi-year OCI capacity for AI training and deployment beyond its existing cloud providers
+p-mo20b-2,20000000-0000-0000-0000-000000000149,00000000-0000-0000-0000-000000000007,cloud_provider,Confirmed Meta as one of four customers in $65B of new OCI commitments; supplies AI training/deployment capacity
 p-st-107-1,20000000-0000-0000-0000-000000000107,00000000-0000-0000-0000-000000000081,investee,Issuer of ~214.8M new common shares to NVIDIA at $23.28/share alongside x86/NVLink product collaboration
 p-st-107-2,20000000-0000-0000-0000-000000000107,00000000-0000-0000-0000-000000000001,investor,Purchased $5.0B of newly issued Intel common stock to cement x86-NVIDIA product collaboration
 p-nvda2-enf-1,20000000-0000-0000-0000-000000000131,00000000-0000-0000-0000-000000000001,counterparty,Pays the reported >$900M cash-and-stock package; licenses the networking technology and hires CEO Rochan Sankar plus staff

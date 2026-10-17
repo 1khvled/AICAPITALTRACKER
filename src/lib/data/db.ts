@@ -102,6 +102,12 @@ import {
   EXTRA_DEALS as SWEEP_MA3_DEALS,
   EXTRA_RELATIONSHIPS as SWEEP_MA3_RELS,
 } from './sweep-ma3';
+import {
+  EXTRA_COMPANIES as SWEEP_CLOUD3_COMPANIES,
+  EXTRA_SOURCES as SWEEP_CLOUD3_SOURCES,
+  EXTRA_DEALS as SWEEP_CLOUD3_DEALS,
+  EXTRA_RELATIONSHIPS as SWEEP_CLOUD3_RELS,
+} from './sweep-cloud3';
 
 // ---------------------------------------------------------------------------
 // Unified verified store: base dataset plus independently-verified sweep
@@ -127,6 +133,7 @@ const ALL_COMPANIES: Company[] = [
   ...SWEEP_NVDA2_COMPANIES,
   ...SWEEP_RAISES2_COMPANIES,
   ...SWEEP_MA3_COMPANIES,
+  ...SWEEP_CLOUD3_COMPANIES,
 ];
 
 const ALL_SOURCES: Source[] = [
@@ -147,6 +154,7 @@ const ALL_SOURCES: Source[] = [
   ...SWEEP_NVDA2_SOURCES,
   ...SWEEP_RAISES2_SOURCES,
   ...SWEEP_MA3_SOURCES,
+  ...SWEEP_CLOUD3_SOURCES,
 ];
 
 const ALL_DEALS: Deal[] = [
@@ -167,6 +175,7 @@ const ALL_DEALS: Deal[] = [
   ...SWEEP_NVDA2_DEALS,
   ...SWEEP_RAISES2_DEALS,
   ...SWEEP_MA3_DEALS,
+  ...SWEEP_CLOUD3_DEALS,
 ];
 
 const ALL_RELATIONSHIPS: Relationship[] = [
@@ -187,6 +196,7 @@ const ALL_RELATIONSHIPS: Relationship[] = [
   ...SWEEP_NVDA2_RELS,
   ...SWEEP_RAISES2_RELS,
   ...SWEEP_MA3_RELS,
+  ...SWEEP_CLOUD3_RELS,
 ];
 
 export interface DealFilterParams {
