@@ -9,7 +9,7 @@ import { BarChart3, ArrowRight, ShieldCheck, Terminal } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'Capital Flow Visualizations — Bubbles, Circular Loops & Sector Bars',
   description:
-    'Zero-estimate visual analysis of verified AI infrastructure deals: bubble chart of deal sizes, circular financing detector, and disclosed-dollar breakdowns by type and sector.',
+    'Zero-estimate visual analysis of verified AI infrastructure deals: bubble chart of deal sizes, circular financing detector, disclosed-dollar breakdowns by type and sector, and quarterly deal flow — all filterable in place.',
   alternates: { canonical: '/visualize' },
 };
 
@@ -53,7 +53,7 @@ export default async function VisualizePage({ searchParams }: VisualizePageProps
                 </span>
               </h1>
               <p className="mt-3 max-w-2xl text-xs leading-relaxed text-zinc-400 sm:text-sm">
-                Three zero-estimate views over the same verified ledger you can audit in the{' '}
+                Interactive, zero-estimate views over the same verified ledger you can audit in the{' '}
                 <Link href="/deals" className="font-semibold text-emerald-300 hover:text-emerald-200 hover:underline">
                   deal ledger &rarr;
                 </Link>
@@ -86,7 +86,10 @@ export default async function VisualizePage({ searchParams }: VisualizePageProps
           <div className="mt-6 flex flex-wrap items-center gap-2">
             <span className="pill pill-terminal">
               <Terminal aria-hidden="true" className="h-3 w-3 text-emerald-400" />
-              01 Scale &middot; 02 Circularity &middot; 03 Composition
+              00 Overview &middot; 01 Scale &middot; 02 Circularity &middot; 03 Composition &middot; 04 Timeline
+            </span>
+            <span className="pill pill-terminal-mint">
+              Hover, Tab and click any chart &mdash; every view filters in place
             </span>
             <Link
               href="/deals"
@@ -131,6 +134,12 @@ export default async function VisualizePage({ searchParams }: VisualizePageProps
               evidence standards
             </Link>
             .
+          </p>
+          <p className="relative mt-2 text-zinc-400">
+            Interaction never changes the arithmetic: filters are applied in the browser to the same published
+            dataset, so every view below shows exactly the rows the filters admit. Hover or keyboard-focus a
+            point to read its value; where a highlight is shown, the underlying figure is also printed in the
+            live readout beneath the graphic. No estimates, no interpolation, no imputed amounts.
           </p>
         </section>
       </div>

@@ -286,7 +286,8 @@ export default async function CompanyProfilePage({ params }: CompanyPageProps) {
               <Sparkline
                 points={quarterPoints}
                 labels={quarterKeys}
-                format={(v) => formatCurrency(v)}
+                currency="USD"
+                unit="disclosed capital"
               />
             </div>
           </div>

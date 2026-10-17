@@ -693,6 +693,220 @@ p {
 }
 
 /* ==========================================================================
+   CHART INTERACTION — one hover / focus / tooltip language for every chart
+   --------------------------------------------------------------------------
+   Every interactive chart in the product is built from these primitives so a
+   node in the circular flow diagram behaves exactly like a bar in the
+   histogram. Three rules:
+     1. focus is restyled, never removed (`:focus-visible` only, so a mouse
+        click never leaves a ring behind)
+     2. data attributes carry state (dim / active) instead of per-component
+        class-string gymnastics
+     3. every transition is opt-in and dies under prefers-reduced-motion
+   ========================================================================== */
+
+/* Focusable hit target inside an SVG — node, spoke, point, slice, edge. */
+.chart-hit {
+  cursor: pointer;
+  transition:
+    opacity 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.chart-hit:focus {
+  outline: none;
+}
+.chart-hit:focus-visible {
+  outline: 2px solid var(--act);
+  outline-offset: 3px;
+  border-radius: 9999px;
+}
+/* Everything except the highlighted element recedes. */
+.chart-hit[data-dim="true"] {
+  opacity: 0.14;
+}
+.chart-hit[data-dim="true"]:hover,
+.chart-hit[data-dim="true"]:focus-visible {
+  opacity: 0.4;
+}
+/* Highlighted point gets the phosphor bloom — the same accent language as the
+   panels, so "active" reads as powered rather than merely coloured. */
+.chart-hit[data-active="true"] {
+  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.55));
+}
+
+/* Flow chords / spokes. A transparent fat path underneath carries the hit
+   geometry; the visible stroke stays `pointer-events: none` so the hover
+   region is exactly the drawn line plus its stroke halo. */
+.chart-edge {
+  pointer-events: none;
+  transition:
+    stroke-opacity 200ms ease,
+    stroke-width 200ms ease,
+    opacity 200ms ease;
+}
+.chart-edge-hit {
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+/* Vertical bars (histogram, ingest volume). Grows from the baseline. */
+.chart-bar {
+  transform-origin: bottom center;
+  transition:
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 200ms ease,
+    background-color 200ms ease,
+    opacity 200ms ease;
+}
+.chart-bar:hover,
+.chart-bar:focus-visible {
+  transform: scaleY(1.06);
+  box-shadow:
+    0 0 0 1px rgba(52, 211, 153, 0.4),
+    0 0 20px -6px rgba(16, 185, 129, 0.75);
+}
+/* Horizontal bars grow from the left instead. */
+.chart-bar-x {
+  transform-origin: left center;
+}
+.chart-bar-x:hover,
+.chart-bar-x:focus-visible {
+  transform: scaleX(1.02);
+}
+
+/* Row shell for horizontal bar lists: emerald rail on hover / focus-within. */
+.chart-row {
+  box-shadow: inset 2px 0 0 0 transparent;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease;
+}
+.chart-row:hover,
+.chart-row:focus-within,
+.chart-row[data-active="true"] {
+  background-color: rgba(16, 185, 129, 0.06);
+  box-shadow: inset 2px 0 0 0 var(--act);
+}
+/* A focused row is the keyboard's equivalent of hover: the rail plus the
+   accent outline, so focus is never carried by colour alone. */
+.chart-row:focus-visible {
+  outline: 2px solid var(--act);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+.chart-row[data-dim="true"] {
+  opacity: 0.38;
+}
+
+/* Donut slices. Stroke width is set inline per slice; the class only carries
+   the timing so a hovered slice thickens instead of popping. */
+.chart-slice {
+  transition:
+    stroke-width 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    stroke-opacity 200ms ease,
+    opacity 200ms ease;
+}
+.chart-slice[data-dim="true"] {
+  opacity: 0.28;
+}
+/* Focusable slice: a hairline ring so keyboard users can see where they are on
+   a donut, where an outline alone hugs the bounding box rather than the arc. */
+.chart-slice:focus {
+  outline: none;
+}
+.chart-slice:focus-visible {
+  outline: none;
+  filter: drop-shadow(0 0 4px rgba(5, 150, 105, 0.9));
+}
+
+/* Floating tooltip / detail card. Terminal surface: zinc-950 glass, hairline
+   edge, phosphor bloom — the same read as the hero dockets. `.chart-tooltip`
+   only positions + animates; `.chart-card` carries the surface so the card
+   can also be rendered inline (inspector panels). `animation` is neutralised
+   for reduced-motion below. */
+.chart-tooltip {
+  @apply pointer-events-none absolute z-20;
+  animation: chart-tooltip-in 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Anchors near the top edge get the card below them instead of above, so it
+   never covers the point it is describing. */
+.chart-tooltip[data-placement='below'] {
+  animation-name: chart-tooltip-in-below;
+}
+@keyframes chart-tooltip-in {
+  from {
+    opacity: 0;
+    transform: translate(-8px, calc(-100% - 12px)) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-8px, calc(-100% - 12px)) scale(1);
+  }
+}
+@keyframes chart-tooltip-in-below {
+  from {
+    opacity: 0;
+    transform: translate(-8px, 12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-8px, 12px) scale(1);
+  }
+}
+
+.chart-card {
+  @apply rounded-terminal border border-white/10 bg-zinc-950/95 p-3 text-[11px] leading-relaxed
+    text-zinc-200 backdrop-blur-sm;
+  box-shadow:
+    0 0 0 1px rgba(52, 211, 153, 0.16),
+    0 26px 60px -26px rgba(0, 0, 0, 0.85),
+    0 0 90px -46px rgba(52, 211, 153, 0.5);
+}
+
+/* Interactive legend entries. `aria-pressed` is the single source of truth so
+   the pressed ring always matches the state a screen reader announces. */
+.chart-legend-btn {
+  @apply inline-flex items-center gap-1.5 rounded-full border border-transparent px-2 py-0.5
+    font-mono text-[11px] text-zinc-600 transition-colors duration-150
+    hover:bg-zinc-100 hover:text-zinc-950;
+}
+.chart-legend-btn[aria-pressed="true"] {
+  @apply border-zinc-900 bg-zinc-900 text-white hover:bg-zinc-800 hover:text-white;
+}
+.chart-legend-btn[aria-pressed="true"]:focus-visible {
+  outline: 2px solid var(--act);
+  outline-offset: 2px;
+}
+.chart-legend-btn[data-dim="true"] {
+  opacity: 0.42;
+}
+
+/* Live value readout that replaces a static caption while something is
+   hovered or focused. Reserve its height so panels never jump. */
+.chart-readout {
+  @apply inline-flex items-center gap-1.5 rounded-full border border-emerald-500/25
+    bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-emerald-800;
+}
+.chart-readout-muted {
+  @apply border-zinc-200 bg-zinc-50 text-zinc-500;
+}
+
+/* Focusable plot surface (scroll regions, tab strips). */
+.chart-surface:focus-visible {
+  outline: 2px solid var(--act);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+/* Crosshair / active-point marker shared by the time-series charts. */
+.chart-marker {
+  transition:
+    opacity 160ms ease,
+    r 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ==========================================================================
    BACKDROPS
    ========================================================================== */
 
@@ -823,5 +1037,30 @@ p {
   .live-dot::before {
     animation: none !important;
     opacity: 0.4;
+  }
+  /* Charts keep every highlight, tooltip and readout — only the movement goes.
+     Hover still changes colour/opacity; nothing scales, slides or springs. */
+  .chart-hit,
+  .chart-edge,
+  .chart-bar,
+  .chart-bar-x,
+  .chart-row,
+  .chart-slice,
+  .chart-marker,
+  .chart-legend-btn {
+    transition: none !important;
+  }
+  .chart-bar:hover,
+  .chart-bar:focus-visible,
+  .chart-bar-x:hover,
+  .chart-bar-x:focus-visible {
+    transform: none;
+  }
+  .chart-tooltip {
+    animation: none !important;
+  }
+  .chart-hit[data-dim="true"],
+  .chart-row[data-dim="true"] {
+    opacity: 0.34;
   }
 }

@@ -285,7 +285,7 @@ export default async function DealDetailPage({ params }: DealPageProps) {
               <div className="mt-4">
                 <PeerBars
                   rows={peerRows}
-                  format={(v) => formatCurrency(v, deal.amount_currency)}
+                  currency={deal.amount_currency}
                   note={
                     deal.amount_disclosed
                       ? `${sameTypePeers.length} disclosed ${peerDealTypeLabel.toLowerCase()} deal(s) in universe · undisclosed excluded.`

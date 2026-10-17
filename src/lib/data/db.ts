@@ -54,11 +54,42 @@ import {
   EXTRA_DEALS as SWEEP_POWER_DEALS,
   EXTRA_RELATIONSHIPS as SWEEP_POWER_RELS,
 } from './sweep-power';
+import {
+  EXTRA_COMPANIES as SWEEP_STAKES_COMPANIES,
+  EXTRA_SOURCES as SWEEP_STAKES_SOURCES,
+  EXTRA_DEALS as SWEEP_STAKES_DEALS,
+  EXTRA_RELATIONSHIPS as SWEEP_STAKES_RELS,
+} from './sweep-stakes';
+import {
+  EXTRA_COMPANIES as SWEEP_CLOUD2_COMPANIES,
+  EXTRA_SOURCES as SWEEP_CLOUD2_SOURCES,
+  EXTRA_DEALS as SWEEP_CLOUD2_DEALS,
+  EXTRA_RELATIONSHIPS as SWEEP_CLOUD2_RELS,
+} from './sweep-cloud2';
+import {
+  EXTRA_COMPANIES as SWEEP_BACKSTOPS_COMPANIES,
+  EXTRA_SOURCES as SWEEP_BACKSTOPS_SOURCES,
+  EXTRA_DEALS as SWEEP_BACKSTOPS_DEALS,
+  EXTRA_RELATIONSHIPS as SWEEP_BACKSTOPS_RELS,
+} from './sweep-backstops';
+import {
+  EXTRA_COMPANIES as SWEEP_MA_COMPANIES,
+  EXTRA_SOURCES as SWEEP_MA_SOURCES,
+  EXTRA_DEALS as SWEEP_MA_DEALS,
+  EXTRA_RELATIONSHIPS as SWEEP_MA_RELS,
+} from './sweep-ma';
+import {
+  EXTRA_COMPANIES as SWEEP_MA2_COMPANIES,
+  EXTRA_SOURCES as SWEEP_MA2_SOURCES,
+  EXTRA_DEALS as SWEEP_MA2_DEALS,
+  EXTRA_RELATIONSHIPS as SWEEP_MA2_RELS,
+} from './sweep-ma2';
 
 // ---------------------------------------------------------------------------
 // Unified verified store: base dataset plus independently-verified sweep
-// tranches (cloud contracts, debt, labs equity, power). Sweep modules only
-// ADD rows with reserved ID blocks, so concatenation is collision-free.
+// tranches (cloud contracts, debt, labs equity, power, stakes, backstops, M&A).
+// Sweep modules only ADD rows with reserved ID blocks, so concatenation is
+// collision-free.
 // ---------------------------------------------------------------------------
 const ALL_COMPANIES: Company[] = [
   ...VERIFIED_COMPANIES,
@@ -70,6 +101,11 @@ const ALL_COMPANIES: Company[] = [
   ...SWEEP_STOCK_COMPANIES,
   ...SWEEP_LABS_COMPANIES,
   ...SWEEP_POWER_COMPANIES,
+  ...SWEEP_STAKES_COMPANIES,
+  ...SWEEP_CLOUD2_COMPANIES,
+  ...SWEEP_BACKSTOPS_COMPANIES,
+  ...SWEEP_MA_COMPANIES,
+  ...SWEEP_MA2_COMPANIES,
 ];
 
 const ALL_SOURCES: Source[] = [
@@ -82,6 +118,11 @@ const ALL_SOURCES: Source[] = [
   ...SWEEP_STOCK_SOURCES,
   ...SWEEP_LABS_SOURCES,
   ...SWEEP_POWER_SOURCES,
+  ...SWEEP_STAKES_SOURCES,
+  ...SWEEP_CLOUD2_SOURCES,
+  ...SWEEP_BACKSTOPS_SOURCES,
+  ...SWEEP_MA_SOURCES,
+  ...SWEEP_MA2_SOURCES,
 ];
 
 const ALL_DEALS: Deal[] = [
@@ -94,6 +135,11 @@ const ALL_DEALS: Deal[] = [
   ...SWEEP_STOCK_DEALS,
   ...SWEEP_LABS_DEALS,
   ...SWEEP_POWER_DEALS,
+  ...SWEEP_STAKES_DEALS,
+  ...SWEEP_CLOUD2_DEALS,
+  ...SWEEP_BACKSTOPS_DEALS,
+  ...SWEEP_MA_DEALS,
+  ...SWEEP_MA2_DEALS,
 ];
 
 const ALL_RELATIONSHIPS: Relationship[] = [
@@ -106,6 +152,11 @@ const ALL_RELATIONSHIPS: Relationship[] = [
   ...SWEEP_STOCK_RELS,
   ...SWEEP_LABS_RELS,
   ...SWEEP_POWER_RELS,
+  ...SWEEP_STAKES_RELS,
+  ...SWEEP_CLOUD2_RELS,
+  ...SWEEP_BACKSTOPS_RELS,
+  ...SWEEP_MA_RELS,
+  ...SWEEP_MA2_RELS,
 ];
 
 export interface DealFilterParams {
