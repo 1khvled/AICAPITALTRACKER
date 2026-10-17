@@ -47,6 +47,47 @@ describe('Data Repository', () => {
     expect(relationships.length).toBeGreaterThan(0);
   });
 
+  it('embeds the correct company for every deal party (FK integrity)', async () => {
+    const deals = await DataRepository.getDeals();
+    expect(deals.length).toBeGreaterThan(0);
+    for (const deal of deals) {
+      for (const party of deal.parties ?? []) {
+        expect(party.company).toBeDefined();
+        expect(party.company?.id).toBe(party.company_id);
+      }
+    }
+  });
+
+  it('embeds the correct companies for every relationship (FK integrity)', async () => {
+    const relationships = await DataRepository.getRelationships();
+    expect(relationships.length).toBeGreaterThan(0);
+    for (const rel of relationships) {
+      expect(rel.from_company).toBeDefined();
+      expect(rel.to_company).toBeDefined();
+      expect(rel.from_company?.id).toBe(rel.from_company_id);
+      expect(rel.to_company?.id).toBe(rel.to_company_id);
+    }
+  });
+
+  it('filters deals by companySlug via company_id fallback and getDealsByCompanyId', async () => {
+    const bySlug = await DataRepository.getDeals({ companySlug: 'nvidia' });
+    expect(bySlug.length).toBeGreaterThan(0);
+    expect(
+      bySlug.every((d) => d.parties?.some((p) => p.company?.slug === 'nvidia'))
+    ).toBe(true);
+
+    const nvidia = await DataRepository.getCompanyBySlug('nvidia');
+    expect(nvidia).toBeDefined();
+    const byId = await DataRepository.getDealsByCompanyId(nvidia!.id);
+    expect(byId.length).toBeGreaterThan(0);
+    expect(byId.every((d) => d.parties?.some((p) => p.company_id === nvidia!.id))).toBe(true);
+  });
+
+  it('only returns published deals', async () => {
+    const deals = await DataRepository.getDeals();
+    expect(deals.every((d) => d.is_published !== false)).toBe(true);
+  });
+
   it('calculates platform metrics accurately', async () => {
     const metrics = await DataRepository.getPlatformMetrics();
     expect(metrics.totalDeals).toBeGreaterThan(0);

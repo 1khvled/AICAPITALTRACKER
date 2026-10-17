@@ -20,6 +20,10 @@ describe('Deal Validation and Publish Integrity', () => {
         company_id: '00000000-0000-0000-0000-000000000001',
         role: 'investor' as const,
       },
+      {
+        company_id: '00000000-0000-0000-0000-000000000002',
+        role: 'investee' as const,
+      },
     ],
     sources: [
       {

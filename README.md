@@ -1,5 +1,9 @@
 # AICapitalTracker.com
 
+<!-- TODO: replace OWNER/REPO with your GitHub org/repo slug -->
+[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
+[![Daily Ingest](https://github.com/OWNER/REPO/actions/workflows/ingest.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ingest.yml)
+
 **Transparent, source-backed intelligence tracking financing, credit facilities, cloud commitments, and power agreements for artificial intelligence companies and data center infrastructure.**
 
 ---
@@ -90,10 +94,13 @@ Copy `.env.example` to `.env.local`:
 cp .env.example .env.local
 ```
 
-Configure:
+Configure (see `.env.example` for the full list):
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (Server-only; keep confidential)
+- `NEXT_PUBLIC_SITE_URL` (canonical origin used for sitemap, robots, and metadata)
+- `ADMIN_BOOTSTRAP_EMAIL` (one-time first-admin login; see Section 7)
 - `SEC_USER_AGENT` (Format: `AICapitalTracker/1.0 (contact@aicapitaltracker.com)`)
+- `FRED_API_KEY`, `EIA_API_KEY` (optional; free keys for macro/energy context)
 
 ### 3. Run Automated Tests
 ```bash
@@ -135,3 +142,86 @@ To apply migrations to your Supabase project:
 2. In the Vercel Dashboard, select **Import Project** and choose the repository.
 3. Configure the environment variables from `.env.example` in Vercel Project Settings.
 4. Deploy!
+
+---
+
+## 7. Admin Bootstrap (First Admin Access)
+
+`/admin` and `/api/admin/*` are gated by Supabase Auth plus the `admin_users`
+table (see `middleware.ts` and `src/app/api/admin/deals/route.ts`).
+To grant the first admin:
+
+1. Create the user in Supabase Auth (Dashboard → Authentication → Add user).
+2. Set `ADMIN_BOOTSTRAP_EMAIL` to that user's email in `.env.local` / Vercel.
+3. Sign in with that email — the bootstrap address bypasses the
+   `admin_users` check exactly once for setup.
+4. Insert a permanent row so access survives bootstrap removal:
+   ```sql
+   insert into public.admin_users (user_id, email, role)
+   values ('<auth.users.id>', 'admin@aicapitaltracker.com', 'superadmin');
+   ```
+5. Remove or rotate `ADMIN_BOOTSTRAP_EMAIL` after the first admin row exists.
+   All subsequent admins are added via `admin_users` rows only.
+
+Without Supabase configured, the site runs in local dataset mode and
+admin writes return `persisted: false` (validated but not stored).
+
+---
+
+## 8. Data Source of Truth (Dataset vs Seed Drift Rule)
+
+Public pages (`/`, `/deals`, `/companies`, sitemap, `generateStaticParams`)
+read exclusively from the versioned local store
+`src/lib/data/dataset.ts` (`VERIFIED_DEALS`, `VERIFIED_COMPANIES`,
+`VERIFIED_RELATIONSHIPS`, `VERIFIED_SOURCES`). Supabase is the durable
+write target for admin-created deals, not the public read path.
+
+Keep the two in sync or the public site drifts from the database:
+
+- Every admin-published deal must also be appended to `dataset.ts`
+  (and to `supabase/migrations/20260301000001_seed_initial_verified_data.sql`
+  for fresh environments).
+- `npm run build` statically generates deal/company paths from the dataset
+  (currently 59 deals / 64 companies) — redeploy after dataset edits.
+- `tests/data-integrity.test.ts` guards slug uniqueness, counterparty
+  references, and citation presence; run `npm run test` before publishing.
+
+---
+
+## 9. Fresh-Data Ingestion (`npm run ingest`)
+
+`scripts/ingest.ts` is the single entry point for fresh SEC EDGAR data. It is
+free (no API key), cross-platform (`tsx` is a committed devDependency, so the
+`npm run ingest` script works unchanged on Windows, macOS, and Linux), and
+safe to run on a schedule via `.github/workflows/ingest.yml` (daily 06:00 UTC).
+
+```bash
+npm run ingest                        # last 30 days, writes data/*.json
+npm run ingest -- --since 2026-09-16  # explicit cutoff date (YYYY-MM-DD)
+npm run ingest -- --since 7           # last 7 days (days count also accepted)
+npm run ingest -- --since 7 --dry-run # fetch + log only, writes nothing
+npx tsx scripts/ingest.ts --help      # full CLI reference
+```
+
+What it does:
+
+- Fetches SEC EDGAR submissions JSON for 9 tracked issuers (NVDA, MSFT, AMZN,
+  GOOGL, META, ORCL, CEG, TLN, VST) with polite fair-access delays
+  (~300 ms between requests) and a `SEC_USER_AGENT` header (see `.env.example`).
+- Keeps forms 8-K / 10-Q / 10-K filed since the cutoff, and flags the
+  AI-infra-relevant subset via 8-K items (1.01, 7.01, 8.01) or keywords
+  (AI / data center / GPU / power / ...) matched against EDGAR descriptions.
+- Writes `data/fresh_filings.json` (filing metadata), merges review candidates
+  into `data/discovery_queue.json` (deduplicated by accession number), and
+  records every attempt in `data/ingest_status.json` — including SEC blocks
+  (403/429), which preserve existing files instead of wiping them.
+- **Never fabricates deals or amounts**: only real filing metadata
+  (`cik`, `form`, `filed_at`, `accession`, `primary_doc_url`, `items`, `title`)
+  is stored. Candidates stay quarantined until an editor verifies the primary
+  document and creates a deal manually.
+
+The public site reads these files via `src/lib/data/fresh.ts`
+(`getFreshFilings()`, `getFreshDiscovery()`, `getPlatformFreshness()`), which
+powers the "Data as of" badge on the homepage hero and the freshness panel on
+`/sources`. When the JSON files are absent, both surfaces fall back gracefully
+to the static verified dataset — nothing crashes.

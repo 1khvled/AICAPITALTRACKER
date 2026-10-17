@@ -8,6 +8,8 @@ export interface SecFilingEntry {
   accessionNumber: string;
   documentUrl: string;
   description?: string;
+  /** Raw 8-K item numbers as reported by EDGAR (e.g. "1.01,7.01,9.01"). Empty for 10-K/10-Q. */
+  items?: string;
 }
 
 export class SecEdgarClient {
@@ -52,7 +54,10 @@ export class SecEdgarClient {
     // Filter relevant forms for financing, material events, and annual/quarterly reports
     const targetForms = new Set(['8-K', '10-K', '10-Q', 'S-1', '6-K']);
 
-    for (let i = 0; i < Math.min(count, 30); i++) {
+    // Scan the full recent window (usually ~1000 rows, still a single HTTP
+    // response). Capping this would silently drop older filings and defeat
+    // `--since <old-date>` pulls. Fair-access is preserved: one request/issuer.
+    for (let i = 0; i < count; i++) {
       const form = recent.form[i];
       if (targetForms.has(form)) {
         const rawAccession = recent.accessionNumber[i];
@@ -60,6 +65,11 @@ export class SecEdgarClient {
         const primaryDoc = recent.primaryDocument[i];
 
         const docUrl = `https://www.sec.gov/Archives/edgar/data/${rawCik}/${cleanedAccession}/${primaryDoc}`;
+
+        // EDGAR submissions expose 8-K item numbers via filings.recent.items
+        // (e.g. "1.01,9.01"). Non-8-K forms report an empty string.
+        const rawItems = Array.isArray(recent.items) ? recent.items[i] : undefined;
+        const items = typeof rawItems === 'string' ? rawItems.trim() : '';
 
         filings.push({
           cik: paddedCik,
@@ -69,6 +79,7 @@ export class SecEdgarClient {
           accessionNumber: rawAccession,
           documentUrl: docUrl,
           description: recent.primaryDocDescription?.[i] || undefined,
+          items: items || undefined,
         });
       }
     }

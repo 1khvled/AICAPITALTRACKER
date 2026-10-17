@@ -16,30 +16,36 @@ export default function ErrorPage({
   }, [error]);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-24 text-center">
-      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rose-50 text-rose-600 font-mono text-sm font-semibold mb-4">
-        !
-      </div>
-      <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
-        Data Loading Exception
-      </h1>
-      <p className="mt-2 text-xs text-slate-600 max-w-md mx-auto">
-        An error occurred while loading this research record. Our systems operate under strict validation to prevent displaying malformed financial figures.
-      </p>
-      <div className="mt-6 flex justify-center gap-3">
-        <button
-          onClick={() => reset()}
-          className="px-3.5 py-2 text-xs font-medium text-white bg-slate-900 rounded-md hover:bg-slate-800 transition-colors"
-        >
-          Retry Query
-        </button>
-        <Link
-          href="/"
-          className="px-3.5 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
-        >
-          Return Home
-        </Link>
-      </div>
+    <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+      {/* Terminal read-out: the query was rejected before it reached the ledger. */}
+      <section className="hero-terminal rounded-terminal">
+        <div className="relative mx-auto max-w-xl px-6 py-10 text-center sm:px-8 sm:py-12">
+          <div className="terminal-card terminal-ring mx-auto flex h-16 w-16 items-center justify-center border-rose-500/30">
+            <span className="num text-xl font-bold text-rose-300">!</span>
+          </div>
+          <p className="micro-label-terminal mt-5 justify-center text-rose-300">Exception</p>
+          <h1 className="mt-1.5 text-2xl font-black tracking-tight text-white sm:text-3xl">
+            Data loading exception
+          </h1>
+          <p className="mx-auto mt-3 max-w-md text-xs leading-relaxed text-zinc-400 sm:text-sm">
+            An error occurred while loading this research record. Our systems operate under strict validation to
+            prevent displaying malformed financial figures.
+          </p>
+          {error.digest && (
+            <p className="caption-terminal mt-4 justify-center">
+              TRACE <span className="num text-zinc-300">{error.digest}</span>
+            </p>
+          )}
+          <div className="mt-7 flex flex-wrap justify-center gap-3">
+            <button type="button" onClick={() => reset()} className="btn btn-accent">
+              Retry query
+            </button>
+            <Link href="/" className="btn btn-terminal">
+              Return home
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

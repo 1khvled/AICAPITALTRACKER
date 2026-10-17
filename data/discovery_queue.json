@@ -1,6 +1,1596 @@
 [
   {
     "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2023-02-01",
+    "accessionNumber": "0001193125-23-021618",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312523021618/d415684d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2023-03-07",
+    "accessionNumber": "0001193125-23-062837",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312523062837/d445413d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2023-06-06",
+    "accessionNumber": "0001193125-23-161242",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312523161242/d450131d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2023-06-09",
+    "accessionNumber": "0001193125-23-164096",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312523164096/d520284d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2023-06-22",
+    "accessionNumber": "0001193125-23-171828",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312523171828/d520634d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2023-07-17",
+    "accessionNumber": "0001193125-23-188202",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312523188202/d529330d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2023-09-12",
+    "accessionNumber": "0001193125-23-233039",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312523233039/d519810d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2023-09-15",
+    "accessionNumber": "0001193125-23-236277",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312523236277/d486267d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2023-10-02",
+    "accessionNumber": "0001193125-23-248069",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312523248069/d503539d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2023-10-11",
+    "accessionNumber": "0001193125-23-253871",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312523253871/d544582d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2023-11-15",
+    "accessionNumber": "0001193125-23-277954",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312523277954/d914948d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2023-12-11",
+    "accessionNumber": "0001193125-23-292081",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312523292081/d636369d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2023-12-15",
+    "accessionNumber": "0001193125-23-296717",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312523296717/d574314d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2023-12-26",
+    "accessionNumber": "0001193125-23-302260",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312523302260/d69396d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2023-12-29",
+    "accessionNumber": "0001193125-23-305934",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312523305934/d661803d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-01-04",
+    "accessionNumber": "0001193125-24-002418",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524002418/d694804d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-01-23",
+    "accessionNumber": "0001193125-24-013011",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524013011/d932406d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-02-20",
+    "accessionNumber": "0001193125-24-039220",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524039220/d727568d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-03-07",
+    "accessionNumber": "0001193125-24-062246",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524062246/d763091d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-04-01",
+    "accessionNumber": "0001193125-24-083639",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524083639/d820354d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-04-09",
+    "accessionNumber": "0001193125-24-090258",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524090258/d816579d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-04-18",
+    "accessionNumber": "0001193125-24-100770",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524100770/d796257d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-07-12",
+    "accessionNumber": "0001193125-24-178569",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524178569/d861698d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-07-31",
+    "accessionNumber": "0001193125-24-189392",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524189392/d828589d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-09-24",
+    "accessionNumber": "0001193125-24-224221",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524224221/d872243d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-10-08",
+    "accessionNumber": "0001193125-24-233978",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524233978/d846196d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-10-17",
+    "accessionNumber": "0001193125-24-238672",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524238672/d852493d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-11-15",
+    "accessionNumber": "0001193125-24-259341",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524259341/d837228d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-11-19",
+    "accessionNumber": "0001193125-24-261390",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524261390/d697196d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-11-19",
+    "accessionNumber": "0001193125-24-261725",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524261725/d808714d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-12-09",
+    "accessionNumber": "0001193125-24-273504",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524273504/d909511d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-12-16",
+    "accessionNumber": "0001193125-24-278982",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524278982/d902830d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-12-19",
+    "accessionNumber": "0001193125-24-282044",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524282044/d903599d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2024-12-30",
+    "accessionNumber": "0001193125-24-286885",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312524286885/d919263d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2025-05-21",
+    "accessionNumber": "0001193125-25-123660",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312525123660/d948204d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2025-07-16",
+    "accessionNumber": "0001193125-25-159906",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312525159906/d66888d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2025-07-23",
+    "accessionNumber": "0001193125-25-162749",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312525162749/d907220d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2025-09-29",
+    "accessionNumber": "0001193125-25-221774",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312525221774/d43667d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2025-10-06",
+    "accessionNumber": "0001193125-25-230840",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312525230840/d69542d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2025-10-15",
+    "accessionNumber": "0001193125-25-240234",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312525240234/d50483d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2025-10-28",
+    "accessionNumber": "0001193125-25-253608",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312525253608/d912702d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2025-11-17",
+    "accessionNumber": "0001193125-25-283860",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312525283860/d74558d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2025-12-17",
+    "accessionNumber": "0001193125-25-322976",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312525322976/d933668d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2026-01-05",
+    "accessionNumber": "0001193125-26-002589",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312526002589/d62722d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2026-01-09",
+    "accessionNumber": "0001193125-26-008508",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312526008508/d20785d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2026-01-27",
+    "accessionNumber": "0001193125-26-024837",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000119312526024837/d102638d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Vistra Corp.",
+    "formType": "8-K",
+    "filingDate": "2026-04-28",
+    "accessionNumber": "0001140361-26-017445",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001692819/000114036126017445/ef20071492_8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2023-02-16",
+    "accessionNumber": "0001868275-23-000012",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827523000012/ceg-20230216.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2023-02-27",
+    "accessionNumber": "0001868275-23-000019",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827523000019/ceg-20230227.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2023-05-04",
+    "accessionNumber": "0001868275-23-000030",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827523000030/ceg-20230504.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2023-06-01",
+    "accessionNumber": "0001868275-23-000040",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827523000040/ceg-20230531.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2023-08-01",
+    "accessionNumber": "0001868275-23-000051",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827523000051/ceg-20230801.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2023-08-03",
+    "accessionNumber": "0001868275-23-000060",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827523000060/ceg-20230803.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2023-11-01",
+    "accessionNumber": "0001868275-23-000070",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827523000070/ceg-20231101.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2023-11-06",
+    "accessionNumber": "0001868275-23-000078",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827523000078/ceg-20231106.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2023-12-14",
+    "accessionNumber": "0001868275-23-000084",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827523000084/ceg-20231214.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2024-02-27",
+    "accessionNumber": "0001868275-24-000010",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827524000010/ceg-20240227.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2024-05-09",
+    "accessionNumber": "0001868275-24-000023",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827524000023/ceg-20240509.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2024-07-30",
+    "accessionNumber": "0001868275-24-000045",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827524000045/ceg-20240730.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2024-08-06",
+    "accessionNumber": "0001868275-24-000051",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827524000051/ceg-20240806.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2024-09-20",
+    "accessionNumber": "0001868275-24-000058",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827524000058/ceg-20240920.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2024-11-04",
+    "accessionNumber": "0001868275-24-000066",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827524000066/ceg-20241104.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2025-01-10",
+    "accessionNumber": "0001868275-25-000006",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827525000006/ceg-20250110.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2025-01-13",
+    "accessionNumber": "0001868275-25-000011",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827525000011/ceg-20250110.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2025-02-18",
+    "accessionNumber": "0001868275-25-000020",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827525000020/ceg-20250218.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2025-05-06",
+    "accessionNumber": "0001868275-25-000040",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827525000040/ceg-20250506.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2025-07-22",
+    "accessionNumber": "0001868275-25-000060",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827525000060/ceg-20250722.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2025-08-07",
+    "accessionNumber": "0001868275-25-000070",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827525000070/ceg-20250807.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2025-11-07",
+    "accessionNumber": "0001868275-25-000089",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827525000089/ceg-20251107.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2025-11-18",
+    "accessionNumber": "0001868275-25-000099",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827525000099/ceg-20251117.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2025-12-09",
+    "accessionNumber": "0001104659-25-119687",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000110465925119687/tm2532248d3_8k.htm",
+    "description": "FORM 8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2025-12-09",
+    "accessionNumber": "0001104659-25-119690",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000110465925119690/tm2532248d2_8k.htm",
+    "description": "FORM 8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2025-12-17",
+    "accessionNumber": "0001868275-25-000112",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827525000112/ceg-20251217.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2025-12-23",
+    "accessionNumber": "0001868275-25-000119",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827525000119/ceg-20251223.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2026-01-07",
+    "accessionNumber": "0001104659-26-001780",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000110465926001780/tm2532248d1_8k.htm",
+    "description": "FORM 8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2026-01-13",
+    "accessionNumber": "0001868275-26-000005",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827526000005/ceg-20260113.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2026-01-15",
+    "accessionNumber": "0001868275-26-000009",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827526000009/ceg-20260115.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2026-02-24",
+    "accessionNumber": "0001868275-26-000029",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827526000029/ceg-20260224.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Constellation Energy",
+    "formType": "8-K",
+    "filingDate": "2026-03-20",
+    "accessionNumber": "0001868275-26-000037",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001868275/000186827526000037/ceg-20260320.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2023-02-06",
+    "accessionNumber": "0001193125-23-025644",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000119312523025644/d356350d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2023-03-09",
+    "accessionNumber": "0001564590-23-003362",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000156459023003362/orcl-8k_20230309.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2023-06-12",
+    "accessionNumber": "0000950170-23-027490",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000095017023027490/orcl-20230612.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2023-09-11",
+    "accessionNumber": "0000950170-23-047471",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000095017023047471/orcl-20230911.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2023-12-11",
+    "accessionNumber": "0000950170-23-069410",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000095017023069410/orcl-20231211.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2024-03-11",
+    "accessionNumber": "0000950170-24-029250",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000095017024029250/orcl-20240311.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2024-06-11",
+    "accessionNumber": "0000950170-24-071916",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000095017024071916/orcl-20240611.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2024-09-09",
+    "accessionNumber": "0000950170-24-104753",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000095017024104753/orcl-20240909.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2024-09-27",
+    "accessionNumber": "0001193125-24-227971",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000119312524227971/d832518d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2024-12-09",
+    "accessionNumber": "0000950170-24-134537",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000095017024134537/orcl-20241209.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2025-01-22",
+    "accessionNumber": "0001193125-25-010390",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000119312525010390/d918243d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2025-02-03",
+    "accessionNumber": "0001193125-25-019281",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000119312525019281/d927919d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2025-03-10",
+    "accessionNumber": "0000950170-25-036295",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000095017025036295/orcl-20250310.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2025-06-11",
+    "accessionNumber": "0000950170-25-084831",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000095017025084831/orcl-20250611.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2025-06-30",
+    "accessionNumber": "0001193125-25-152035",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000119312525152035/d136779d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2025-09-09",
+    "accessionNumber": "0001193125-25-199175",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000119312525199175/orcl-20250909.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2025-09-22",
+    "accessionNumber": "0001193125-25-210089",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000119312525210089/d921500d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2025-09-26",
+    "accessionNumber": "0001193125-25-220445",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000119312525220445/d31817d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2025-12-10",
+    "accessionNumber": "0001193125-25-314207",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000119312525314207/orcl-20251210.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2026-02-04",
+    "accessionNumber": "0001193125-26-037840",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000119312526037840/d23732d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2026-02-05",
+    "accessionNumber": "0001193125-26-039344",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000119312526039344/d63638d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2026-03-10",
+    "accessionNumber": "0001193125-26-100148",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000119312526100148/orcl-20260310.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Oracle Corporation",
+    "formType": "8-K",
+    "filingDate": "2026-04-06",
+    "accessionNumber": "0001193125-26-142939",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001341439/000119312526142939/d132760d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Meta Platforms, Inc.",
+    "formType": "8-K",
+    "filingDate": "2024-08-09",
+    "accessionNumber": "0001193125-24-197873",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001326801/000119312524197873/d876862d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Meta Platforms, Inc.",
+    "formType": "8-K",
+    "filingDate": "2025-11-03",
+    "accessionNumber": "0001193125-25-262593",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001326801/000119312525262593/d75422d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Meta Platforms, Inc.",
+    "formType": "8-K",
+    "filingDate": "2025-12-12",
+    "accessionNumber": "0001628280-25-056768",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001326801/000162828025056768/meta-20251205.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Meta Platforms, Inc.",
+    "formType": "8-K",
+    "filingDate": "2026-05-04",
+    "accessionNumber": "0001193125-26-204128",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001326801/000119312526204128/d134616d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2024-02-08",
+    "accessionNumber": "0001652044-24-000032",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000165204424000032/goog-20240208.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2024-04-25",
+    "accessionNumber": "0001652044-24-000047",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000165204424000047/goog-20240425.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2024-06-26",
+    "accessionNumber": "0001193125-24-168745",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000119312524168745/d809715d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2024-07-23",
+    "accessionNumber": "0001652044-24-000076",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000165204424000076/goog-20240723.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2024-08-06",
+    "accessionNumber": "0001652044-24-000085",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000165204424000085/goog-20240805.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2024-09-24",
+    "accessionNumber": "0001652044-24-000097",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000165204424000097/goog-20240924.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2024-10-29",
+    "accessionNumber": "0001652044-24-000115",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000165204424000115/goog-20241029.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2025-02-04",
+    "accessionNumber": "0001652044-25-000010",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000165204425000010/goog-20250204.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2025-03-18",
+    "accessionNumber": "0001652044-25-000027",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000165204425000027/goog-20250318.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2025-04-18",
+    "accessionNumber": "0001652044-25-000033",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000165204425000033/goog-20250417.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2025-04-24",
+    "accessionNumber": "0001652044-25-000040",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000165204425000040/goog-20250423.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2025-05-01",
+    "accessionNumber": "0001193125-25-110020",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000119312525110020/d884388d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2025-05-06",
+    "accessionNumber": "0001193125-25-113864",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000119312525113864/d859422d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2025-07-18",
+    "accessionNumber": "0001193125-25-161225",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000119312525161225/d21412d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2025-07-23",
+    "accessionNumber": "0001652044-25-000056",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000165204425000056/goog-20250723.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2025-09-03",
+    "accessionNumber": "0001652044-25-000067",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000165204425000067/goog-20250902.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2025-09-05",
+    "accessionNumber": "0001652044-25-000074",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000165204425000074/goog-20250905.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2025-11-06",
+    "accessionNumber": "0001193125-25-269979",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000119312525269979/d56115d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2026-02-13",
+    "accessionNumber": "0001193125-26-051423",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000119312526051423/d946885d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2026-05-11",
+    "accessionNumber": "0001193125-26-216986",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000119312526216986/d109021d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2026-05-21",
+    "accessionNumber": "0001193125-26-234488",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000119312526234488/d144566d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2026-06-04",
+    "accessionNumber": "0001193125-26-257724",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000119312526257724/d83560d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Alphabet Inc.",
+    "formType": "8-K",
+    "filingDate": "2026-06-05",
+    "accessionNumber": "0001193125-26-259830",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001652044/000119312526259830/d36818d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Amazon.com, Inc.",
+    "formType": "8-K",
+    "filingDate": "2023-01-03",
+    "accessionNumber": "0001193125-23-000849",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001018724/000119312523000849/d429499d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Amazon.com, Inc.",
+    "formType": "8-K",
+    "filingDate": "2023-04-13",
+    "accessionNumber": "0001104659-23-044715",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001018724/000110465923044715/tm233697d2_8k.htm",
+    "description": "FORM 8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Amazon.com, Inc.",
+    "formType": "8-K",
+    "filingDate": "2023-11-01",
+    "accessionNumber": "0001104659-23-113444",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001018724/000110465923113444/tm2329405d1_8k.htm",
+    "description": "FORM 8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Amazon.com, Inc.",
+    "formType": "8-K",
+    "filingDate": "2024-04-11",
+    "accessionNumber": "0001104659-24-045915",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001018724/000110465924045915/tm246113d2_8k.htm",
+    "description": "FORM 8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Amazon.com, Inc.",
+    "formType": "8-K",
+    "filingDate": "2025-04-10",
+    "accessionNumber": "0001104659-25-033450",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001018724/000110465925033450/tm254123d2_8k.htm",
+    "description": "FORM 8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Amazon.com, Inc.",
+    "formType": "8-K",
+    "filingDate": "2025-11-20",
+    "accessionNumber": "0001104659-25-114647",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001018724/000110465925114647/tm2530638d3_8k.htm",
+    "description": "FORM 8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Amazon.com, Inc.",
+    "formType": "8-K",
+    "filingDate": "2026-02-27",
+    "accessionNumber": "0001104659-26-021050",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001018724/000110465926021050/tm267374d1_8k.htm",
+    "description": "FORM 8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Amazon.com, Inc.",
+    "formType": "8-K",
+    "filingDate": "2026-03-13",
+    "accessionNumber": "0001104659-26-027729",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001018724/000110465926027729/tm266670d8_8k.htm",
+    "description": "FORM 8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Amazon.com, Inc.",
+    "formType": "8-K",
+    "filingDate": "2026-03-16",
+    "accessionNumber": "0001104659-26-028556",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001018724/000110465926028556/tm266670d9_8k.htm",
+    "description": "FORM 8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Amazon.com, Inc.",
+    "formType": "8-K",
+    "filingDate": "2026-04-09",
+    "accessionNumber": "0001104659-26-041034",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001018724/000110465926041034/tm263815d2_8k.htm",
+    "description": "FORM 8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Amazon.com, Inc.",
+    "formType": "8-K",
+    "filingDate": "2026-04-14",
+    "accessionNumber": "0001104659-26-042880",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001018724/000110465926042880/tm2611746d1_8k.htm",
+    "description": "FORM 8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Amazon.com, Inc.",
+    "formType": "8-K",
+    "filingDate": "2026-06-10",
+    "accessionNumber": "0001104659-26-072140",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001018724/000110465926072140/tm2613616d4_8k.htm",
+    "description": "FORM 8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Amazon.com, Inc.",
+    "formType": "8-K",
+    "filingDate": "2026-06-12",
+    "accessionNumber": "0001104659-26-073562",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001018724/000110465926073562/tm2613616d5_8k.htm",
+    "description": "FORM 8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Amazon.com, Inc.",
+    "formType": "8-K",
+    "filingDate": "2026-07-09",
+    "accessionNumber": "0001104659-26-082293",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001018724/000110465926082293/tm2619352d4_8k.htm",
+    "description": "FORM 8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Microsoft Corporation",
+    "formType": "8-K",
+    "filingDate": "2023-01-18",
+    "accessionNumber": "0001193125-23-009934",
+    "url": "https://www.sec.gov/Archives/edgar/data/0000789019/000119312523009934/d447690d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Microsoft Corporation",
+    "formType": "8-K",
+    "filingDate": "2023-10-11",
+    "accessionNumber": "0001193125-23-254151",
+    "url": "https://www.sec.gov/Archives/edgar/data/0000789019/000119312523254151/d530324d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Microsoft Corporation",
+    "formType": "8-K",
+    "filingDate": "2023-10-16",
+    "accessionNumber": "0001104659-23-109428",
+    "url": "https://www.sec.gov/Archives/edgar/data/0000789019/000110465923109428/tm2328507d1_8k.htm",
+    "description": "FORM 8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Microsoft Corporation",
+    "formType": "8-K",
+    "filingDate": "2023-10-30",
+    "accessionNumber": "0001193125-23-265616",
+    "url": "https://www.sec.gov/Archives/edgar/data/0000789019/000119312523265616/d572684d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Microsoft Corporation",
+    "formType": "8-K",
+    "filingDate": "2023-11-06",
+    "accessionNumber": "0001193125-23-271376",
+    "url": "https://www.sec.gov/Archives/edgar/data/0000789019/000119312523271376/d566386d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Microsoft Corporation",
+    "formType": "8-K",
+    "filingDate": "2024-01-19",
+    "accessionNumber": "0001193125-24-011295",
+    "url": "https://www.sec.gov/Archives/edgar/data/0000789019/000119312524011295/d708866d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Microsoft Corporation",
+    "formType": "8-K",
+    "filingDate": "2024-08-21",
+    "accessionNumber": "0001193125-24-204403",
+    "url": "https://www.sec.gov/Archives/edgar/data/0000789019/000119312524204403/d846847d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Microsoft Corporation",
+    "formType": "8-K",
+    "filingDate": "2024-12-03",
+    "accessionNumber": "0000950170-24-132722",
+    "url": "https://www.sec.gov/Archives/edgar/data/0000789019/000095017024132722/msft-20241203.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Microsoft Corporation",
+    "formType": "8-K",
+    "filingDate": "2024-12-11",
+    "accessionNumber": "0001193125-24-275524",
+    "url": "https://www.sec.gov/Archives/edgar/data/0000789019/000119312524275524/d865252d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "Microsoft Corporation",
+    "formType": "8-K",
+    "filingDate": "2025-10-29",
+    "accessionNumber": "0001193125-25-256310",
+    "url": "https://www.sec.gov/Archives/edgar/data/0000789019/000119312525256310/msft-20251028.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "NVIDIA Corporation",
+    "formType": "8-K",
+    "filingDate": "2023-10-17",
+    "accessionNumber": "0001045810-23-000217",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001045810/000104581023000217/nvda-20231017.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "NVIDIA Corporation",
+    "formType": "8-K",
+    "filingDate": "2023-10-24",
+    "accessionNumber": "0001045810-23-000221",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001045810/000104581023000221/nvda-20231023.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "NVIDIA Corporation",
+    "formType": "8-K",
+    "filingDate": "2024-05-22",
+    "accessionNumber": "0001045810-24-000113",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001045810/000104581024000113/nvda-20240522.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "NVIDIA Corporation",
+    "formType": "8-K",
+    "filingDate": "2025-01-17",
+    "accessionNumber": "0001045810-25-000007",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001045810/000104581025000007/nvda-20250113.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "NVIDIA Corporation",
+    "formType": "8-K",
+    "filingDate": "2025-04-15",
+    "accessionNumber": "0001045810-25-000082",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001045810/000104581025000082/nvda-20250409.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
+    "entity": "NVIDIA Corporation",
+    "formType": "8-K",
+    "filingDate": "2026-06-18",
+    "accessionNumber": "0001193125-26-275783",
+    "url": "https://www.sec.gov/Archives/edgar/data/0001045810/000119312526275783/d48176d8k.htm",
+    "description": "8-K",
+    "detectedAt": "2026-10-16T11:08:59.167Z"
+  },
+  {
+    "source": "SEC EDGAR",
     "entity": "CoreWeave, Inc.",
     "formType": "10-K",
     "filingDate": "2026-03-31",

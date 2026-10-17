@@ -1,5 +1,28 @@
 import { z } from 'zod';
 
+/**
+ * Returns true when a URL hostname targets a private/internal host and must be
+ * rejected to prevent SSRF (localhost, loopback, RFC-1918, link-local, 0.0.0.0).
+ */
+export function isBlockedHostname(hostname: string): boolean {
+  const host = hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  if (host === 'localhost' || host === '0.0.0.0') return true;
+  if (/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host)) return true;
+  if (/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host)) return true;
+  if (/^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/.test(host)) return true;
+  if (/^192\.168\.\d{1,3}\.\d{1,3}$/.test(host)) return true;
+  if (/^169\.254\.\d{1,3}\.\d{1,3}$/.test(host)) return true;
+  return false;
+}
+
+function isParsableDate(value: string): boolean {
+  return !Number.isNaN(Date.parse(value));
+}
+
+const validDateString = z.string().refine(isParsableDate, {
+  message: 'Must be a valid parsable date string',
+});
+
 export const DealTypeEnum = z.enum([
   'equity_investment',
   'debt_credit_facility',
@@ -62,7 +85,21 @@ export const DealPartyRoleEnum = z.enum([
 
 export const SourceCitationSchema = z.object({
   source_id: z.string().uuid().optional(),
-  url: z.string().url('Must be a valid HTTP or HTTPS URL'),
+  url: z
+    .string()
+    .url('Must be a valid HTTP or HTTPS URL')
+    .refine(
+      (val) => {
+        try {
+          const parsed = new URL(val);
+          if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
+          return !isBlockedHostname(parsed.hostname.toLowerCase());
+        } catch {
+          return false;
+        }
+      },
+      { message: 'URL points to a private/internal host and is not allowed' }
+    ),
   title: z.string().min(3, 'Source title is required'),
   publisher: z.string().optional(),
   source_type: z.enum([
@@ -74,7 +111,7 @@ export const SourceCitationSchema = z.object({
     'research_report',
     'other',
   ]),
-  published_date: z.string().optional().nullable(),
+  published_date: validDateString.optional().nullable(),
   supporting_note: z.string().min(5, 'Specific supporting note explaining what fact this source verifies is required'),
   is_primary_support: z.boolean().default(false),
 });
@@ -86,15 +123,19 @@ export const DealFormSchema = z
     slug: z
       .string()
       .min(3)
+      .max(120, 'Slug must be at most 120 characters long')
       .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lower-case alphanumeric with dashes'),
     summary: z.string().min(20, 'Neutral factual summary must be at least 20 characters'),
     deal_type: DealTypeEnum,
     status: DealStatusEnum,
-    announcement_date: z.string().optional().nullable(),
-    effective_date: z.string().optional().nullable(),
-    maturity_date: z.string().optional().nullable(),
+    announcement_date: validDateString.optional().nullable(),
+    effective_date: validDateString.optional().nullable(),
+    maturity_date: validDateString.optional().nullable(),
     amount_value: z.number().positive().optional().nullable(),
-    amount_currency: z.string().length(3).default('USD'),
+    amount_currency: z
+      .string()
+      .regex(/^[A-Z]{3}$/, 'Currency must be 3 uppercase letters (e.g. USD, EUR)')
+      .default('USD'),
     amount_basis: AmountBasisEnum.optional().nullable(),
     amount_period: z.string().optional().nullable(),
     amount_disclosed: z.boolean().default(false),
@@ -104,11 +145,11 @@ export const DealFormSchema = z
     is_published: z.boolean().default(false),
     parties: z.array(
       z.object({
-        company_id: z.string().min(1, 'Company selection is required'),
+        company_id: z.string().uuid('Company ID must be a valid UUID'),
         role: DealPartyRoleEnum,
         direction_note: z.string().optional().nullable(),
       })
-    ).min(1, 'At least one counterparty must be associated with the deal'),
+    ).min(2, 'A deal requires at least two counterparties'),
     sources: z.array(SourceCitationSchema),
   })
   .superRefine((data, ctx) => {
@@ -149,6 +190,35 @@ export const DealFormSchema = z
           message: 'Maturity date cannot be prior to effective date.',
         });
       }
+    }
+
+    // Duplicate counterparty check: same company_id + role must not repeat
+    if (data.parties && data.parties.length > 0) {
+      const seen = new Set<string>();
+      data.parties.forEach((party, index) => {
+        const key = `${party.company_id}::${party.role}`;
+        if (seen.has(key)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['parties', index, 'company_id'],
+            message: 'Duplicate counterparty: same company and role appears more than once.',
+          });
+        } else {
+          seen.add(key);
+        }
+      });
+    }
+
+    // Estimated/disputed evidence requires an explanatory confidence note
+    if (
+      (data.evidence_level === 'estimated' || data.evidence_level === 'disputed') &&
+      (!data.confidence_note || data.confidence_note.trim() === '')
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['confidence_note'],
+        message: 'A confidence note is required when evidence is estimated or disputed.',
+      });
     }
   });
 

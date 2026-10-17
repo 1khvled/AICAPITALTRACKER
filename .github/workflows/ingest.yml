@@ -1,21 +1,35 @@
-name: Daily AI Capital Ingestion & Crawler Pipeline
+name: Daily Ingest
 
 on:
   schedule:
-    # Run twice daily at 06:00 and 18:00 UTC
-    - cron: '0 6,18 * * *'
-  workflow_dispatch: # Allows manual trigger from GitHub Actions UI
+    # Daily at 06:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      since_days:
+        description: 'Lookback window in days for SEC filings'
+        required: false
+        default: '30'
+      dry_run:
+        description: 'Dry run (fetch + log only, do not write data files)'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
 
+concurrency:
+  group: ingest
+  cancel-in-progress: false
+
 jobs:
   ingest:
-    name: Run SEC EDGAR & IR Ingestion
+    name: Run SEC EDGAR ingestion
     runs-on: ubuntu-latest
-
+    timeout-minutes: 15
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -24,24 +38,31 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: Run Automated Ingestion Crawler
+      - name: Run ingestion crawler
         env:
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || 'AICapitalTracker/1.0 (contact@aicapitaltracker.com)' }}
-        run: npx tsx scripts/ingest.ts
+        run: |
+          SINCE_DAYS="${{ inputs.since_days || '30' }}"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            npx tsx scripts/ingest.ts --since "$SINCE_DAYS" --dry-run
+          else
+            npx tsx scripts/ingest.ts --since "$SINCE_DAYS"
+          fi
 
-      - name: Run Test Suite
-        run: npm test
+      - name: Run test suite against fresh data
+        run: npm run test
 
-      - name: Commit & Push Updated Discovered Filings
+      - name: Commit updated data files (only if changed)
         run: |
           git config --local user.email "bot@aicapitaltracker.com"
           git config --local user.name "AICapitalTracker Ingestion Bot"
-          if [ -f data/discovery_queue.json ]; then
-            git add data/discovery_queue.json
-            git diff --staged --quiet || (git commit -m "chore(data): auto-update SEC EDGAR discovery filings [skip ci]" && git push)
-          fi
+          git add -A data/*.json
+          git diff --staged --quiet && echo "No data changes to commit." && exit 0
+          git commit -m "chore(data): auto-update discovery filings [skip ci]"
+          git pull --rebase
+          git push

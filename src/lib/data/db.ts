@@ -1,4 +1,4 @@
-import { Company, Deal, Relationship, Source, SourceRegistry, DiscoveryCandidate } from '../types';
+import { Company, Deal, Relationship, Source, SourceRegistry } from '../types';
 import {
   VERIFIED_COMPANIES,
   VERIFIED_DEALS,
@@ -6,7 +6,107 @@ import {
   VERIFIED_SOURCES,
   INITIAL_SOURCE_REGISTRY,
 } from './dataset';
-import { createClient } from '../supabase/client';
+import {
+  EXTRA_COMPANIES as SWEEP_CLOUD_COMPANIES,
+  EXTRA_SOURCES as SWEEP_CLOUD_SOURCES,
+  EXTRA_DEALS as SWEEP_CLOUD_DEALS,
+  EXTRA_RELATIONSHIPS as SWEEP_CLOUD_RELS,
+} from './sweep-cloud';
+import {
+  EXTRA_COMPANIES as SWEEP_DEBT_COMPANIES,
+  EXTRA_SOURCES as SWEEP_DEBT_SOURCES,
+  EXTRA_DEALS as SWEEP_DEBT_DEALS,
+  EXTRA_RELATIONSHIPS as SWEEP_DEBT_RELS,
+} from './sweep-debt';
+import {
+  EXTRA_COMPANIES as SWEEP_DEBT2_COMPANIES,
+  EXTRA_SOURCES as SWEEP_DEBT2_SOURCES,
+  EXTRA_DEALS as SWEEP_DEBT2_DEALS,
+  EXTRA_RELATIONSHIPS as SWEEP_DEBT2_RELS,
+} from './sweep-debt2';
+import {
+  EXTRA_COMPANIES as SWEEP_BIGTECH_DEBT_COMPANIES,
+  EXTRA_SOURCES as SWEEP_BIGTECH_DEBT_SOURCES,
+  EXTRA_DEALS as SWEEP_BIGTECH_DEBT_DEALS,
+  EXTRA_RELATIONSHIPS as SWEEP_BIGTECH_DEBT_RELS,
+} from './sweep-bigtech-debt';
+import {
+  EXTRA_COMPANIES as SWEEP_EQUITY2_COMPANIES,
+  EXTRA_SOURCES as SWEEP_EQUITY2_SOURCES,
+  EXTRA_DEALS as SWEEP_EQUITY2_DEALS,
+  EXTRA_RELATIONSHIPS as SWEEP_EQUITY2_RELS,
+} from './sweep-equity2';
+import {
+  EXTRA_COMPANIES as SWEEP_STOCK_COMPANIES,
+  EXTRA_SOURCES as SWEEP_STOCK_SOURCES,
+  EXTRA_DEALS as SWEEP_STOCK_DEALS,
+  EXTRA_RELATIONSHIPS as SWEEP_STOCK_RELS,
+} from './sweep-stock-sales';
+import {
+  EXTRA_COMPANIES as SWEEP_LABS_COMPANIES,
+  EXTRA_SOURCES as SWEEP_LABS_SOURCES,
+  EXTRA_DEALS as SWEEP_LABS_DEALS,
+  EXTRA_RELATIONSHIPS as SWEEP_LABS_RELS,
+} from './sweep-labs';
+import {
+  EXTRA_COMPANIES as SWEEP_POWER_COMPANIES,
+  EXTRA_SOURCES as SWEEP_POWER_SOURCES,
+  EXTRA_DEALS as SWEEP_POWER_DEALS,
+  EXTRA_RELATIONSHIPS as SWEEP_POWER_RELS,
+} from './sweep-power';
+
+// ---------------------------------------------------------------------------
+// Unified verified store: base dataset plus independently-verified sweep
+// tranches (cloud contracts, debt, labs equity, power). Sweep modules only
+// ADD rows with reserved ID blocks, so concatenation is collision-free.
+// ---------------------------------------------------------------------------
+const ALL_COMPANIES: Company[] = [
+  ...VERIFIED_COMPANIES,
+  ...SWEEP_CLOUD_COMPANIES,
+  ...SWEEP_DEBT_COMPANIES,
+  ...SWEEP_DEBT2_COMPANIES,
+  ...SWEEP_BIGTECH_DEBT_COMPANIES,
+  ...SWEEP_EQUITY2_COMPANIES,
+  ...SWEEP_STOCK_COMPANIES,
+  ...SWEEP_LABS_COMPANIES,
+  ...SWEEP_POWER_COMPANIES,
+];
+
+const ALL_SOURCES: Source[] = [
+  ...VERIFIED_SOURCES,
+  ...SWEEP_CLOUD_SOURCES,
+  ...SWEEP_DEBT_SOURCES,
+  ...SWEEP_DEBT2_SOURCES,
+  ...SWEEP_BIGTECH_DEBT_SOURCES,
+  ...SWEEP_EQUITY2_SOURCES,
+  ...SWEEP_STOCK_SOURCES,
+  ...SWEEP_LABS_SOURCES,
+  ...SWEEP_POWER_SOURCES,
+];
+
+const ALL_DEALS: Deal[] = [
+  ...VERIFIED_DEALS,
+  ...SWEEP_CLOUD_DEALS,
+  ...SWEEP_DEBT_DEALS,
+  ...SWEEP_DEBT2_DEALS,
+  ...SWEEP_BIGTECH_DEBT_DEALS,
+  ...SWEEP_EQUITY2_DEALS,
+  ...SWEEP_STOCK_DEALS,
+  ...SWEEP_LABS_DEALS,
+  ...SWEEP_POWER_DEALS,
+];
+
+const ALL_RELATIONSHIPS: Relationship[] = [
+  ...VERIFIED_RELATIONSHIPS,
+  ...SWEEP_CLOUD_RELS,
+  ...SWEEP_DEBT_RELS,
+  ...SWEEP_DEBT2_RELS,
+  ...SWEEP_BIGTECH_DEBT_RELS,
+  ...SWEEP_EQUITY2_RELS,
+  ...SWEEP_STOCK_RELS,
+  ...SWEEP_LABS_RELS,
+  ...SWEEP_POWER_RELS,
+];
 
 export interface DealFilterParams {
   dealType?: string;
@@ -23,14 +123,69 @@ export interface CompanyFilterParams {
   query?: string;
 }
 
+export interface RelationshipFilterParams {
+  companySlug?: string;
+  query?: string;
+  relationshipType?: string;
+}
+
+export interface SourceFilterParams {
+  query?: string;
+}
+
+// ---------------------------------------------------------------------------
+// In-memory cache with TTL.
+//
+// `dataset.ts` plus sweep tranches (~85 deals + 72 companies) is imported fresh per request
+// in dev, and every page hit re-ran filter + sort + aggregation from scratch.
+// The homepage was worst: getPlatformMetrics() internally re-fetched deals,
+// companies, relationships and sources on top of the page's own getDeals() /
+// getCompanies() calls. Module-level caching collapses repeat hits within the
+// TTL to a Map lookup. Safe for dev + single-instance prod; data only changes
+// on redeploy.
+// ---------------------------------------------------------------------------
+const CACHE_TTL_MS = 60_000;
+
+interface CacheEntry {
+  expiresAt: number;
+  data: unknown;
+}
+
+const cache = new Map<string, CacheEntry>();
+
+function cacheGet<T>(key: string): T | null {
+  const entry = cache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    cache.delete(key);
+    return null;
+  }
+  return entry.data as T;
+}
+
+function cacheSet<T>(key: string, data: T): T {
+  cache.set(key, { expiresAt: Date.now() + CACHE_TTL_MS, data });
+  return data;
+}
+
+/** Test hook: clears the repository cache. */
+export function clearRepositoryCache(): void {
+  cache.clear();
+}
+
 export class DataRepository {
   /**
    * Retrieves verified deals with search and filtering
    */
   public static async getDeals(filters: DealFilterParams = {}): Promise<Deal[]> {
+    const cacheKey = `deals:${JSON.stringify(filters)}`;
+    const cached = cacheGet<Deal[]>(cacheKey);
+    // Return a shallow copy so callers can't mutate the cached ordering.
+    if (cached) return [...cached];
     // If Supabase is available and reachable, we could query it
     // For universal reliability and static/SSR performance, start with verified store
-    let results = [...VERIFIED_DEALS];
+    // Only return published deals (is_published !== false preserves legacy rows).
+    let results = ALL_DEALS.filter((d) => d.is_published !== false);
 
     if (filters.dealType && filters.dealType !== 'all') {
       results = results.filter((d) => d.deal_type === filters.dealType);
@@ -45,8 +200,12 @@ export class DataRepository {
     }
 
     if (filters.companySlug) {
+      const company = ALL_COMPANIES.find((c) => c.slug === filters.companySlug);
+      const companyId = company?.id;
       results = results.filter((d) =>
-        d.parties?.some((p) => p.company?.slug === filters.companySlug)
+        d.parties?.some(
+          (p) => p.company?.slug === filters.companySlug || (companyId !== undefined && p.company_id === companyId)
+        )
       );
     }
 
@@ -56,7 +215,13 @@ export class DataRepository {
         (d) =>
           d.title.toLowerCase().includes(q) ||
           d.summary.toLowerCase().includes(q) ||
-          d.parties?.some((p) => p.company?.name.toLowerCase().includes(q))
+          (d.geography && d.geography.toLowerCase().includes(q)) ||
+          d.parties?.some((p) => p.company?.name.toLowerCase().includes(q)) ||
+          d.sources?.some(
+            (s) =>
+              s.source?.title.toLowerCase().includes(q) ||
+              s.supporting_note.toLowerCase().includes(q)
+          )
       );
     }
 
@@ -75,22 +240,36 @@ export class DataRepository {
       return (b.announcement_date || '').localeCompare(a.announcement_date || '');
     });
 
-    return results;
+    cacheSet(cacheKey, results);
+    return [...results];
   }
 
   /**
-   * Retrieves single deal by unique slug
+   * Retrieves single deal by unique slug (published only)
    */
   public static async getDealBySlug(slug: string): Promise<Deal | null> {
-    const deal = VERIFIED_DEALS.find((d) => d.slug === slug);
+    const deal = ALL_DEALS.find((d) => d.slug === slug && d.is_published !== false);
     return deal || null;
+  }
+
+  /**
+   * Retrieves all published deals involving a company UUID.
+   */
+  public static async getDealsByCompanyId(companyId: string): Promise<Deal[]> {
+    return ALL_DEALS.filter(
+      (d) => d.is_published !== false && d.parties?.some((p) => p.company_id === companyId)
+    );
   }
 
   /**
    * Retrieves companies with search and filtering
    */
   public static async getCompanies(filters: CompanyFilterParams = {}): Promise<Company[]> {
-    let results = [...VERIFIED_COMPANIES];
+    const cacheKey = `companies:${JSON.stringify(filters)}`;
+    const cached = cacheGet<Company[]>(cacheKey);
+    if (cached) return [...cached];
+
+    let results = [...ALL_COMPANIES];
 
     if (filters.companyType && filters.companyType !== 'all') {
       results = results.filter((c) => c.company_type === filters.companyType);
@@ -112,58 +291,143 @@ export class DataRepository {
     }
 
     results.sort((a, b) => a.name.localeCompare(b.name));
-    return results;
+    cacheSet(cacheKey, results);
+    return [...results];
   }
 
   /**
    * Retrieves company by unique slug
    */
   public static async getCompanyBySlug(slug: string): Promise<Company | null> {
-    const company = VERIFIED_COMPANIES.find((c) => c.slug === slug);
+    const company = ALL_COMPANIES.find((c) => c.slug === slug);
     return company || null;
   }
 
   /**
-   * Retrieves relationships with counterparty details
+   * Retrieves relationships with counterparty details.
+   * Accepts either a company slug (legacy positional form) or a filter object
+   * supporting company slug + free-text query + relationship type.
    */
-  public static async getRelationships(companySlug?: string): Promise<Relationship[]> {
-    let results = [...VERIFIED_RELATIONSHIPS];
+  public static async getRelationships(
+    companySlugOrFilters?: string | RelationshipFilterParams
+  ): Promise<Relationship[]> {
+    const filters: RelationshipFilterParams =
+      typeof companySlugOrFilters === 'string'
+        ? { companySlug: companySlugOrFilters }
+        : (companySlugOrFilters ?? {});
+    const cacheKey = `relationships:${JSON.stringify(filters)}`;
+    const cached = cacheGet<Relationship[]>(cacheKey);
+    if (cached) return [...cached];
 
+    let results = ALL_RELATIONSHIPS.filter((r) => r.is_published !== false);
+
+    const companySlug = filters.companySlug;
     if (companySlug) {
+      const company = ALL_COMPANIES.find((c) => c.slug === companySlug);
+      const companyId = company?.id;
       results = results.filter(
-        (r) => r.from_company?.slug === companySlug || r.to_company?.slug === companySlug
+        (r) =>
+          r.from_company?.slug === companySlug ||
+          r.to_company?.slug === companySlug ||
+          (companyId !== undefined &&
+            (r.from_company_id === companyId || r.to_company_id === companyId))
       );
     }
 
-    return results;
+    if (filters.relationshipType && filters.relationshipType !== 'all') {
+      results = results.filter((r) => r.relationship_type === filters.relationshipType);
+    }
+
+    if (filters.query && filters.query.trim() !== '') {
+      const q = filters.query.toLowerCase().trim();
+      results = results.filter(
+        (r) =>
+          (r.description && r.description.toLowerCase().includes(q)) ||
+          r.relationship_type.replace(/_/g, ' ').includes(q) ||
+          r.from_company?.name.toLowerCase().includes(q) ||
+          r.to_company?.name.toLowerCase().includes(q)
+      );
+    }
+
+    cacheSet(cacheKey, results);
+    return [...results];
   }
 
   /**
-   * Retrieves sources and citations
+   * Retrieves sources and citations, optionally filtered by free-text query.
    */
-  public static async getSources(): Promise<Source[]> {
-    return [...VERIFIED_SOURCES];
+  public static async getSources(filters: SourceFilterParams = {}): Promise<Source[]> {
+    const cacheKey = `sources:${JSON.stringify(filters)}`;
+    const cached = cacheGet<Source[]>(cacheKey);
+    if (cached) return [...cached];
+
+    let results = [...ALL_SOURCES];
+
+    if (filters.query && filters.query.trim() !== '') {
+      const q = filters.query.toLowerCase().trim();
+      results = results.filter(
+        (s) =>
+          s.title.toLowerCase().includes(q) ||
+          (s.publisher && s.publisher.toLowerCase().includes(q)) ||
+          (s.notes && s.notes.toLowerCase().includes(q)) ||
+          s.source_type.replace(/_/g, ' ').includes(q)
+      );
+    }
+
+    cacheSet(cacheKey, results);
+    return [...results];
   }
 
   /**
-   * Retrieves source registry entries
+   * Retrieves source registry entries, optionally filtered by free-text query.
    */
-  public static async getSourceRegistry(): Promise<SourceRegistry[]> {
-    return [...INITIAL_SOURCE_REGISTRY];
+  public static async getSourceRegistry(filters: SourceFilterParams = {}): Promise<SourceRegistry[]> {
+    const cacheKey = `registry:${JSON.stringify(filters)}`;
+    const cached = cacheGet<SourceRegistry[]>(cacheKey);
+    if (cached) return [...cached];
+
+    let results = [...INITIAL_SOURCE_REGISTRY];
+
+    if (filters.query && filters.query.trim() !== '') {
+      const q = filters.query.toLowerCase().trim();
+      results = results.filter(
+        (r) =>
+          r.name.toLowerCase().includes(q) ||
+          r.base_url.toLowerCase().includes(q) ||
+          r.source_category.replace(/_/g, ' ').includes(q)
+      );
+    }
+
+    cacheSet(cacheKey, results);
+    return [...results];
   }
 
   /**
-   * Summary metrics for platform overview
+   * Summary metrics for platform overview.
+   * Cached for 60s and computed in parallel: previously every homepage hit
+   * re-ran four full scans sequentially on top of the page's own queries.
    */
   public static async getPlatformMetrics() {
-    const deals = await this.getDeals();
-    const companies = await this.getCompanies();
-    const relationships = await this.getRelationships();
-    const sources = await this.getSources();
+    const cached = cacheGet<{
+      totalDeals: number;
+      totalCompanies: number;
+      totalRelationships: number;
+      totalSources: number;
+      totalDisclosedVolume: number;
+      lastUpdated: string;
+    }>('metrics');
+    if (cached) return cached;
+
+    const [deals, companies, relationships, sources] = await Promise.all([
+      this.getDeals(),
+      this.getCompanies(),
+      this.getRelationships(),
+      this.getSources(),
+    ]);
 
     const totalDisclosedVolume = deals.reduce((acc, d) => acc + (d.amount_value || 0), 0);
 
-    return {
+    const metrics = {
       totalDeals: deals.length,
       totalCompanies: companies.length,
       totalRelationships: relationships.length,
@@ -171,5 +435,7 @@ export class DataRepository {
       totalDisclosedVolume,
       lastUpdated: new Date().toISOString(),
     };
+    cacheSet('metrics', metrics);
+    return metrics;
   }
 }

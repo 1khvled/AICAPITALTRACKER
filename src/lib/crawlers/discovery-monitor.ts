@@ -1,5 +1,4 @@
 import { SafeUrlValidator } from './ssrf-protection';
-import { DiscoveryCandidate } from '../types';
 
 export interface DiscoveryCrawlerResult {
   sourceSite: string;

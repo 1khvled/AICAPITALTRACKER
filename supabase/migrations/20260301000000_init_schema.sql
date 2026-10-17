@@ -378,10 +378,15 @@ AS $$
 $$;
 
 -- PUBLIC / ANONYMOUS READ POLICIES
+-- NOTE (RLS hardening): public reference tables keep anon reads so the public
+-- site works without login. Roles are listed explicitly (TO anon, authenticated)
+-- to document intent; service_role bypasses RLS for server-side ingestion.
 
--- Companies: readable if public
+-- Companies: public reference data, readable by anon + authenticated.
+DROP POLICY IF EXISTS "Public companies are readable by everyone" ON public.companies;
 CREATE POLICY "Public companies are readable by everyone"
     ON public.companies FOR SELECT
+    TO anon, authenticated
     USING (true);
 
 -- Deals: only published deals are readable by public
@@ -404,9 +409,13 @@ CREATE POLICY "Published relationships are readable by everyone"
     ON public.relationships FOR SELECT
     USING (is_published = true OR public.is_admin());
 
--- Sources: readable by everyone
+-- Sources: public citation data, readable by anon + authenticated.
+-- Gated indirectly: unpublished drafts are never exposed because deal_sources
+-- SELECT requires the parent deal to be published (policy below).
+DROP POLICY IF EXISTS "Sources are readable by everyone" ON public.sources;
 CREATE POLICY "Sources are readable by everyone"
     ON public.sources FOR SELECT
+    TO anon, authenticated
     USING (true);
 
 -- Deal sources: readable if deal is published
@@ -429,9 +438,11 @@ CREATE POLICY "Relationship sources readable if relationship accessible"
         )
     );
 
--- Filings: readable by everyone
+-- Filings: public regulatory records, readable by anon + authenticated.
+DROP POLICY IF EXISTS "Filings are readable by everyone" ON public.filings;
 CREATE POLICY "Filings are readable by everyone"
     ON public.filings FOR SELECT
+    TO anon, authenticated
     USING (true);
 
 -- Source registry: public can read enabled sources for transparency
@@ -465,6 +476,16 @@ CREATE POLICY "Admin users visible only to admins"
     ON public.admin_users FOR SELECT
     TO authenticated
     USING (public.is_admin());
+
+-- Admin users: INSERT/UPDATE/DELETE restricted to active admins.
+-- Bootstrap the very first admin row via service_role (bypasses RLS),
+-- then manage membership from the admin panel.
+DROP POLICY IF EXISTS "Admin users manageable only by admins" ON public.admin_users;
+CREATE POLICY "Admin users manageable only by admins"
+    ON public.admin_users FOR ALL
+    TO authenticated
+    USING (public.is_admin())
+    WITH CHECK (public.is_admin());
 
 -- ADMIN MUTATION POLICIES (INSERT / UPDATE / DELETE)
 
@@ -543,3 +564,42 @@ CREATE CONSTRAINT TRIGGER trg_check_deal_publish
     DEFERRABLE INITIALLY DEFERRED
     FOR EACH ROW
     EXECUTE FUNCTION public.check_deal_publish_integrity();
+
+-- Unconditional re-check on ANY deal update (not just is_published flips),
+-- so a published deal can never persist sourceless via multi-step edits.
+DROP TRIGGER IF EXISTS trg_check_deal_publish_any_update ON public.deals;
+CREATE CONSTRAINT TRIGGER trg_check_deal_publish_any_update
+    AFTER UPDATE ON public.deals
+    DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW
+    EXECUTE FUNCTION public.check_deal_publish_integrity();
+
+-- Integrity trigger: removing a source citation must never orphan a published deal.
+CREATE OR REPLACE FUNCTION public.check_deal_sources_publish_integrity()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_deal_id UUID;
+    v_is_published BOOLEAN;
+BEGIN
+    v_deal_id := COALESCE(OLD.deal_id, NEW.deal_id);
+    SELECT is_published INTO v_is_published FROM public.deals WHERE id = v_deal_id;
+    IF v_is_published = true THEN
+        IF NOT EXISTS (SELECT 1 FROM public.deal_sources WHERE deal_id = v_deal_id) THEN
+            RAISE EXCEPTION 'Cannot remove the last verified source citation from published deal %.', v_deal_id;
+        END IF;
+    END IF;
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_check_deal_sources_publish ON public.deal_sources;
+CREATE CONSTRAINT TRIGGER trg_check_deal_sources_publish
+    AFTER DELETE OR UPDATE OF deal_id, source_id ON public.deal_sources
+    DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW
+    EXECUTE FUNCTION public.check_deal_sources_publish_integrity();

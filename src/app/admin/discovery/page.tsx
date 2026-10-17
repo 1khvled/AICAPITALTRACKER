@@ -1,9 +1,9 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { DiscoveryCandidate } from '../../../lib/types';
-import { ShieldAlert, ExternalLink, CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
-
-export const dynamic = 'force-dynamic';
+import { ShieldAlert, ExternalLink, ArrowRight } from 'lucide-react';
 
 const INITIAL_DISCOVERY_CANDIDATES: DiscoveryCandidate[] = [
   {
@@ -34,125 +34,143 @@ const INITIAL_DISCOVERY_CANDIDATES: DiscoveryCandidate[] = [
   },
 ];
 
-export default async function AdminDiscoveryPage() {
+export default function AdminDiscoveryPage() {
+  const [candidates, setCandidates] = useState<DiscoveryCandidate[]>(INITIAL_DISCOVERY_CANDIDATES);
+
+  const markUnderReview = (id: string) => {
+    setCandidates((prev) =>
+      prev.map((c) =>
+        c.id === id ? { ...c, review_status: 'needs_verification' as const } : c
+      )
+    );
+  };
+
+  const rejectLead = (id: string) => {
+    setCandidates((prev) => prev.filter((c) => c.id !== id));
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
-      {/* Breadcrumb & Header */}
-      <div>
-        <nav className="text-xs text-zinc-500 font-mono flex items-center space-x-2 mb-2">
-          <Link href="/admin" className="hover:underline">ADMIN</Link>
-          <span>/</span>
-          <span className="text-zinc-800 font-medium">DISCOVERY QUEUE</span>
-        </nav>
-        <div className="border-b border-zinc-200 pb-4">
-          <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 tracking-tight">
-            Discovery Monitor & Lead Quarantine Queue
-          </h1>
-          <p className="text-xs text-zinc-500 mt-1">
-            Polite monitor inspecting public regulatory endpoints and research sites for candidate transactions.
-          </p>
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="space-y-6">
+        {/* Breadcrumb & header */}
+        <div>
+          <nav aria-label="Breadcrumb" className="mb-2 flex items-center gap-2 font-mono text-xs text-zinc-500">
+            <Link href="/admin" className="rounded transition-colors hover:text-zinc-900 hover:underline">
+              ADMIN
+            </Link>
+            <span aria-hidden="true">/</span>
+            <span className="font-medium text-zinc-800">DISCOVERY QUEUE</span>
+          </nav>
+          <div className="border-b border-zinc-200 pb-4">
+            <h1 className="text-2xl font-black tracking-tight text-zinc-950 sm:text-3xl">
+              Discovery monitor &amp; lead quarantine queue
+            </h1>
+            <p className="mt-1 text-xs text-zinc-500">
+              Polite monitor inspecting public regulatory endpoints and research sites for candidate
+              transactions.
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* Mandatory Editorial Integrity Warning Banner */}
-      <div className="p-4 bg-amber-500/10 border border-amber-600/30 rounded-lg flex items-start gap-3">
-        <ShieldAlert className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
-        <div className="text-xs text-amber-900 leading-relaxed">
-          <strong className="font-mono font-bold block text-[11px]">QUARANTINE ENFORCEMENT:</strong>
-          Discovery candidates are research leads only and are{' '}
-          <strong>never published automatically</strong>. You cannot publish a candidate to the public site without independently verifying the original SEC filing or primary corporate disclosure. Competitor sites must never serve as the sole citation.
+        {/* Quarantine enforcement */}
+        <div className="notice notice-amber flex items-start gap-3">
+          <ShieldAlert aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+          <div className="leading-relaxed">
+            <strong className="eyebrow eyebrow-amber mb-1">Quarantine enforcement:</strong> Discovery
+            candidates are research leads only and are{' '}
+            <strong>never published automatically</strong>. You cannot publish a candidate to the public site
+            without independently verifying the original SEC filing or primary corporate disclosure. Competitor
+            sites must never serve as the sole citation.
+          </div>
         </div>
-      </div>
 
-      {/* Candidates List */}
-      <div className="space-y-4">
-        {INITIAL_DISCOVERY_CANDIDATES.map((candidate) => (
-          <div
-            key={candidate.id}
-            className="p-6 bg-white border border-zinc-200 rounded-lg shadow-xs space-y-4"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-100 pb-3">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-zinc-100 text-zinc-700 font-medium">
-                  {candidate.source_site}
-                </span>
-                <span className={`text-[10px] font-mono px-2 py-0.5 rounded uppercase font-semibold ${
-                  candidate.review_status === 'new'
-                    ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                    : 'bg-amber-50 text-amber-700 border border-amber-200'
-                }`}>
-                  {candidate.review_status.replace(/_/g, ' ')}
+        {/* Candidates */}
+        <div className="space-y-4">
+          {candidates.length === 0 && (
+            <div className="empty-state">
+              <p className="font-mono text-xs text-zinc-500">Queue clear — no pending discovery leads.</p>
+            </div>
+          )}
+          {candidates.map((candidate) => (
+            <div key={candidate.id} className="panel space-y-4 p-6">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-100 pb-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="pill pill-neutral">{candidate.source_site}</span>
+                  <span
+                    className={`pill ${
+                      candidate.review_status === 'new' ? 'pill-sky' : 'pill-amber'
+                    }`}
+                  >
+                    {candidate.review_status.replace(/_/g, ' ')}
+                  </span>
+                </div>
+                <span className="font-mono text-[11px] text-zinc-500">
+                  Discovered: {new Date(candidate.discovered_at).toLocaleString()}
                 </span>
               </div>
-              <span className="text-[11px] font-mono text-zinc-400">
-                Discovered: {new Date(candidate.discovered_at).toLocaleString()}
-              </span>
-            </div>
 
-            <div className="space-y-1">
-              <h2 className="text-base font-bold text-zinc-950">{candidate.page_title}</h2>
-              <p className="text-xs text-zinc-600 leading-relaxed">{candidate.candidate_summary}</p>
-            </div>
-
-            {/* Candidate Entities Detected */}
-            <div className="flex flex-wrap gap-1.5 items-center text-xs">
-              <span className="text-zinc-500 font-mono text-[11px] font-semibold">Entities Detected:</span>
-              {candidate.candidate_company_names.map((name, i) => (
-                <span key={i} className="px-2 py-0.5 rounded bg-zinc-100 font-mono text-zinc-800 text-[11px]">
-                  {name}
-                </span>
-              ))}
-            </div>
-
-            {/* Outbound primary sources found on the page */}
-            {candidate.outbound_source_urls.length > 0 && (
-              <div className="pt-2 border-t border-zinc-100 text-xs space-y-1">
-                <span className="text-zinc-500 font-mono text-[11px] font-semibold">Outbound Document Links Detected:</span>
-                <ul className="space-y-1">
-                  {candidate.outbound_source_urls.map((url, i) => (
-                    <li key={i}>
-                      <a
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline font-mono text-[11px] break-all inline-flex items-center gap-1"
-                      >
-                        <span>{url}</span>
-                        <ExternalLink className="w-2.5 h-2.5 shrink-0" />
-                      </a>
-                    </li>
-                  ))}
-                </ul>
+              <div className="space-y-1">
+                <h2 className="text-base font-bold text-zinc-950">{candidate.page_title}</h2>
+                <p className="text-xs leading-relaxed text-zinc-600">{candidate.candidate_summary}</p>
               </div>
-            )}
 
-            {/* Action buttons */}
-            <div className="pt-3 border-t border-zinc-100 flex flex-wrap gap-2 items-center justify-between">
-              <div className="flex gap-2">
-                <Link
-                  href={`/admin/deals/new`}
-                  className="px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white font-mono text-xs uppercase tracking-wider font-semibold rounded transition-colors inline-flex items-center gap-1.5"
-                >
-                  <span>Verify & Create Deal</span>
-                  <ArrowRight className="w-3 h-3" />
-                </Link>
+              {/* Detected entities */}
+              <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                <span className="panel-title">Entities detected:</span>
+                {candidate.candidate_company_names.map((name, i) => (
+                  <span key={i} className="pill pill-neutral">
+                    {name}
+                  </span>
+                ))}
+              </div>
+
+              {/* Outbound primary sources */}
+              {candidate.outbound_source_urls.length > 0 && (
+                <div className="space-y-1 border-t border-zinc-100 pt-3 text-xs">
+                  <span className="panel-title">Outbound document links detected:</span>
+                  <ul className="space-y-1">
+                    {candidate.outbound_source_urls.map((url, i) => (
+                      <li key={i}>
+                        <a href={url} target="_blank" rel="noopener noreferrer" className="link-cite break-all">
+                          <span>{url}</span>
+                          <ExternalLink aria-hidden="true" className="h-2.5 w-2.5 shrink-0" />
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 pt-3">
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    href={`/admin/deals/new?candidate=${candidate.id}`}
+                    className="btn btn-primary"
+                  >
+                    <span>Verify &amp; create deal</span>
+                    <ArrowRight aria-hidden="true" className="h-3 w-3" />
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => markUnderReview(candidate.id)}
+                    className="btn btn-outline"
+                  >
+                    Mark under review
+                  </button>
+                </div>
+
                 <button
                   type="button"
-                  className="px-3 py-1.5 border border-zinc-300 text-zinc-700 hover:bg-zinc-50 font-mono text-xs uppercase tracking-wider rounded transition-colors"
+                  onClick={() => rejectLead(candidate.id)}
+                  className="rounded font-mono text-xs font-semibold text-rose-600 transition-colors hover:text-rose-900 hover:underline"
                 >
-                  Mark Under Review
+                  Reject lead
                 </button>
               </div>
-
-              <button
-                type="button"
-                className="font-mono text-xs text-rose-600 hover:underline font-semibold"
-              >
-                Reject Lead
-              </button>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
