@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "db:push": "supabase db push",
     "db:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts",
-    "ingest": "tsx scripts/ingest.ts"
+    "ingest": "tsx scripts/ingest.ts",
+    "discover": "tsx scripts/auto-discover.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

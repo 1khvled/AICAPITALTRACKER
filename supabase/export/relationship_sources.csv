@@ -89,3 +89,28 @@ relationship_id,source_id,supporting_note
 30000000-0000-0000-0000-000000000087,10000000-0000-0000-0000-000000000174,Groq’s official announcement of the non-exclusive licensing agreement with NVIDIA.
 30000000-0000-0000-0000-000000000087,10000000-0000-0000-0000-000000000173,"CNBC reports the same ~$20B package announced December 24, 2025."
 30000000-0000-0000-0000-000000000088,10000000-0000-0000-0000-000000000176,Official Stripe announcement of the agreement.
+30000000-0000-0000-0000-000000000089,10000000-0000-0000-0000-000000000180,European Commission decision document clearing the NVIDIA-Run:ai concentration.
+30000000-0000-0000-0000-000000000089,10000000-0000-0000-0000-000000000181,"Reuters on the completed acquisition (December 30, 2024)."
+30000000-0000-0000-0000-000000000090,10000000-0000-0000-0000-000000000182,WIRED’s report that NVIDIA had acquired Gretel (nine figures).
+30000000-0000-0000-0000-000000000091,10000000-0000-0000-0000-000000000183,The Information briefing reporting the closed acquisition.
+30000000-0000-0000-0000-000000000091,10000000-0000-0000-0000-000000000184,TechNode corroboration of the April 2025 acquisition and the founders joining NVIDIA.
+30000000-0000-0000-0000-000000000092,10000000-0000-0000-0000-000000000185,CNBC’s original report of the license-plus-hire package.
+30000000-0000-0000-0000-000000000092,10000000-0000-0000-0000-000000000186,Reuters corroboration of the license-plus-hire transaction.
+30000000-0000-0000-0000-000000000093,10000000-0000-0000-0000-000000000185,CNBC notes NVIDIA invested in Enfabrica as part of its $125M Series B (2023).
+30000000-0000-0000-0000-000000000094,10000000-0000-0000-0000-000000000187,AMD’s official announcement of the ~$665M all-cash acquisition agreement.
+30000000-0000-0000-0000-000000000094,10000000-0000-0000-0000-000000000188,"AMD 10-Q confirming completion of the Silo AI Oy acquisition on August 9, 2024."
+30000000-0000-0000-0000-000000000095,10000000-0000-0000-0000-000000000189,Official xAI Series E announcement names MGX among the investors.
+30000000-0000-0000-0000-000000000096,10000000-0000-0000-0000-000000000191,Official Anthropic announcement lists MGX among the Series G co-leads.
+30000000-0000-0000-0000-000000000097,10000000-0000-0000-0000-000000000192,Official OpenAI release names MGX among the round co-leads.
+30000000-0000-0000-0000-000000000098,10000000-0000-0000-0000-000000000195,Official Anduril announcement naming Andreessen Horowitz as Series H co-lead.
+30000000-0000-0000-0000-000000000099,10000000-0000-0000-0000-000000000192,Official OpenAI release names NVIDIA ($30B) among the strategic anchors of the closed round.
+30000000-0000-0000-0000-000000000100,10000000-0000-0000-0000-000000000192,Official OpenAI release names Amazon ($50B) among the strategic anchors of the closed round.
+30000000-0000-0000-0000-000000000101,10000000-0000-0000-0000-000000000201,"CoreWeave's official completion release of the W&B acquisition (May 5, 2025)."
+30000000-0000-0000-0000-000000000101,10000000-0000-0000-0000-000000000200,"CoreWeave's original announcement of the acquisition agreement (March 4, 2025)."
+30000000-0000-0000-0000-000000000102,10000000-0000-0000-0000-000000000205,Bloomberg's report of the completed PlayAI acquisition and team transfer.
+30000000-0000-0000-0000-000000000103,10000000-0000-0000-0000-000000000206,Reuters on the ~$650M licensing deal and mass hiring.
+30000000-0000-0000-0000-000000000104,10000000-0000-0000-0000-000000000197,"The July 7, 2025 SEC-filed joint release describes ~840 existing gross MW supporting CoreWeave's HPC contracts and Core Scientific CEO Adam Sullivan calling CoreWeave a ""longstanding partner""."
+30000000-0000-0000-0000-000000000104,10000000-0000-0000-0000-000000000198,"Core Scientific's Form 8-K reporting the failed stockholder vote and effective-immediately termination documents the post-vote state: the company remains an independent Nasdaq-listed operator, and same-day announcements from both companies committed to continuing the commercial partnership (CoreWeave: ""look forward to continuing our commercial partnership"" - https://investors.coreweave.com/news/news-details/2025/CoreWeave-Comments-on-Core-Scientific-Stockholder-Vote/default.aspx)."
+30000000-0000-0000-0000-000000000105,10000000-0000-0000-0000-000000000199,"NVIDIA's Form 8-K disclosing the definitive agreement, price components, open-platform commitments and H1 2027 expected close."
+30000000-0000-0000-0000-000000000106,10000000-0000-0000-0000-000000000203,"SEC-filed merger agreement establishing the two-step merger with xAI surviving as a wholly owned SpaceX subsidiary, closed February 2, 2026."
+30000000-0000-0000-0000-000000000106,10000000-0000-0000-0000-000000000204,CNBC on the completion (Nevada records; SpaceX as managing member of X.AI Holdings) and the announcement.

@@ -1,6 +1,9 @@
 deal_id,source_id,supporting_note,is_primary_support
 20000000-0000-0000-0000-000000000102,10000000-0000-0000-0000-000000000132,"Reuters exclusive review of the IPO prospectus detailing financials, obligations and valuation target.",true
 20000000-0000-0000-0000-000000000102,10000000-0000-0000-0000-000000000133,Corroborates prospectus details and record-listing valuation expectations.,false
+20000000-0000-0000-0000-000000000137,10000000-0000-0000-0000-000000000194,"Official Mistral announcement of the €3B Series D, €21B+ post-money valuation, and investor list.",true
+20000000-0000-0000-0000-000000000144,10000000-0000-0000-0000-000000000199,"NVIDIA Form 8-K (Item 8.01) disclosing the definitive agreement, price components and H1 2027 expected close.",true
+20000000-0000-0000-0000-000000000144,10000000-0000-0000-0000-000000000202,Reuters independent corroboration of the ~$12.93B deal terms and the open-platform commitment.,false
 20000000-0000-0000-0000-000000000127,10000000-0000-0000-0000-000000000176,Official Stripe announcement of the agreement to acquire OpenRouter.,true
 20000000-0000-0000-0000-000000000127,10000000-0000-0000-0000-000000000177,OpenRouter's own announcement confirming it is joining Stripe.,true
 20000000-0000-0000-0000-000000000127,10000000-0000-0000-0000-000000000178,"NYT reported price context (~$7.5B, founders’ allocation) — reported-secondary, not ledger cash.",false
@@ -10,12 +13,21 @@ deal_id,source_id,supporting_note,is_primary_support
 20000000-0000-0000-0000-000000000106,10000000-0000-0000-0000-000000000141,"SEC-filed pricing release with exact share counts, prices, closing dates, and bookrunner syndicate.",false
 20000000-0000-0000-0000-000000000103,10000000-0000-0000-0000-000000000134,"Alphabet investor presentation confirming the $80B raise, $10B Berkshire leg, oversubscribed underwritten tranche, and ~$85B expected total.",true
 20000000-0000-0000-0000-000000000103,10000000-0000-0000-0000-000000000135,Independent report confirming the $10B Berkshire / $30B underwritten / $40B open-market structure.,false
+20000000-0000-0000-0000-000000000139,10000000-0000-0000-0000-000000000196,"Official Anthropic Series H announcement with leads, co-leads, and the Amazon inclusion.",true
+20000000-0000-0000-0000-000000000138,10000000-0000-0000-0000-000000000195,Official Anduril announcement of the $5B Series H at $61B led by Thrive Capital and Andreessen Horowitz.,true
+20000000-0000-0000-0000-000000000136,10000000-0000-0000-0000-000000000192,Official OpenAI release: closed with $122B committed capital at $852B post-money; anchors and co-leads named.,true
+20000000-0000-0000-0000-000000000136,10000000-0000-0000-0000-000000000193,"CNBC confirmation of the closed $122B round, growth from the $110B February announcement, and investor pool details.",false
 20000000-0000-0000-0000-000000000026,10000000-0000-0000-0000-000000000027,CoreWeave SEC Form 8-K documenting DDTL 4.0 credit agreement.,true
 20000000-0000-0000-0000-000000000063,10000000-0000-0000-0000-000000000064,Official Nebius newsroom announcement of the Meta dedicated capacity agreement.,true
 20000000-0000-0000-0000-000000000063,10000000-0000-0000-0000-000000000065,CNBC independent reporting on the $12B dedicated plus $15B optional structure.,false
 20000000-0000-0000-0000-000000000044,10000000-0000-0000-0000-000000000044,NVIDIA press announcement detailing $2.0B strategic investment in Nebius Group.,true
+20000000-0000-0000-0000-000000000135,10000000-0000-0000-0000-000000000191,Official Anthropic announcement of the $30B Series G at $380B post-money and investor roster.,true
 20000000-0000-0000-0000-000000000028,10000000-0000-0000-0000-000000000028,SoftBank Group corporate announcement detailing $10B OpenAI tranche.,true
+20000000-0000-0000-0000-000000000145,10000000-0000-0000-0000-000000000203,"SEC-filed merger agreement (January 31, 2026, Exhibit 2.1 to SpaceX's S-1): parties, two-step merger structure and the February 2, 2026 closing.",true
+20000000-0000-0000-0000-000000000145,10000000-0000-0000-0000-000000000204,CNBC on the same-day announcement and the completion evidence in Nevada public records (SpaceX as managing member of X.AI Holdings).,false
 20000000-0000-0000-0000-000000000017,10000000-0000-0000-0000-000000000016,"Vistra Corp Form 8-K filing dated January 9, 2026 documenting terms of Meta PPAs.",true
+20000000-0000-0000-0000-000000000134,10000000-0000-0000-0000-000000000189,Official xAI announcement of the completed upsized $20B Series E and investor list.,true
+20000000-0000-0000-0000-000000000134,10000000-0000-0000-0000-000000000190,"Bloomberg confirmation of the closed round, NVIDIA backing, and equity/SPV-debt structure.",false
 20000000-0000-0000-0000-000000000126,10000000-0000-0000-0000-000000000174,Groq’s official release on the non-exclusive licensing agreement and leadership transition to NVIDIA.,true
 20000000-0000-0000-0000-000000000126,10000000-0000-0000-0000-000000000173,"CNBC exclusive reporting the ~$20B asset/license-plus-hire package, NVIDIA’s largest deal on record.",false
 20000000-0000-0000-0000-000000000105,10000000-0000-0000-0000-000000000138,"CoreWeave pricing release for the upsized $2.25B offering, coupon, conversion price, and settlement date.",true
@@ -58,6 +70,8 @@ deal_id,source_id,supporting_note,is_primary_support
 20000000-0000-0000-0000-000000000107,10000000-0000-0000-0000-000000000142,NVIDIA press release announcing the $5B investment at $23.28/share and the product collaboration.,true
 20000000-0000-0000-0000-000000000107,10000000-0000-0000-0000-000000000143,"Intel Form 10-K confirming the September 15, 2025 agreement and December 26, 2025 completion.",true
 20000000-0000-0000-0000-000000000107,10000000-0000-0000-0000-000000000144,Reuters independent reporting of the $5B stake and price per share.,false
+20000000-0000-0000-0000-000000000131,10000000-0000-0000-0000-000000000185,CNBC’s original report of the >$900M license-plus-hire package and the closing.,true
+20000000-0000-0000-0000-000000000131,10000000-0000-0000-0000-000000000186,Reuters corroboration of the >$900M cash-and-stock license-plus-hire report.,false
 20000000-0000-0000-0000-000000000020,10000000-0000-0000-0000-000000000020,Anthropic official statement detailing $13B Series F equity round and $183B valuation.,true
 20000000-0000-0000-0000-000000000111,10000000-0000-0000-0000-000000000151,OpenAI on-record statement that the Oracle partnership exceeds $300 billion over five years.,true
 20000000-0000-0000-0000-000000000111,10000000-0000-0000-0000-000000000150,WSJ exclusive reporting the signed $300B contract value and 2027 start per people familiar.,false
@@ -79,6 +93,9 @@ deal_id,source_id,supporting_note,is_primary_support
 20000000-0000-0000-0000-000000000088,10000000-0000-0000-0000-000000000100,Company spokesperson confirms $2B a16z-led seed round at $12B valuation.,true
 20000000-0000-0000-0000-000000000094,10000000-0000-0000-0000-000000000109,"Official Brookfield release confirming the 3,000 MW framework and initial 670 MW $3B+ PPAs.",true
 20000000-0000-0000-0000-000000000125,10000000-0000-0000-0000-000000000170,"CNBC reports the July 11, 2025 agreement hiring Windsurf’s CEO with the ~$2.4B license and talent package.",true
+20000000-0000-0000-0000-000000000142,10000000-0000-0000-0000-000000000205,Bloomberg first reported the completed PlayAI acquisition with Meta spokesperson confirmation and the team-transfer memo.,true
+20000000-0000-0000-0000-000000000140,10000000-0000-0000-0000-000000000197,"SEC-filed joint press release announcing the ~$9B all-stock definitive agreement on July 7, 2025.",true
+20000000-0000-0000-0000-000000000140,10000000-0000-0000-0000-000000000198,"Core Scientific 8-K reporting the failed stockholder vote and the effective-immediately termination on October 30, 2025.",true
 20000000-0000-0000-0000-000000000080,10000000-0000-0000-0000-000000000091,Reuters account of Morgan Stanley statement confirming $5B debt plus $5B equity raise terms.,true
 20000000-0000-0000-0000-000000000080,10000000-0000-0000-0000-000000000092,"CNBC independent corroboration of debt structure, oversubscription, and use of proceeds.",false
 20000000-0000-0000-0000-000000000029,10000000-0000-0000-0000-000000000029,"Talen Energy Form 8-K and press release on revised 1,920 MW front-of-meter PPA.",true
@@ -101,12 +118,17 @@ deal_id,source_id,supporting_note,is_primary_support
 20000000-0000-0000-0000-000000000068,10000000-0000-0000-0000-000000000074,Statutory 424B4 final prospectus confirming the $40.00 offering price.,true
 20000000-0000-0000-0000-000000000100,10000000-0000-0000-0000-000000000128,Reports the all-stock acquisition valuing X at $33B and xAI at $80B.,true
 20000000-0000-0000-0000-000000000100,10000000-0000-0000-0000-000000000129,"Deal counsel confirms merger terms: xAI $80B, X $33B ($45B EV less $12B debt).",true
+20000000-0000-0000-0000-000000000130,10000000-0000-0000-0000-000000000183,"The Information briefing reporting NVIDIA closed the Lepton AI acquisition (April 9, 2025).",true
+20000000-0000-0000-0000-000000000130,10000000-0000-0000-0000-000000000184,TechNode corroboration of the acquisition (several hundred million dollars) and the co-founders joining NVIDIA.,false
 20000000-0000-0000-0000-000000000122,10000000-0000-0000-0000-000000000171,"Official SBG release on the $6.5B all-cash agreement entered March 19, 2025 (U.S. time).",true
 20000000-0000-0000-0000-000000000122,10000000-0000-0000-0000-000000000172,"Official Ampere completion release: closing on November 25, 2025 (U.S. time), Ampere becomes wholly owned SBG subsidiary.",true
+20000000-0000-0000-0000-000000000129,10000000-0000-0000-0000-000000000182,WIRED’s report that NVIDIA had acquired Gretel for nine figures (above the $320M valuation).,true
 20000000-0000-0000-0000-000000000121,10000000-0000-0000-0000-000000000166,"Official Google completion announcement of the $32B acquisition closed March 11, 2026.",true
 20000000-0000-0000-0000-000000000121,10000000-0000-0000-0000-000000000167,"SEC-filed Alphabet release announcing the original March 18, 2025 definitive agreement at $32B all-cash.",true
 20000000-0000-0000-0000-000000000043,10000000-0000-0000-0000-000000000043,Crusoe Energy disclosure detailing $225M asset-backed credit facility.,true
 20000000-0000-0000-0000-000000000061,10000000-0000-0000-0000-000000000061,Reuters exclusive detailing the $11.9B five-year contract and $350M equity placement.,true
+20000000-0000-0000-0000-000000000141,10000000-0000-0000-0000-000000000200,"Official CoreWeave announcement (March 4, 2025) of the agreement to acquire Weights & Biases (terms not stated).",true
+20000000-0000-0000-0000-000000000141,10000000-0000-0000-0000-000000000201,"Official CoreWeave completion release (May 5, 2025) confirming the acquisition closed.",true
 20000000-0000-0000-0000-000000000067,10000000-0000-0000-0000-000000000072,Official Anthropic announcement of the $3.5B Series E at $61.5B post-money.,true
 20000000-0000-0000-0000-000000000083,10000000-0000-0000-0000-000000000114,"Lambda announcement of the $480M Series D, co-leads, and NVIDIA participation.",true
 20000000-0000-0000-0000-000000000083,10000000-0000-0000-0000-000000000115,CNBC/Reuters confirmation of $480M round with Nvidia among investors.,false
@@ -148,6 +170,8 @@ deal_id,source_id,supporting_note,is_primary_support
 20000000-0000-0000-0000-000000000040,10000000-0000-0000-0000-000000000040,STACK Infrastructure corporate statement on closing $4.0B green ABS notes.,true
 20000000-0000-0000-0000-000000000047,10000000-0000-0000-0000-000000000047,Groq press release detailing $640M Series D round led by BlackRock.,true
 20000000-0000-0000-0000-000000000124,10000000-0000-0000-0000-000000000175,Reuters on the signed non-exclusive licensing deal and the co-founders returning to Google.,true
+20000000-0000-0000-0000-000000000132,10000000-0000-0000-0000-000000000187,"Official AMD announcement of the ~$665M all-cash definitive agreement (July 10, 2024).",true
+20000000-0000-0000-0000-000000000132,10000000-0000-0000-0000-000000000188,"AMD 10-Q: Silo AI Oy acquisition completed August 9, 2024 for $665M all-cash ($553M net).",true
 20000000-0000-0000-0000-000000000033,10000000-0000-0000-0000-000000000033,Vantage Data Centers release detailing completed $9.2B equity investment.,true
 20000000-0000-0000-0000-000000000058,10000000-0000-0000-0000-000000000058,The Information investigative report revealing ByteDance GPU leasing via Oracle.,true
 20000000-0000-0000-0000-000000000038,10000000-0000-0000-0000-000000000038,QTS release detailing Blackstone $25B capital program.,true
@@ -157,11 +181,15 @@ deal_id,source_id,supporting_note,is_primary_support
 20000000-0000-0000-0000-000000000006,10000000-0000-0000-0000-000000000006,Blackstone official statement detailing terms of $7.5B syndicated credit facility.,true
 20000000-0000-0000-0000-000000000057,10000000-0000-0000-0000-000000000057,Wall Street Journal investigative report on Apple Project ACDC custom server silicon.,true
 20000000-0000-0000-0000-000000000012,10000000-0000-0000-0000-000000000012,Brookfield release detailing 10.5 GW global framework agreement.,true
+20000000-0000-0000-0000-000000000128,10000000-0000-0000-0000-000000000179,"Official NVIDIA announcement of the definitive agreement to acquire Run:ai (April 24, 2024).",true
+20000000-0000-0000-0000-000000000128,10000000-0000-0000-0000-000000000180,"European Commission unconditional Phase 1 clearance under the EU Merger Regulation (December 20, 2024).",true
+20000000-0000-0000-0000-000000000128,10000000-0000-0000-0000-000000000181,"Reuters on the completed acquisition (December 30, 2024) and the ~$700M reported price.",true
 20000000-0000-0000-0000-000000000032,10000000-0000-0000-0000-000000000032,Oklo corporate release on Equinix 500 MW power agreement and prepayment.,true
 20000000-0000-0000-0000-000000000055,10000000-0000-0000-0000-000000000055,The Information reporting on Jony Ive and Sam Altman AI device startup fundraising.,true
 20000000-0000-0000-0000-000000000010,10000000-0000-0000-0000-000000000010,Lambda Labs release confirming $500M GPU-backed debt facility.,true
 20000000-0000-0000-0000-000000000014,10000000-0000-0000-0000-000000000014,SEC Form 8-K documenting $160M Macquarie financing agreement.,true
 20000000-0000-0000-0000-000000000054,10000000-0000-0000-0000-000000000054,Wall Street Journal and NYT disclosures regarding PIF and a16z negotiations.,true
+20000000-0000-0000-0000-000000000143,10000000-0000-0000-0000-000000000206,Reuters reports the ~$650M license-plus-hire structure and the Suleyman/Simonyan move (The Information first reported).,true
 20000000-0000-0000-0000-000000000042,10000000-0000-0000-0000-000000000042,Yondr Group release regarding $900M green loan facility for Johor data center.,true
 20000000-0000-0000-0000-000000000007,10000000-0000-0000-0000-000000000007,Talen Energy official release confirming $650M campus purchase and nuclear PPA.,true
 20000000-0000-0000-0000-000000000053,10000000-0000-0000-0000-000000000053,Bloomberg investigative scoop revealing Masayoshi Son $100B AI chip project.,true

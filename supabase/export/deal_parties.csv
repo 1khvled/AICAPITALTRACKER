@@ -1,6 +1,10 @@
 id,deal_id,company_id,role,direction_note
 p-antipo-1,20000000-0000-0000-0000-000000000102,00000000-0000-0000-0000-000000000006,investee,Prospective issuer pursuing a record public listing at a reported $2T+ valuation target
 p-antipo-2,20000000-0000-0000-0000-000000000102,00000000-0000-0000-0000-000000000005,investor,"Existing major investor and cloud partner confirmed in the prospectus reporting, not an IPO underwriter"
+p-raise2-137-1,20000000-0000-0000-0000-000000000137,00000000-0000-0000-0000-000000000019,investee,"Raised €3B Series D at €21B+ post-money for frontier research, infrastructure and international growth"
+p-raise2-137-2,20000000-0000-0000-0000-000000000137,00000000-0000-0000-0000-000000000001,investor,Participating existing investor alongside lead Samsung Electronics and co-leads EQT/PSG
+p-ma3-nvda-hf-1,20000000-0000-0000-0000-000000000144,00000000-0000-0000-0000-000000000001,investor,"Acquirer under a definitive agreement signed September 2, 2026; paying ~$11.9B to stockholders plus up to ~$1B retention; commits to keeping the platform open and supportive of competing silicon"
+p-ma3-nvda-hf-2,20000000-0000-0000-0000-000000000144,00000000-0000-0000-0000-000000000103,investee,"Pending acquiree: open-source AI hub to remain an open platform post-close, with stockholders paid ~$11.9B and employees offered up to ~$1B retention equity"
 p-ma2-or-1,20000000-0000-0000-0000-000000000127,00000000-0000-0000-0000-000000000092,investor,Acquirer; unconfirmed reported consideration ~$7.5B-$8B+; its largest deal on record
 p-ma2-or-2,20000000-0000-0000-0000-000000000127,00000000-0000-0000-0000-000000000093,investee,AI model marketplace and gateway joining Stripe to power agentic-AI payments infrastructure
 p-ss-104-1,20000000-0000-0000-0000-000000000104,00000000-0000-0000-0000-000000000079,investee,"Issuer of warrant for up to 58,970,907 shares (~7% of Marvell) to Google"
@@ -9,6 +13,12 @@ p-ss-106-1,20000000-0000-0000-0000-000000000106,00000000-0000-0000-0000-00000000
 p-ss-106-2,20000000-0000-0000-0000-000000000106,00000000-0000-0000-0000-000000000035,counterparty,Lead joint bookrunning manager (with Goldman Sachs and Citigroup) for both underwritten offerings
 p-ss-103-1,20000000-0000-0000-0000-000000000103,00000000-0000-0000-0000-000000000016,investee,Issuer raising ~$85B of primary equity to fund AI infrastructure capex
 p-ss-103-2,20000000-0000-0000-0000-000000000103,00000000-0000-0000-0000-000000000080,investor,Agreed $10B direct stock purchase as cornerstone of the equity package
+p-raise2-139-1,20000000-0000-0000-0000-000000000139,00000000-0000-0000-0000-000000000006,investee,"Raised $65B Series H at $965B post-money, surpassing OpenAI as the most valuable AI startup"
+p-raise2-139-2,20000000-0000-0000-0000-000000000139,00000000-0000-0000-0000-000000000005,investor,$5B of its April 2026 commitment included in the round's $15B of previously committed hyperscaler investments
+p-raise2-138-1,20000000-0000-0000-0000-000000000138,00000000-0000-0000-0000-000000000099,investee,"Raised $5B Series H at $61B valuation for manufacturing, R&D and defense systems at scale"
+p-raise2-138-2,20000000-0000-0000-0000-000000000138,00000000-0000-0000-0000-000000000063,investor,Co-lead investor alongside Thrive Capital
+p-raise2-136-1,20000000-0000-0000-0000-000000000136,00000000-0000-0000-0000-000000000004,investee,"Closed $122B committed capital at $852B post-money for compute, data centers and talent ahead of a planned IPO"
+p-raise2-136-2,20000000-0000-0000-0000-000000000136,00000000-0000-0000-0000-000000000030,investor,Co-lead investor committing $30B alongside Amazon ($50B) and NVIDIA ($30B)
 p-cw-ddtl-1,20000000-0000-0000-0000-000000000026,00000000-0000-0000-0000-000000000002,borrower,Borrower securing $8.5B capacity to finance global Blackwell and H200 fleet operations
 p-cw-ddtl-2,20000000-0000-0000-0000-000000000026,00000000-0000-0000-0000-000000000009,lender,Anchor institutional lender via Blackstone Credit & Insurance alongside bank syndicate
 p-cw-ddtl-3,20000000-0000-0000-0000-000000000026,00000000-0000-0000-0000-000000000035,lender,Co-lead arranger and syndication bookrunner
@@ -16,10 +26,16 @@ p63a,20000000-0000-0000-0000-000000000063,00000000-0000-0000-0000-000000000017,c
 p63b,20000000-0000-0000-0000-000000000063,00000000-0000-0000-0000-000000000015,supplier,Nebius delivering dedicated capacity from early 2027 across multiple sites
 p-neb-nv-1,20000000-0000-0000-0000-000000000044,00000000-0000-0000-0000-000000000001,investor,Strategic silicon partner acquiring 21M+ shares in $2.0B private placement
 p-neb-nv-2,20000000-0000-0000-0000-000000000044,00000000-0000-0000-0000-000000000015,investee,AI cloud provider deploying proceeds to build out 5 GW computing capacity
+p-raise2-135-1,20000000-0000-0000-0000-000000000135,00000000-0000-0000-0000-000000000006,investee,"Raised $30B Series G at $380B post-money for frontier research, product development and infrastructure"
+p-raise2-135-2,20000000-0000-0000-0000-000000000135,00000000-0000-0000-0000-000000000029,investor,"Co-lead investor alongside GIC, Coatue, D. E. Shaw Ventures, Dragoneer, Founders Fund and ICONIQ"
 p-sb-oa-1,20000000-0000-0000-0000-000000000028,00000000-0000-0000-0000-000000000030,investor,Lead institutional investor executing multi-billion dollar strategic capital package
 p-sb-oa-2,20000000-0000-0000-0000-000000000028,00000000-0000-0000-0000-000000000004,investee,"Frontier AI lab scaling compute fleet, cluster interconnects, and research talent"
+p-ma3-spx-xai-1,20000000-0000-0000-0000-000000000145,00000000-0000-0000-0000-000000000104,investor,"Acquirer: absorbed xAI as a wholly owned subsidiary via a two-step Nevada merger (K2 Merger Subs), becoming managing member of X.AI Holdings; the largest M&A transaction on record"
+p-ma3-spx-xai-2,20000000-0000-0000-0000-000000000145,00000000-0000-0000-0000-000000000018,investee,"Acquired AI company (Grok, X platform): shareholders exchanged xAI shares for SpaceX stock in a tax-free reorganization valuing xAI at ~$250B"
 p-vm-1,20000000-0000-0000-0000-000000000017,00000000-0000-0000-0000-000000000027,utility,"Supplier delivering 2,609 MW of nuclear energy, capacity, and reactor uprate output"
 p-vm-2,20000000-0000-0000-0000-000000000017,00000000-0000-0000-0000-000000000017,customer,Offtaker purchasing baseload zero-carbon nuclear energy for next-generation AI clusters
+p-raise2-134-1,20000000-0000-0000-0000-000000000134,00000000-0000-0000-0000-000000000018,investee,Raised $20B upsized Series E to accelerate infrastructure buildout and Grok 5 development
+p-raise2-134-2,20000000-0000-0000-0000-000000000134,00000000-0000-0000-0000-000000000001,investor,"Strategic investor (as much as $2B planned per Bloomberg) alongside Valor, StepStone, Fidelity, QIA, MGX, Baron and Cisco Investments"
 p-ma-groq-1,20000000-0000-0000-0000-000000000126,00000000-0000-0000-0000-000000000001,counterparty,Pays ~$20B to license Groq LPU IP; Groq founder/CEO Jonathan Ross and leadership join NVIDIA
 p-ma-groq-2,20000000-0000-0000-0000-000000000126,00000000-0000-0000-0000-000000000051,partner,Grants the non-exclusive LPU license; remains an independent company under CEO Simon Edwards
 p-ss-105-1,20000000-0000-0000-0000-000000000105,00000000-0000-0000-0000-000000000002,borrower,Issuer of $2.5875B convertible senior notes due 2031
@@ -66,6 +82,8 @@ p-nv100-1,20000000-0000-0000-0000-000000000075,00000000-0000-0000-0000-000000000
 p-nv100-2,20000000-0000-0000-0000-000000000075,00000000-0000-0000-0000-000000000004,investee,Builds and deploys at least 10 GW of NVIDIA-system data centers
 p-st-107-1,20000000-0000-0000-0000-000000000107,00000000-0000-0000-0000-000000000081,investee,Issuer of ~214.8M new common shares to NVIDIA at $23.28/share alongside x86/NVLink product collaboration
 p-st-107-2,20000000-0000-0000-0000-000000000107,00000000-0000-0000-0000-000000000001,investor,Purchased $5.0B of newly issued Intel common stock to cement x86-NVIDIA product collaboration
+p-nvda2-enf-1,20000000-0000-0000-0000-000000000131,00000000-0000-0000-0000-000000000001,counterparty,Pays the reported >$900M cash-and-stock package; licenses the networking technology and hires CEO Rochan Sankar plus staff
+p-nvda2-enf-2,20000000-0000-0000-0000-000000000131,00000000-0000-0000-0000-000000000098,partner,Grants the technology license and loses its CEO plus other employees; not reported acquired
 p-ant-f-1,20000000-0000-0000-0000-000000000020,00000000-0000-0000-0000-000000000006,investee,Recipient of $13B capital to scale cloud compute allocation and next-gen Claude research
 p-300b-1,20000000-0000-0000-0000-000000000111,00000000-0000-0000-0000-000000000004,customer,Contracts ~$300B of Oracle compute over roughly five years starting in 2027 for Stargate workloads
 p-300b-2,20000000-0000-0000-0000-000000000111,00000000-0000-0000-0000-000000000007,cloud_provider,Supplies OCI capacity supporting 4.5 GW of additional Stargate sites including Abilene
@@ -91,6 +109,10 @@ p-goo-bhm-1,20000000-0000-0000-0000-000000000094,00000000-0000-0000-0000-0000000
 p-goo-bhm-2,20000000-0000-0000-0000-000000000094,00000000-0000-0000-0000-000000000024,utility,Hydro asset owner-operator relicensing and upgrading facilities under 20-year PPAs
 p-ma-wsf-1,20000000-0000-0000-0000-000000000125,00000000-0000-0000-0000-000000000016,counterparty,Pays ~$2.4B for the non-exclusive license; Windsurf CEO/founders join Google DeepMind
 p-ma-wsf-2,20000000-0000-0000-0000-000000000125,00000000-0000-0000-0000-000000000090,partner,Grants non-exclusive technology license and loses CEO plus R&D core; not acquired by Google
+p-ma3-playai-1,20000000-0000-0000-0000-000000000142,00000000-0000-0000-0000-000000000017,investor,"Acquirer; absorbed the whole PlayAI team into Meta Superintelligence Labs to bolster voice features across Meta AI, AI Characters, wearables and audio"
+p-ma3-playai-2,20000000-0000-0000-0000-000000000142,00000000-0000-0000-0000-000000000091,investee,"Acquired voice-AI startup; entire team joined Meta the week after July 11, 2025 reporting to Johan Schalkwyk"
+p-ma3-corz-1,20000000-0000-0000-0000-000000000140,00000000-0000-0000-0000-000000000002,investor,"Acquirer whose ~$9B all-stock offer (described as ""best and final"") died when target stockholders voted it down; CoreWeave then reaffirmed ""opportunistic and strategic M&A"" while remaining Core Scientific's anchor colocation customer"
+p-ma3-corz-2,20000000-0000-0000-0000-000000000140,00000000-0000-0000-0000-000000000101,investee,"Target whose stockholders rejected the merger on October 30, 2025 (20.75M for / 203.45M against), triggering same-day termination; remains independent and Nasdaq-listed (CORZ)"
 p-sweep-debt-080-1,20000000-0000-0000-0000-000000000080,00000000-0000-0000-0000-000000000018,borrower,Borrower raising secured debt capacity for AI data center buildout
 p-sweep-debt-080-2,20000000-0000-0000-0000-000000000080,00000000-0000-0000-0000-000000000036,lender,Sole arranger of secured notes and term loan offering
 p-tln-rev-1,20000000-0000-0000-0000-000000000029,00000000-0000-0000-0000-000000000021,utility,"Nuclear plant operator delivering 1,920 MW of baseload nuclear generation under grid-connected configuration"
@@ -117,14 +139,20 @@ p68a,20000000-0000-0000-0000-000000000068,00000000-0000-0000-0000-000000000002,i
 p68b,20000000-0000-0000-0000-000000000068,00000000-0000-0000-0000-000000000036,counterparty,Morgan Stanley acting as joint lead bookrunner with JPMorgan and Goldman Sachs
 p-xaix-1,20000000-0000-0000-0000-000000000100,00000000-0000-0000-0000-000000000018,investor,"Acquirer in the all-stock transaction, valued at $80B in the combination"
 p-xaix-2,20000000-0000-0000-0000-000000000100,00000000-0000-0000-0000-000000000077,investee,Acquired social platform valued at $33B equity ($45B EV less $12B debt)
+p-nvda2-lep-1,20000000-0000-0000-0000-000000000130,00000000-0000-0000-0000-000000000001,investor,Acquirer of the GPU cloud reseller; no official comment on the transaction
+p-nvda2-lep-2,20000000-0000-0000-0000-000000000130,00000000-0000-0000-0000-000000000097,investee,Acquired GPU-rental cloud; co-founders Yangqing Jia and Junjie Bai joined NVIDIA
 p-ma-amp-1,20000000-0000-0000-0000-000000000122,00000000-0000-0000-0000-000000000030,investor,Acquirer; $6.5B all-cash purchase executed via subsidiary Silver Bands 6 (US) Corp.
 p-ma-amp-2,20000000-0000-0000-0000-000000000122,00000000-0000-0000-0000-000000000088,investee,"Acquired Arm-based server CPU designer, becoming a wholly owned SBG subsidiary"
+p-nvda2-gre-1,20000000-0000-0000-0000-000000000129,00000000-0000-0000-0000-000000000001,investor,Acquirer; Gretel’s team and synthetic-data technology folded into NVIDIA
+p-nvda2-gre-2,20000000-0000-0000-0000-000000000129,00000000-0000-0000-0000-000000000095,investee,Acquired synthetic-data platform; ~80 employees joined NVIDIA
 p-ma-wiz-1,20000000-0000-0000-0000-000000000121,00000000-0000-0000-0000-000000000016,investor,"Acquirer; paid $32B all-cash, its largest deal ever"
 p-ma-wiz-2,20000000-0000-0000-0000-000000000121,00000000-0000-0000-0000-000000000085,investee,Acquired cloud and AI security platform; joined Google Cloud retaining its brand
 p-cru-up-1,20000000-0000-0000-0000-000000000043,00000000-0000-0000-0000-000000000013,borrower,Pledged GPU hardware fleet to fund cloud computing cluster expansion
 p-cru-up-2,20000000-0000-0000-0000-000000000043,00000000-0000-0000-0000-000000000001,supplier,Hardware vendor whose H100 and A100 GPUs serve as underlying collateral
 p61a,20000000-0000-0000-0000-000000000061,00000000-0000-0000-0000-000000000004,customer,OpenAI purchasing GPU cloud capacity and reducing Microsoft Azure dependence
 p61b,20000000-0000-0000-0000-000000000061,00000000-0000-0000-0000-000000000002,supplier,CoreWeave supplying dedicated AI compute and issuing $350M equity to OpenAI
+p-ma3-wb-1,20000000-0000-0000-0000-000000000141,00000000-0000-0000-0000-000000000002,investor,"Acquirer; first major acquisition after its March 2025 IPO, folding W&B tooling into its AI cloud platform"
+p-ma3-wb-2,20000000-0000-0000-0000-000000000141,00000000-0000-0000-0000-000000000100,investee,Acquired ML developer platform; team joined CoreWeave and W&B became the software/developer-tooling layer of the platform
 p67a,20000000-0000-0000-0000-000000000067,00000000-0000-0000-0000-000000000005,investor,Existing strategic investor Amazon participating alongside Lightspeed-led syndicate
 p67b,20000000-0000-0000-0000-000000000067,00000000-0000-0000-0000-000000000006,investee,Anthropic scaling Claude development and AWS Trainium deployment
 p-dd2-083-1,20000000-0000-0000-0000-000000000083,00000000-0000-0000-0000-000000000012,investee,Receives $480M Series D primary capital for AI cloud expansion
@@ -193,6 +221,8 @@ p-grq-2,20000000-0000-0000-0000-000000000047,00000000-0000-0000-0000-00000000002
 p-grq-3,20000000-0000-0000-0000-000000000047,00000000-0000-0000-0000-000000000033,investor,Strategic tech corporate investor participating via Cisco Investments
 p-ma-chai-1,20000000-0000-0000-0000-000000000124,00000000-0000-0000-0000-000000000016,counterparty,Licenses Character.AI LLM technology non-exclusively; founders rejoin Google DeepMind
 p-ma-chai-2,20000000-0000-0000-0000-000000000124,00000000-0000-0000-0000-000000000087,partner,"Grants non-exclusive technology license and pays out investors; founders depart, company continues"
+p-nvda2-sil-1,20000000-0000-0000-0000-000000000132,00000000-0000-0000-0000-000000000068,investor,"Acquirer; ~$665M all-cash purchase completed August 9, 2024"
+p-nvda2-sil-2,20000000-0000-0000-0000-000000000132,00000000-0000-0000-0000-000000000096,investee,Acquired European AI lab; team joined AMD’s Artificial Intelligence Group under Peter Sarlin
 p-vtg-1,20000000-0000-0000-0000-000000000033,00000000-0000-0000-0000-000000000041,project_owner,Hyperscale operator utilizing $9.2B to scale multi-gigawatt AI data center pipeline
 p-byte-1,20000000-0000-0000-0000-000000000058,00000000-0000-0000-0000-000000000058,customer,Hyperscale AI consumer leasing US-hosted NVIDIA clusters to train foundation models
 p-byte-2,20000000-0000-0000-0000-000000000058,00000000-0000-0000-0000-000000000007,cloud_provider,Infrastructure provider hosting H100 GPU clusters in domestic US data centers
@@ -210,6 +240,8 @@ p-cw75-2,20000000-0000-0000-0000-000000000006,00000000-0000-0000-0000-0000000000
 p-acdc-1,20000000-0000-0000-0000-000000000057,00000000-0000-0000-0000-000000000059,supplier,Designer and deployer of custom M2/M4 Ultra server blades for AI inference
 p-brk-1,20000000-0000-0000-0000-000000000012,00000000-0000-0000-0000-000000000003,customer,Off-taker purchasing 10.5 GW of clean energy for cloud infrastructure
 p-brk-2,20000000-0000-0000-0000-000000000012,00000000-0000-0000-0000-000000000024,utility,Asset manager and operator developing renewable power projects
+p-nvda2-run-1,20000000-0000-0000-0000-000000000128,00000000-0000-0000-0000-000000000001,investor,"Acquirer; completed the purchase December 30, 2024 after EU clearance"
+p-nvda2-run-2,20000000-0000-0000-0000-000000000128,00000000-0000-0000-0000-000000000094,investee,Acquired AI workload orchestration software provider; joining NVIDIA with plans to open-source its software
 p-ok-eq-1,20000000-0000-0000-0000-000000000032,00000000-0000-0000-0000-000000000040,utility,"Developer building, owning, and operating Aurora fast neutron nuclear powerhouses"
 p-io-1,20000000-0000-0000-0000-000000000055,00000000-0000-0000-0000-000000000061,partner,Design collective leading product architecture and industrial form factor
 p-io-2,20000000-0000-0000-0000-000000000055,00000000-0000-0000-0000-000000000004,partner,Frontier AI lab providing multimodal intelligence and reasoning APIs
@@ -218,6 +250,8 @@ p-lam-2,20000000-0000-0000-0000-000000000010,00000000-0000-0000-0000-00000000000
 p-apld-1,20000000-0000-0000-0000-000000000014,00000000-0000-0000-0000-000000000014,borrower,Facility borrower funding construction of 100MW+ data center campus
 p-pif-1,20000000-0000-0000-0000-000000000054,00000000-0000-0000-0000-000000000064,investor,Sovereign wealth fund negotiating $40B capital allocation for AI technology and data center infrastructure
 p-pif-2,20000000-0000-0000-0000-000000000054,00000000-0000-0000-0000-000000000063,partner,Venture firm negotiating lead asset management role and Riyadh office establishment
+p-ma3-infl-1,20000000-0000-0000-0000-000000000143,00000000-0000-0000-0000-000000000003,counterparty,Paid ~$650M (reported) to license Inflection's models and onboard co-founders Suleyman/Simonyan plus most staff into the new Microsoft AI unit; took no equity
+p-ma3-infl-2,20000000-0000-0000-0000-000000000143,00000000-0000-0000-0000-000000000102,partner,Licensed its models to Microsoft and saw most of its staff hired away; investors made whole and the company continued operating Pi independently
 p-yon-1,20000000-0000-0000-0000-000000000042,00000000-0000-0000-0000-000000000050,borrower,Developer securing green project debt to construct 300 MW AI campus
 p-tal-1,20000000-0000-0000-0000-000000000007,00000000-0000-0000-0000-000000000005,customer,Buyer acquiring campus and contracting up to 960 MW direct nuclear baseload power
 p-tal-2,20000000-0000-0000-0000-000000000007,00000000-0000-0000-0000-000000000021,utility,Nuclear plant operator selling data center campus and supplying power

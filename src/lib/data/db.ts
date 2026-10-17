@@ -84,6 +84,24 @@ import {
   EXTRA_DEALS as SWEEP_MA2_DEALS,
   EXTRA_RELATIONSHIPS as SWEEP_MA2_RELS,
 } from './sweep-ma2';
+import {
+  EXTRA_COMPANIES as SWEEP_NVDA2_COMPANIES,
+  EXTRA_SOURCES as SWEEP_NVDA2_SOURCES,
+  EXTRA_DEALS as SWEEP_NVDA2_DEALS,
+  EXTRA_RELATIONSHIPS as SWEEP_NVDA2_RELS,
+} from './sweep-nvda2';
+import {
+  EXTRA_COMPANIES as SWEEP_RAISES2_COMPANIES,
+  EXTRA_SOURCES as SWEEP_RAISES2_SOURCES,
+  EXTRA_DEALS as SWEEP_RAISES2_DEALS,
+  EXTRA_RELATIONSHIPS as SWEEP_RAISES2_RELS,
+} from './sweep-raises2';
+import {
+  EXTRA_COMPANIES as SWEEP_MA3_COMPANIES,
+  EXTRA_SOURCES as SWEEP_MA3_SOURCES,
+  EXTRA_DEALS as SWEEP_MA3_DEALS,
+  EXTRA_RELATIONSHIPS as SWEEP_MA3_RELS,
+} from './sweep-ma3';
 
 // ---------------------------------------------------------------------------
 // Unified verified store: base dataset plus independently-verified sweep
@@ -106,6 +124,9 @@ const ALL_COMPANIES: Company[] = [
   ...SWEEP_BACKSTOPS_COMPANIES,
   ...SWEEP_MA_COMPANIES,
   ...SWEEP_MA2_COMPANIES,
+  ...SWEEP_NVDA2_COMPANIES,
+  ...SWEEP_RAISES2_COMPANIES,
+  ...SWEEP_MA3_COMPANIES,
 ];
 
 const ALL_SOURCES: Source[] = [
@@ -123,6 +144,9 @@ const ALL_SOURCES: Source[] = [
   ...SWEEP_BACKSTOPS_SOURCES,
   ...SWEEP_MA_SOURCES,
   ...SWEEP_MA2_SOURCES,
+  ...SWEEP_NVDA2_SOURCES,
+  ...SWEEP_RAISES2_SOURCES,
+  ...SWEEP_MA3_SOURCES,
 ];
 
 const ALL_DEALS: Deal[] = [
@@ -140,6 +164,9 @@ const ALL_DEALS: Deal[] = [
   ...SWEEP_BACKSTOPS_DEALS,
   ...SWEEP_MA_DEALS,
   ...SWEEP_MA2_DEALS,
+  ...SWEEP_NVDA2_DEALS,
+  ...SWEEP_RAISES2_DEALS,
+  ...SWEEP_MA3_DEALS,
 ];
 
 const ALL_RELATIONSHIPS: Relationship[] = [
@@ -157,6 +184,9 @@ const ALL_RELATIONSHIPS: Relationship[] = [
   ...SWEEP_BACKSTOPS_RELS,
   ...SWEEP_MA_RELS,
   ...SWEEP_MA2_RELS,
+  ...SWEEP_NVDA2_RELS,
+  ...SWEEP_RAISES2_RELS,
+  ...SWEEP_MA3_RELS,
 ];
 
 export interface DealFilterParams {

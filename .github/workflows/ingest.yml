@@ -1,4 +1,4 @@
-name: Daily Ingest
+name: Daily Ingest + Auto-Discovery
 
 on:
   schedule:
@@ -10,6 +10,10 @@ on:
         description: 'Lookback window in days for SEC filings'
         required: false
         default: '30'
+      feed_days:
+        description: 'Lookback window in days for news auto-discovery (1-30)'
+        required: false
+        default: '2'
       dry_run:
         description: 'Dry run (fetch + log only, do not write data files)'
         required: false
@@ -25,9 +29,9 @@ concurrency:
 
 jobs:
   ingest:
-    name: Run SEC EDGAR ingestion
+    name: SEC filings + news auto-discovery
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -43,7 +47,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run ingestion crawler
+      - name: Run SEC EDGAR ingestion crawler
         env:
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || 'AICapitalTracker/1.0 (contact@aicapitaltracker.com)' }}
         run: |
@@ -53,6 +57,12 @@ jobs:
           else
             npx tsx scripts/ingest.ts --since "$SINCE_DAYS"
           fi
+
+      - name: Run news auto-discovery scraper
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          FEED_DAYS="${{ inputs.feed_days || '2' }}"
+          npx tsx scripts/auto-discover.ts --since "$FEED_DAYS"
 
       - name: Run test suite against fresh data
         run: npm run test
