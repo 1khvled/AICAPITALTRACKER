@@ -88,12 +88,12 @@ export function evaluateBubbleModel(inputs, options = {}) {
     let reading = 'No verified valuations';
     let coverage = 0;
     const psValues = valuations
-      .filter((v) => v.runRateRevenueUsd !== null && v.runRateRevenueUsd > 0)
+      .filter((v) => v.runRateRevenueUsd !== null && v.runRateRevenueUsd >= 100_000_000)
       .map((v) => v.valuationUsd / v.runRateRevenueUsd);
     const ps = median(psValues);
     if (ps !== null) {
       score = ramp(ps, 8, 60);
-      reading = `Median price/sales across tracked labs: ${ps.toFixed(1)}×`;
+      reading = `Median price/sales across commercial frontier labs: ${ps.toFixed(1)}×`;
       coverage = Math.min(1, psValues.length / 3);
     }
     const weightPct = 16;
@@ -595,7 +595,7 @@ export function computeShillerCapeModel(inputs = {}, overrideCapeOrEcy = null) {
   let dynamicMultiplier = 1.0;
   if (inputs.valuations && inputs.valuations.length > 0) {
     const psValues = inputs.valuations
-      .filter((v) => v.runRateRevenueUsd !== null && v.runRateRevenueUsd > 0)
+      .filter((v) => v.runRateRevenueUsd !== null && v.runRateRevenueUsd >= 100_000_000)
       .map((v) => v.valuationUsd / (v.runRateRevenueUsd || 1));
     if (psValues.length > 0) {
       const medianPs = median(psValues);

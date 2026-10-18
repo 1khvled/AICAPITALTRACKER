@@ -90,8 +90,10 @@ const valuationStretch: ModelFactor = {
   compute: (i) => {
     if (!i.valuations || i.valuations.length === 0)
       return { score: 0.35, reading: 'No verified valuations', coverage: 0 };
+    // Commercial frontier labs (>= $100M ARR) anchor enterprise multiple calibration
+    // Sub-commercial / pre-revenue research labs are excluded to prevent median skew
     const psValues = i.valuations
-      .filter((v) => v.runRateRevenueUsd !== null && v.runRateRevenueUsd > 0)
+      .filter((v) => v.runRateRevenueUsd !== null && (v.runRateRevenueUsd as number) >= 100_000_000)
       .map((v) => v.valuationUsd / (v.runRateRevenueUsd as number));
     const ps = median(psValues);
     if (ps === null)
@@ -99,7 +101,7 @@ const valuationStretch: ModelFactor = {
     const score = ramp(ps, 8, 60);
     return {
       score,
-      reading: `Median price/sales across tracked labs: ${ps.toFixed(1)}×`,
+      reading: `Median price/sales across commercial frontier labs: ${ps.toFixed(1)}×`,
       coverage: Math.min(1, psValues.length / 3),
     };
   },

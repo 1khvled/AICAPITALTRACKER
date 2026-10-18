@@ -8,7 +8,7 @@ export async function GET() {
   const result = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
 
   const psValues = (DEFAULT_MODEL_INPUTS.valuations || [])
-    .filter((v) => v.runRateRevenueUsd !== null && (v.runRateRevenueUsd as number) > 0)
+    .filter((v) => v.runRateRevenueUsd !== null && (v.runRateRevenueUsd as number) >= 100_000_000)
     .map((v) => v.valuationUsd / (v.runRateRevenueUsd as number))
     .sort((a, b) => a - b);
   const mid = Math.floor(psValues.length / 2);

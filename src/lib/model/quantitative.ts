@@ -312,12 +312,12 @@ export function computeShillerCapeModel(
   let dynamicMultiplier = 1.0;
   if (inputs.valuations && inputs.valuations.length > 0) {
     const psValues = inputs.valuations
-      .filter((v) => v.runRateRevenueUsd !== null && v.runRateRevenueUsd > 0)
+      .filter((v) => v.runRateRevenueUsd !== null && (v.runRateRevenueUsd as number) >= 100_000_000)
       .map((v) => v.valuationUsd / (v.runRateRevenueUsd || 1));
     if (psValues.length > 0) {
       const medianPs = calculateMedian(psValues);
       if (medianPs !== null) {
-        // 34.8x is baseline median price-to-sales
+        // 34.8x is baseline median price-to-sales across commercial frontier labs
         dynamicMultiplier = Math.max(0.4, Math.min(2.5, medianPs / 34.8));
       }
     }
