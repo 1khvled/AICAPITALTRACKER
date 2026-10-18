@@ -1,4 +1,5 @@
 import { MODEL_FACTORS, MODEL_CALIBRATION } from './factors';
+import { computeMertonModel, computeAltmanZScore } from './quantitative';
 import type {
   BubbleBand,
   BubbleModelInputs,
@@ -120,6 +121,10 @@ export function evaluateBubbleModel(inputs: BubbleModelInputs): BubbleModelResul
     .slice(0, 3)
     .map((c) => c.id);
 
+  // 10. Quantitative Academic Models Integration (Merton 1974 & Altman 2002)
+  const mertonResult = computeMertonModel(inputs);
+  const altmanResult = computeAltmanZScore(inputs);
+
   return {
     burstProbability,
     compositeScore: Math.round(compositeScore * 10) / 10,
@@ -132,8 +137,22 @@ export function evaluateBubbleModel(inputs: BubbleModelInputs): BubbleModelResul
     confidenceInterval,
     fragilityIndex,
     systemicContagionPoints,
+    merton: {
+      distanceToDefault: mertonResult.distanceToDefault,
+      defaultProbabilityPct: mertonResult.defaultProbabilityPct,
+      structuralSpreadBps: mertonResult.structuralSpreadBps,
+      interpretation: mertonResult.interpretation,
+    },
+    altman: {
+      score: altmanResult.score,
+      zone: altmanResult.zone,
+      impliedDistressProbPct: altmanResult.impliedDistressProbPct,
+      interpretation: altmanResult.interpretation,
+    },
   };
 }
+
+export { computeMertonModel, computeAltmanZScore, computeLpplsMetrics, runMonteCarloSimulation, HISTORICAL_BACKTESTS } from './quantitative';
 
 import liveInputsData from '@/data/live-inputs.json';
 

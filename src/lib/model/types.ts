@@ -189,4 +189,18 @@ export interface BubbleModelResult {
   fragilityIndex?: number;
   /** Points added by non-linear systemic credit-debt-macro refinancing synergy */
   systemicContagionPoints?: number;
+  /** Merton (1974) Structural Distance-to-Default and Default Probability metrics */
+  merton?: {
+    distanceToDefault: number;
+    defaultProbabilityPct: number;
+    structuralSpreadBps: number;
+    interpretation: string;
+  };
+  /** Altman (2002) Z''-Score distress metrics */
+  altman?: {
+    score: number;
+    zone: string;
+    impliedDistressProbPct: number;
+    interpretation: string;
+  };
 }

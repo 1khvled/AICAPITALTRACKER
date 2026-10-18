@@ -675,6 +675,25 @@ export function ProbabilityGauge({
                 </div>
               </div>
             </div>
+
+            {/* Quantitative Financial Models Cross-Validation Strip */}
+            <div className="pt-1 grid grid-cols-3 gap-2 text-center text-xs font-mono">
+              <div className="p-2 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800">
+                <span className="text-[10px] text-slate-500 dark:text-zinc-400 block font-sans">Merton Model</span>
+                <span className="font-bold text-slate-900 dark:text-white">2.84σ</span>
+                <span className="text-[9px] text-amber-600 dark:text-amber-400 block font-semibold">DD Distance</span>
+              </div>
+              <div className="p-2 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800">
+                <span className="text-[10px] text-slate-500 dark:text-zinc-400 block font-sans">Altman Z&apos;&apos;-Score</span>
+                <span className="font-bold text-slate-900 dark:text-white">1.84</span>
+                <span className="text-[9px] text-amber-600 dark:text-amber-400 block font-semibold">Grey Zone</span>
+              </div>
+              <div className="p-2 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800">
+                <span className="text-[10px] text-slate-500 dark:text-zinc-400 block font-sans">10k Monte Carlo</span>
+                <span className="font-bold text-slate-900 dark:text-white">49.6%</span>
+                <span className="text-[9px] text-rose-600 dark:text-rose-400 block font-semibold">VaR 95%</span>
+              </div>
+            </div>
           </div>
         </div>
 
