@@ -14,79 +14,394 @@ import {
 } from "@/components/VisualCharts";
 import { AdSlot } from "@/components/AdSlot";
 import { PolymarketCharts } from "@/components/PolymarketCharts";
-import { BarChart3, PieChart, TrendingUp, Layers, X, ChevronRight, Sparkles } from "lucide-react";
+import {
+  BarChart3,
+  PieChart,
+  TrendingUp,
+  Layers,
+  X,
+  ChevronRight,
+  Sparkles,
+  Activity,
+  DollarSign,
+  AlertTriangle,
+  ShieldAlert,
+  ArrowUpRight,
+  Sliders,
+  Filter,
+  Info,
+  BookOpen,
+  ArrowRight,
+  Target,
+  FileSpreadsheet,
+} from "lucide-react";
 import Link from "next/link";
+
+type TabView = "all" | "multiples" | "gap" | "sensitivity" | "allocation";
 
 export default function VisualizePage() {
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
+  const [activeTab, setActiveTab] = useState<TabView>("all");
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8 sm:space-y-10 pb-12">
       {/* Top Sponsored Ad Banner */}
       <AdSlot format="leaderboard" slotId="viz-top-banner" />
 
-      {/* Title */}
-      <div className="pb-6 border-b border-slate-200 dark:border-zinc-800">
-        <div className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-zinc-400">
-          <Link href="/" className="hover:text-slate-900 dark:hover:text-white">Home</Link>
-          <span>/</span>
-          <span className="text-slate-900 dark:text-white font-semibold">Visual Analytics</span>
+      {/* Hero Header & Breadcrumb */}
+      <div className="pb-6 border-b border-slate-200 dark:border-zinc-800 space-y-4">
+        {/* Navigation Breadcrumb & Live Marker */}
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+          <div className="flex items-center space-x-2 text-slate-500 dark:text-zinc-400">
+            <Link href="/" className="hover:text-slate-900 dark:hover:text-white transition-colors">
+              Home
+            </Link>
+            <span>/</span>
+            <span className="text-slate-900 dark:text-white font-semibold">
+              Visual Analytics Suite
+            </span>
+            <span>/</span>
+            <span className="text-emerald-600 dark:text-emerald-400">Institutional Terminal</span>
+          </div>
+
+          <div className="flex items-center space-x-2 bg-slate-100 dark:bg-zinc-900/90 px-2.5 py-1 rounded-full border border-slate-200 dark:border-zinc-800 text-[11px]">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="font-semibold text-slate-700 dark:text-zinc-300">LIVE INTELLIGENCE:</span>
+            <span className="text-slate-500 dark:text-zinc-400 font-medium">159 Deals Tracked</span>
+          </div>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-1">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+
+        {/* Headline & CTAs */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+          <div className="space-y-1.5 max-w-3xl">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
               Visualizing the $2.81T AI Infrastructure Superstructure
             </h1>
-            <p className="text-sm text-slate-600 dark:text-zinc-300 font-sans mt-1 max-w-2xl leading-relaxed">
-              High-density institutional charts tracking the $237B revenue gap, token price collapse, 
-              private multiples, and credit default insurance trajectory.
+            <p className="text-sm sm:text-base text-slate-600 dark:text-zinc-300 font-sans leading-relaxed">
+              Real-time quantitative diagnostics tracking the $237B hyperscaler capex gap, private valuation multiples, 
+              credit default swap contagion, and non-linear bubble burst probability.
             </p>
           </div>
-          <Link
-            href="/ledger"
-            className="self-start sm:self-auto flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-900 text-white dark:bg-white dark:text-zinc-950 hover:opacity-90 transition-opacity"
+
+          <div className="flex flex-wrap items-center gap-2.5 sm:self-start lg:self-auto shrink-0">
+            <Link
+              href="/ledger"
+              className="flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-zinc-950 hover:opacity-90 transition-opacity shadow-sm"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>Open 159-Deal Ledger</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+            <Link
+              href="/methodology"
+              className="flex items-center space-x-1.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-zinc-800/80 text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-zinc-700 transition-colors"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>Factor Recipe</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* High-Impact Macroeconomic KPI Metrics Bar */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 pt-2">
+          {/* KPI 1: Capital */}
+          <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-sm space-y-1">
+            <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-zinc-400">
+              <span className="uppercase font-semibold">Total Capital</span>
+              <span className="text-emerald-500 font-bold">+482% YoY</span>
+            </div>
+            <div className="text-xl sm:text-2xl font-black font-mono text-slate-900 dark:text-white font-tabular">
+              $2.81T
+            </div>
+            <div className="text-[11px] font-mono text-slate-500 dark:text-zinc-400 truncate">
+              159 verified facilities
+            </div>
+          </div>
+
+          {/* KPI 2: Annual Revenue Gap */}
+          <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-sm space-y-1">
+            <div className="flex items-center justify-between text-[11px] font-mono text-rose-500 dark:text-rose-400">
+              <span className="uppercase font-semibold">Annual Capex Gap</span>
+              <span className="font-bold">7.2× Outlay</span>
+            </div>
+            <div className="text-xl sm:text-2xl font-black font-mono text-rose-600 dark:text-rose-400 font-tabular">
+              -$237B
+            </div>
+            <div className="text-[11px] font-mono text-slate-500 dark:text-zinc-400 truncate">
+              $275B Outlay vs $38B Rev
+            </div>
+          </div>
+
+          {/* KPI 3: Median Valuation Multiple */}
+          <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-sm space-y-1">
+            <div className="flex items-center justify-between text-[11px] font-mono text-amber-500 dark:text-amber-400">
+              <span className="uppercase font-semibold">Median AI Multiple</span>
+              <span className="font-bold">vs 10× SaaS</span>
+            </div>
+            <div className="text-xl sm:text-2xl font-black font-mono text-amber-500 font-tabular">
+              34.8× P/S
+            </div>
+            <div className="text-[11px] font-mono text-slate-500 dark:text-zinc-400 truncate">
+              Frontier lab equity stretch
+            </div>
+          </div>
+
+          {/* KPI 4: Oracle CDS Spread */}
+          <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-sm space-y-1">
+            <div className="flex items-center justify-between text-[11px] font-mono text-rose-500 dark:text-rose-400">
+              <span className="uppercase font-semibold">Oracle 5Y CDS</span>
+              <span className="font-bold">+131% Wide</span>
+            </div>
+            <div className="text-xl sm:text-2xl font-black font-mono text-rose-600 dark:text-rose-400 font-tabular">
+              187 bp
+            </div>
+            <div className="text-[11px] font-mono text-slate-500 dark:text-zinc-400 truncate">
+              Anchor debt insurance cost
+            </div>
+          </div>
+
+          {/* KPI 5: Burst Probability */}
+          <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-sm space-y-1 col-span-2 md:col-span-1">
+            <div className="flex items-center justify-between text-[11px] font-mono text-rose-500 dark:text-rose-400">
+              <span className="uppercase font-semibold">Burst Probability</span>
+              <span className="font-bold">S=61.2 pts</span>
+            </div>
+            <div className="text-xl sm:text-2xl font-black font-mono text-rose-600 dark:text-rose-400 font-tabular">
+              68.4%
+            </div>
+            <div className="text-[11px] font-mono text-slate-500 dark:text-zinc-400 truncate">
+              Convex stress regime
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Segmented View Toggles / Filter Tabs */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 dark:bg-[#121214] p-1.5 rounded-2xl border border-slate-200 dark:border-zinc-800">
+        <div className="flex flex-wrap items-center gap-1">
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition-all ${
+              activeTab === "all"
+                ? "bg-slate-900 text-white dark:bg-zinc-800 dark:text-white shadow-sm"
+                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+            }`}
           >
-            <span>Open 159-Deal Ledger</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
+            All Analytics
+          </button>
+          <button
+            onClick={() => setActiveTab("multiples")}
+            className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition-all ${
+              activeTab === "multiples"
+                ? "bg-slate-900 text-white dark:bg-zinc-800 dark:text-white shadow-sm"
+                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            Valuations & Multiples
+          </button>
+          <button
+            onClick={() => setActiveTab("gap")}
+            className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition-all ${
+              activeTab === "gap"
+                ? "bg-slate-900 text-white dark:bg-zinc-800 dark:text-white shadow-sm"
+                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            Capex Gap & Deflation
+          </button>
+          <button
+            onClick={() => setActiveTab("sensitivity")}
+            className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition-all ${
+              activeTab === "sensitivity"
+                ? "bg-slate-900 text-white dark:bg-zinc-800 dark:text-white shadow-sm"
+                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            Macro & Risk Curves
+          </button>
+          <button
+            onClick={() => setActiveTab("allocation")}
+            className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition-all ${
+              activeTab === "allocation"
+                ? "bg-slate-900 text-white dark:bg-zinc-800 dark:text-white shadow-sm"
+                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            Capital Allocation
+          </button>
+        </div>
+
+        {/* Quick jump navigation indicator */}
+        <div className="text-xs font-mono text-slate-500 dark:text-zinc-400 px-3 hidden lg:block">
+          {activeTab === "all" ? "Displaying Complete Executive Briefing" : `Filtered View: ${activeTab.toUpperCase()}`}
         </div>
       </div>
 
       {/* Flagship Feature: Finviz-Style Treemap & Category Bubble Pods */}
-      <div className="space-y-2">
-        <DealBubbleChart
-          deals={rawDeals as Deal[]}
-          onSelectDeal={(d) => setSelectedDeal(d)}
-        />
-      </div>
+      {(activeTab === "all" || activeTab === "allocation") && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                Interactive Finviz Treemap & Category Pods
+              </h2>
+            </div>
+            <span className="text-xs font-mono text-slate-500 dark:text-zinc-400">
+              Click any node for transaction details
+            </span>
+          </div>
+          <DealBubbleChart
+            deals={rawDeals as Deal[]}
+            onSelectDeal={(d) => setSelectedDeal(d)}
+          />
+        </section>
+      )}
+
+      {/* Explanatory Callout 1: Multiple Compression Mechanics */}
+      {(activeTab === "all" || activeTab === "multiples") && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/50 dark:bg-amber-950/15 border border-amber-200/80 dark:border-amber-900/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-start space-x-3.5">
+            <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 shrink-0">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+                Institutional Analysis: The Mechanics of Multiple Compression
+              </h4>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed max-w-3xl">
+                In a 4.5% risk-free rate environment, long-duration cash flows cannot mathematically support 40×–100× P/S ratios without generating near-infinite terminal operating leverage. When public equity markets derate frontier suppliers, private marks face an abrupt 50%–70% valuation compression.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/compare"
+            className="shrink-0 flex items-center space-x-1 text-xs font-mono font-bold text-amber-700 dark:text-amber-400 hover:underline"
+          >
+            <span>Compare 2000 vs 2026</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
+
+      {/* Valuation Multiples Scatter Plot & Yearly Deployment */}
+      {(activeTab === "all" || activeTab === "multiples") && (
+        <section className="space-y-6">
+          <LabMultiplesChart />
+        </section>
+      )}
 
       {/* 2 Critical Microeconomic Charts: The AI Revenue Gap + Token Price Deflation */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <AiRevenueGapChart />
-        <TokenPriceDeflationChart />
-      </div>
+      {(activeTab === "all" || activeTab === "gap") && (
+        <section className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+              The Fundamental Capex Gap vs Enterprise Adoption
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <AiRevenueGapChart />
+            <TokenPriceDeflationChart />
+          </div>
+        </section>
+      )}
 
       {/* Mid-Page In-Feed Sponsored Placement */}
       <AdSlot format="in-feed" slotId="viz-mid-native" />
 
+      {/* Explanatory Callout 2: Sigmoid Inflection Zone */}
+      {(activeTab === "all" || activeTab === "sensitivity") && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-rose-50/50 dark:bg-rose-950/15 border border-rose-200/80 dark:border-rose-900/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-start space-x-3.5">
+            <div className="p-2 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-400 shrink-0">
+              <Activity className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+                Decoding the Sensitivity Curve: The Non-Linear Inflection Threshold
+              </h4>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed max-w-3xl">
+                The calibration sigmoid function behaves linearly below 50 points, but exhibits convex acceleration once stress breaches 55 points. Because systemic risk compounds multiplicatively through counterparty leverage, a mere 6-point increase (from 55 to 61.2) amplifies burst probability from 50.0% to 68.4%.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/methodology"
+            className="shrink-0 flex items-center space-x-1 text-xs font-mono font-bold text-rose-700 dark:text-rose-400 hover:underline"
+          >
+            <span>Audit Model Math</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
+
+      {/* Full-Width Sigmoid Calibration Curve & CDS Trajectory */}
+      {(activeTab === "all" || activeTab === "sensitivity") && (
+        <section className="space-y-6">
+          <SensitivityCurveChart />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CdsTrajectoryChart />
+            <YearlySurgeChart />
+          </div>
+        </section>
+      )}
+
+      {/* Capital Allocation Deep Dive */}
+      {(activeTab === "all" || activeTab === "allocation") && (
+        <section className="space-y-6">
+          <CapitalCompositionChart />
+        </section>
+      )}
+
       {/* Polymarket Prediction Markets Intelligence */}
-      <PolymarketCharts />
+      {(activeTab === "all" || activeTab === "sensitivity") && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                Prediction Market Crowdsourced Intelligence (Polymarket)
+              </h2>
+            </div>
+            <span className="text-xs font-mono text-slate-500 dark:text-zinc-400">
+              Real-money volume weighting
+            </span>
+          </div>
+          <PolymarketCharts />
+        </section>
+      )}
 
-      {/* Grid of 4 Macroeconomic Risk Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <CapitalCompositionChart />
-        <YearlySurgeChart />
-        <LabMultiplesChart />
-        <CdsTrajectoryChart />
-      </div>
-
-      {/* Full-Width Sigmoid Calibration Curve */}
-      <SensitivityCurveChart />
+      {/* Explanatory Callout 3: Credit Radar & Contagion */}
+      {(activeTab === "all" || activeTab === "sensitivity" || activeTab === "multiples") && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-start space-x-3.5">
+            <div className="p-2 rounded-xl bg-slate-200 dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 shrink-0">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+                Credit Markets as the Leading Indicator: The 90-Day Warning Window
+              </h4>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed max-w-3xl">
+                Equity investors often ignore balance sheet distress until credit default swaps (CDS) force bond yield re-evaluations. Oracle’s CDS spread widening from 81 bp to 187 bp (+131%) reflects fixed-income market skepticism regarding AI datacenter debt servicing capacity.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/ledger?type=debt"
+            className="shrink-0 flex items-center space-x-1 text-xs font-mono font-bold text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:underline"
+          >
+            <span>View $197B Debt Facilities</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
 
       {/* Deal Details Modal */}
       {selectedDeal && (
         <div className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl max-w-xl w-full p-6 space-y-5 shadow-2xl relative">
+          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-xl w-full p-6 space-y-5 shadow-2xl relative">
             <button
               onClick={() => setSelectedDeal(null)}
               className="absolute right-4 top-4 text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-lg"

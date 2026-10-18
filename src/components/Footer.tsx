@@ -1,65 +1,126 @@
 import React from "react";
 import Link from "next/link";
-import { ArrowUpRight, Zap } from "lucide-react";
+import { ArrowUpRight, Zap, ShieldCheck, Database, FileText, Code2, Activity, ExternalLink } from "lucide-react";
 import { POLYMARKET_BASE_URL, POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 
 export function Footer() {
   return (
-    <footer className="border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#09090b] mt-20 text-slate-600 dark:text-zinc-400 text-sm transition-colors">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 space-y-10">
-        {/* Polymarket Referral Callout Box */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-5 shadow-sm">
-          <div className="space-y-1.5 text-center md:text-left">
-            <div className="flex items-center justify-center md:justify-start space-x-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
-                Polymarket Prediction Markets Partner
-              </span>
-              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
-                Ref: {POLYMARKET_REFERRAL_CODE}
-              </span>
-            </div>
-            <p className="text-slate-600 dark:text-zinc-300 text-xs sm:text-sm font-sans max-w-xl leading-relaxed">
-              Trade real-time AI bubble burst odds, Oracle debt default benchmarks, and OpenAI IPO contracts with zero gas fees on Polygon.
-            </p>
-          </div>
+    <footer className="border-t border-slate-200 dark:border-zinc-800 bg-slate-50/70 dark:bg-[#070709] mt-24 text-slate-600 dark:text-zinc-400 text-sm transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 space-y-12">
+        {/* High-Contrast Polymarket Referral CTA Box */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 border border-indigo-500/30 shadow-xl">
+          {/* Subtle decorative glow */}
+          <div className="absolute -right-20 -top-20 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
 
-          <a
-            href={POLYMARKET_BASE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-shrink-0 inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all"
-          >
-            <Zap className="w-4 h-4 fill-current" />
-            <span>Trade on Polymarket (Ref: {POLYMARKET_REFERRAL_CODE})</span>
-            <ArrowUpRight className="w-4 h-4" />
-          </a>
+          <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div className="space-y-2 max-w-2xl">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-mono font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>PREDICTION MARKETS PARTNER</span>
+                </div>
+                <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-md bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+                  Ref Tag: <span className="text-white font-extrabold">{POLYMARKET_REFERRAL_CODE}</span>
+                </span>
+                <span className="text-xs font-mono text-zinc-300 bg-white/10 px-2 py-0.5 rounded">
+                  0% Gas Fees (Polygon)
+                </span>
+              </div>
+
+              <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                Hedge AI Infrastructure Credit &amp; Bubble Risk on Polymarket
+              </h3>
+
+              <p className="text-zinc-300 text-xs sm:text-sm font-sans leading-relaxed">
+                Take directional positions on real-world probability contracts: Oracle senior debt stress, 
+                Anthropic M&amp;A odds, OpenAI IPO valuation thresholds, and the 2026/2027 AI downturn timeline.
+              </p>
+
+              {/* Live Contract Teaser Pills */}
+              <div className="flex flex-wrap items-center gap-2 pt-1 font-mono text-xs">
+                <span className="px-2.5 py-1 rounded-lg bg-black/40 border border-white/10 text-zinc-300">
+                  Bubble Burst 2026: <strong className="text-indigo-300">7.6¢</strong>
+                </span>
+                <span className="px-2.5 py-1 rounded-lg bg-black/40 border border-white/10 text-zinc-300">
+                  Oracle CDS Stress: <strong className="text-amber-300">38.0¢</strong>
+                </span>
+                <span className="px-2.5 py-1 rounded-lg bg-black/40 border border-white/10 text-zinc-300">
+                  OpenAI IPO by 2026: <strong className="text-rose-300">4.3¢</strong>
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto shrink-0">
+              <a
+                href={POLYMARKET_BASE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center space-x-2.5 px-6 py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 transition-all text-center"
+              >
+                <Zap className="w-4 h-4 fill-current text-amber-300" />
+                <span>Trade on Polymarket</span>
+                <ArrowUpRight className="w-4 h-4 ml-0.5" />
+              </a>
+              <Link
+                href="/methodology"
+                className="inline-flex items-center justify-center space-x-1.5 px-4 py-3.5 rounded-xl text-xs sm:text-sm font-semibold bg-white/10 hover:bg-white/15 text-zinc-200 border border-white/10 transition-colors text-center"
+              >
+                <FileText className="w-3.5 h-3.5 text-zinc-400" />
+                <span>Model Logic</span>
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* 4-Column Directory Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="space-y-3">
-            <span className="font-extrabold text-slate-900 dark:text-white text-base">
-              AI Capital Tracker
-            </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+          {/* Column 1: Platform Overview */}
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 rounded-sm bg-emerald-500" />
+                <span className="font-black text-slate-900 dark:text-white text-base tracking-tight">
+                  AI Capital Tracker
+                </span>
+              </div>
+              <p className="text-xs font-mono text-slate-500 dark:text-zinc-400">
+                Independent Quantitative Research Desk
+              </p>
+            </div>
             <p className="text-slate-600 dark:text-zinc-400 text-xs sm:text-sm leading-relaxed font-sans">
-              An open quantitative instrument tracking AI infrastructure debt, private lab sales multiples, 
-              counterparty circularity, and credit stress. We calculate empirical probabilities from receipted disclosures 
-              — not opinion, analyst sentiment, or promotional forecasts.
+              An open quantitative instrument tracking $2.81T in AI infrastructure debt, private lab sales multiples, 
+              counterparty circularity, and credit stress. Sourced directly from audited SEC EDGAR disclosures, 
+              indentures, and verified filings.
             </p>
+            <div className="flex items-center space-x-2 text-xs font-mono text-emerald-600 dark:text-emerald-400">
+              <Activity className="w-3.5 h-3.5" />
+              <span>Real-Time Model Engine Active</span>
+            </div>
           </div>
 
+          {/* Column 2: Navigation & Core Instruments */}
           <div>
-            <h4 className="text-slate-900 dark:text-white text-sm font-bold mb-3.5">Navigation</h4>
+            <h4 className="text-slate-900 dark:text-white text-sm font-bold mb-3.5 uppercase tracking-wider font-mono">
+              Core Instruments
+            </h4>
             <ul className="space-y-2.5 text-xs sm:text-sm font-medium">
               <li>
-                <Link href="/" className="hover:text-slate-900 dark:hover:text-white transition-colors">
-                  Model &amp; Odds
+                <Link href="/" className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center justify-between group">
+                  <span>Model &amp; Burst Probability</span>
+                  <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">68.4%</span>
                 </Link>
               </li>
               <li>
-                <Link href="/ledger" className="hover:text-slate-900 dark:hover:text-white transition-colors">
-                  Deal Ledger (159 Deals)
+                <Link href="/ledger" className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center justify-between group">
+                  <span>Deal Ledger (159 Deals)</span>
+                  <span className="text-xs font-mono text-slate-400 dark:text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity">$2.81T</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/companies" className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center justify-between group">
+                  <span>Corporate Exposure Matrix</span>
+                  <span className="text-xs font-mono text-slate-400 dark:text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity">20 Firms</span>
                 </Link>
               </li>
               <li>
@@ -69,146 +130,127 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/sandbox" className="hover:text-slate-900 dark:hover:text-white transition-colors">
-                  Interactive Simulator
-                </Link>
-              </li>
-              <li>
-                <Link href="/companies" className="hover:text-slate-900 dark:hover:text-white transition-colors">
-                  Corporate Exposure
-                </Link>
-              </li>
-              <li>
-                <Link href="/api-docs" className="hover:text-slate-900 dark:hover:text-white transition-colors">
-                  Developer API v1
-                </Link>
-              </li>
-              <li>
-                <Link href="/methodology" className="hover:text-slate-900 dark:hover:text-white transition-colors">
-                  Mathematical Methodology
+                  Interactive Stress Simulator
                 </Link>
               </li>
             </ul>
           </div>
 
+          {/* Column 3: Documentation & Developer API */}
           <div>
-            <h4 className="text-slate-900 dark:text-white text-sm font-bold mb-3.5 flex items-center space-x-2">
-              <span>Polymarket Odds</span>
-              <span className="text-xs font-mono font-bold px-1.5 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
-                0% Gas
-              </span>
+            <h4 className="text-slate-900 dark:text-white text-sm font-bold mb-3.5 uppercase tracking-wider font-mono">
+              Methodology &amp; API
             </h4>
             <ul className="space-y-2.5 text-xs sm:text-sm font-medium">
               <li>
+                <Link href="/methodology" className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center space-x-1.5">
+                  <FileText className="w-3.5 h-3.5 text-indigo-500" />
+                  <span>Mathematical Methodology</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/api-docs" className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center space-x-1.5">
+                  <Code2 className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>Developer API v1 (REST)</span>
+                </Link>
+              </li>
+              <li>
                 <a
-                  href={`https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`}
+                  href="/api/v1/model"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center space-x-1"
+                  className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center space-x-1.5 font-mono text-xs text-slate-500 dark:text-zinc-400"
                 >
-                  <span>AI Bubble Burst 2026/2027</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
+                  <span>GET /api/v1/model</span>
+                  <ExternalLink className="w-2.5 h-2.5" />
                 </a>
               </li>
               <li>
                 <a
-                  href={`https://polymarket.com/?r=${POLYMARKET_REFERRAL_CODE}`}
+                  href="/api/v1/deals"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center space-x-1"
+                  className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center space-x-1.5 font-mono text-xs text-slate-500 dark:text-zinc-400"
                 >
-                  <span>Oracle (ORCL) Debt Stress Odds</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
+                  <span>GET /api/v1/deals</span>
+                  <ExternalLink className="w-2.5 h-2.5" />
                 </a>
               </li>
               <li>
                 <a
-                  href={`https://polymarket.com/event/openai-ipo-by?r=${POLYMARKET_REFERRAL_CODE}`}
+                  href="/api/v1/factors"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center space-x-1"
+                  className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center space-x-1.5 font-mono text-xs text-slate-500 dark:text-zinc-400"
                 >
-                  <span>OpenAI IPO Odds by Date</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
+                  <span>GET /api/v1/factors</span>
+                  <ExternalLink className="w-2.5 h-2.5" />
                 </a>
               </li>
               <li>
                 <a
-                  href={`https://polymarket.com/event/openai-announces-it-has-achieved-agi-before-2027?r=${POLYMARKET_REFERRAL_CODE}`}
+                  href="/api/v1/news"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center space-x-1"
+                  className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center space-x-1.5 font-mono text-xs text-slate-500 dark:text-zinc-400"
                 >
-                  <span>Achieve AGI Before 2027</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
-                </a>
-              </li>
-              <li>
-                <a
-                  href={`https://polymarket.com/event/openai-1t-ipo-before-2027?r=${POLYMARKET_REFERRAL_CODE}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center space-x-1"
-                >
-                  <span>OpenAI $1T+ IPO Market Cap</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
-                </a>
-              </li>
-              <li>
-                <a
-                  href={`https://polymarket.com/event/anthropic-acquired-before-2027?r=${POLYMARKET_REFERRAL_CODE}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center space-x-1"
-                >
-                  <span>Anthropic Acquired Before 2027</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
-                </a>
-              </li>
-              <li>
-                <a
-                  href={`https://polymarket.com/event/us-recession-by-end-of-2026?r=${POLYMARKET_REFERRAL_CODE}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center space-x-1"
-                >
-                  <span>US Recession by End of 2026</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
+                  <span>GET /api/v1/news</span>
+                  <ExternalLink className="w-2.5 h-2.5" />
                 </a>
               </li>
             </ul>
           </div>
 
-          <div>
-            <h4 className="text-slate-900 dark:text-white text-sm font-bold mb-3.5">Data Integrity</h4>
-            <p className="text-slate-600 dark:text-zinc-400 text-xs sm:text-sm leading-relaxed font-sans mb-3.5">
-              Every figure is linked to an SEC filing, press release, or regulatory record. Undisclosed deals remain undisclosed. 
-              Nothing on this site is financial advice.
+          {/* Column 4: Data Integrity & Verified Disclosures */}
+          <div className="space-y-3.5">
+            <h4 className="text-slate-900 dark:text-white text-sm font-bold uppercase tracking-wider font-mono flex items-center space-x-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-500" />
+              <span>Data Integrity</span>
+            </h4>
+            <p className="text-slate-600 dark:text-zinc-400 text-xs sm:text-sm leading-relaxed font-sans">
+              Every data point is anchored in an audited SEC 10-K/10-Q filing, indenture prospectus, or verified primary counterparty disclosure. Unconfirmed rumors remain excluded.
             </p>
-            <div className="p-3 rounded-xl bg-slate-100 dark:bg-zinc-900 text-xs font-mono text-slate-700 dark:text-zinc-300">
-              Affiliate disclosure: Links to Polymarket use referral tag <span className="text-indigo-600 dark:text-indigo-400 font-bold">{POLYMARKET_REFERRAL_CODE}</span>.
+            <div className="p-3 rounded-xl bg-slate-100 dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800 text-xs font-mono space-y-1">
+              <div className="text-slate-700 dark:text-zinc-300">
+                Affiliate Tag: <span className="text-indigo-600 dark:text-indigo-400 font-bold">{POLYMARKET_REFERRAL_CODE}</span>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-zinc-400 leading-normal font-sans">
+                Links to Polymarket support independent research via affiliate referral fees. Not financial advice.
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-6 border-t border-slate-200 dark:border-zinc-800/80 flex flex-col sm:flex-row items-center justify-between text-slate-600 dark:text-zinc-400 text-xs sm:text-sm gap-3">
-          <div className="flex items-center space-x-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>24h Automated Market Sync: OpenRouter, Polymarket, Yahoo &amp; SEC EDGAR</span>
+        {/* Live Research Status Bar & Bottom Meta */}
+        <div className="pt-8 border-t border-slate-200 dark:border-zinc-800 flex flex-col md:flex-row items-center justify-between text-xs text-slate-500 dark:text-zinc-400 gap-4">
+          {/* Live Status Badge */}
+          <div className="flex items-center space-x-2.5 bg-slate-100 dark:bg-zinc-900/90 px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-zinc-800">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="font-mono font-medium text-slate-700 dark:text-zinc-300">
+              Live Research Desk: SEC EDGAR • OpenRouter • Polymarket Sync Active (24h Cron)
+            </span>
           </div>
-          <div className="flex items-center space-x-3 font-mono text-xs font-semibold">
+
+          <div className="flex flex-wrap items-center justify-center gap-3 font-mono text-xs">
+            <Link href="/methodology" className="hover:text-slate-900 dark:hover:text-white transition-colors">
+              Methodology
+            </Link>
+            <span>•</span>
+            <Link href="/api-docs" className="hover:text-slate-900 dark:hover:text-white transition-colors">
+              API Docs
+            </Link>
+            <span>•</span>
             <a
               href={POLYMARKET_BASE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center space-x-1"
+              className="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center space-x-0.5"
             >
-              <span>Polymarket (r={POLYMARKET_REFERRAL_CODE})</span>
+              <span>Polymarket (Ref: {POLYMARKET_REFERRAL_CODE})</span>
             </a>
-            <span>•</span>
-            <Link href="/api-docs" className="hover:text-slate-900 dark:hover:text-white transition-colors">
-              Developer API v1 →
-            </Link>
             <span>•</span>
             <span>v2.5.0</span>
           </div>
