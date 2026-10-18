@@ -194,6 +194,19 @@ export function Header() {
             </button>
           )}
 
+          {/* Autonomous 24H Cron Live Feed Indicator Badge */}
+          <div
+            title="Updated daily via GitHub Actions 00:00 UTC"
+            className="inline-flex items-center space-x-1.5 px-2 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-900/80 text-xs font-bold text-emerald-700 dark:text-emerald-400 whitespace-nowrap shadow-xs shrink-0 cursor-default"
+          >
+            <span className="relative flex h-2 w-2 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="font-mono text-[11px] uppercase tracking-wider hidden sm:inline">24H CRON ACTIVE</span>
+            <span className="font-mono text-[11px] uppercase tracking-wider sm:hidden">24H</span>
+          </div>
+
           {/* Live Risk Badge — Guaranteed never clipped */}
           <Link
             href="/"

@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   POLYMARKET_REFERRAL_CODE,
   POLYMARKET_FEATURED_MARKETS,
   POLYMARKET_HISTORICAL_TRENDS,
   POLYMARKET_RESOLUTION_CONDITIONS,
+  PolymarketMarket,
 } from "@/data/polymarket-data";
+import liveInputsData from "@/data/live-inputs.json";
 import {
   TrendingUp,
   ShieldAlert,
@@ -19,24 +21,131 @@ import {
   Check,
   Clock,
   Flame,
+  RefreshCw,
+  Layers,
 } from "lucide-react";
+
+interface LiveCrowdMarket {
+  id: string;
+  question: string;
+  slug: string;
+  eventSlug: string;
+  yesProbabilityPct: number;
+  noProbabilityPct: number;
+  volumeUsd: number;
+  referralUrl: string;
+}
 
 export function PolymarketCharts() {
   const [activeTab, setActiveTab] = useState<"markets" | "trend" | "triggers" | "calculator">("markets");
+  const [marketFilter, setMarketFilter] = useState<"All" | "Bubble & Downturn" | "Frontier Labs" | "Macro Tech">("All");
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
 
+  // Read automated 24h data from live-inputs.json
+  const crowdData = liveInputsData?.crowd;
+  const totalVolume = crowdData?.volumeUsd ?? 9_143_296.3;
+  const bubble2026Prob = (crowdData?.bubble2026Probability ?? 0.103) * 100;
+  const bubble2027Prob = (crowdData?.bubble2027Probability ?? 0.165) * 100;
+  const activeContractsCount = crowdData?.activeContractsCount ?? 16;
+  const lastSyncedAt = liveInputsData?.meta?.last_synced_at
+    ? new Date(liveInputsData.meta.last_synced_at).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }) + " UTC"
+    : "24h Automated Cron";
+
+  // Build full set of active contracts merging Polymarket Gamma API feeds from live-inputs.json
+  const activeContracts: PolymarketMarket[] = useMemo(() => {
+    const rawMarkets: LiveCrowdMarket[] = (crowdData?.markets as LiveCrowdMarket[]) || [];
+
+    if (rawMarkets.length === 0) {
+      return POLYMARKET_FEATURED_MARKETS;
+    }
+
+    return rawMarkets.map((m) => {
+      const q = m.question.toLowerCase();
+      let category: "Bubble & Downturn" | "Debt & Sovereign" | "Frontier Labs" | "Macro Tech" = "Bubble & Downturn";
+
+      if (q.includes("burst") || q.includes("downturn")) {
+        category = "Bubble & Downturn";
+      } else if (q.includes("recession") || q.includes("fed") || q.includes("yield")) {
+        category = "Macro Tech";
+      } else if (q.includes("ipo") || q.includes("agi") || q.includes("anthropic") || q.includes("openai")) {
+        category = "Frontier Labs";
+      }
+
+      const yesP = Math.max(0.01, Math.min(0.99, m.yesProbabilityPct / 100));
+      const noP = Math.max(0.01, Math.min(0.99, m.noProbabilityPct / 100));
+
+      const tradeYesUrl = `${m.referralUrl}&outcome=Yes`;
+      const tradeNoUrl = `${m.referralUrl}&outcome=No`;
+
+      let description = "Real-time decentralized order-book contract parsed from Polymarket Gamma API.";
+      if (q.includes("burst in 2026")) {
+        description = "Resolves to YES if 3 of 6 conditions hit within 90 days: NVDA -50%, SOXX -40%, OpenAI/Anthropic restructuring, H100 rental <$1/hr, or major supplier drawdown.";
+      } else if (q.includes("june 30, 2027")) {
+        description = "Medium-term contract pricing hyperscaler debt refinancing risk and AI cluster capex exhaustion.";
+      } else if (q.includes("ipo")) {
+        description = "Official US exchange IPO listing contract pricing liquidity horizon and employee equity lockups.";
+      } else if (q.includes("agi")) {
+        description = "Resolves to YES if OpenAI publicly claims to have created AGI before 2027.";
+      } else if (q.includes("recession")) {
+        description = "Resolves to YES if NBER announces an official US recession cycle starting by end of 2026.";
+      }
+
+      return {
+        id: m.id,
+        title: m.question,
+        question: m.question,
+        category,
+        slug: m.slug,
+        eventSlug: m.eventSlug,
+        yesProbabilityPct: m.yesProbabilityPct,
+        noProbabilityPct: m.noProbabilityPct,
+        yesPriceUsd: Number(yesP.toFixed(3)),
+        noPriceUsd: Number(noP.toFixed(3)),
+        volumeUsd: m.volumeUsd,
+        liquidityUsd: Math.round(m.volumeUsd * 0.05),
+        endDate: q.includes("2025") ? "2025-12-31" : q.includes("2026") ? "2026-12-31" : "2027-06-30",
+        referralUrl: m.referralUrl,
+        tradeYesUrl,
+        tradeNoUrl,
+        description,
+        tag: m.slug.includes("december-31-2026") ? "Flagship Contract" : m.volumeUsd > 1_000_000 ? "High Liquidity" : "Live Contract",
+        resolutionSource: "UMA Decentralized Oracle",
+        change24hPct: m.yesProbabilityPct > 10 ? -0.4 : 0.2,
+      };
+    });
+  }, [crowdData]);
+
+  // Flagship 2026 contract updated with live 24h probability
+  const flagshipMarket: PolymarketMarket = useMemo(() => {
+    const live2026 = activeContracts.find((m) => m.slug.includes("december-31-2026")) || activeContracts[0];
+    return {
+      ...live2026,
+      yesProbabilityPct: bubble2026Prob,
+      noProbabilityPct: Number((100 - bubble2026Prob).toFixed(1)),
+      yesPriceUsd: Number((bubble2026Prob / 100).toFixed(3)),
+      noPriceUsd: Number(((100 - bubble2026Prob) / 100).toFixed(3)),
+    };
+  }, [activeContracts, bubble2026Prob]);
+
+  // Filtered contracts list for tabs
+  const filteredActiveContracts = useMemo(() => {
+    if (marketFilter === "All") return activeContracts;
+    return activeContracts.filter((c) => c.category === marketFilter);
+  }, [activeContracts, marketFilter]);
+
   // Calculator State
-  const [calcMarketId, setCalcMarketId] = useState<string>(POLYMARKET_FEATURED_MARKETS[0].id);
+  const [calcMarketId, setCalcMarketId] = useState<string>(activeContracts[0]?.id || "691340");
   const [calcOutcome, setCalcOutcome] = useState<"YES" | "NO">("YES");
   const [calcAmount, setCalcAmount] = useState<number>(100);
 
-  const flagshipMarket = POLYMARKET_FEATURED_MARKETS[0];
-  const totalVolume = POLYMARKET_FEATURED_MARKETS.reduce((s, m) => s + m.volumeUsd, 0);
-
   // Calculator Math
   const selectedCalcMarket =
-    POLYMARKET_FEATURED_MARKETS.find((m) => m.id === calcMarketId) || POLYMARKET_FEATURED_MARKETS[0];
+    activeContracts.find((m) => m.id === calcMarketId) || flagshipMarket;
   const activePrice = calcOutcome === "YES" ? selectedCalcMarket.yesPriceUsd : selectedCalcMarket.noPriceUsd;
   const numShares = activePrice > 0 ? calcAmount / activePrice : 0;
   const totalPayout = numShares * 1.0;
@@ -51,21 +160,32 @@ export function PolymarketCharts() {
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
-  // SVG Chart dimensions
+  // SVG Chart dimensions for Historical Trajectory
   const chartWidth = 720;
   const chartHeight = 260;
   const padding = { top: 20, right: 30, bottom: 40, left: 45 };
   const innerWidth = chartWidth - padding.left - padding.right;
   const innerHeight = chartHeight - padding.top - padding.bottom;
-
-  // Max percentage scale is 50% for good vertical resolution
   const maxPct = 50;
 
-  const points = POLYMARKET_HISTORICAL_TRENDS;
+  // Seamlessly bind live 24h cron odds to the terminal point of the trajectory
+  const points = useMemo(() => {
+    return POLYMARKET_HISTORICAL_TRENDS.map((p, idx) => {
+      if (idx === POLYMARKET_HISTORICAL_TRENDS.length - 1) {
+        return {
+          ...p,
+          aiBubble2026: Number(bubble2026Prob.toFixed(1)),
+          aiBubble2027: Number(bubble2027Prob.toFixed(1)),
+          volumeCumulativeMillions: Number((totalVolume / 1e6).toFixed(1)),
+        };
+      }
+      return p;
+    });
+  }, [bubble2026Prob, bubble2027Prob, totalVolume]);
+
   const getX = (index: number) => padding.left + (index / (points.length - 1)) * innerWidth;
   const getY = (val: number) => padding.top + innerHeight - (Math.min(val, maxPct) / maxPct) * innerHeight;
 
-  // Generate SVG path for a metric
   const makePath = (key: "aiBubble2026" | "aiBubble2027" | "oracleCdsStress" | "openaiAgiOdds") => {
     return points
       .map((p, i) => `${i === 0 ? "M" : "L"} ${getX(i).toFixed(1)} ${getY(p[key]).toFixed(1)}`)
@@ -82,32 +202,40 @@ export function PolymarketCharts() {
       {/* Polymarket Partner Integration Header */}
       <div className="border-b border-zinc-800/90 bg-[#0d1117] p-5 sm:p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2.5 flex-wrap gap-y-1">
-              <span className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-mono font-bold bg-indigo-950/80 text-indigo-300 border border-indigo-700/80 whitespace-nowrap">
-                <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
-                <span>POLYMARKET LIVE DECENTRALIZED ORDER BOOK</span>
+          <div className="space-y-2.5">
+            <div className="flex items-center space-x-2.5 flex-wrap gap-y-1.5">
+              {/* Badge: Synced via GitHub Actions 24h Cron */}
+              <span className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-700/80 whitespace-nowrap shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Synced via GitHub Actions 24h Cron</span>
               </span>
-              <span className="text-zinc-600 text-xs">•</span>
-              <span className="text-xs sm:text-sm font-bold font-mono text-zinc-300 whitespace-nowrap">
-                ${(totalVolume / 1_000_000).toFixed(1)}M Total Volume
+
+              {/* Order Book source */}
+              <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-indigo-950/80 text-indigo-300 border border-indigo-700/80 whitespace-nowrap">
+                <Zap className="w-3.5 h-3.5 text-indigo-400" />
+                <span>POLYMARKET GAMMA API</span>
+              </span>
+
+              <span className="text-zinc-600 text-xs hidden sm:inline">•</span>
+              <span className="text-xs sm:text-sm font-black font-mono text-emerald-400 whitespace-nowrap">
+                ${(totalVolume / 1_000_000).toFixed(2)}M+ Real Volume
               </span>
               <span className="text-zinc-600 text-xs hidden sm:inline">•</span>
-              <span className="text-xs font-mono text-emerald-400 font-bold whitespace-nowrap hidden sm:inline">
-                Zero Gas Fees on Polygon
+              <span className="text-xs font-mono text-zinc-400 font-bold whitespace-nowrap">
+                {activeContractsCount} Active Contracts
               </span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center space-x-3 flex-wrap">
               <span>AI Bubble &amp; Tech Prediction Markets</span>
-              <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-md bg-emerald-950/90 text-emerald-300 border border-emerald-800/80 whitespace-nowrap">
+              <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-md bg-indigo-950/90 text-indigo-300 border border-indigo-800/80 whitespace-nowrap">
                 Partner Ref: {POLYMARKET_REFERRAL_CODE}
               </span>
             </h2>
 
             <p className="text-xs sm:text-sm text-zinc-400 font-sans max-w-2xl leading-relaxed">
-              Real-time decentralized order-book probabilities from Polymarket. Trade outcomes directly with USDC 
-              to express directional conviction or hedge semiconductor and credit downside.
+              Real-time decentralized order-book probabilities from Polymarket Gamma API, ingested continuously every 24 hours.
+              Trade outcomes directly with USDC on Polygon to hedge semiconductor capex exhaustion and credit spreads.
             </p>
           </div>
 
@@ -129,7 +257,11 @@ export function PolymarketCharts() {
               title="Copy Referral Code"
               className="inline-flex items-center space-x-1.5 px-3 py-2.5 rounded-xl text-xs font-mono font-bold bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700 transition-colors whitespace-nowrap"
             >
-              {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
+              {copiedCode ? (
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+              ) : (
+                <Copy className="w-3.5 h-3.5 text-zinc-400" />
+              )}
               <span>{copiedCode ? "Code Copied!" : "Copy Code"}</span>
             </button>
           </div>
@@ -146,7 +278,7 @@ export function PolymarketCharts() {
             }`}
           >
             <BarChart2 className="w-4 h-4" />
-            <span>Featured Contracts &amp; Odds</span>
+            <span>Active Contracts ({activeContractsCount})</span>
           </button>
 
           <button
@@ -189,12 +321,11 @@ export function PolymarketCharts() {
 
       {/* Main Tab Content */}
       <div className="p-5 sm:p-6 space-y-6">
-        {/* TAB 1: Live Market Cards & Bar Distributions */}
+        {/* TAB 1: Live Market Cards & Automated 24h Order Books */}
         {activeTab === "markets" && (
           <div className="space-y-6">
-            {/* FEATURED HERO CARD: The Live Polymarket AI Bubble Contract */}
+            {/* FEATURED HERO CARD: Live Polymarket AI Bubble Contract */}
             <div className="bg-[#121214] border border-indigo-900/80 rounded-2xl p-4 sm:p-6 space-y-4 shadow-sm relative overflow-hidden">
-
               {/* Top Meta Bar */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pb-3 border-b border-zinc-800/80">
                 <div className="flex items-center space-x-2.5 flex-wrap">
@@ -203,9 +334,13 @@ export function PolymarketCharts() {
                     <span>FLAGSHIP PREDICTION CONTRACT</span>
                   </span>
 
-                  <span className="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 font-mono text-[11px] font-bold whitespace-nowrap flex items-center space-x-1.5">
-                    <Clock className="w-3.5 h-3.5 text-zinc-400" />
+                  <span className="px-2.5 py-1 rounded-md bg-emerald-950/80 text-emerald-300 font-mono text-[11px] font-bold whitespace-nowrap flex items-center space-x-1.5 border border-emerald-800/80">
+                    <Clock className="w-3.5 h-3.5 text-emerald-400" />
                     <span>EXPIRATION: DEC 31, 2026</span>
+                  </span>
+
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-800 text-zinc-300">
+                    LAST CRON: {lastSyncedAt}
                   </span>
                 </div>
 
@@ -234,16 +369,24 @@ export function PolymarketCharts() {
                 </p>
               </div>
 
-              {/* Visual Odds Distribution Bar */}
+              {/* Visual Odds Distribution Bar with Live 2026/2027 Probabilities */}
               <div className="space-y-2 pt-1">
                 <div className="flex items-center justify-between text-xs sm:text-sm font-mono font-bold">
                   <div className="flex items-center space-x-2">
-                    <span className="text-emerald-400">YES {flagshipMarket.yesProbabilityPct.toFixed(1)}%</span>
-                    <span className="text-zinc-500 font-normal">({Math.round(flagshipMarket.yesPriceUsd * 100)}¢ / share)</span>
+                    <span className="text-emerald-400">
+                      YES {flagshipMarket.yesProbabilityPct.toFixed(1)}%
+                    </span>
+                    <span className="text-zinc-500 font-normal">
+                      ({Math.round(flagshipMarket.yesPriceUsd * 100)}¢ / share)
+                    </span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-zinc-500 font-normal">({Math.round(flagshipMarket.noPriceUsd * 100)}¢ / share)</span>
-                    <span className="text-rose-400">NO {flagshipMarket.noProbabilityPct.toFixed(1)}%</span>
+                    <span className="text-zinc-500 font-normal">
+                      ({Math.round(flagshipMarket.noPriceUsd * 100)}¢ / share)
+                    </span>
+                    <span className="text-rose-400">
+                      NO {flagshipMarket.noProbabilityPct.toFixed(1)}%
+                    </span>
                   </div>
                 </div>
 
@@ -253,21 +396,23 @@ export function PolymarketCharts() {
                     href={flagshipMarket.tradeYesUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    title="Trade YES on Polymarket at 8¢"
+                    title={`Trade YES on Polymarket at ${Math.round(flagshipMarket.yesPriceUsd * 100)}¢`}
                     style={{ width: `${Math.max(10, flagshipMarket.yesProbabilityPct)}%` }}
                     className="bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center transition-colors cursor-pointer whitespace-nowrap px-2"
                   >
-                    YES {flagshipMarket.yesProbabilityPct.toFixed(1)}% ({Math.round(flagshipMarket.yesPriceUsd * 100)}¢)
+                    YES {flagshipMarket.yesProbabilityPct.toFixed(1)}% (
+                    {Math.round(flagshipMarket.yesPriceUsd * 100)}¢)
                   </a>
                   <a
                     href={flagshipMarket.tradeNoUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    title="Trade NO on Polymarket at 92¢"
+                    title={`Trade NO on Polymarket at ${Math.round(flagshipMarket.noPriceUsd * 100)}¢`}
                     style={{ width: `${Math.min(90, flagshipMarket.noProbabilityPct)}%` }}
                     className="bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center transition-colors cursor-pointer whitespace-nowrap px-2"
                   >
-                    NO {flagshipMarket.noProbabilityPct.toFixed(1)}% ({Math.round(flagshipMarket.noPriceUsd * 100)}¢)
+                    NO {flagshipMarket.noProbabilityPct.toFixed(1)}% (
+                    {Math.round(flagshipMarket.noPriceUsd * 100)}¢)
                   </a>
                 </div>
               </div>
@@ -276,32 +421,38 @@ export function PolymarketCharts() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
                 <div className="bg-zinc-950/80 border border-zinc-800/80 rounded-xl p-3">
                   <div className="text-[10px] font-mono uppercase text-zinc-400 font-semibold tracking-wider">
-                    24h Total Volume
+                    Total Contract Volume
                   </div>
                   <div className="text-lg font-black font-mono text-white font-tabular mt-0.5 whitespace-nowrap">
                     ${(flagshipMarket.volumeUsd / 1_000_000).toFixed(2)}M USDC
                   </div>
-                  <div className="text-[11px] font-mono text-emerald-400 mt-0.5">High Liquidity</div>
+                  <div className="text-[11px] font-mono text-emerald-400 mt-0.5">
+                    Live Gamma Book
+                  </div>
                 </div>
 
                 <div className="bg-zinc-950/80 border border-zinc-800/80 rounded-xl p-3">
                   <div className="text-[10px] font-mono uppercase text-zinc-400 font-semibold tracking-wider">
-                    Order Book Depth
+                    2027 Downside Odds
                   </div>
-                  <div className="text-lg font-black font-mono text-white font-tabular mt-0.5 whitespace-nowrap">
-                    ${(flagshipMarket.liquidityUsd / 1_000).toFixed(1)}k Book
+                  <div className="text-lg font-black font-mono text-amber-400 font-tabular mt-0.5 whitespace-nowrap">
+                    {bubble2027Prob.toFixed(1)}% YES
                   </div>
-                  <div className="text-[11px] font-mono text-zinc-400 mt-0.5">Zero slippage</div>
+                  <div className="text-[11px] font-mono text-zinc-400 mt-0.5">
+                    +{((bubble2027Prob / Math.max(1, bubble2026Prob) - 1) * 100).toFixed(0)}% term premium
+                  </div>
                 </div>
 
                 <div className="bg-zinc-950/80 border border-zinc-800/80 rounded-xl p-3">
                   <div className="text-[10px] font-mono uppercase text-zinc-400 font-semibold tracking-wider">
-                    24h Price Change
+                    Active Contracts
                   </div>
-                  <div className="text-lg font-black font-mono text-rose-400 font-tabular mt-0.5 whitespace-nowrap">
-                    {flagshipMarket.change24hPct >= 0 ? "+" : ""}{flagshipMarket.change24hPct.toFixed(1)}%
+                  <div className="text-lg font-black font-mono text-indigo-400 font-tabular mt-0.5 whitespace-nowrap">
+                    {activeContractsCount} Contracts
                   </div>
-                  <div className="text-[11px] font-mono text-zinc-400 mt-0.5">Consensus tightening</div>
+                  <div className="text-[11px] font-mono text-zinc-400 mt-0.5">
+                    ${(totalVolume / 1e6).toFixed(2)}M aggregate vol
+                  </div>
                 </div>
 
                 <div className="bg-zinc-950/80 border border-zinc-800/80 rounded-xl p-3">
@@ -309,10 +460,10 @@ export function PolymarketCharts() {
                     $100 YES Payout
                   </div>
                   <div className="text-lg font-black font-mono text-emerald-400 font-tabular mt-0.5 whitespace-nowrap">
-                    ${Math.round(100 / flagshipMarket.yesPriceUsd).toLocaleString()}
+                    ${Math.round(100 / Math.max(0.01, flagshipMarket.yesPriceUsd)).toLocaleString()}
                   </div>
                   <div className="text-[11px] font-mono text-emerald-400 mt-0.5">
-                    +{(Math.round((100 / flagshipMarket.yesPriceUsd - 100) / 100 * 100)).toLocaleString()}% ROI
+                    +{Math.round(((100 / Math.max(0.01, flagshipMarket.yesPriceUsd) - 100) / 100) * 100).toLocaleString()}% ROI
                   </div>
                 </div>
               </div>
@@ -351,68 +502,41 @@ export function PolymarketCharts() {
               </div>
             </div>
 
-            {/* Quick Comparative Odds Overview */}
-            <div className="bg-zinc-900/60 p-5 rounded-2xl border border-zinc-800 space-y-4 shadow-sm">
-              <div className="flex items-center justify-between text-xs sm:text-sm font-semibold text-zinc-300 pb-2.5 border-b border-zinc-800">
-                <span className="font-mono font-bold text-white uppercase tracking-wider">Cross-Market Consensus Odds</span>
-                <span className="text-xs font-mono text-zinc-400">Click outcome bar to execute on Polymarket</span>
+            {/* Sub-Filter Controls for Active Contracts */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-zinc-800">
+              <div className="flex items-center space-x-2">
+                <Layers className="w-4 h-4 text-indigo-400" />
+                <span className="font-mono font-bold text-sm text-white">
+                  All Active Ingested Contracts ({filteredActiveContracts.length})
+                </span>
+                <span className="text-xs font-mono text-zinc-400">
+                  • ${(totalVolume / 1e6).toFixed(2)}M Real Volume
+                </span>
               </div>
 
-              <div className="space-y-4">
-                {POLYMARKET_FEATURED_MARKETS.map((m) => (
-                  <div key={m.id} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs sm:text-sm">
-                      <a
-                        href={m.referralUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-bold text-white hover:text-indigo-400 flex items-center space-x-1 truncate max-w-[65%]"
-                      >
-                        <span className="truncate">{m.title}</span>
-                        <ArrowUpRight className="w-3.5 h-3.5 flex-shrink-0 text-zinc-500" />
-                      </a>
-                      <div className="flex items-center space-x-2 font-mono text-xs sm:text-sm font-bold whitespace-nowrap">
-                        <span className="text-emerald-400">
-                          YES {m.yesProbabilityPct.toFixed(1)}% ({Math.round(m.yesPriceUsd * 100)}¢)
-                        </span>
-                        <span className="text-zinc-600">/</span>
-                        <span className="text-rose-400">
-                          NO {m.noProbabilityPct.toFixed(1)}% ({Math.round(m.noPriceUsd * 100)}¢)
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Visual Probability Split Bar with Direct Click-to-Trade */}
-                    <div className="flex h-7 w-full rounded-lg overflow-hidden text-xs font-mono font-bold shadow-inner border border-zinc-800">
-                      <a
-                        href={m.tradeYesUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title={`Trade YES on ${m.title} at ${Math.round(m.yesPriceUsd * 100)}¢`}
-                        style={{ width: `${Math.max(6, m.yesProbabilityPct)}%` }}
-                        className="bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center transition-colors cursor-pointer text-xs whitespace-nowrap px-1"
-                      >
-                        YES {m.yesProbabilityPct.toFixed(0)}%
-                      </a>
-                      <a
-                        href={m.tradeNoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title={`Trade NO on ${m.title} at ${Math.round(m.noPriceUsd * 100)}¢`}
-                        style={{ width: `${Math.min(94, m.noProbabilityPct)}%` }}
-                        className="bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center transition-colors cursor-pointer text-xs whitespace-nowrap px-1"
-                      >
-                        NO {m.noProbabilityPct.toFixed(0)}%
-                      </a>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex items-center space-x-1.5 overflow-x-auto scrollbar-none">
+                {(["All", "Bubble & Downturn", "Frontier Labs", "Macro Tech"] as const).map((cat) => {
+                  const isSel = marketFilter === cat;
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setMarketFilter(cat)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold whitespace-nowrap transition-colors border ${
+                        isSel
+                          ? "bg-indigo-600 text-white border-indigo-500"
+                          : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white hover:bg-zinc-800"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Grid of Individual Market Trading Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {POLYMARKET_FEATURED_MARKETS.map((market) => (
+              {filteredActiveContracts.map((market) => (
                 <div
                   key={market.id}
                   className="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-5 flex flex-col justify-between hover:border-zinc-700 transition-all shadow-sm hover:shadow-md space-y-4"
@@ -422,13 +546,10 @@ export function PolymarketCharts() {
                       <span className="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-300 font-bold text-xs whitespace-nowrap">
                         {market.category}
                       </span>
-                      <span
-                        className={`font-bold text-xs whitespace-nowrap ${
-                          market.change24hPct >= 0 ? "text-emerald-400" : "text-rose-400"
-                        }`}
-                      >
-                        24h: {market.change24hPct >= 0 ? "+" : ""}
-                        {market.change24hPct.toFixed(1)}%
+                      <span className="font-bold text-xs whitespace-nowrap text-indigo-400">
+                        Vol: {market.volumeUsd >= 1_000_000
+                          ? `$${(market.volumeUsd / 1e6).toFixed(2)}M`
+                          : `$${Math.round(market.volumeUsd / 1e3)}k`}
                       </span>
                     </div>
 
@@ -488,15 +609,17 @@ export function PolymarketCharts() {
 
                     {/* Expiration and Volume indicators */}
                     <div className="bg-zinc-950 p-2.5 rounded-xl text-xs font-mono text-zinc-300 flex items-center justify-between border border-zinc-800/80">
-                      <span className="text-zinc-500 font-semibold whitespace-nowrap">Vol / Exp:</span>
-                      <span className="font-bold text-zinc-200 whitespace-nowrap">
-                        ${(market.volumeUsd / 1_000).toFixed(0)}k • {market.endDate}
+                      <span className="text-zinc-500 font-semibold whitespace-nowrap">Contract ID:</span>
+                      <span className="font-bold text-zinc-200 whitespace-nowrap font-mono">
+                        #{market.id} • {market.endDate}
                       </span>
                     </div>
 
-                    {/* Polymarket Link */}
+                    {/* Polymarket Link with Referral Preserved */}
                     <div className="flex items-center justify-between text-xs font-mono text-zinc-400 pt-1">
-                      <span className="font-bold text-emerald-400 whitespace-nowrap">Ref: {POLYMARKET_REFERRAL_CODE}</span>
+                      <span className="font-bold text-emerald-400 whitespace-nowrap">
+                        Ref: {POLYMARKET_REFERRAL_CODE}
+                      </span>
                       <a
                         href={market.referralUrl}
                         target="_blank"
@@ -524,7 +647,7 @@ export function PolymarketCharts() {
                   <span>Polymarket Potential Payout &amp; Leverage Simulator</span>
                 </h3>
                 <p className="text-xs text-zinc-400 font-sans mt-0.5">
-                  Calculate real-time potential profit, return on investment, and share quantities for any AI contract.
+                  Calculate real-time potential profit, return on investment, and share quantities for any 24h synced Polymarket contract.
                 </p>
               </div>
 
@@ -539,7 +662,7 @@ export function PolymarketCharts() {
                     onChange={(e) => setCalcMarketId(e.target.value)}
                     className="w-full text-xs font-mono font-medium rounded-lg p-2.5 bg-zinc-950 border border-zinc-700 text-white focus:outline-none focus:border-indigo-500"
                   >
-                    {POLYMARKET_FEATURED_MARKETS.map((m) => (
+                    {activeContracts.map((m) => (
                       <option key={m.id} value={m.id}>
                         {m.title} ({Math.round(m.yesPriceUsd * 100)}¢)
                       </option>
@@ -561,8 +684,12 @@ export function PolymarketCharts() {
                           : "bg-zinc-950 text-zinc-300 border-zinc-800"
                       }`}
                     >
-                      <span className="whitespace-nowrap">YES ({Math.round(selectedCalcMarket.yesPriceUsd * 100)}¢)</span>
-                      <span className="text-[10px] opacity-80 whitespace-nowrap">Asymmetric Upside</span>
+                      <span className="whitespace-nowrap">
+                        YES ({Math.round(selectedCalcMarket.yesPriceUsd * 100)}¢)
+                      </span>
+                      <span className="text-[10px] opacity-80 whitespace-nowrap">
+                        Asymmetric Upside
+                      </span>
                     </button>
                     <button
                       onClick={() => setCalcOutcome("NO")}
@@ -572,8 +699,12 @@ export function PolymarketCharts() {
                           : "bg-zinc-950 text-zinc-300 border-zinc-800"
                       }`}
                     >
-                      <span className="whitespace-nowrap">NO ({Math.round(selectedCalcMarket.noPriceUsd * 100)}¢)</span>
-                      <span className="text-[10px] opacity-80 whitespace-nowrap">Consensus Yield</span>
+                      <span className="whitespace-nowrap">
+                        NO ({Math.round(selectedCalcMarket.noPriceUsd * 100)}¢)
+                      </span>
+                      <span className="text-[10px] opacity-80 whitespace-nowrap">
+                        Consensus Yield
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -634,7 +765,10 @@ export function PolymarketCharts() {
                     Total Payout on Resolution
                   </div>
                   <div className="text-xl font-black font-mono text-emerald-400 font-tabular mt-1 whitespace-nowrap">
-                    ${totalPayout.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    ${totalPayout.toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </div>
                   <div className="text-xs font-mono text-zinc-400 mt-0.5 whitespace-nowrap">
                     $1.00 per winning share
@@ -646,7 +780,10 @@ export function PolymarketCharts() {
                     Net Profit
                   </div>
                   <div className="text-xl font-black font-mono text-indigo-400 font-tabular mt-1 whitespace-nowrap">
-                    +${netProfit.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    +${netProfit.toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </div>
                   <div className="text-xs font-mono text-zinc-400 mt-0.5 whitespace-nowrap">
                     Less initial ${calcAmount}
@@ -702,11 +839,11 @@ export function PolymarketCharts() {
               <div className="flex flex-wrap items-center gap-3 text-xs font-mono">
                 <span className="flex items-center space-x-1.5 text-zinc-300 whitespace-nowrap">
                   <span className="w-3 h-0.5 bg-rose-500"></span>
-                  <span>AI Bubble 2026 (7.6%)</span>
+                  <span>AI Bubble 2026 ({bubble2026Prob.toFixed(1)}%)</span>
                 </span>
                 <span className="flex items-center space-x-1.5 text-zinc-300 whitespace-nowrap">
                   <span className="w-3 h-0.5 bg-amber-500"></span>
-                  <span>AI Bubble 2027 (15.5%)</span>
+                  <span>AI Bubble 2027 ({bubble2027Prob.toFixed(1)}%)</span>
                 </span>
                 <span className="flex items-center space-x-1.5 text-zinc-300 whitespace-nowrap">
                   <span className="w-3 h-0.5 bg-indigo-500"></span>
@@ -803,7 +940,11 @@ export function PolymarketCharts() {
                   const x = getX(i);
                   const isHovered = hoveredPoint === i;
                   return (
-                    <g key={p.date} onMouseEnter={() => setHoveredPoint(i)} onMouseLeave={() => setHoveredPoint(null)}>
+                    <g
+                      key={p.date}
+                      onMouseEnter={() => setHoveredPoint(i)}
+                      onMouseLeave={() => setHoveredPoint(null)}
+                    >
                       {/* Vertical highlight line on hover */}
                       {isHovered && (
                         <line
@@ -853,8 +994,9 @@ export function PolymarketCharts() {
             {/* Insight Note */}
             <div className="text-xs text-zinc-300 font-sans leading-relaxed bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
               <span className="font-semibold text-white">Market Dynamic Insight:</span>{" "}
-              Polymarket prices show that while 2026 downturn probability remains subdued at 7.6%, 2027 risk doubles to 15.5%, 
-              mirroring the maturity profile of hyperscaler debt facilities and Oracle CDS spread widening (+131% since 2024).
+              Polymarket prices show that while 2026 downturn probability stands at {bubble2026Prob.toFixed(1)}%, 
+              2027 risk climbs to {bubble2027Prob.toFixed(1)}%, mirroring the maturity profile of hyperscaler debt facilities 
+              and Oracle CDS spread widening (+131% since 2024).
             </div>
           </div>
         )}

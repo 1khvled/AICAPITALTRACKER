@@ -2,23 +2,69 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { LIVE_STOCKS, LIVE_MACRO_INDICATORS, StockQuote, MacroIndicator } from "@/data/live-stocks";
+import {
+  LIVE_STOCKS as FALLBACK_STOCKS,
+  LIVE_MACRO_INDICATORS,
+  StockQuote,
+  MacroIndicator,
+} from "@/data/live-stocks";
+import liveStocksData from "@/data/live-stocks.json";
 import {
   TrendingUp,
   TrendingDown,
-  ExternalLink,
   ArrowUpRight,
   BarChart2,
-  ShieldAlert,
   Percent,
   Activity,
   Radio,
   RefreshCw,
-  SlidersHorizontal,
-  ChevronRight,
-  Zap,
 } from "lucide-react";
-import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
+
+// Safely load automated 24h market feeds from live-stocks.json with fallback to live-stocks.ts
+const getInitialStocks = (): StockQuote[] => {
+  try {
+    if (Array.isArray(liveStocksData) && liveStocksData.length > 0) {
+      return liveStocksData as StockQuote[];
+    }
+    if (
+      liveStocksData &&
+      Array.isArray((liveStocksData as any).stocks) &&
+      (liveStocksData as any).stocks.length > 0
+    ) {
+      return (liveStocksData as any).stocks as StockQuote[];
+    }
+  } catch (err) {
+    console.warn("Fallback to static LIVE_STOCKS due to load error:", err);
+  }
+  return FALLBACK_STOCKS;
+};
+
+const getInitialMacro = (): MacroIndicator[] => {
+  try {
+    if (
+      liveStocksData &&
+      Array.isArray((liveStocksData as any).macro) &&
+      (liveStocksData as any).macro.length > 0
+    ) {
+      return (liveStocksData as any).macro as MacroIndicator[];
+    }
+  } catch (err) {
+    console.warn("Fallback to static LIVE_MACRO_INDICATORS:", err);
+  }
+  return LIVE_MACRO_INDICATORS;
+};
+
+const INITIAL_STOCKS: StockQuote[] = getInitialStocks();
+const INITIAL_MACRO: MacroIndicator[] = getInitialMacro();
+
+const syncRawTime = (liveStocksData as any)?.timestamp || (liveStocksData as any)?.last_synced_at;
+const INITIAL_SYNC_TIME = syncRawTime
+  ? new Date(syncRawTime).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }) + " UTC"
+  : "16:00:00 EST";
 
 // Deterministic historical intraday sparkline points (7 snapshots)
 const SPARKLINE_HISTORY: Record<string, number[]> = {
@@ -33,7 +79,7 @@ const SPARKLINE_HISTORY: Record<string, number[]> = {
   SMCI: [35.1, 34.6, 33.8, 33.0, 32.2, 31.2, 31.63],
   CEG: [275.0, 274.2, 273.5, 272.8, 272.0, 270.8, 271.37],
   PLTR: [200.5, 197.8, 194.2, 191.0, 188.5, 185.2, 186.03],
-  US10Y: [4.34, 4.36, 4.38, 4.39, 4.40, 4.41, 4.42],
+  US10Y: [4.34, 4.36, 4.38, 4.39, 4.4, 4.41, 4.42],
   US02Y: [4.23, 4.24, 4.25, 4.26, 4.27, 4.27, 4.28],
   CPI: [2.7, 2.7, 2.8, 2.8, 2.9, 2.9, 2.9],
   FEDFUNDS: [4.75, 4.75, 4.75, 4.75, 4.75, 4.75, 4.75],
@@ -70,8 +116,12 @@ function MiniSparkline({
     return { x, y };
   });
 
-  const linePath = coords.map((c, i) => `${i === 0 ? "M" : "L"} ${c.x.toFixed(1)} ${c.y.toFixed(1)}`).join(" ");
-  const areaPath = `${linePath} L ${coords[coords.length - 1].x.toFixed(1)} ${height} L ${coords[0].x.toFixed(1)} ${height} Z`;
+  const linePath = coords
+    .map((c, i) => `${i === 0 ? "M" : "L"} ${c.x.toFixed(1)} ${c.y.toFixed(1)}`)
+    .join(" ");
+  const areaPath = `${linePath} L ${coords[coords.length - 1].x.toFixed(
+    1
+  )} ${height} L ${coords[0].x.toFixed(1)} ${height} Z`;
 
   const strokeColor = isPositive ? "#10b981" : "#f43f5e";
   const gradId = `grad-${sparkId}`;
@@ -110,7 +160,12 @@ function MiniSparkline({
   );
 }
 
-type TerminalCategory = "All" | "AI Bellwethers" | "Hyperscalers & Credit" | "Macro & Fed Rates";
+export type TerminalCategory =
+  | "All"
+  | "Hyperscalers"
+  | "Semiconductors"
+  | "Power & Infra"
+  | "Macro";
 
 interface StockLiveState {
   priceUsd: number;
@@ -122,36 +177,34 @@ interface StockLiveState {
 export function LiveStockMonitor() {
   const [selectedCategory, setSelectedCategory] = useState<TerminalCategory>("All");
   const [isStreaming, setIsStreaming] = useState<boolean>(true);
-  const [lastSyncTime, setLastSyncTime] = useState<string>("16:00:00 EST");
+  const [lastSyncTime, setLastSyncTime] = useState<string>(INITIAL_SYNC_TIME);
 
-  // Keep live streaming simulation state
+  // Keep live streaming simulation state initialized from 24h JSON feed
   const [stockState, setStockState] = useState<Record<string, StockLiveState>>(() => {
     const initial: Record<string, StockLiveState> = {};
-    LIVE_STOCKS.forEach((s) => {
+    INITIAL_STOCKS.forEach((s) => {
       initial[s.ticker] = {
         priceUsd: s.priceUsd,
         change24hPct: s.change24hPct,
         flash: null,
-        lastTickTime: "16:00:00",
+        lastTickTime: INITIAL_SYNC_TIME.replace(" UTC", "").replace(" EST", ""),
       };
     });
     return initial;
   });
 
-  const [macroFlash, setMacroFlash] = useState<Record<string, "up" | "down" | null>>({});
-
-  // Simulated live Bloomberg ITCH / FIX price ticks
+  // Simulated live micro-pulse price ticks
   useEffect(() => {
     if (!isStreaming) return;
 
     const interval = setInterval(() => {
-      const tickers = LIVE_STOCKS.map((s) => s.ticker);
+      const tickers = INITIAL_STOCKS.map((s) => s.ticker);
       const randomTicker = tickers[Math.floor(Math.random() * tickers.length)];
-      const baseStock = LIVE_STOCKS.find((s) => s.ticker === randomTicker);
+      const baseStock = INITIAL_STOCKS.find((s) => s.ticker === randomTicker);
       if (!baseStock) return;
 
       // Realistic micro tick: ±0.03% to ±0.12%
-      const deltaPct = (Math.random() * 0.16 - 0.08);
+      const deltaPct = Math.random() * 0.16 - 0.08;
       const isUp = deltaPct >= 0;
 
       const now = new Date();
@@ -178,7 +231,7 @@ export function LiveStockMonitor() {
         };
       });
 
-      // Clear flash after 650ms
+      // Clear flash pulse after 650ms
       setTimeout(() => {
         setStockState((prev) => {
           if (!prev[randomTicker]) return prev;
@@ -192,63 +245,67 @@ export function LiveStockMonitor() {
         });
       }, 650);
 
-      setLastSyncTime(`${timeStr} EST`);
+      setLastSyncTime(`${timeStr} UTC`);
     }, 3200);
 
     return () => clearInterval(interval);
   }, [isStreaming]);
 
-  // Category mapping
-  // "All": All stocks and macro indicators
-  // "AI Bellwethers": Hardware, Semis, Foundry, and Defense/AI bellwethers (NVDA, TSM, AVGO, PLTR, SMCI, CEG)
-  // "Hyperscalers & Credit": Cloud infrastructure giants & credit default proxy (MSFT, GOOGL, AMZN, META, ORCL)
-  // "Macro & Fed Rates": Fixed income rates, inflation, debt velocity
-  const AI_BELLWETHER_TICKERS = new Set(["NVDA", "TSM", "AVGO", "PLTR", "SMCI", "CEG"]);
-  const HYPERSCALER_TICKERS = new Set(["ORCL", "MSFT", "GOOGL", "AMZN", "META"]);
-
-  const filteredStocks = LIVE_STOCKS.filter((stock) => {
+  // Crisp responsive filter tabs mapping:
+  // - "All": All stocks and macro indicators
+  // - "Hyperscalers": MSFT, GOOGL, AMZN, META, ORCL
+  // - "Semiconductors": NVDA, TSM, AVGO
+  // - "Power & Infra": SMCI, CEG, PLTR
+  // - "Macro": Macro fixed income & AI credit metrics
+  const filteredStocks = INITIAL_STOCKS.filter((stock) => {
     if (selectedCategory === "All") return true;
-    if (selectedCategory === "AI Bellwethers") return AI_BELLWETHER_TICKERS.has(stock.ticker);
-    if (selectedCategory === "Hyperscalers & Credit") return HYPERSCALER_TICKERS.has(stock.ticker);
-    if (selectedCategory === "Macro & Fed Rates") return stock.ticker === "ORCL"; // ORCL is the AI credit proxy
+    if (selectedCategory === "Hyperscalers") return stock.category === "Hyperscaler";
+    if (selectedCategory === "Semiconductors") return stock.category === "Semiconductor";
+    if (selectedCategory === "Power & Infra") {
+      return (
+        stock.category === "Power & Infrastructure" ||
+        stock.category === "Frontier Lab Partner"
+      );
+    }
+    if (selectedCategory === "Macro") return stock.ticker === "ORCL"; // AI credit proxy
     return true;
   });
 
-  const showMacroPanel =
-    selectedCategory === "All" ||
-    selectedCategory === "Macro & Fed Rates" ||
-    selectedCategory === "Hyperscalers & Credit";
+  const showMacroPanel = selectedCategory === "All" || selectedCategory === "Macro";
 
   const categories: TerminalCategory[] = [
     "All",
-    "AI Bellwethers",
-    "Hyperscalers & Credit",
-    "Macro & Fed Rates",
+    "Hyperscalers",
+    "Semiconductors",
+    "Power & Infra",
+    "Macro",
   ];
 
   // Count market breadth
-  const advancingCount = LIVE_STOCKS.filter((s) => (stockState[s.ticker]?.change24hPct ?? s.change24hPct) >= 0).length;
-  const decliningCount = LIVE_STOCKS.length - advancingCount;
+  const advancingCount = INITIAL_STOCKS.filter(
+    (s) => (stockState[s.ticker]?.change24hPct ?? s.change24hPct) >= 0
+  ).length;
+  const decliningCount = INITIAL_STOCKS.length - advancingCount;
 
   return (
     <div className="bg-[#0b0e14] dark:bg-[#090b10] border border-zinc-800 text-zinc-100 rounded-2xl shadow-xl overflow-hidden transition-all">
-      {/* Institutional Bloomberg / FactSet Terminal Header Bar */}
+      {/* Institutional Automated 24h Ingestion Header Bar */}
       <div className="bg-[#0d1117] border-b border-zinc-800/90 px-4 sm:px-6 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div className="flex items-center space-x-3">
-          {/* Bloomberg terminal amber tag */}
-          <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono text-[11px] font-black uppercase tracking-widest whitespace-nowrap">
-            <Activity className="w-3.5 h-3.5 text-amber-400" />
-            <span>BLOOMBERG FEED // CONSOLIDATED TAPE</span>
+        <div className="flex items-center space-x-3 flex-wrap gap-y-1">
+          {/* Header badge: Automated 24h Market Ingestion · Yahoo Finance + SEC EDGAR */}
+          <div className="flex items-center space-x-2 px-3 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[11px] font-black uppercase tracking-wider whitespace-nowrap shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+            <span>Automated 24h Market Ingestion · Yahoo Finance + SEC EDGAR</span>
           </div>
 
           <div className="hidden sm:flex items-center space-x-2 text-xs font-mono text-zinc-400">
             <span className="text-zinc-600">|</span>
-            <span className="flex items-center space-x-1 text-emerald-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="flex items-center space-x-1.5 text-zinc-300">
+              <RefreshCw className="w-3 h-3 text-emerald-400" />
               <span>SYNCED: {lastSyncTime}</span>
             </span>
             <span className="text-zinc-600">|</span>
-            <span>ITCH 5.0 / FIX 4.4</span>
+            <span className="text-zinc-500">ITCH 5.0 / FIX 4.4</span>
           </div>
         </div>
 
@@ -273,25 +330,29 @@ export function LiveStockMonitor() {
             }`}
           >
             <Radio className={`w-3 h-3 ${isStreaming ? "animate-pulse text-emerald-400" : ""}`} />
-            <span>{isStreaming ? "STREAMING LIVE" : "FEED PAUSED"}</span>
+            <span>{isStreaming ? "MICRO-PULSE ON" : "PULSE PAUSED"}</span>
           </button>
         </div>
       </div>
 
-      {/* Main Terminal Subheader & Institutional Filter Tabs */}
+      {/* Main Terminal Subheader & Filter Tabs */}
       <div className="px-5 sm:px-6 pt-5 pb-3 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-zinc-800/60">
         <div>
           <div className="flex items-center space-x-2 text-xs font-mono text-zinc-400">
-            <span className="font-semibold text-zinc-300">INSTITUTIONAL EQUITIES &amp; FIXED INCOME MONITOR</span>
+            <span className="font-semibold text-zinc-300">
+              INSTITUTIONAL EQUITIES &amp; FIXED INCOME MONITOR
+            </span>
             <span>•</span>
-            <span className="text-amber-400 font-bold">11 BELLWETHERS • 6 MACRO SPREADS</span>
+            <span className="text-amber-400 font-bold">
+              11 BELLWETHERS • 6 MACRO BENCHMARKS
+            </span>
           </div>
           <h3 className="text-lg sm:text-xl font-black text-white tracking-tight mt-1 flex items-center space-x-2">
             <span>Macro Rates, Hyperscale Debt &amp; Public AI Tickers</span>
           </h3>
         </div>
 
-        {/* Clean Category Filter Tabs */}
+        {/* Crisp Responsive Category Filter Tabs */}
         <div className="flex items-center space-x-1.5 overflow-x-auto scrollbar-none pb-1 touch-pan-x">
           {categories.map((cat) => {
             const isSelected = selectedCategory === cat;
@@ -322,12 +383,12 @@ export function LiveStockMonitor() {
                 <span>BENCHMARK FIXED INCOME &amp; AI CREDIT METRICS</span>
               </span>
               <span className="text-zinc-500 font-mono text-[11px] whitespace-nowrap hidden sm:inline">
-                BLS • FRED • ICE BOFA HY OAS
+                BLS • FRED • ICE BOFA HY OAS • REUTERS CDS
               </span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
-              {LIVE_MACRO_INDICATORS.map((macro) => {
+              {INITIAL_MACRO.map((macro) => {
                 const isStress = macro.isRiskPositive;
                 const spark = SPARKLINE_HISTORY[macro.symbol] || [10, 11, 10.5, 11.2, 11.8, 12];
                 return (
@@ -363,7 +424,10 @@ export function LiveStockMonitor() {
                       />
                     </div>
 
-                    <div className="text-[11px] text-zinc-400 truncate font-sans" title={macro.description}>
+                    <div
+                      className="text-[11px] text-zinc-400 truncate font-sans"
+                      title={macro.description}
+                    >
                       {macro.name}
                     </div>
                   </div>
@@ -381,7 +445,8 @@ export function LiveStockMonitor() {
               <span>LIVE AI STOCKS &amp; CREDIT PROXIES</span>
             </span>
             <span className="text-zinc-500 font-mono text-[11px] whitespace-nowrap">
-              {filteredStocks.length} OF {LIVE_STOCKS.length} ACTIVE POSITIONS
+              {filteredStocks.length} OF {INITIAL_STOCKS.length} ACTIVE POSITIONS (
+              {selectedCategory.toUpperCase()})
             </span>
           </div>
 
@@ -391,10 +456,12 @@ export function LiveStockMonitor() {
                 priceUsd: stock.priceUsd,
                 change24hPct: stock.change24hPct,
                 flash: null,
-                lastTickTime: "16:00:00",
+                lastTickTime: INITIAL_SYNC_TIME.replace(" UTC", "").replace(" EST", ""),
               };
               const isNegative = live.change24hPct < 0;
-              const spark = SPARKLINE_HISTORY[stock.ticker] || [100, 101, 99, 98, 99.5, 100.2];
+              const spark = SPARKLINE_HISTORY[stock.ticker] || [
+                100, 101, 99, 98, 99.5, 100.2,
+              ];
 
               const flashClass =
                 live.flash === "up"
@@ -408,7 +475,7 @@ export function LiveStockMonitor() {
                   key={stock.ticker}
                   className={`rounded-xl sm:rounded-2xl p-3.5 sm:p-4 space-y-2.5 sm:space-y-3 transition-all duration-300 border shadow-xs hover:shadow-sm ${flashClass}`}
                 >
-                  {/* Top Bar: Ticker + Exchange + 24h Change Badge */}
+                  {/* Top Bar: Ticker + Exchange + Live 24h Change Badge */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-baseline space-x-1.5">
                       <span className="font-black text-white font-mono text-lg sm:text-xl tracking-tight">
@@ -419,7 +486,7 @@ export function LiveStockMonitor() {
                       </span>
                     </div>
 
-                    {/* Change Badge - whitespace-nowrap guaranteed */}
+                    {/* Live 24h Change Badge */}
                     <span
                       className={`font-mono text-xs font-bold px-2 py-0.5 rounded-md flex items-center space-x-1 whitespace-nowrap shrink-0 border ${
                         isNegative
@@ -427,7 +494,11 @@ export function LiveStockMonitor() {
                           : "bg-emerald-950/80 text-emerald-300 border-emerald-800/80"
                       }`}
                     >
-                      {isNegative ? <TrendingDown className="w-3.5 h-3.5" /> : <TrendingUp className="w-3.5 h-3.5" />}
+                      {isNegative ? (
+                        <TrendingDown className="w-3.5 h-3.5" />
+                      ) : (
+                        <TrendingUp className="w-3.5 h-3.5" />
+                      )}
                       <span>
                         {live.change24hPct >= 0 ? "+" : ""}
                         {live.change24hPct.toFixed(1)}%
@@ -435,13 +506,37 @@ export function LiveStockMonitor() {
                     </span>
                   </div>
 
-                  {/* Price Row & Mini Sparkline */}
+                  {/* Price Row with Simulated Micro-Pulse and Mini Sparkline */}
                   <div className="flex items-center justify-between pt-0.5">
                     <div>
-                      <div className="text-2xl sm:text-3xl font-black font-mono text-white font-tabular tracking-tight">
-                        ${live.priceUsd.toFixed(2)}
+                      <div className="flex items-center space-x-2">
+                        <span className="text-2xl sm:text-3xl font-black font-mono text-white font-tabular tracking-tight">
+                          ${live.priceUsd.toFixed(2)}
+                        </span>
+                        {/* Micro-pulse dot indicator */}
+                        <span className="relative flex h-2 w-2 shrink-0">
+                          {live.flash && (
+                            <span
+                              className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                                live.flash === "up" ? "bg-emerald-400" : "bg-rose-400"
+                              }`}
+                            ></span>
+                          )}
+                          <span
+                            className={`relative inline-flex rounded-full h-2 w-2 ${
+                              live.flash === "up"
+                                ? "bg-emerald-400"
+                                : live.flash === "down"
+                                ? "bg-rose-400"
+                                : "bg-emerald-500/70"
+                            }`}
+                          ></span>
+                        </span>
                       </div>
-                      <div className="text-xs text-zinc-400 font-sans font-medium truncate max-w-[170px]" title={stock.name}>
+                      <div
+                        className="text-xs text-zinc-400 font-sans font-medium truncate max-w-[170px]"
+                        title={stock.name}
+                      >
                         {stock.name}
                       </div>
                     </div>
@@ -457,31 +552,41 @@ export function LiveStockMonitor() {
                   </div>
 
                   {/* Role description */}
-                  <div className="text-[11px] text-zinc-400 font-sans line-clamp-1 border-t border-zinc-800/60 pt-2" title={stock.role}>
-                    <span className="text-zinc-500 font-mono text-[10px] uppercase mr-1">Role:</span>
+                  <div
+                    className="text-[11px] text-zinc-400 font-sans line-clamp-1 border-t border-zinc-800/60 pt-2"
+                    title={stock.role}
+                  >
+                    <span className="text-zinc-500 font-mono text-[10px] uppercase mr-1">
+                      Role:
+                    </span>
                     {stock.role}
                   </div>
 
-                  {/* Institutional Metrics Grid */}
+                  {/* Drawdown from ATH and Market Cap */}
                   <div className="grid grid-cols-2 gap-2 pt-1 border-t border-zinc-800/60 text-[11px] font-mono text-zinc-400">
                     <div>
-                      <span className="text-zinc-500 text-[10px] uppercase block">Drawdown</span>
+                      <span className="text-zinc-500 text-[10px] uppercase block">
+                        Drawdown
+                      </span>
                       <span className="font-bold text-rose-400 whitespace-nowrap">
                         {stock.drawdownFromAthPct.toFixed(1)}% from ATH
                       </span>
                     </div>
                     <div className="text-right">
-                      <span className="text-zinc-500 text-[10px] uppercase block">Market Cap</span>
+                      <span className="text-zinc-500 text-[10px] uppercase block">
+                        Market Cap
+                      </span>
                       <span className="font-bold text-zinc-200 whitespace-nowrap">
                         {stock.marketCapDisplay}
                       </span>
                     </div>
                   </div>
 
-                  {/* Bottom Action Bar */}
+                  {/* Bottom Action Bar with Timestamp of Last Sync */}
                   <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between text-[11px] font-mono">
-                    <span className="text-zinc-500 text-[10px]">
-                      TICK {live.lastTickTime}
+                    <span className="text-zinc-500 text-[10px] flex items-center space-x-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <span>SYNCED {live.lastTickTime}</span>
                     </span>
                     <Link
                       href={`/companies?search=${encodeURIComponent(stock.ticker)}`}

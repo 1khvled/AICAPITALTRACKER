@@ -1,0 +1,221 @@
+{
+  "timestamp": "2026-10-18T21:51:28.530Z",
+  "model_version": "2.5.0",
+  "burstProbability": 41.2,
+  "compositeScore": 51.8,
+  "band": "guarded",
+  "coverage": 1.1,
+  "confidenceInterval": [
+    36.5,
+    46
+  ],
+  "fragilityIndex": 50,
+  "systemicContagionPoints": 4.4,
+  "topDriverIds": [
+    "cds_stress",
+    "concentration_circularity",
+    "valuation_stretch"
+  ],
+  "contributions": [
+    {
+      "id": "cds_stress",
+      "label": "Credit stress (CDS spreads)",
+      "kind": "risk",
+      "weightPct": 18,
+      "earnedPoints": 10.4,
+      "reading": {
+        "score": 0.5780246913580247,
+        "reading": "CDS 187bp vs 81bp baseline (231% of baseline; prior 155bp)",
+        "coverage": 1
+      }
+    },
+    {
+      "id": "valuation_stretch",
+      "label": "Private valuation stretch",
+      "kind": "risk",
+      "weightPct": 16,
+      "earnedPoints": 8.2,
+      "reading": {
+        "score": 0.5151470151470151,
+        "reading": "Median price/sales across tracked labs: 34.8×",
+        "coverage": 1
+      }
+    },
+    {
+      "id": "debt_reliance",
+      "label": "Debt reliance & issuance pace",
+      "kind": "risk",
+      "weightPct": 14,
+      "earnedPoints": 8,
+      "reading": {
+        "score": 0.574491875,
+        "reading": "Borrowed money = 7.0% ($196.8B verified); Velocity: $85.0B/yr",
+        "coverage": 1
+      }
+    },
+    {
+      "id": "macro_rates",
+      "label": "Macro interest rates & inflation (US10Y)",
+      "kind": "risk",
+      "weightPct": 12,
+      "earnedPoints": 7.7,
+      "reading": {
+        "score": 0.6387999999999999,
+        "reading": "US10Y 5.10% (neutral 3.75%); CPI 2.9% YoY; HY-OAS 336bp; Fed Funds 4.75%",
+        "coverage": 1
+      }
+    },
+    {
+      "id": "concentration_circularity",
+      "label": "Concentration & circular money",
+      "kind": "risk",
+      "weightPct": 13,
+      "earnedPoints": 8.3,
+      "reading": {
+        "score": 0.6385185185185185,
+        "reading": "Top 10 deals = 65% of volume; circular self-funded money = 2.8% ($78.7B)",
+        "coverage": 1
+      }
+    },
+    {
+      "id": "funding_velocity",
+      "label": "Funding velocity & pipeline",
+      "kind": "risk",
+      "weightPct": 10,
+      "earnedPoints": 4.5,
+      "reading": {
+        "score": 0.44769670386755,
+        "reading": "Annualized pace: $923B/yr; 13.2% backlog; 14d since last mega deal",
+        "coverage": 1
+      }
+    },
+    {
+      "id": "crowd_signal",
+      "label": "Crowd odds (prediction markets)",
+      "kind": "risk",
+      "weightPct": 9,
+      "earnedPoints": 0.9,
+      "reading": {
+        "score": 0.103,
+        "reading": "Polymarket crowd: 10.3% YES ($9.14M volume)",
+        "coverage": 1
+      }
+    },
+    {
+      "id": "capex_cashflow",
+      "label": "Capex vs free cash flow & hardware depreciation",
+      "kind": "risk",
+      "weightPct": 8,
+      "earnedPoints": 3.9,
+      "reading": {
+        "score": 0.48280745341614917,
+        "reading": "Hyperscaler capex = 1.14× of FCF (54.8% OCF; $38.5B/yr GPU amortization drag)",
+        "coverage": 1
+      }
+    },
+    {
+      "id": "adoption_demand",
+      "label": "Real-use damper",
+      "kind": "damper",
+      "weightPct": 10,
+      "earnedPoints": -4.5,
+      "reading": {
+        "score": 0.45249433106575965,
+        "reading": "Users +65% YoY, inference 25× cheaper, training cost rising",
+        "coverage": 1
+      }
+    }
+  ],
+  "merton": {
+    "distanceToDefault": 5.37,
+    "defaultProbabilityPct": 0,
+    "structuralSpreadBps": 0,
+    "assetValueUsd": 1420000000000,
+    "totalDebtUsd": 196822500000,
+    "interpretation": "Asset value cushions debt comfortably (Distance-to-Default > 3.0σ)."
+  },
+  "altman": {
+    "score": 8.41,
+    "zone": "Safe Zone (>2.6)",
+    "impliedDistressProbPct": 0,
+    "interpretation": "Safe Zone: Equity cushion and liquid assets adequately cover outstanding liabilities."
+  },
+  "lppls": {
+    "superExponentialExponent": 0.38,
+    "angularFrequency": 6.36,
+    "estimatedCriticalWindow": "Q4 2026 – Q2 2027",
+    "crashHazardRatePct": 59.1,
+    "interpretation": "Superexponential capital commitment growth with accelerating log-periodic Capex-to-FCF oscillations, placing critical singularity window in early 2027."
+  },
+  "monteCarlo": {
+    "iterationsCount": 10000,
+    "meanProbabilityPct": 43.4,
+    "medianProbabilityPct": 42.4,
+    "stdDevPct": 21.7,
+    "ci90Pct": [
+      15.5,
+      73.6
+    ],
+    "ci95Pct": [
+      13.2,
+      77.3
+    ],
+    "valueAtRisk95Pct": 77.3,
+    "conditionalValueAtRisk95Pct": 79.9,
+    "skewness": 0.12,
+    "kurtosis": 1.68,
+    "histogram": [
+      {
+        "range": "0%–10%",
+        "count": 99,
+        "percentage": 1
+      },
+      {
+        "range": "10%–20%",
+        "count": 1868,
+        "percentage": 18.7
+      },
+      {
+        "range": "20%–30%",
+        "count": 1530,
+        "percentage": 15.3
+      },
+      {
+        "range": "30%–40%",
+        "count": 1215,
+        "percentage": 12.2
+      },
+      {
+        "range": "40%–50%",
+        "count": 1215,
+        "percentage": 12.2
+      },
+      {
+        "range": "50%–60%",
+        "count": 1174,
+        "percentage": 11.7
+      },
+      {
+        "range": "60%–70%",
+        "count": 1366,
+        "percentage": 13.7
+      },
+      {
+        "range": "70%–80%",
+        "count": 1325,
+        "percentage": 13.3
+      },
+      {
+        "range": "80%–90%",
+        "count": 208,
+        "percentage": 2.1
+      },
+      {
+        "range": "90%–100%",
+        "count": 0,
+        "percentage": 0
+      }
+    ],
+    "executionTimeMs": 112
+  }
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { BubbleModelInputs } from "@/lib/model/types";
+import { BubbleModelInputs, BubbleModelResult } from "@/lib/model/types";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import {
   RotateCcw,
@@ -17,7 +17,18 @@ import {
   Info,
 } from "lucide-react";
 
-export function SensitivitySandbox() {
+export interface SensitivitySandboxProps {
+  onStateChange?: (data: {
+    inputs: BubbleModelInputs;
+    result: BubbleModelResult;
+    baselineResult: BubbleModelResult;
+    scenarioName: string;
+    delta: number;
+  }) => void;
+  externalResetTrigger?: number;
+}
+
+export function SensitivitySandbox({ onStateChange, externalResetTrigger }: SensitivitySandboxProps = {}) {
   const [inputs, setInputs] = useState<BubbleModelInputs>(DEFAULT_MODEL_INPUTS);
   const [scenarioName, setScenarioName] = useState<string>("baseline");
 
@@ -25,6 +36,23 @@ export function SensitivitySandbox() {
   const currentResult = useMemo(() => evaluateBubbleModel(inputs), [inputs]);
 
   const delta = Math.round((currentResult.burstProbability - baselineResult.burstProbability) * 10) / 10;
+
+  React.useEffect(() => {
+    if (externalResetTrigger !== undefined && externalResetTrigger > 0) {
+      setInputs(DEFAULT_MODEL_INPUTS);
+      setScenarioName("baseline");
+    }
+  }, [externalResetTrigger]);
+
+  React.useEffect(() => {
+    onStateChange?.({
+      inputs,
+      result: currentResult,
+      baselineResult,
+      scenarioName,
+      delta,
+    });
+  }, [inputs, currentResult, baselineResult, scenarioName, delta, onStateChange]);
 
   // Baseline calibration values for diffing & resets
   const baseCds = DEFAULT_MODEL_INPUTS.cds?.currentBps || 187;

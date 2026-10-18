@@ -4,44 +4,44 @@
     "baselineBps": 81,
     "priorBps": 155,
     "otherBps": 135,
-    "note": "Reuters & ICE Fixed Income 5Y USD CDS on Oracle (AI debt anchor)"
+    "note": "Reuters & ICE Fixed Income 5Y USD CDS on Oracle (AI debt anchor), as of Sep-Oct 2026"
   },
   "valuations": [
     {
       "company": "OpenAI",
       "valuationUsd": 157000000000,
       "runRateRevenueUsd": 3700000000,
-      "note": "Oct 2026 round ($157B post-money, $3.7B run-rate)"
+      "note": "Oct 2026 funding round ($157B post-money valuation, $3.7B annualized run-rate reported by Reuters)"
     },
     {
       "company": "Anthropic",
       "valuationUsd": 65000000000,
       "runRateRevenueUsd": 4600000000,
-      "note": "Oct 2026 funding round & S-1 Prospectus ($65B valuation, $4.6B revenue, $57B Broadcom & syndicate debt facilities)"
+      "note": "Oct 2026 funding round & S-1 Prospectus ($65B valuation, $4.6B revenue, $57B Broadcom & syndicate debt/credit facilities)"
     },
     {
       "company": "Databricks",
       "valuationUsd": 190000000000,
       "runRateRevenueUsd": 7000000000,
-      "note": "Coatue-led strategic round ($190B valuation)"
+      "note": "Coatue-led strategic round Aug 2026 ($190B valuation, $7B revenue run-rate reported)"
     },
     {
       "company": "xAI",
       "valuationUsd": 50000000000,
       "runRateRevenueUsd": 500000000,
-      "note": "Colossus supercluster buildout & Series C"
+      "note": "Colossus supercluster buildout & Series C valuation disclosures"
     },
     {
       "company": "Mistral AI",
       "valuationUsd": 23000000000,
       "runRateRevenueUsd": 165000000,
-      "note": "€21B ($23B) Series D valuation, €150M revenue"
+      "note": "€21B+ ($23B) Series D Sep 2026, annualized commercial revenues ~€150M ($165M)"
     },
     {
       "company": "Scale AI",
       "valuationUsd": 13800000000,
       "runRateRevenueUsd": 900000000,
-      "note": "Accel-led round and government contract disclosures"
+      "note": "Accel-led funding round and government contract disclosures"
     }
   ],
   "ledger": {
@@ -52,19 +52,20 @@
       "2025": 1719997500000,
       "2026": 769180302026
     },
-    "debtShare": 0.070,
-    "computeContractShare": 0.280,
-    "top10Share": 0.665,
+    "debtShare": 0.07,
+    "computeContractShare": 0.28,
+    "top10Share": 0.652,
     "circularShare": 0.028,
-    "announcedShare": 0.127,
+    "announcedShare": 0.132,
     "megaCountLast12m": 46,
-    "daysSinceLastMega": 14
+    "daysSinceLastMega": 14,
+    "count": 159
   },
   "crowd": {
-    "yesProbability": 0.076,
-    "volumeUsd": 2443553,
-    "bubble2026Probability": 0.076,
-    "bubble2027Probability": 0.155,
+    "yesProbability": 0.103,
+    "volumeUsd": 9143296.302779006,
+    "bubble2026Probability": 0.103,
+    "bubble2027Probability": 0.165,
     "activeContractsCount": 16,
     "markets": [
       {
@@ -82,9 +83,9 @@
         "question": "AI bubble burst in 2026?",
         "slug": "ai-industry-downturn-by-december-31-2026-857",
         "eventSlug": "ai-bubble-burst-by",
-        "yesProbabilityPct": 7.6,
-        "noProbabilityPct": 92.4,
-        "volumeUsd": 2443553,
+        "yesProbabilityPct": 10.3,
+        "noProbabilityPct": 89.7,
+        "volumeUsd": 2464996,
         "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
       },
       {
@@ -102,9 +103,9 @@
         "question": "AI bubble burst by June 30, 2027?",
         "slug": "ai-bubble-burst-by-june-30-2027",
         "eventSlug": "ai-bubble-burst-by",
-        "yesProbabilityPct": 15.5,
-        "noProbabilityPct": 84.5,
-        "volumeUsd": 27206,
+        "yesProbabilityPct": 16.5,
+        "noProbabilityPct": 83.5,
+        "volumeUsd": 28481,
         "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
       },
       {
@@ -164,7 +165,7 @@
         "eventSlug": "openai-ipo-by",
         "yesProbabilityPct": 4.3,
         "noProbabilityPct": 95.8,
-        "volumeUsd": 1056347,
+        "volumeUsd": 1057814,
         "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
       },
       {
@@ -172,9 +173,9 @@
         "question": "Will OpenAI IPO by March 31 2027?",
         "slug": "will-openai-ipo-by-march-31-2027",
         "eventSlug": "openai-ipo-by",
-        "yesProbabilityPct": 20.5,
-        "noProbabilityPct": 79.5,
-        "volumeUsd": 2270,
+        "yesProbabilityPct": 19.5,
+        "noProbabilityPct": 80.5,
+        "volumeUsd": 2740,
         "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
       },
       {
@@ -194,7 +195,7 @@
         "eventSlug": "openai-announces-it-has-achieved-agi-before-2027",
         "yesProbabilityPct": 8.5,
         "noProbabilityPct": 91.5,
-        "volumeUsd": 325394,
+        "volumeUsd": 331281,
         "referralUrl": "https://polymarket.com/event/openai-announces-it-has-achieved-agi-before-2027?r=AIbubble"
       },
       {
@@ -202,9 +203,9 @@
         "question": "OpenAI $1t+ IPO before 2027?",
         "slug": "openai-1t-ipo-before-2027",
         "eventSlug": "openai-1t-ipo-before-2027",
-        "yesProbabilityPct": 2.4,
-        "noProbabilityPct": 97.6,
-        "volumeUsd": 317022,
+        "yesProbabilityPct": 2.3,
+        "noProbabilityPct": 97.7,
+        "volumeUsd": 317023,
         "referralUrl": "https://polymarket.com/event/openai-1t-ipo-before-2027?r=AIbubble"
       },
       {
@@ -222,37 +223,37 @@
         "question": "US recession by end of 2026?",
         "slug": "us-recession-by-end-of-2026",
         "eventSlug": "us-recession-by-end-of-2026",
-        "yesProbabilityPct": 7,
-        "noProbabilityPct": 93,
-        "volumeUsd": 2321829,
+        "yesProbabilityPct": 6.5,
+        "noProbabilityPct": 93.5,
+        "volumeUsd": 2322259,
         "referralUrl": "https://polymarket.com/event/us-recession-by-end-of-2026?r=AIbubble"
       }
     ],
     "referralCode": "AIbubble",
     "referralUrl": "https://polymarket.com/?r=AIbubble",
-    "note": "Live Polymarket sync across 6 active AI prediction events (Volume: $9.11M)"
+    "note": "Live Polymarket sync across 6 active AI prediction events (Volume: $9.14M)"
   },
   "adoption": {
     "topProductUsers": 350000000,
     "annualUserGrowth": 0.65,
     "apiPriceDeclineMultiple": 25,
     "trainingCostBand": "rising",
-    "note": "Public API rate cards & model benchmarks"
+    "note": "Public API rate cards, OpenAI DevDay statements, Anthropic pricing logs"
   },
   "capex": {
     "aggregateCapexUsd": 210000000000,
     "aggregateFcfUsd": 184000000000,
-    "note": "Microsoft, Alphabet, Meta, Amazon 10-Q consensus annualized"
+    "note": "Microsoft, Alphabet, Meta, Amazon Q2/Q3 2026 10-Q consensus annualized"
   },
   "macro": {
-    "us10yYieldPct": 4.42,
+    "us10yYieldPct": 5.1,
     "us10yBaselinePct": 3.75,
     "cpiInflationYoY": 2.9,
     "fedFundsRatePct": 4.75,
     "rateHikeRiskBps": 25,
-    "realYield10y": 2.05,
-    "highYieldSpreadBps": 328,
-    "note": "US Treasury 10Y Benchmark, BLS Consumer Price Index, Federal Reserve Dot Plot & TIPS Breakevens"
+    "realYield10y": 2.7,
+    "highYieldSpreadBps": 336,
+    "note": "Live Yahoo Finance ^TNX & ICE BofA High Yield rate stream"
   },
   "aiDebt": {
     "annualDebtIssuanceUsd": 85000000000,
@@ -260,15 +261,15 @@
     "capexToOcfRatio": 0.548,
     "gpuDepreciationDragUsd": 38500000000,
     "capexToRevenueMultiple": 8.75,
-    "note": "AI Capital Tracker institutional synthesis: SEC 10-Q Capex vs OCF, private GPU SPV issuances & hardware amortization"
+    "note": "SEC 10-Q Capex vs OCF synthesis & private debt facilities"
   },
   "meta": {
-    "last_synced_at": "2026-10-18T14:38:50.246Z",
+    "last_synced_at": "2026-10-18T21:51:28.416Z",
     "sync_mode": "github_actions_cron_24h",
     "sources": [
       "OpenRouter Public Models Pricing API",
       "Polymarket Gamma Events API",
-      "Yahoo Finance ORCL Market Stream",
+      "Yahoo Finance Institutional Quotes (11 Tech & 4 Macro Tickers)",
       "SEC EDGAR Submissions CIK 0001341439",
       "AI Capital Tracker Verified Primary Ledger (deals.json)"
     ]

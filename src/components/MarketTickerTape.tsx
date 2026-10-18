@@ -2,11 +2,34 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, TrendingUp, TrendingDown, ShieldAlert, Zap, Activity, Pause, Play } from "lucide-react";
+import { ArrowUpRight, Activity, Pause, Play, Zap, RefreshCw } from "lucide-react";
 import { POLYMARKET_REFERRAL_CODE, POLYMARKET_FEATURED_MARKETS } from "@/data/polymarket-data";
-import { LIVE_STOCKS } from "@/data/live-stocks";
+import { LIVE_STOCKS as FALLBACK_STOCKS, StockQuote } from "@/data/live-stocks";
+import liveStocksData from "@/data/live-stocks.json";
+import liveInputsData from "@/data/live-inputs.json";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import rawDeals from "@/data/deals.json";
+
+// Safely load automated 24h stock quotes from live-stocks.json with fallback
+const getStocks = (): StockQuote[] => {
+  try {
+    if (Array.isArray(liveStocksData) && liveStocksData.length > 0) {
+      return liveStocksData as StockQuote[];
+    }
+    if (
+      liveStocksData &&
+      Array.isArray((liveStocksData as any).stocks) &&
+      (liveStocksData as any).stocks.length > 0
+    ) {
+      return (liveStocksData as any).stocks as StockQuote[];
+    }
+  } catch (err) {
+    console.warn("Ticker tape fallback to static LIVE_STOCKS:", err);
+  }
+  return FALLBACK_STOCKS;
+};
+
+const activeStocks = getStocks();
 
 interface TickerItem {
   id: string;
@@ -14,7 +37,7 @@ interface TickerItem {
   value: string;
   change?: string;
   isPositive?: boolean;
-  type: "stock" | "risk" | "polymarket" | "damper" | "deal" | "macro";
+  type: "stock" | "risk" | "polymarket" | "damper" | "deal" | "macro" | "autosync";
   href: string;
   isExternal?: boolean;
 }
@@ -26,6 +49,12 @@ export function MarketTickerTape() {
   const modelResult = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
   const probVal = `${modelResult.burstProbability.toFixed(1)}%`;
   const probBand = modelResult.band.toUpperCase();
+
+  // Live crowd probabilities from 24h live-inputs.json
+  const crowd2026Prob =
+    (liveInputsData?.crowd?.bubble2026Probability ?? 0.103) * 100;
+  const crowd2027Prob =
+    (liveInputsData?.crowd?.bubble2027Probability ?? 0.165) * 100;
 
   // Polymarket contracts dynamically linked
   const poly2026Market =
@@ -50,8 +79,8 @@ export function MarketTickerTape() {
     ? `$${(DEFAULT_MODEL_INPUTS.aiDebt.annualDebtIssuanceUsd / 1e9).toFixed(1)}B/yr`
     : "$85.0B/yr";
 
-  // High-contrast live stock items
-  const stockItems: TickerItem[] = LIVE_STOCKS.map((s) => ({
+  // High-contrast live stock items read from live-stocks.json (with fallback)
+  const stockItems: TickerItem[] = activeStocks.map((s) => ({
     id: `stock-${s.ticker}`,
     label: s.ticker,
     value: `$${s.priceUsd.toFixed(2)}`,
@@ -61,7 +90,7 @@ export function MarketTickerTape() {
     href: `/companies?search=${encodeURIComponent(s.ticker)}`,
   }));
 
-  // Institutional macro, credit spread, and Polymarket items dynamically linked
+  // Institutional macro, credit spread, and live Polymarket items
   const macroItems: TickerItem[] = [
     {
       id: "us10y",
@@ -129,19 +158,19 @@ export function MarketTickerTape() {
     {
       id: "poly-26",
       label: "POLYMARKET '26 BUBBLE",
-      value: `${poly2026Market.yesProbabilityPct.toFixed(1)}% YES`,
-      change: `${Math.round(poly2026Market.yesPriceUsd * 100)}¢/sh`,
+      value: `${crowd2026Prob.toFixed(1)}% YES`,
+      change: `${Math.round(crowd2026Prob)}¢/sh`,
       type: "polymarket",
-      href: poly2026Market.referralUrl,
+      href: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
       isExternal: true,
     },
     {
       id: "poly-27",
       label: "POLYMARKET '27 BUBBLE",
-      value: `${poly2027Market.yesProbabilityPct.toFixed(1)}% YES`,
-      change: `${Math.round(poly2027Market.yesPriceUsd * 100)}¢/sh`,
+      value: `${crowd2027Prob.toFixed(1)}% YES`,
+      change: `${Math.round(crowd2027Prob)}¢/sh`,
       type: "polymarket",
-      href: poly2027Market.referralUrl,
+      href: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
       isExternal: true,
     },
     {
@@ -172,11 +201,43 @@ export function MarketTickerTape() {
     if (i < macroItems.length) interleaved.push(macroItems[i]);
   }
 
-  // Duplicate list to achieve a seamless, continuous infinite CSS marquee loop
-  const tapeItems = [...interleaved, ...interleaved];
+  // 24h Auto-Sync badges at the start and end of marquee cycles
+  const autoSyncStart: TickerItem = {
+    id: "sync-badge-start",
+    label: "24H AUTO-SYNC",
+    value: "ACTIVE",
+    change: "Yahoo · SEC · Poly",
+    isPositive: true,
+    type: "autosync",
+    href: "/methodology",
+  };
+
+  const autoSyncEnd: TickerItem = {
+    id: "sync-badge-end",
+    label: "24H AUTO-SYNC",
+    value: "00:00 UTC",
+    change: "GitHub Actions",
+    isPositive: true,
+    type: "autosync",
+    href: "/methodology",
+  };
+
+  const cycleWithSync = [autoSyncStart, ...interleaved, autoSyncEnd];
+
+  // Duplicate list to achieve seamless, continuous infinite CSS marquee loop
+  const tapeItems = [...cycleWithSync, ...cycleWithSync];
 
   // High-contrast badge renderer with clean green/red trend dots and monospace typography
   const renderTrendBadge = (item: TickerItem) => {
+    if (item.type === "autosync") {
+      return (
+        <span className="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded text-[11px] font-mono font-bold whitespace-nowrap bg-emerald-950/90 text-emerald-300 border border-emerald-700/80">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+          <span>{item.change}</span>
+        </span>
+      );
+    }
+
     if (item.type === "stock" || item.type === "macro") {
       const isPos = item.isPositive;
       return (
@@ -189,7 +250,9 @@ export function MarketTickerTape() {
         >
           <span
             className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-              isPos ? "bg-emerald-400 shadow-sm shadow-emerald-400/50" : "bg-rose-400 shadow-sm shadow-rose-400/50"
+              isPos
+                ? "bg-emerald-400 shadow-xs shadow-emerald-400/50"
+                : "bg-rose-400 shadow-xs shadow-rose-400/50"
             }`}
           />
           <span>{item.change}</span>
@@ -252,13 +315,23 @@ export function MarketTickerTape() {
             <span className="sm:hidden">TAPE</span>
           </span>
 
+          {/* 24h Auto-Sync Pinned Badge */}
+          <span className="hidden md:inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800/80 whitespace-nowrap">
+            <RefreshCw className="w-2.5 h-2.5 text-emerald-400 animate-spin-slow shrink-0" />
+            <span>24h Auto-Sync</span>
+          </span>
+
           {/* Pause / Play Toggle Button */}
           <button
             onClick={() => setIsPaused(!isPaused)}
             title={isPaused ? "Resume ticker tape" : "Pause ticker tape"}
             className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors shrink-0"
           >
-            {isPaused ? <Play className="w-3 h-3 text-emerald-400" /> : <Pause className="w-3 h-3 text-zinc-400" />}
+            {isPaused ? (
+              <Play className="w-3 h-3 text-emerald-400" />
+            ) : (
+              <Pause className="w-3 h-3 text-zinc-400" />
+            )}
           </button>
         </div>
 
@@ -271,30 +344,43 @@ export function MarketTickerTape() {
             }}
           >
             {tapeItems.map((item, index) => {
-              const tickerNode = (
-                <div className="inline-flex items-center space-x-2.5 group cursor-pointer hover:bg-zinc-900/80 px-2 py-1 rounded transition-colors whitespace-nowrap">
-                  {/* High Contrast Ticker Symbol */}
-                  <span className="text-xs font-mono font-black text-zinc-300 group-hover:text-amber-400 transition-colors tracking-tight whitespace-nowrap">
-                    {item.label}
-                  </span>
+              const tickerNode =
+                item.type === "autosync" ? (
+                  <div className="inline-flex items-center space-x-2 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 font-mono text-[11px] font-black uppercase tracking-wider whitespace-nowrap shadow-xs hover:bg-emerald-500/25 transition-colors">
+                    <span className="relative flex h-2 w-2 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span>24h Auto-Sync</span>
+                    <span className="text-emerald-400/80 font-mono text-[10px] normal-case">
+                      ({item.change})
+                    </span>
+                    <span className="text-zinc-700 ml-2 font-mono select-none">•</span>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center space-x-2.5 group cursor-pointer hover:bg-zinc-900/80 px-2 py-1 rounded transition-colors whitespace-nowrap">
+                    {/* High Contrast Ticker Symbol */}
+                    <span className="text-xs font-mono font-black text-zinc-300 group-hover:text-amber-400 transition-colors tracking-tight whitespace-nowrap">
+                      {item.label}
+                    </span>
 
-                  {/* Value */}
-                  <span className="font-mono font-black text-white font-tabular text-xs whitespace-nowrap">
-                    {item.value}
-                  </span>
+                    {/* Value */}
+                    <span className="font-mono font-black text-white font-tabular text-xs whitespace-nowrap">
+                      {item.value}
+                    </span>
 
-                  {/* Trend Badge with dot */}
-                  {item.change && renderTrendBadge(item)}
+                    {/* Trend Badge with dot */}
+                    {item.change && renderTrendBadge(item)}
 
-                  {/* External indicator for Polymarket / Web */}
-                  {item.isExternal && (
-                    <ArrowUpRight className="w-3 h-3 text-indigo-400 opacity-75 group-hover:opacity-100 shrink-0" />
-                  )}
+                    {/* External indicator for Polymarket / Web */}
+                    {item.isExternal && (
+                      <ArrowUpRight className="w-3 h-3 text-indigo-400 opacity-75 group-hover:opacity-100 shrink-0" />
+                    )}
 
-                  {/* High contrast divider dot */}
-                  <span className="text-zinc-700 ml-3 font-mono select-none">•</span>
-                </div>
-              );
+                    {/* High contrast divider dot */}
+                    <span className="text-zinc-700 ml-3 font-mono select-none">•</span>
+                  </div>
+                );
 
               return item.isExternal ? (
                 <a

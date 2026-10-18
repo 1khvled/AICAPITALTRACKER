@@ -1,3 +1,5 @@
+import liveStocksData from "./live-stocks.json";
+
 export interface StockQuote {
   ticker: string;
   name: string;
@@ -10,7 +12,7 @@ export interface StockQuote {
   marketCapDisplay: string;
 }
 
-export const LIVE_STOCKS: StockQuote[] = [
+const STATIC_STOCKS: StockQuote[] = [
   {
     ticker: "NVDA",
     name: "NVIDIA Corporation",
@@ -145,7 +147,7 @@ export interface MacroIndicator {
   description: string;
 }
 
-export const LIVE_MACRO_INDICATORS: MacroIndicator[] = [
+export const STATIC_MACRO_INDICATORS: MacroIndicator[] = [
   {
     symbol: "US10Y",
     name: "10-Year Treasury Yield",
@@ -207,3 +209,7 @@ export const LIVE_MACRO_INDICATORS: MacroIndicator[] = [
     description: "ICE BofA US High Yield option-adjusted spread measuring junk credit stress",
   },
 ];
+
+export const LIVE_STOCKS: StockQuote[] = (liveStocksData?.stocks as unknown as StockQuote[]) || STATIC_STOCKS;
+export const LIVE_MACRO_INDICATORS: MacroIndicator[] = (liveStocksData?.macro as unknown as MacroIndicator[]) || STATIC_MACRO_INDICATORS;
+

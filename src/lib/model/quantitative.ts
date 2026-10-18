@@ -214,10 +214,11 @@ function sampleNormal(random: () => number, mean: number, std: number): number {
  */
 export function runMonteCarloSimulation(
   baseInputs: BubbleModelInputs,
-  iterations = 10_000
+  iterations = 10_000,
+  seed = 42_1337
 ): MonteCarloSimulationResult {
   const startTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
-  const random = createSeededRandom(42_1337);
+  const random = createSeededRandom(seed);
 
   const baseYield = baseInputs.macro?.us10yYieldPct ?? 4.42;
   const baseCds = baseInputs.cds?.currentBps ?? 187;

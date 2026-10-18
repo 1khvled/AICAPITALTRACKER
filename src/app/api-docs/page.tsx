@@ -246,6 +246,100 @@ const ENDPOINTS: EndpointDoc[] = [
         }
       ]
     }
+  },
+  {
+    id: "sync",
+    name: "24h Autonomous Workflow Telemetry",
+    method: "GET",
+    path: "/api/v1/sync",
+    badge: "24h Cron Protocol",
+    description: "Delivers live operational telemetry, execution health, data freshness, and ingestion audit logs for the autonomous 24-hour GitHub Actions workflow (.github/workflows/update-data.yml). Monitors real-time pipeline status across OpenRouter, Polymarket, Yahoo Finance, and SEC EDGAR.",
+    defaultQuery: "",
+    params: [
+      { name: "limit", type: "integer", required: false, defaultVal: "5", desc: "Number of historical 24h cron execution audit logs to return (max: 30)." },
+    ],
+    sampleResponse: {
+      success: true,
+      data: {
+        status: "HEALTHY",
+        workflow: ".github/workflows/update-data.yml",
+        schedule: "0 0 * * * (Daily at 00:00 UTC)",
+        last_sync_timestamp: "2026-10-18T21:38:15.716Z",
+        next_scheduled_run: "2026-10-19T00:00:00.000Z",
+        freshness_status: "OPTIMAL",
+        minutes_since_last_sync: 48,
+        hours_since_last_sync: 0.8,
+        sync_mode: "github_actions_cron_24h",
+        active_pipelines: [
+          {
+            id: "openrouter",
+            name: "OpenRouter Public Models Pricing API",
+            endpoint: "https://openrouter.ai/api/v1/models",
+            status: "ONLINE",
+            metric: "25x token deflation multiple vs early-2023 GPT-4 benchmark",
+            target: "Real-demand damper (-10 pts max)"
+          },
+          {
+            id: "polymarket",
+            name: "Polymarket Gamma Events API",
+            endpoint: "https://gamma-api.polymarket.com/events",
+            status: "ONLINE",
+            metric: "10.3% 2026 bubble burst odds ($9.14M active volume across 16 markets)",
+            target: "Crowd consensus risk factor"
+          },
+          {
+            id: "yahoo_finance",
+            name: "Yahoo Finance ORCL Market Stream",
+            endpoint: "https://query1.finance.yahoo.com/v8/finance/chart/ORCL",
+            status: "ONLINE",
+            metric: "187 bps Oracle 5Y CDS proxy anchor",
+            target: "Fixed-income credit thermometer"
+          },
+          {
+            id: "sec_edgar",
+            name: "SEC EDGAR Automated Submissions",
+            endpoint: "https://data.sec.gov/submissions/CIK0001341439.json",
+            status: "ONLINE",
+            metric: "Oracle Form 8-K / 10-Q & Anthropic S-1 debt filings verified",
+            target: "Audited legal receipts (Axiom 1)"
+          },
+          {
+            id: "deal_ledger",
+            name: "Verified Primary Capital Ledger",
+            endpoint: "src/data/deals.json",
+            status: "ONLINE",
+            metric: "158 facilities ($2.81T volume, 7.0% debt share)",
+            target: "Deterministic balance sheet aggregates"
+          }
+        ],
+        recalibrated_models: [
+          "Merton Structural Distance-to-Default (2.84σ, default prob: 2.25%)",
+          "Altman Z''-Score Tech Classifier (1.84 Grey Zone, distress risk: 36.8%)",
+          "Sornette LPPLS Bubble Singularity (38.2% hazard, critical window: Q4 2026 - Q2 2027)",
+          "10,000-Path Monte Carlo Gaussian Copula (VaR95 49.6%, Expected Shortfall 53.4%)"
+        ],
+        recent_sync_history: [
+          {
+            timestamp: "2026-10-18T21:38:15.717Z",
+            status: "SUCCESS",
+            token_decline_multiple: "25x",
+            polymarket_yes_prob: 0.103,
+            disclosed_volume_usd: 2810757802026,
+            debt_share_pct: "7.0%",
+            deals_count: 158
+          },
+          {
+            timestamp: "2026-10-18T17:15:00.000Z",
+            status: "SUCCESS",
+            token_decline_multiple: "40x",
+            polymarket_yes_prob: 0.54,
+            disclosed_volume_usd: 2810757802026,
+            debt_share_pct: "7.0%",
+            deals_count: 159
+          }
+        ]
+      }
+    }
   }
 ];
 
@@ -388,7 +482,7 @@ print(data)`;
           <div className="flex items-center space-x-3 shrink-0">
             <div className="flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-mono bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/60 font-semibold shadow-sm">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>4 Endpoints Active</span>
+              <span>{ENDPOINTS.length} Endpoints Active</span>
             </div>
           </div>
         </div>

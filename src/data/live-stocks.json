@@ -1,0 +1,198 @@
+{
+  "timestamp": "2026-10-18T21:51:28.416Z",
+  "stocks": [
+    {
+      "ticker": "NVDA",
+      "name": "NVIDIA Corporation",
+      "priceUsd": 214.13,
+      "change24hPct": -6.6,
+      "category": "Semiconductor",
+      "athUsd": 243.37,
+      "drawdownFromAthPct": -12,
+      "role": "AI Silicon & Ecosystem Anchor",
+      "marketCapDisplay": "$5.27T"
+    },
+    {
+      "ticker": "ORCL",
+      "name": "Oracle Corporation",
+      "priceUsd": 128.23,
+      "change24hPct": -9.3,
+      "category": "Hyperscaler",
+      "athUsd": 289.24,
+      "drawdownFromAthPct": -55.7,
+      "role": "5Y CDS Credit Proxy & GPU Cluster Debt Anchor",
+      "marketCapDisplay": "$353B"
+    },
+    {
+      "ticker": "MSFT",
+      "name": "Microsoft Corporation",
+      "priceUsd": 529.05,
+      "change24hPct": -1.1,
+      "category": "Hyperscaler",
+      "athUsd": 555,
+      "drawdownFromAthPct": -4.7,
+      "role": "OpenAI Cloud Anchor & Nuclear Power Off-taker",
+      "marketCapDisplay": "$3.93T"
+    },
+    {
+      "ticker": "GOOGL",
+      "name": "Alphabet Inc.",
+      "priceUsd": 340.59,
+      "change24hPct": -3.1,
+      "category": "Hyperscaler",
+      "athUsd": 408.61,
+      "drawdownFromAthPct": -16.6,
+      "role": "Custom TPU V5e/V6 & Anthropic Backer",
+      "marketCapDisplay": "$4.19T"
+    },
+    {
+      "ticker": "AMZN",
+      "name": "Amazon.com Inc.",
+      "priceUsd": 250,
+      "change24hPct": -4.7,
+      "category": "Hyperscaler",
+      "athUsd": 287.2,
+      "drawdownFromAthPct": -13,
+      "role": "AWS Bedrock & Anthropic $8B Strategic Partner",
+      "marketCapDisplay": "$2.61T"
+    },
+    {
+      "ticker": "META",
+      "name": "Meta Platforms Inc.",
+      "priceUsd": 709.33,
+      "change24hPct": -1.3,
+      "category": "Hyperscaler",
+      "athUsd": 779.82,
+      "drawdownFromAthPct": -9,
+      "role": "Llama Open Weights & 600k H100 Cluster Buyer",
+      "marketCapDisplay": "$1.79T"
+    },
+    {
+      "ticker": "TSM",
+      "name": "Taiwan Semiconductor (TSMC)",
+      "priceUsd": 412.61,
+      "change24hPct": -9,
+      "category": "Semiconductor",
+      "athUsd": 487.47,
+      "drawdownFromAthPct": -15.4,
+      "role": "CoWoS Packaging & 3nm/2nm Monopolist",
+      "marketCapDisplay": "$1.07T"
+    },
+    {
+      "ticker": "AVGO",
+      "name": "Broadcom Inc.",
+      "priceUsd": 328.75,
+      "change24hPct": -9.1,
+      "category": "Semiconductor",
+      "athUsd": 495,
+      "drawdownFromAthPct": -33.6,
+      "role": "Custom AI XPU ASIC & PCIe Switching",
+      "marketCapDisplay": "$1.54T"
+    },
+    {
+      "ticker": "SMCI",
+      "name": "Super Micro Computer",
+      "priceUsd": 31.63,
+      "change24hPct": -24.4,
+      "category": "Power & Infrastructure",
+      "athUsd": 122.9,
+      "drawdownFromAthPct": -74.3,
+      "role": "GPU Server Integrator (Polymarket Trigger Risk)",
+      "marketCapDisplay": "$18.5B"
+    },
+    {
+      "ticker": "CEG",
+      "name": "Constellation Energy",
+      "priceUsd": 271.37,
+      "change24hPct": -9,
+      "category": "Power & Infrastructure",
+      "athUsd": 406.043,
+      "drawdownFromAthPct": -33.2,
+      "role": "Three Mile Island Nuclear Restart for Microsoft",
+      "marketCapDisplay": "$85.2B"
+    },
+    {
+      "ticker": "PLTR",
+      "name": "Palantir Technologies",
+      "priceUsd": 186.03,
+      "change24hPct": -11,
+      "category": "Frontier Lab Partner",
+      "athUsd": 212.94,
+      "drawdownFromAthPct": -12.6,
+      "role": "Enterprise AIP & Defense AI Contract Bellwether",
+      "marketCapDisplay": "$415B"
+    }
+  ],
+  "macro": [
+    {
+      "symbol": "US10Y",
+      "name": "10-Year Treasury Yield",
+      "valueDisplay": "5.10%",
+      "changeDisplay": "-14.0 bps",
+      "changePct": -2.7,
+      "isRiskPositive": true,
+      "category": "Treasury & Rates",
+      "description": "Benchmark risk-free rate pricing long-duration tech discount curves"
+    },
+    {
+      "symbol": "US02Y",
+      "name": "2-Year Treasury Yield",
+      "valueDisplay": "4.75%",
+      "changeDisplay": "+0.0 bps",
+      "changePct": 0,
+      "isRiskPositive": true,
+      "category": "Treasury & Rates",
+      "description": "Short-end rate pricing near-term Federal Reserve policy stance"
+    },
+    {
+      "symbol": "CPI",
+      "name": "Headline CPI Inflation",
+      "valueDisplay": "2.9% YoY",
+      "changeDisplay": "+0.2%",
+      "changePct": 7.4,
+      "isRiskPositive": true,
+      "category": "Inflation & Fed",
+      "description": "Consumer price index measuring inflation stickiness vs 2.0% Fed target"
+    },
+    {
+      "symbol": "FEDFUNDS",
+      "name": "Fed Funds Rate",
+      "valueDisplay": "4.75%",
+      "changeDisplay": "+25bp hike",
+      "changePct": 0,
+      "isRiskPositive": true,
+      "category": "Inflation & Fed",
+      "description": "Overnight policy target; markets pricing higher-for-longer regime"
+    },
+    {
+      "symbol": "AI-DEBT",
+      "name": "Annual AI Debt Issuance",
+      "valueDisplay": "$85.0B/yr",
+      "changeDisplay": "+215% YoY",
+      "changePct": 215,
+      "isRiskPositive": true,
+      "category": "Credit & Debt",
+      "description": "Annualized pace of corporate AI bonds, converts & private GPU credit lines"
+    },
+    {
+      "symbol": "HY-OAS",
+      "name": "US High Yield Spread",
+      "valueDisplay": "336 bps",
+      "changeDisplay": "+7 bps",
+      "changePct": 0.5,
+      "isRiskPositive": true,
+      "category": "Credit & Debt",
+      "description": "ICE BofA US High Yield option-adjusted spread measuring junk credit stress"
+    },
+    {
+      "symbol": "VIX",
+      "name": "CBOE Volatility Index",
+      "valueDisplay": "19.99",
+      "changeDisplay": "+31.4%",
+      "changePct": 31.4,
+      "isRiskPositive": true,
+      "category": "Credit & Debt",
+      "description": "Equity market implied volatility and systemic tail-risk sentiment"
+    }
+  ]
+}
