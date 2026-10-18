@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import rawDeals from "@/data/deals.json";
-import { DealBubbleChart } from "@/components/DealBubbleChart";
+import { LedgerTimelineChart } from "@/components/LedgerTimelineChart";
 import { AdSlot } from "@/components/AdSlot";
 import {
   Search,
@@ -244,7 +244,7 @@ export default function LedgerPage() {
   // View state
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [activeDeal, setActiveDeal] = useState<Deal | null>(null);
-  const [showBubbleChart, setShowBubbleChart] = useState(true);
+  const [showTimelineChart, setShowTimelineChart] = useState(true);
   const [pageSize, setPageSize] = useState<number>(25);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [copiedCitation, setCopiedCitation] = useState<boolean>(false);
@@ -579,12 +579,12 @@ export default function LedgerPage() {
         {/* Global Toolbar Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
           <button
-            onClick={() => setShowBubbleChart(!showBubbleChart)}
+            onClick={() => setShowTimelineChart(!showTimelineChart)}
             className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#121214] text-slate-800 dark:text-zinc-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-zinc-800 transition-all shadow-sm"
           >
-            <CircleDot className="w-4 h-4 text-emerald-500" />
-            <span>{showBubbleChart ? "Hide Visual Map" : "Show Visual Map"}</span>
-            {showBubbleChart ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            <TrendingUp className="w-4 h-4 text-emerald-500" />
+            <span>{showTimelineChart ? "Hide Capital Timeline" : "Show Capital Timeline"}</span>
+            {showTimelineChart ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
 
           {/* Export Dropdown / Buttons */}
@@ -640,12 +640,26 @@ export default function LedgerPage() {
       {/* Top Sponsored Placement */}
       <AdSlot format="leaderboard" slotId="ledger-top" />
 
-      {/* Embedded Deal Bubble Chart */}
-      {showBubbleChart && (
+      {/* Bespoke Ledger Capital Timeline & Velocity Chart */}
+      {showTimelineChart && (
         <div className="transition-all">
-          <DealBubbleChart
+          <LedgerTimelineChart
             deals={deals}
-            onSelectDeal={(deal) => setActiveDeal(deal)}
+            selectedYear={selectedYear}
+            onSelectYear={(yr) => {
+              setSelectedYear(yr);
+              setCurrentPage(1);
+            }}
+            selectedCategory={selectedCategory}
+            onSelectCategory={(cat) => {
+              setSelectedCategory(cat);
+              setCurrentPage(1);
+            }}
+            debtOnly={debtOnly}
+            onToggleDebtOnly={() => {
+              setDebtOnly(!debtOnly);
+              setCurrentPage(1);
+            }}
           />
         </div>
       )}
