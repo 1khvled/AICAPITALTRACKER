@@ -30,7 +30,7 @@ export default function RootLayout({
           <div className="flex flex-col min-h-screen">
             <MarketTickerTape />
             <Header />
-            <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+            <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-8">
               {children}
             </main>
             <Footer />

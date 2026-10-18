@@ -177,8 +177,8 @@ export default function VisualizePage() {
       </div>
 
       {/* Segmented View Toggles / Filter Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 dark:bg-[#121214] p-1.5 rounded-2xl border border-slate-200 dark:border-zinc-800">
-        <div className="flex flex-wrap items-center gap-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 dark:bg-[#121214] p-1.5 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-zinc-800">
+        <div className="flex items-center overflow-x-auto pb-1 max-w-full scrollbar-none gap-1 touch-pan-x sm:flex-wrap">
           <button
             onClick={() => setActiveTab("all")}
             className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition-all ${

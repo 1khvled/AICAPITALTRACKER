@@ -91,7 +91,7 @@ export function MarketTickerTape() {
       id: "fedfunds",
       label: "FED FUNDS",
       value: "4.75%",
-      change: "+25bp hike risk",
+      change: "+25bp hike",
       isPositive: false,
       type: "macro",
       href: "/sandbox",
@@ -203,29 +203,30 @@ export function MarketTickerTape() {
 
   return (
     <div
-      className="bg-[#080a0f] border-b border-zinc-800/90 text-zinc-200 text-xs py-2 overflow-hidden select-none relative z-40 shadow-inner"
+      className="bg-[#09090b] border-b border-zinc-800 text-zinc-200 text-xs py-1.5 sm:py-2 overflow-hidden select-none relative z-40"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
       <div className="w-full flex items-center">
         {/* Left Pinned Terminal Header Badge */}
-        <div className="flex-shrink-0 flex items-center space-x-2 pl-4 pr-3.5 sm:pr-4 py-0.5 border-r border-zinc-800/90 z-20 bg-[#080a0f] shadow-md">
+        <div className="shrink-0 flex items-center space-x-1.5 sm:space-x-2 pl-3 sm:pl-4 pr-2.5 sm:pr-4 py-0.5 border-r border-zinc-800 z-20 bg-[#09090b]">
           {/* Pulsing Green Hardware Radar Light */}
-          <span className="relative flex h-2 w-2">
+          <span className="relative flex h-2 w-2 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
 
-          <span className="font-mono text-xs font-black tracking-widest text-zinc-100 uppercase flex items-center space-x-1.5 whitespace-nowrap">
-            <Activity className="w-3.5 h-3.5 text-emerald-400" />
-            <span>LIVE MARKETS</span>
+          <span className="font-mono text-[11px] sm:text-xs font-black tracking-wider text-zinc-100 uppercase flex items-center space-x-1 sm:space-x-1.5 whitespace-nowrap">
+            <Activity className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span className="hidden sm:inline">LIVE WIRE</span>
+            <span className="sm:hidden">TAPE</span>
           </span>
 
           {/* Pause / Play Toggle Button */}
           <button
             onClick={() => setIsPaused(!isPaused)}
             title={isPaused ? "Resume ticker tape" : "Pause ticker tape"}
-            className="ml-1 p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors"
+            className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors shrink-0"
           >
             {isPaused ? <Play className="w-3 h-3 text-emerald-400" /> : <Pause className="w-3 h-3 text-zinc-400" />}
           </button>

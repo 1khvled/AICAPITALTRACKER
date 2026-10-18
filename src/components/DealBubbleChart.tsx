@@ -899,7 +899,7 @@ function GravityArena({
         </svg>
 
         <div className="absolute bottom-3 left-4 pointer-events-none">
-          <div className="flex items-center space-x-2 text-xs font-mono text-zinc-400 bg-zinc-950/80 px-3 py-1.5 rounded-lg border border-zinc-800 backdrop-blur-sm">
+          <div className="flex items-center space-x-2 text-xs font-mono text-zinc-300 bg-zinc-950 px-3 py-1.5 rounded-lg border border-zinc-800">
             <Hand className="w-3.5 h-3.5 text-emerald-400" />
             <span>Fling bubbles to test collision physics • Double click to inspect</span>
           </div>
@@ -1134,50 +1134,50 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
             </h2>
           </div>
 
-          {/* View Mode Segmented Controls */}
-          <div className="flex items-center flex-wrap gap-1 p-1.5 rounded-xl bg-slate-100 dark:bg-[#09090b] border border-slate-200 dark:border-zinc-800 self-start sm:self-auto shadow-inner">
+          {/* View Mode Segmented Controls - 2-col on mobile, flex on desktop */}
+          <div className="grid grid-cols-2 sm:flex items-center gap-1 p-1 sm:p-1.5 rounded-xl bg-slate-100 dark:bg-[#09090b] border border-slate-200 dark:border-zinc-800 w-full sm:w-auto">
             <button
               onClick={() => setViewMode("treemap")}
-              className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
+              className={`flex items-center justify-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
                 viewMode === "treemap"
-                  ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm"
+                  ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs"
                   : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <LayoutGrid className="w-4 h-4 text-emerald-500" />
+              <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 shrink-0" />
               <span>Capital Treemap</span>
             </button>
             <button
               onClick={() => setViewMode("bubbles")}
-              className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
+              className={`flex items-center justify-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
                 viewMode === "bubbles"
-                  ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm"
+                  ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs"
                   : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <CircleDot className="w-4 h-4 text-purple-500" />
+              <CircleDot className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-500 shrink-0" />
               <span>Bubble Pods</span>
             </button>
             <button
               onClick={() => setViewMode("arena")}
-              className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
+              className={`flex items-center justify-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
                 viewMode === "arena"
-                  ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm"
+                  ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs"
                   : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <Atom className="w-4 h-4 text-cyan-400" />
+              <Atom className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400 shrink-0" />
               <span>Gravity Arena</span>
             </button>
             <button
               onClick={() => setViewMode("timeline")}
-              className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
+              className={`flex items-center justify-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
                 viewMode === "timeline"
-                  ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm"
+                  ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs"
                   : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <Calendar className="w-4 h-4 text-amber-500" />
+              <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 shrink-0" />
               <span>Timeline Flow</span>
             </button>
           </div>
@@ -1193,7 +1193,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
               placeholder="Filter company, project, or amount..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm font-medium rounded-xl border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-[#09090b] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full pl-10 pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-xl border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-[#09090b] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
             {searchQuery && (
               <button
@@ -1205,23 +1205,23 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
             )}
           </div>
 
-          {/* Size Filter Pills */}
-          <div className="flex items-center space-x-1.5 text-xs sm:text-sm">
-            <span className="text-xs font-bold text-slate-600 dark:text-zinc-400 mr-1 hidden md:inline">
+          {/* Size Filter Pills with horizontal scroll on mobile */}
+          <div className="flex items-center space-x-1.5 text-xs sm:text-sm overflow-x-auto scrollbar-none pb-0.5 touch-pan-x">
+            <span className="text-xs font-bold text-slate-600 dark:text-zinc-400 mr-1 shrink-0 hidden md:inline">
               Minimum Deal:
             </span>
             {[
               { id: "all", label: "All Deals" },
               { id: "1b", label: "≥ $1B" },
               { id: "10b", label: "≥ $10B" },
-              { id: "50b", label: "≥ $50B Megadeals" },
+              { id: "50b", label: "≥ $50B" },
             ].map((t) => (
               <button
                 key={t.id}
                 onClick={() => setMinVolume(t.id as any)}
-                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all ${
+                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold whitespace-nowrap transition-all shrink-0 ${
                   minVolume === t.id
-                    ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-950 shadow-sm"
+                    ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-950 shadow-xs"
                     : "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700"
                 }`}
               >
@@ -1232,7 +1232,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
         </div>
 
         {/* Sector Pills Strip */}
-        <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none text-xs sm:text-sm">
+        <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none text-xs sm:text-sm touch-pan-x">
           <button
             onClick={() => setSelectedCat("All")}
             className={`whitespace-nowrap px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${

@@ -968,7 +968,7 @@ export default function LedgerPage() {
           <div className="overflow-x-auto max-h-[820px] overflow-y-auto scrollbar-thin">
             <table className="w-full text-left border-collapse">
               {/* Sticky Header with Sort Indicators */}
-              <thead className="sticky top-0 z-10 bg-slate-100/95 dark:bg-[#161619]/95 backdrop-blur-md border-b border-slate-200 dark:border-zinc-800">
+              <thead className="sticky top-0 z-10 bg-slate-100 dark:bg-[#161619] border-b border-slate-200 dark:border-zinc-800">
                 <tr className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-zinc-300 select-none">
                   {/* Date Column */}
                   <th

@@ -141,56 +141,44 @@ export function ProbabilityGauge({
   const activePoint = hoveredPointIndex !== null ? trajectory[hoveredPointIndex] : trajectory[trajectory.length - 1];
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 p-6 sm:p-8 space-y-7 transition-colors shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 p-4 sm:p-7 space-y-5 transition-colors shadow-xs">
       {/* Header Badges & Confidence Intervals */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-zinc-800/80">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <span className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold border shadow-xs ${current.badge}`}>
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 mr-2 animate-pulse" />
+      <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3.5 border-b border-slate-100 dark:border-zinc-800">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-bold border shadow-xs ${current.badge}`}>
+            <span className="w-2 h-2 rounded-full bg-rose-500 mr-2 animate-pulse" />
             {current.label}
           </span>
           <span className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-zinc-300">
             Horizon: 12 Months
           </span>
           <span className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 font-medium">
-            • Data Coverage: {(coverage * 100).toFixed(0)}% Disclosed
+            • Coverage: {(coverage * 100).toFixed(0)}%
           </span>
         </div>
 
         {/* High-Contrast Confidence Interval Badge */}
-        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900/90 shadow-xs">
-          <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 shadow-xs">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400">
             90% CI:
           </span>
           <span className="font-mono text-xs sm:text-sm font-black text-slate-900 dark:text-white tabular-nums tracking-wide">
             [{ciLow.toFixed(1)}% – {ciHigh.toFixed(1)}%]
           </span>
-          <span className="text-[11px] text-slate-500 dark:text-zinc-500 font-mono hidden sm:inline">
-            (±{((ciHigh - ciLow) / 2).toFixed(1)}%)
-          </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
         {/* Left Side: SVG Arc Visualization + Main Score */}
-        <div className="lg:col-span-7 flex flex-col md:flex-row items-center gap-6">
+        <div className="lg:col-span-7 flex flex-col md:flex-row items-center gap-5 sm:gap-6">
           {/* Modern SVG Arc Gauge */}
           <div className="relative shrink-0 flex flex-col items-center justify-center">
             <svg
-              className="overflow-visible w-[270px] h-[160px] sm:w-[300px] sm:h-[175px]"
+              className="overflow-visible w-[250px] h-[150px] sm:w-[290px] sm:h-[170px]"
               viewBox="0 0 320 170"
             >
               <defs>
-                {/* Glow Filter */}
-                <filter id="gauge-glow" x="-30%" y="-30%" width="160%" height="160%">
-                  <feGaussianBlur stdDeviation="8" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-
                 {/* Color Gradients */}
                 <linearGradient id="gauge-gradient-critical" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" stopColor="#f59e0b" />
@@ -230,10 +218,10 @@ export function ProbabilityGauge({
                 stroke="currentColor"
                 strokeWidth="15"
                 strokeLinecap="round"
-                className="text-slate-100 dark:text-zinc-800/80"
+                className="text-slate-100 dark:text-zinc-800"
               />
 
-              {/* Active Glowing Filled Arc */}
+              {/* Active Clean Filled Arc */}
               <path
                 d="M 48 140 A 112 112 0 0 1 272 140"
                 fill="none"
@@ -243,7 +231,6 @@ export function ProbabilityGauge({
                 strokeDasharray={arcLength}
                 strokeDashoffset={activeOffset}
                 style={{
-                  filter: `drop-shadow(0 0 12px ${current.glowColor})`,
                   transition: "stroke-dashoffset 0.8s ease-in-out",
                 }}
               />
@@ -338,7 +325,7 @@ export function ProbabilityGauge({
 
             {/* Financial Fragility Index Score Meter */}
             <div className="pt-2">
-              <div className="bg-slate-50 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 space-y-2">
+              <div className="bg-slate-50 dark:bg-[#18181b] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-800 dark:text-zinc-200 flex items-center space-x-1.5">
                     <ShieldAlert className="w-4 h-4 text-amber-500" />

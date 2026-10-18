@@ -292,7 +292,7 @@ export function LiveStockMonitor() {
         </div>
 
         {/* Clean Category Filter Tabs */}
-        <div className="flex items-center space-x-1.5 overflow-x-auto scrollbar-none pb-1">
+        <div className="flex items-center space-x-1.5 overflow-x-auto scrollbar-none pb-1 touch-pan-x">
           {categories.map((cat) => {
             const isSelected = selectedCategory === cat;
             return (
@@ -301,8 +301,8 @@ export function LiveStockMonitor() {
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold whitespace-nowrap transition-all border ${
                   isSelected
-                    ? "bg-amber-400 text-zinc-950 border-amber-300 shadow-sm shadow-amber-400/20"
-                    : "bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:bg-zinc-800 hover:text-white"
+                    ? "bg-amber-400 text-zinc-950 border-amber-300 shadow-xs"
+                    : "bg-zinc-900 text-zinc-300 border-zinc-800 hover:bg-zinc-800 hover:text-white"
                 }`}
               >
                 {cat}
@@ -312,11 +312,11 @@ export function LiveStockMonitor() {
         </div>
       </div>
 
-      <div className="p-5 sm:p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         {/* Institutional Macro & Fixed Income Ribbon */}
         {showMacroPanel && (
           <div className="space-y-2.5">
-            <div className="flex items-center justify-between text-xs font-mono pb-1 border-b border-zinc-800/40">
+            <div className="flex items-center justify-between text-xs font-mono pb-1 border-b border-zinc-800">
               <span className="font-bold uppercase tracking-wider text-amber-400 flex items-center space-x-1.5 whitespace-nowrap">
                 <Percent className="w-3.5 h-3.5 text-amber-400" />
                 <span>BENCHMARK FIXED INCOME &amp; AI CREDIT METRICS</span>
@@ -326,14 +326,14 @@ export function LiveStockMonitor() {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
               {LIVE_MACRO_INDICATORS.map((macro) => {
                 const isStress = macro.isRiskPositive;
                 const spark = SPARKLINE_HISTORY[macro.symbol] || [10, 11, 10.5, 11.2, 11.8, 12];
                 return (
                   <div
                     key={macro.symbol}
-                    className="bg-zinc-900/80 border border-zinc-800/90 rounded-xl p-3 space-y-2 hover:border-zinc-700 transition-all group"
+                    className="bg-[#121214] border border-zinc-800 rounded-xl p-2.5 sm:p-3 space-y-1.5 sm:space-y-2 hover:border-zinc-700 transition-all group"
                   >
                     <div className="flex items-center justify-between gap-1.5">
                       <span className="font-mono font-black text-xs text-zinc-200 tracking-wider whitespace-nowrap">
@@ -396,18 +396,17 @@ export function LiveStockMonitor() {
               const isNegative = live.change24hPct < 0;
               const spark = SPARKLINE_HISTORY[stock.ticker] || [100, 101, 99, 98, 99.5, 100.2];
 
-              // Flash style on simulated price update
               const flashClass =
                 live.flash === "up"
-                  ? "ring-2 ring-emerald-500 bg-emerald-950/30 border-emerald-500/60"
+                  ? "ring-2 ring-emerald-500 bg-emerald-950/40 border-emerald-500/60"
                   : live.flash === "down"
-                  ? "ring-2 ring-rose-500 bg-rose-950/30 border-rose-500/60"
-                  : "bg-zinc-900/80 border-zinc-800/90 hover:border-zinc-700";
+                  ? "ring-2 ring-rose-500 bg-rose-950/40 border-rose-500/60"
+                  : "bg-[#121214] border-zinc-800 hover:border-zinc-700";
 
               return (
                 <div
                   key={stock.ticker}
-                  className={`rounded-2xl p-4 space-y-3 transition-all duration-300 border shadow-sm hover:shadow-md ${flashClass}`}
+                  className={`rounded-xl sm:rounded-2xl p-3.5 sm:p-4 space-y-2.5 sm:space-y-3 transition-all duration-300 border shadow-xs hover:shadow-sm ${flashClass}`}
                 >
                   {/* Top Bar: Ticker + Exchange + 24h Change Badge */}
                   <div className="flex items-center justify-between">

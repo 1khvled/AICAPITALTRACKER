@@ -43,22 +43,22 @@ export function Header() {
   ];
 
   return (
-    <header className="border-b border-slate-200 dark:border-zinc-800/80 bg-white/95 dark:bg-[#09090b]/95 backdrop-blur-md sticky top-0 z-50 transition-colors w-full">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2 xl:gap-4">
+    <header className="border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#09090b] sticky top-0 z-50 transition-colors w-full">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-4">
         {/* Brand */}
-        <Link href="/" className="flex items-center space-x-2.5 group flex-shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-700 flex items-center justify-center text-emerald-400 group-hover:border-emerald-500 transition-colors flex-shrink-0 shadow-sm">
-            <span className="font-mono text-sm font-black">AI</span>
+        <Link href="/" className="flex items-center space-x-2 group shrink-0">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-900 border border-zinc-700 flex items-center justify-center text-emerald-400 group-hover:border-emerald-500 transition-colors shrink-0 shadow-xs">
+            <span className="font-mono text-xs sm:text-sm font-black">AI</span>
           </div>
-          <div className="flex flex-col flex-shrink-0">
-            <span className="font-black text-slate-900 dark:text-white tracking-tight text-base sm:text-lg whitespace-nowrap leading-tight">
+          <div className="flex flex-col shrink-0">
+            <span className="font-black text-slate-900 dark:text-white tracking-tight text-sm sm:text-base md:text-lg whitespace-nowrap leading-tight">
               AI Capital Tracker
             </span>
           </div>
         </Link>
 
         {/* Primary Desktop Navigation — Compact, perfectly balanced, never wraps or pushes out */}
-        <nav className="hidden lg:flex items-center space-x-1 flex-shrink-0">
+        <nav className="hidden lg:flex items-center space-x-1 shrink-0">
           {navLinks.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
@@ -68,11 +68,11 @@ export function Header() {
                 href={item.href}
                 className={`flex items-center space-x-1.5 px-2.5 xl:px-3 py-1.5 rounded-lg text-xs xl:text-sm font-semibold whitespace-nowrap transition-all ${
                   isActive
-                    ? "bg-slate-900 text-white dark:bg-zinc-800 dark:text-white font-bold shadow-sm"
+                    ? "bg-slate-900 text-white dark:bg-zinc-800 dark:text-white font-bold shadow-xs"
                     : "text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800/60"
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-emerald-400" : "text-slate-400 dark:text-zinc-500"}`} />
+                <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? "text-emerald-400" : "text-slate-400 dark:text-zinc-500"}`} />
                 <span>{item.label}</span>
                 {item.badge && (
                   <span
@@ -91,14 +91,14 @@ export function Header() {
         </nav>
 
         {/* Right side controls: Polymarket + Theme Toggle + Live Risk Badge */}
-        <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0 pr-0.5">
+        <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
           {/* Polymarket Referral Pill — Compact & high contrast */}
           <a
             href={POLYMARKET_BASE_URL}
             target="_blank"
             rel="noopener noreferrer"
             title={`Trade AI Bubble contracts on Polymarket (Referral: ${POLYMARKET_REFERRAL_CODE})`}
-            className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/90 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-950/70 text-xs font-bold transition-all whitespace-nowrap shadow-sm flex-shrink-0"
+            className="inline-flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-900/80 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-xs font-bold transition-all whitespace-nowrap shadow-xs shrink-0"
           >
             <Zap className="w-3.5 h-3.5 fill-current text-indigo-500 shrink-0" />
             <span className="hidden sm:inline">Polymarket</span>
@@ -110,7 +110,7 @@ export function Header() {
               onClick={toggleTheme}
               aria-label="Toggle dark/light mode"
               title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-              className="p-1.5 sm:p-2 rounded-lg border border-slate-300 dark:border-zinc-700/80 bg-slate-100 dark:bg-zinc-900 text-slate-800 dark:text-zinc-200 hover:bg-slate-200 dark:hover:bg-zinc-800 transition-all shadow-sm flex items-center justify-center flex-shrink-0"
+              className="p-1.5 sm:p-2 rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-100 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-800 transition-all shadow-xs flex items-center justify-center shrink-0"
             >
               {theme === "dark" ? (
                 <Sun className="w-4 h-4 text-amber-400" />
@@ -124,7 +124,7 @@ export function Header() {
           <Link
             href="/"
             title="Current 12-Month Bubble Burst Probability"
-            className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-xs font-bold text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/70 transition-all whitespace-nowrap shadow-sm flex-shrink-0"
+            className="flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 text-xs font-bold text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-all whitespace-nowrap shadow-xs shrink-0"
           >
             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0"></span>
             <span className="font-mono font-black">{formattedRisk}</span>
@@ -134,14 +134,14 @@ export function Header() {
       </div>
 
       {/* Mobile / Tablet Horizontal Navigation Strip */}
-      <div className="lg:hidden flex items-center overflow-x-auto px-3 py-1.5 border-t border-slate-200 dark:border-zinc-800 space-x-1 scrollbar-none bg-slate-50 dark:bg-[#09090b]">
+      <div className="lg:hidden flex items-center overflow-x-auto px-2.5 py-1.5 border-t border-slate-200 dark:border-zinc-800 space-x-1 scrollbar-none bg-slate-50 dark:bg-[#09090b] touch-pan-x">
         {navLinks.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`whitespace-nowrap px-3 py-1 rounded-md text-xs font-semibold transition-colors ${
+              className={`whitespace-nowrap px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${
                 isActive
                   ? "bg-slate-900 text-white dark:bg-zinc-800 dark:text-white"
                   : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"

@@ -239,7 +239,7 @@ export function SensitivitySandbox() {
         </div>
 
         {/* 4 Required Scenario Preset Buttons */}
-        <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
+        <div className="flex items-center overflow-x-auto pb-1 max-w-full scrollbar-none gap-2 touch-pan-x sm:flex-wrap">
           <button
             onClick={() => applyPreset("baseline")}
             className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition-all flex items-center space-x-1.5 border ${
@@ -295,7 +295,7 @@ export function SensitivitySandbox() {
         {/* Left Side: 7 Institutional Financial Sliders with Dual Numerical Inputs */}
         <div className="lg:col-span-7 space-y-6">
           {/* Slider 1: Oracle 5Y CDS */}
-          <div className="bg-slate-50/70 dark:bg-[#09090b] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-4 space-y-2.5">
+          <div className="bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 sm:p-4 space-y-2.5">
             <div className="flex items-center justify-between text-xs font-mono">
               <div className="flex items-center space-x-2">
                 <span className="font-bold text-slate-800 dark:text-zinc-200">
@@ -356,7 +356,7 @@ export function SensitivitySandbox() {
           </div>
 
           {/* Slider 2: Debt Share in Deal Ledger */}
-          <div className="bg-slate-50/70 dark:bg-[#09090b] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-4 space-y-2.5">
+          <div className="bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 sm:p-4 space-y-2.5">
             <div className="flex items-center justify-between text-xs font-mono">
               <div className="flex items-center space-x-2">
                 <span className="font-bold text-slate-800 dark:text-zinc-200">
@@ -417,7 +417,7 @@ export function SensitivitySandbox() {
           </div>
 
           {/* Slider 3: US 10-Year Benchmark Treasury Yield */}
-          <div className="bg-slate-50/70 dark:bg-[#09090b] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-4 space-y-2.5">
+          <div className="bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 sm:p-4 space-y-2.5">
             <div className="flex items-center justify-between text-xs font-mono">
               <div className="flex items-center space-x-2">
                 <span className="font-bold text-slate-800 dark:text-zinc-200">
@@ -484,7 +484,7 @@ export function SensitivitySandbox() {
           </div>
 
           {/* Slider 4: Annual AI Debt Issuance Velocity */}
-          <div className="bg-slate-50/70 dark:bg-[#09090b] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-4 space-y-2.5">
+          <div className="bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 sm:p-4 space-y-2.5">
             <div className="flex items-center justify-between text-xs font-mono">
               <div className="flex items-center space-x-2">
                 <span className="font-bold text-slate-800 dark:text-zinc-200">
@@ -551,7 +551,7 @@ export function SensitivitySandbox() {
           </div>
 
           {/* Slider 5: Token Price Deflation */}
-          <div className="bg-slate-50/70 dark:bg-[#09090b] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-4 space-y-2.5">
+          <div className="bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 sm:p-4 space-y-2.5">
             <div className="flex items-center justify-between text-xs font-mono">
               <div className="flex items-center space-x-2">
                 <span className="font-bold text-slate-800 dark:text-zinc-200">
@@ -618,7 +618,7 @@ export function SensitivitySandbox() {
           </div>
 
           {/* Slider 6: User Growth */}
-          <div className="bg-slate-50/70 dark:bg-[#09090b] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-4 space-y-2.5">
+          <div className="bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 sm:p-4 space-y-2.5">
             <div className="flex items-center justify-between text-xs font-mono">
               <div className="flex items-center space-x-2">
                 <span className="font-bold text-slate-800 dark:text-zinc-200">
@@ -685,7 +685,7 @@ export function SensitivitySandbox() {
           </div>
 
           {/* Slider 7: Prediction Market Odds */}
-          <div className="bg-slate-50/70 dark:bg-[#09090b] border border-slate-200/80 dark:border-zinc-800 rounded-xl p-4 space-y-2.5">
+          <div className="bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 sm:p-4 space-y-2.5">
             <div className="flex items-center justify-between text-xs font-mono">
               <div className="flex items-center space-x-2">
                 <span className="font-bold text-slate-800 dark:text-zinc-200">

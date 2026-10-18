@@ -5,14 +5,10 @@ import { POLYMARKET_BASE_URL, POLYMARKET_REFERRAL_CODE } from "@/data/polymarket
 
 export function Footer() {
   return (
-    <footer className="border-t border-slate-200 dark:border-zinc-800 bg-slate-50/70 dark:bg-[#070709] mt-24 text-slate-600 dark:text-zinc-400 text-sm transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 space-y-12">
+    <footer className="border-t border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-[#09090b] mt-16 sm:mt-24 text-slate-600 dark:text-zinc-400 text-sm transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-8 sm:space-y-12">
         {/* High-Contrast Polymarket Referral CTA Box */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 border border-indigo-500/30 shadow-xl">
-          {/* Subtle decorative glow */}
-          <div className="absolute -right-20 -top-20 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
-
+        <div className="relative overflow-hidden rounded-2xl bg-slate-900 text-white p-5 sm:p-8 border border-indigo-900/80 shadow-md">
           <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div className="space-y-2 max-w-2xl">
               <div className="flex flex-wrap items-center gap-2.5">

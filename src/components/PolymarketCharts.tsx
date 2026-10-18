@@ -193,9 +193,7 @@ export function PolymarketCharts() {
         {activeTab === "markets" && (
           <div className="space-y-6">
             {/* FEATURED HERO CARD: The Live Polymarket AI Bubble Contract */}
-            <div className="bg-gradient-to-br from-indigo-950/60 via-zinc-900 to-[#0c0e14] border-2 border-indigo-500/50 rounded-2xl p-5 sm:p-6 space-y-5 shadow-2xl relative overflow-hidden">
-              {/* Subtle background glow */}
-              <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="bg-[#121214] border border-indigo-900/80 rounded-2xl p-4 sm:p-6 space-y-4 shadow-sm relative overflow-hidden">
 
               {/* Top Meta Bar */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pb-3 border-b border-zinc-800/80">

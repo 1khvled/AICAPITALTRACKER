@@ -859,30 +859,30 @@ export default function CompaniesPage() {
           </div>
 
           {/* Quick Metrics Bar */}
-          <div className="flex flex-wrap items-center gap-3 text-sm shrink-0">
-            <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-sm">
-              <span className="text-slate-500 dark:text-zinc-400 block text-[11px] font-mono font-bold uppercase tracking-wider">
+          <div className="grid grid-cols-3 gap-2 w-full lg:w-auto text-sm shrink-0">
+            <div className="p-2.5 sm:p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-xs">
+              <span className="text-slate-500 dark:text-zinc-400 block text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider">
                 Tracked Volume
               </span>
-              <span className="font-black text-slate-900 dark:text-white font-mono text-xl sm:text-2xl">
+              <span className="font-black text-slate-900 dark:text-white font-mono text-base sm:text-xl md:text-2xl">
                 ${(totalTrackedUsd / 1e12).toFixed(2)}T
               </span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-sm">
-              <span className="text-rose-600 dark:text-rose-400 block text-[11px] font-mono font-bold uppercase tracking-wider">
+            <div className="p-2.5 sm:p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-xs">
+              <span className="text-rose-600 dark:text-rose-400 block text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider">
                 Verified Debt
               </span>
-              <span className="font-black text-rose-600 dark:text-rose-400 font-mono text-xl sm:text-2xl">
+              <span className="font-black text-rose-600 dark:text-rose-400 font-mono text-base sm:text-xl md:text-2xl">
                 ${(totalDebtUsd / 1e9).toFixed(1)}B
               </span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-sm">
-              <span className="text-amber-600 dark:text-amber-400 block text-[11px] font-mono font-bold uppercase tracking-wider">
-                Circular Entities
+            <div className="p-2.5 sm:p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-xs">
+              <span className="text-amber-600 dark:text-amber-400 block text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider">
+                Circular
               </span>
-              <span className="font-black text-amber-600 dark:text-amber-400 font-mono text-xl sm:text-2xl">
+              <span className="font-black text-amber-600 dark:text-amber-400 font-mono text-base sm:text-xl md:text-2xl">
                 {circularCount} / {COMPANIES.length}
               </span>
             </div>
@@ -898,20 +898,20 @@ export default function CompaniesPage() {
             <Search className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3" />
             <input
               type="text"
-              placeholder={`Search ${COMPANIES.length} companies, debt tranches, counterparties...`}
+              placeholder={`Search ${COMPANIES.length} companies, debt tranches...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm font-medium rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#09090b] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-xs"
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none touch-pan-x">
             {/* Quick Filter: Circularity / Debt */}
-            <div className="flex items-center space-x-1 text-xs">
+            <div className="flex items-center space-x-1 text-xs shrink-0">
               <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 mr-1 hidden sm:inline">Filter:</span>
               <button
                 onClick={() => setSelectedCircularity("All")}
-                className={`px-2.5 py-1.5 rounded-lg font-bold transition-all ${
+                className={`px-2.5 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap ${
                   selectedCircularity === "All"
                     ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-950 shadow-xs"
                     : "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 hover:bg-slate-200"
@@ -921,7 +921,7 @@ export default function CompaniesPage() {
               </button>
               <button
                 onClick={() => setSelectedCircularity("Debt")}
-                className={`px-2.5 py-1.5 rounded-lg font-bold transition-all flex items-center space-x-1 ${
+                className={`px-2.5 py-1.5 rounded-lg font-bold transition-all flex items-center space-x-1 whitespace-nowrap ${
                   selectedCircularity === "Debt"
                     ? "bg-rose-600 text-white shadow-xs"
                     : "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 hover:bg-slate-200"
@@ -932,7 +932,7 @@ export default function CompaniesPage() {
               </button>
               <button
                 onClick={() => setSelectedCircularity("Circular")}
-                className={`px-2.5 py-1.5 rounded-lg font-bold transition-all flex items-center space-x-1 ${
+                className={`px-2.5 py-1.5 rounded-lg font-bold transition-all flex items-center space-x-1 whitespace-nowrap ${
                   selectedCircularity === "Circular"
                     ? "bg-amber-600 text-white shadow-xs"
                     : "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 hover:bg-slate-200"
@@ -944,13 +944,13 @@ export default function CompaniesPage() {
             </div>
 
             {/* Risk Tier Quick Filter */}
-            <div className="flex items-center space-x-1 text-xs pl-2 border-l border-slate-200 dark:border-zinc-800">
+            <div className="flex items-center space-x-1 text-xs pl-2 border-l border-slate-200 dark:border-zinc-800 shrink-0">
               <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 mr-1 hidden sm:inline">Risk:</span>
               {["All", "Critical", "High", "Elevated", "Guarded"].map((tier) => (
                 <button
                   key={tier}
                   onClick={() => setSelectedRisk(tier)}
-                  className={`px-2.5 py-1.5 rounded-lg font-bold transition-all ${
+                  className={`px-2.5 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap ${
                     selectedRisk === tier
                       ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-950 shadow-xs"
                       : "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700"
@@ -964,7 +964,7 @@ export default function CompaniesPage() {
         </div>
 
         {/* Sector Tabs */}
-        <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none text-xs sm:text-sm">
+        <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none text-xs sm:text-sm touch-pan-x">
           {sectors.map((sec) => {
             const isSelected = selectedSector === sec;
             const count = sec === "All" ? COMPANIES.length : COMPANIES.filter((c) => c.sector === sec).length;
