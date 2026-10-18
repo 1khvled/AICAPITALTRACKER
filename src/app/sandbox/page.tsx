@@ -217,14 +217,24 @@ export default function SandboxPage() {
               <span>Sensitivity Sandbox &amp; Stochastic Sampling Engine</span>
             </h1>
             <p className="text-sm sm:text-base text-slate-600 dark:text-zinc-300 font-sans mt-2 max-w-3xl leading-relaxed">
-              Stress-test the model by manually tuning underlying levers or running a 25,000-path stochastic Monte Carlo 
-              simulation across joint interest rate shocks, credit spreads, and multiple compression.
+              Test &quot;what-if&quot; scenarios in real time. Move the sliders below to see what happens to the AI bubble risk if interest rates jump, cloud costs fall, or debt markets panic.
             </p>
           </div>
           <div className="flex items-center space-x-2 text-xs font-mono bg-slate-100 dark:bg-zinc-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 shrink-0">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-slate-700 dark:text-zinc-300 font-semibold">Stochastic Simulator Live</span>
+            <span className="text-slate-700 dark:text-zinc-300 font-semibold">Live Sandbox Engine</span>
           </div>
+        </div>
+
+        {/* Plain English Guide for Sandbox */}
+        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1.5 text-xs">
+          <div className="flex items-center space-x-1.5 font-bold text-amber-800 dark:text-amber-400">
+            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+            <span>💡 How this sandbox works: Try tweaking reality</span>
+          </div>
+          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+            Every slider below represents a real-world financial lever. For example, drag <strong>US 10-Year Treasury Yield</strong> higher to see what happens if inflation forces the Fed to hike rates, or drag <strong>Token Price Deflation</strong> higher to simulate AI getting even cheaper and spreading to more businesses!
+          </p>
         </div>
       </div>
 

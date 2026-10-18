@@ -13,7 +13,69 @@ import {
   Database,
   ShieldCheck,
   AlertTriangle,
+  Sparkles,
+  Lightbulb,
 } from "lucide-react";
+
+const PLAIN_ENGLISH_EXPLANATIONS: Record<
+  string,
+  { summary: string; analogy: string; whyItMatters: string }
+> = {
+  cds_stress: {
+    summary: "How expensive is insurance on big tech loans?",
+    analogy:
+      "Think of this like fire insurance on a house. If the insurance company quietly doubles the price of fire insurance on a datacenter operator (Oracle), they probably smell smoke. When this jumps, bond investors are nervous about companies paying back their massive AI loans.",
+    whyItMatters: "Bonds crash before stocks do. If lenders panic, AI datacenter building freezes.",
+  },
+  valuation_stretch: {
+    summary: "Are AI startups priced way higher than their actual sales?",
+    analogy:
+      "Imagine buying a corner bakery that makes $100,000 a year in sales, but paying $3.5 million for it. That's a 35× multiple! At 35× sales, the bakery must grow at superhuman speed for decades just for you to break even. Anything less triggers painful down-rounds.",
+    whyItMatters: "When expectations are astronomical, even minor revenue misses cause valuations to implode.",
+  },
+  debt_reliance: {
+    summary: "Is this boom funded with cash in the bank or borrowed credit?",
+    analogy:
+      "If you spend your own savings on an expensive new computer, you might feel poorer, but nobody comes to seize your home. But if you borrow $196 billion on credit, you must pay heavy interest every single month — even if your AI revenues slow down.",
+    whyItMatters: "Debt transforms normal market downturns into systemic insolvencies.",
+  },
+  macro_rates: {
+    summary: "How tempting are safe government bonds compared to risky AI?",
+    analogy:
+      "Interest rates are the gravity of finance. When safe 10-Year US Treasury bonds pay 5.1% guaranteed interest with zero risk, big investors won't gamble on speculative AI startups unless they offer massive, proven profits.",
+    whyItMatters: "High interest rates make future profits worth far less money today.",
+  },
+  concentration_circularity: {
+    summary: "Are tech giants buying each other's products in a closed loop?",
+    analogy:
+      "The round-trip trick: Tech Giant A invests $1 billion into AI Startup B, and Startup B immediately hands that same $1 billion back to Tech Giant A to rent cloud chips. Both claim their revenue grew, but no real outside customer bought anything.",
+    whyItMatters: "If outside customers don't start paying real money, the loop collapses when funding stops.",
+  },
+  funding_velocity: {
+    summary: "Are companies rushing into gigantic $10B+ megadeals out of FOMO?",
+    analogy:
+      "The gold rush panic. Companies are scrambling to lock down power grids, nuclear plants, and GPU clusters before competitors claim them, signing multi-billion dollar checks before checking whether demand exists.",
+    whyItMatters: "Overbuilding capacity during a frenzy leads to brutal overhangs when demand cools.",
+  },
+  crowd_signal: {
+    summary: "What are everyday prediction market traders betting on Polymarket?",
+    analogy:
+      "The wisdom of crowds. Polymarket lets thousands of people bet real dollars on whether an AI crash happens. Right now, retail crowds bet there is only a ~10% chance of a crash in 2026.",
+    whyItMatters: "Crowds are often right about immediate headlines, but historically blind to slow-moving credit crises.",
+  },
+  capex_cashflow: {
+    summary: "How much cash are Microsoft, Google, Meta, and Amazon sinking into chips?",
+    analogy:
+      "Like an airline buying 1,000 brand-new planes before knowing if passengers will book tickets. Over half of big tech's free cash is currently locked up in concrete, transformers, and GPUs.",
+    whyItMatters: "If AI revenues don't surge, Wall Street will force tech giants to slash datacenter capex.",
+  },
+  adoption_demand: {
+    summary: "The silver lining: Is AI getting massively cheaper to use?",
+    analogy:
+      "The great equalizer! Running an AI model has gotten 25× to 40× cheaper in just 2 years. When AI inference costs pennies instead of dollars, normal businesses can actually afford to use it profitably.",
+    whyItMatters: "Cheaper tokens drive real adoption, acting as a natural brake against a bubble burst.",
+  },
+};
 
 interface FactorCardProps {
   factor: FactorContribution;
@@ -144,10 +206,29 @@ export function FactorCard({ factor, explain, formula }: FactorCardProps) {
           </div>
         </div>
 
+        {/* Plain English Translation for Non-Finance Users */}
+        {PLAIN_ENGLISH_EXPLANATIONS[factor.id] && (
+          <div className="p-3.5 bg-amber-500/5 dark:bg-amber-500/10 rounded-xl border border-amber-500/20 space-y-2">
+            <div className="flex items-center space-x-1.5 text-xs font-bold text-amber-800 dark:text-amber-400">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span>In Plain English: {PLAIN_ENGLISH_EXPLANATIONS[factor.id].summary}</span>
+            </div>
+            <p className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
+              {PLAIN_ENGLISH_EXPLANATIONS[factor.id].analogy}
+            </p>
+            <div className="text-[11px] font-sans text-amber-800/90 dark:text-amber-300/90 font-medium pt-1 border-t border-amber-500/15">
+              <span className="font-bold">Why it matters:</span> {PLAIN_ENGLISH_EXPLANATIONS[factor.id].whyItMatters}
+            </div>
+          </div>
+        )}
+
         {/* Analytical Explanation */}
-        <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-          {explain}
-        </p>
+        <div className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-sans space-y-1">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
+            Technical Analysis:
+          </span>
+          <p>{explain}</p>
+        </div>
 
         {/* Expandable Methodology & Data Sources Section */}
         {showMethodology && (

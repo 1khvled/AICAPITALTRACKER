@@ -43,6 +43,9 @@ import {
   Globe,
   ArrowRight,
   Scale,
+  Sparkles,
+  Lightbulb,
+  HelpCircle,
 } from "lucide-react";
 import { SensitivityCurveChart } from "@/components/VisualCharts";
 import { AdSlot } from "@/components/AdSlot";
@@ -159,6 +162,45 @@ export default function MethodologyPage() {
         </div>
       </div>
 
+      {/* ── PLAIN ENGLISH TL;DR BANNER FOR NON-FINANCE USERS ── */}
+      <section aria-label="Plain English TL;DR" className="p-6 sm:p-7 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 space-y-4">
+        <div className="flex items-center space-x-2.5 text-amber-700 dark:text-amber-400 font-bold">
+          <Sparkles className="w-5 h-5 text-amber-500 shrink-0" />
+          <h2 className="text-base sm:text-xl font-extrabold text-slate-900 dark:text-white">
+            Not a Math or Finance Person? Here is the Entire Model in Plain English
+          </h2>
+        </div>
+        <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 font-sans leading-relaxed">
+          Financial research papers love using Greek letters, calculus, and intimidating equations. But at its core, this entire tracking platform asks three simple real-world questions that anyone can understand:
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-sans">
+          <div className="p-4 rounded-xl bg-white/95 dark:bg-[#121214]/95 border border-slate-200/80 dark:border-zinc-800 space-y-1.5 shadow-xs">
+            <span className="font-bold text-slate-900 dark:text-white text-sm flex items-center space-x-1.5">
+              <span>💳 1. Who is paying for the party?</span>
+            </span>
+            <p className="text-slate-600 dark:text-zinc-300 leading-relaxed text-[11px]">
+              Spending cash profits from a real business is safe. But borrowing <strong>$196 billion</strong> on corporate loans and bonds (like Oracle, Vantage, and CoreWeave) means heavy interest bills must be paid every single month — even if AI revenues dry up.
+            </p>
+          </div>
+          <div className="p-4 rounded-xl bg-white/95 dark:bg-[#121214]/95 border border-slate-200/80 dark:border-zinc-800 space-y-1.5 shadow-xs">
+            <span className="font-bold text-slate-900 dark:text-white text-sm flex items-center space-x-1.5">
+              <span>🚀 2. Are expectations realistic?</span>
+            </span>
+            <p className="text-slate-600 dark:text-zinc-300 leading-relaxed text-[11px]">
+              Investors are paying <strong>$35 today for every single $1</strong> of startup sales. When stock prices require 20 years of flawless superhuman growth just to break even, even small revenue disappointments cause painful crashes.
+            </p>
+          </div>
+          <div className="p-4 rounded-xl bg-white/95 dark:bg-[#121214]/95 border border-slate-200/80 dark:border-zinc-800 space-y-1.5 shadow-xs">
+            <span className="font-bold text-slate-900 dark:text-white text-sm flex items-center space-x-1.5">
+              <span>⚡ 3. Is AI getting cheaper and useful?</span>
+            </span>
+            <p className="text-slate-600 dark:text-zinc-300 leading-relaxed text-[11px]">
+              The great equalizer: AI models are <strong>25× to 40× cheaper</strong> to run than two years ago. When AI costs pennies instead of dollars, normal businesses can afford it, creating real profits that prevent a crash.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* SECTION 1: THE CORE SCIENTIFIC THESIS */}
       <section id="thesis" className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
         <div className="flex items-center space-x-2 text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">
@@ -210,6 +252,17 @@ export default function MethodologyPage() {
               If the probability rises or falls, it is solely because the verified underlying financial inputs changed.
             </p>
           </div>
+        </div>
+
+        {/* Plain English Translation for Section 1 */}
+        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1.5 text-xs">
+          <div className="flex items-center space-x-1.5 font-bold text-amber-800 dark:text-amber-400">
+            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+            <span>💡 In Plain English: Why we don&apos;t listen to Twitter or TV pundits</span>
+          </div>
+          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+            Most market forecasts are just talking heads guessing on TV or billionaires hyping their own investments. We do something completely different: we only count official receipts filed with government regulators (SEC), real loan agreements signed by banks, and live market prices. If a deal isn&apos;t verified on paper, we ignore it.
+          </p>
         </div>
       </section>
 
@@ -268,6 +321,17 @@ export default function MethodologyPage() {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Plain English Translation for Equation 1 */}
+        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1.5 text-xs">
+          <div className="flex items-center space-x-1.5 font-bold text-amber-800 dark:text-amber-400">
+            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+            <span>💡 In Plain English: What does this S-shaped curve actually mean?</span>
+          </div>
+          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+            Think of a camel&apos;s back. Piling light straw onto a strong camel doesn&apos;t bother it at all. But once the weight gets near the limit, that one final straw snaps its spine! Financial risk works the exact same way. Small stress is easily absorbed by big tech&apos;s cash, but once debt piles past the danger zone, risk spikes suddenly.
+          </p>
         </div>
 
         {/* Financial Fragility Index & Confidence Interval Formulations */}
@@ -434,6 +498,17 @@ export default function MethodologyPage() {
             does the compound geometric synergy activate, adding up to +16.0 points to the composite stress index.
           </p>
         </div>
+
+        {/* Plain English Translation for Section 4 */}
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/25 space-y-1.5 text-xs">
+          <div className="flex items-center space-x-1.5 font-bold text-rose-800 dark:text-rose-400">
+            <Sparkles className="w-4 h-4 text-rose-500 shrink-0" />
+            <span>💡 In Plain English: Why problems multiply like falling dominoes</span>
+          </div>
+          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+            Problems love company. High debt alone is fine if interest rates are zero. High interest rates alone are fine if companies don&apos;t owe any debt. But when high debt, high interest rates, and slower sales hit at the exact same moment, they trigger a chain reaction. That&apos;s why our formula multiplies risk when multiple alarms ring together.
+          </p>
+        </div>
       </section>
 
       {/* SECTION 5: DEGRADATION HONESTY PROTOCOL */}
@@ -482,6 +557,17 @@ export default function MethodologyPage() {
             </p>
           </div>
         </div>
+
+        {/* Plain English Translation for Section 5 */}
+        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25 space-y-1.5 text-xs">
+          <div className="flex items-center space-x-1.5 font-bold text-emerald-800 dark:text-emerald-400">
+            <Sparkles className="w-4 h-4 text-emerald-500 shrink-0" />
+            <span>💡 In Plain English: We never guess or fabricate phantom numbers</span>
+          </div>
+          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+            If a private AI startup refuses to tell the public how much money it actually makes, we don&apos;t make up a number to make our chart look pretty. We simply reduce our confidence score and tell you honestly that data is missing.
+          </p>
+        </div>
       </section>
 
       {/* SECTION 6: HISTORICAL BACKTESTS */}
@@ -496,6 +582,17 @@ export default function MethodologyPage() {
           </h2>
           <p className="text-sm text-slate-600 dark:text-zinc-300 font-sans mt-1">
             Feeding historical verified financial records into this exact mathematical formulation:
+          </p>
+        </div>
+
+        {/* Plain English Translation for Section 6 */}
+        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1.5 text-xs">
+          <div className="flex items-center space-x-1.5 font-bold text-amber-800 dark:text-amber-400">
+            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+            <span>💡 In Plain English: How would this model have done in past market crashes?</span>
+          </div>
+          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+            We tested our mathematical formulas on the historical data from the 1929 Great Crash, the 2000 Dot-Com bust, and the 2008 Lehman collapse. In every single historic crisis, our model sounded an intense alarm (85%+ probability) months before the crash actually arrived.
           </p>
         </div>
 
@@ -575,6 +672,17 @@ export default function MethodologyPage() {
           <p className="text-sm text-slate-600 dark:text-zinc-300 font-sans mt-1 max-w-4xl leading-relaxed">
             To guard against epistemic insularity, our model is mathematically cross-referenced with 5 benchmark 
             structural credit and valuation frameworks established in quantitative economics:
+          </p>
+        </div>
+
+        {/* Plain English Translation for Section 7 */}
+        <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/25 space-y-1.5 text-xs">
+          <div className="flex items-center space-x-1.5 font-bold text-indigo-800 dark:text-indigo-400">
+            <Sparkles className="w-4 h-4 text-indigo-500 shrink-0" />
+            <span>💡 In Plain English: The 3 Classic Doctor Checkups for Companies</span>
+          </div>
+          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+            Think of this section as taking big tech to three different world-class doctors. Doctor 1 (Merton) checks if they have enough cash to pay their debts (Grade: A+, zero default risk). Doctor 2 (Altman) checks for any signs of company bankruptcy (Grade: Healthy Safe Zone). Doctor 3 (LPPLS) checks if startup prices are growing too fast like an overheated rocket.
           </p>
         </div>
 
@@ -808,6 +916,17 @@ export default function MethodologyPage() {
             job triggers our multi-source ingestion daemon, querying 5 public institutional data feeds, recalculating 
             all 9 model factors, recalibrating classical structural credit models, executing 25,000-path stochastic 
             simulations, and committing verified results immutably to git history.
+          </p>
+        </div>
+
+        {/* Plain English Translation for Section 8 */}
+        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25 space-y-1.5 text-xs">
+          <div className="flex items-center space-x-1.5 font-bold text-emerald-800 dark:text-emerald-400">
+            <Sparkles className="w-4 h-4 text-emerald-500 shrink-0" />
+            <span>💡 In Plain English: Robots updating the numbers while you sleep</span>
+          </div>
+          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+            Every night at midnight UTC, automated code runs in the cloud. It scans real bond yields, checks government databases for new debt filings, and recalculates our risk models. No human sits there fudging the numbers to fit an opinion.
           </p>
         </div>
 
@@ -1324,6 +1443,17 @@ export default function MethodologyPage() {
             A comprehensive quantitative synthesis establishing the post-Keynesian debt taxonomy of Hyman Minsky, 
             Robert Shiller&apos;s Excess CAPE Yield (ECY) equity risk premium framework, our 25,000-path Cholesky copula stochastic simulation engine, 
             and the empirical out-of-sample Brier score backtest verification matrix (<code className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">BS = 0.041 ≤ 0.050</code>, <code className="text-indigo-600 dark:text-indigo-400 font-mono font-bold">AUC-ROC = 0.942</code>, <code className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">91.7% Accuracy</code>).
+          </p>
+        </div>
+
+        {/* Plain English Translation for Section 9 */}
+        <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/25 space-y-1.5 text-xs">
+          <div className="flex items-center space-x-1.5 font-bold text-purple-800 dark:text-purple-400">
+            <Sparkles className="w-4 h-4 text-purple-500 shrink-0" />
+            <span>💡 In Plain English: The Three Kinds of Borrowers at the AI Party</span>
+          </div>
+          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+            Economist Hyman Minsky had a famous rule about how financial bubbles form. When a party starts, people borrow safely (<strong>Hedge borrowers</strong>: Microsoft and Google paying for chips out of real profits). Then people borrow more and hope to roll over their loans later (<strong>Speculative borrowers</strong>: datacenter developers). Finally, people borrow money with zero profits, praying that the price of their stock just keeps going up forever (<strong>Ponzi units</strong>: pre-revenue startups). Right now, 60% of AI is funded by real cash, meaning the foundation is still holding strong.
           </p>
         </div>
 

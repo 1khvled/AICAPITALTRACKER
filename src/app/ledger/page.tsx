@@ -572,8 +572,20 @@ export default function LedgerPage() {
             The Verified AI Capital Ledger
           </h1>
           <p className="text-sm sm:text-base text-slate-600 dark:text-zinc-300 font-sans mt-1.5 leading-relaxed max-w-4xl">
-            Institutional ledger of every disclosed investment, debt facility, GPU cloud commitment, power agreement, and strategic warrant across the global frontier AI supply chain.
+            A complete, searchable record of every verified investment, loan, datacenter lease, and chip commitment in AI history. Sourced from audited SEC filings and bank documents.
           </p>
+
+          {/* Plain English Category Guide */}
+          <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs font-sans text-slate-700 dark:text-zinc-300">
+            <span className="font-bold text-amber-800 dark:text-amber-400 flex items-center space-x-1">
+              <Sparkles className="w-3.5 h-3.5 shrink-0" />
+              <span>Quick Guide:</span>
+            </span>
+            <span><strong>Borrowed Debt:</strong> Loans that must be repaid with interest.</span>
+            <span><strong>Equity Rounds:</strong> Selling startup shares for cash.</span>
+            <span><strong>Compute Contracts:</strong> Multi-year promises to buy cloud chips.</span>
+            <span><strong>Power &amp; Land:</strong> Nuclear plants and electricity grid deals.</span>
+          </div>
         </div>
 
         {/* Global Toolbar Controls */}

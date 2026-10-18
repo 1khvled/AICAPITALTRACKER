@@ -24,6 +24,7 @@ import {
   ExternalLink,
   Zap,
   Clock,
+  Sparkles,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -188,8 +189,7 @@ export default function HomePage() {
             </h1>
 
             <p className="text-sm sm:text-base text-slate-600 dark:text-zinc-300 font-sans leading-relaxed">
-              An open, mathematical risk model tracking Oracle CDS default insurance (+131%), private frontier lab revenue multiples (34.8×), 
-              hyperscaler debt velocity, and enterprise token deflation — compared live against Polymarket prediction crowds.
+              A transparent, real-world tracker showing whether the AI boom is supported by real business profits — or borrowing and hype getting ahead of reality. Plain English, live financial receipts, and zero corporate spin.
             </p>
           </div>
 
@@ -255,6 +255,44 @@ export default function HomePage() {
             8-Factor Recipe &amp; Formulas
           </Link>
         </div>
+
+        {/* ── 2.5 PLAIN ENGLISH 60-SECOND CRASH COURSE ── */}
+        <div className="pt-2">
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/25 space-y-3">
+            <div className="flex items-center space-x-2">
+              <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                🎓 New here? The 60-Second Plain English Guide (No Finance Degree Required)
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <div className="p-3 rounded-xl bg-white/90 dark:bg-[#121214]/90 border border-slate-200/80 dark:border-zinc-800 space-y-1">
+                <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center space-x-1.5">
+                  <span>🛡️ 1. Big Tech is not going broke</span>
+                </span>
+                <p className="text-slate-600 dark:text-zinc-300 font-sans leading-relaxed text-[11px]">
+                  Microsoft, Google, Apple, and Meta make over <strong>$184 billion</strong> in cash profits every year. Unlike the 2000 Dot-Com crash, they have plenty of money to survive.
+                </p>
+              </div>
+              <div className="p-3 rounded-xl bg-white/90 dark:bg-[#121214]/90 border border-slate-200/80 dark:border-zinc-800 space-y-1">
+                <span className="font-bold text-rose-600 dark:text-rose-400 flex items-center space-x-1.5">
+                  <span>⚠️ 2. The risk is borrowed loans &amp; hype</span>
+                </span>
+                <p className="text-slate-600 dark:text-zinc-300 font-sans leading-relaxed text-[11px]">
+                  Over <strong>$196 billion</strong> of new AI data centers are built on borrowed debt. If outside businesses don&apos;t spend huge money on AI tools, that debt becomes hard to pay back.
+                </p>
+              </div>
+              <div className="p-3 rounded-xl bg-white/90 dark:bg-[#121214]/90 border border-slate-200/80 dark:border-zinc-800 space-y-1">
+                <span className="font-bold text-blue-600 dark:text-blue-400 flex items-center space-x-1.5">
+                  <span>📉 3. AI is getting 25× cheaper to run</span>
+                </span>
+                <p className="text-slate-600 dark:text-zinc-300 font-sans leading-relaxed text-[11px]">
+                  The silver lining: AI computing costs are crashing fast. When AI is cheap like tap water, normal businesses can afford it, creating real profits that prevent a crash.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ── 3. FLAGSHIP PROBABILITY CALCULATOR & POLYMARKET COMPARISON ───────── */}
@@ -295,9 +333,11 @@ export default function HomePage() {
               <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
                 Oracle CDS at {orclCds} bp
               </h3>
-              <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-                Oracle senior notes serve as AI&apos;s primary credit proxy. 5-year CDS default insurance trades at {orclCds}bp (+{orclStressPct}% vs baseline), 
-                pricing refinancing risk across GPU datacenter infrastructure.
+              <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-900/50 text-[11px] font-sans text-rose-900 dark:text-rose-200 leading-relaxed">
+                <strong>In plain English:</strong> The insurance price against an AI datacenter loan default jumped {orclStressPct}%. Bond investors are quietly charging higher safety premiums.
+              </div>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-sans">
+                Oracle senior notes serve as AI&apos;s primary credit proxy. 5-year CDS default insurance trades at {orclCds}bp, pricing refinancing risk across GPU datacenter loans.
               </p>
             </div>
             <Link
@@ -322,9 +362,11 @@ export default function HomePage() {
               <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
                 Median Lab P/S: 34.8×
               </h3>
-              <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-                OpenAI ($157B at 42.4×), Anthropic ($65B at 14.1× with $57B in Broadcom &amp; syndicate debt), and Mistral (€21B at &gt;100×) trade at multiples 
-                far exceeding historical peak technology bubbles.
+              <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/50 text-[11px] font-sans text-amber-900 dark:text-amber-200 leading-relaxed">
+                <strong>In plain English:</strong> Investors are paying $35 today for every single $1 of startup sales. Startups must grow at superhuman speed for decades to justify this.
+              </div>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-sans">
+                OpenAI ($157B at 42.4×), Anthropic ($65B at 14.1× with $57B in debt facilities), and Mistral trade at multiples exceeding historical tech bubbles.
               </p>
             </div>
             <Link
@@ -349,9 +391,11 @@ export default function HomePage() {
               <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
                 US10Y: {us10y.toFixed(2)}% • CPI: {cpi.toFixed(1)}%
               </h3>
-              <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-                10-Year Treasury yield at {us10y.toFixed(2)}% and sticky {cpi.toFixed(1)}% inflation elevate capital hurdle rates. Markets price tightening risks, 
-                compressing discounted long-duration cash flow horizons.
+              <div className="p-2.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-900/50 text-[11px] font-sans text-indigo-900 dark:text-indigo-200 leading-relaxed">
+                <strong>In plain English:</strong> Safe US government bonds pay {us10y.toFixed(2)}% guaranteed interest, making risky, speculative AI investments harder to justify.
+              </div>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-sans">
+                10-Year Treasury yields at {us10y.toFixed(2)}% elevate capital hurdle rates, making future profits worth far less in today&apos;s money.
               </p>
             </div>
             <Link
@@ -376,9 +420,11 @@ export default function HomePage() {
               <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
                 ${annualDebtB}B/yr Debt Pace
               </h3>
-              <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-                ${totalDebtB}B verified AI debt tracked across 20 facilities (Anthropic, CoreWeave, Vantage, Oracle). Capex consumes 54.8% of hyperscaler operating cash flow with 
-                $38.5B/yr in GPU hardware amortization drag.
+              <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-900/50 text-[11px] font-sans text-rose-900 dark:text-rose-200 leading-relaxed">
+                <strong>In plain English:</strong> Tech giants are borrowing over ${annualDebtB}B every year for data centers. Borrowed debt must be repaid with interest no matter what happens.
+              </div>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-sans">
+                ${totalDebtB}B verified AI debt tracked across 20 facilities (Anthropic, CoreWeave, Vantage, Oracle). Capex consumes 54.8% of operating cash flow.
               </p>
             </div>
             <Link
