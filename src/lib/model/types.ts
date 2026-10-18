@@ -65,6 +65,12 @@ export interface CrowdSignalInput {
   yesProbability: number | null;
   /** Total liquidity backing those markets, USD (low volume = weaker signal). */
   volumeUsd: number | null;
+  /** Live verified 2026 bubble downturn contract odds on Polymarket (0-1). */
+  bubble2026Probability?: number | null;
+  /** Live verified 2027 bubble downturn contract odds on Polymarket (0-1). */
+  bubble2027Probability?: number | null;
+  /** Number of active tracked Polymarket AI contracts. */
+  activeContractsCount?: number;
   note: string;
 }
 

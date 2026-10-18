@@ -244,16 +244,17 @@ const crowd: ModelFactor = {
   kind: 'risk',
   weightPct: 9,
   explain:
-    'Blended YES probability on AI-bubble markets from Polymarket — what money-weighted strangers currently believe.',
-  formula: 'score = blended YES probability (volume-weighted; thin books down-weighted)',
+    'Blended YES probability on AI-bubble markets from Polymarket — what money-weighted market participants currently price.',
+  formula: 'score = Polymarket 2026/2027 contract YES odds (volume-weighted; thin books down-weighted)',
   compute: (i) => {
-    if (!i.crowd || i.crowd.yesProbability === null)
+    const p = i.crowd?.bubble2026Probability ?? i.crowd?.yesProbability;
+    if (!i.crowd || p === undefined || p === null)
       return { score: 0.35, reading: 'Odds feed offline', coverage: 0 };
     const vol = i.crowd.volumeUsd ?? 0;
     const coverage = vol >= 1_000_000 ? 1 : vol >= 100_000 ? 0.7 : 0.4;
     return {
-      score: clamp01(i.crowd.yesProbability),
-      reading: `Prediction markets: ${(i.crowd.yesProbability * 100).toFixed(0)}% YES on bubble-pop questions ($${Math.round(vol / 1000)}k traded)`,
+      score: clamp01(p),
+      reading: `Polymarket crowd: ${(p * 100).toFixed(1)}% YES on 2026 AI industry downturn contract ($${(vol / 1e6).toFixed(2)}M traded; referral r=AIbubble)`,
       coverage,
     };
   },

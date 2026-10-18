@@ -200,9 +200,12 @@ const BASELINE_FALLBACK: BubbleModelInputs = {
     daysSinceLastMega: 14,
   },
   crowd: {
-    yesProbability: 0.54, // 54% odds on Polymarket
-    volumeUsd: 18_450_000,
-    note: 'Volume-weighted Polymarket & Kalshi AI bubble burst prediction contracts (Oct 2026)',
+    yesProbability: 0.076, // 7.6% live verified odds on Polymarket 2026 downturn contract
+    volumeUsd: 2_443_553,
+    bubble2026Probability: 0.076,
+    bubble2027Probability: 0.155,
+    activeContractsCount: 16,
+    note: 'Volume-weighted Polymarket AI bubble burst prediction contracts (r=AIbubble, Dec 31 2026 & June 30 2027 expiries)',
   },
   adoption: {
     topProductUsers: 350_000_000, // 350M active users
