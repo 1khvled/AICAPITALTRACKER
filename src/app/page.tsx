@@ -5,8 +5,6 @@ import Link from "next/link";
 import rawDeals from "@/data/deals.json";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import { ProbabilityGauge } from "@/components/ProbabilityGauge";
-import { LiveStockMonitor } from "@/components/LiveStockMonitor";
-import { LiveNewsFeed } from "@/components/LiveNewsFeed";
 import { AdSlot } from "@/components/AdSlot";
 import {
   Database,
@@ -18,8 +16,11 @@ import {
   ShieldCheck,
   TrendingUp,
   FileSpreadsheet,
-  CheckCircle2,
-  Sparkles,
+  Newspaper,
+  Activity,
+  ArrowUpRight,
+  ExternalLink,
+  Zap,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -100,6 +101,18 @@ export default function HomePage() {
           <span className="text-slate-500 dark:text-zinc-500 font-bold uppercase tracking-wider text-[11px]">
             Direct Portals:
           </span>
+          <Link
+            href="/markets"
+            className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 transition-colors"
+          >
+            Live Markets &amp; Tickers
+          </Link>
+          <Link
+            href="/news"
+            className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 transition-colors"
+          >
+            Breaking News Wire
+          </Link>
           <Link
             href="/ledger?filter=debt"
             className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 transition-colors"
@@ -262,38 +275,139 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 5. LIVE MARKET PULSE & BREAKING NEWS WIRE ────────────────────────── */}
-      <section aria-labelledby="live-pulse-heading" className="space-y-4">
+      {/* ── 5. LIVE INTELLIGENCE SPOTLIGHT: MARKETS & NEWS TEASER CARDS ─────── */}
+      <section aria-labelledby="live-spotlight-heading" className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 pb-1">
           <div>
-            <h2 id="live-pulse-heading" className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center space-x-2">
+            <h2 id="live-spotlight-heading" className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center space-x-2">
               <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-              <span>Live Market Pulse &amp; Financial Wire</span>
+              <span>Real-Time Market Pulse &amp; Financial Wire</span>
             </h2>
             <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5 font-sans">
-              Real-time AI bellwether stock quotes, US Treasury yields, and verified SEC debt disclosures.
+              Dedicated full-screen financial monitors for AI bellwethers, Treasury yields, and breaking SEC disclosures.
             </p>
           </div>
-          <Link
-            href="/companies"
-            className="text-xs font-mono text-emerald-600 dark:text-emerald-400 hover:underline flex items-center space-x-1"
-          >
-            <span>View all company debt sheets</span>
-            <ArrowRight className="w-3 h-3" />
-          </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-6 space-y-4">
-            <LiveStockMonitor />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+          {/* Spotlight Card 1: Markets Terminal */}
+          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 space-y-4 shadow-xs flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+                    Consolidated Tape
+                  </span>
+                </div>
+                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-bold border border-emerald-200 dark:border-emerald-900">
+                  ITCH 5.0 Streaming
+                </span>
+              </div>
+
+              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+                AI Equities, Hyperscale Debt &amp; Fixed Income Monitor
+              </h3>
+
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed">
+                Track live market prices and intraday trendlines for NVDA ($214.13), ORCL ($128.23 • 187bp CDS), MSFT, 
+                and benchmark Treasury yields (US10Y at 4.42%, US02Y at 4.28%, High Yield OAS at 328 bps).
+              </p>
+
+              {/* Ticker Snapshot Pills */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 font-mono text-xs">
+                <div className="bg-slate-50 dark:bg-zinc-900/80 p-2 rounded-lg border border-slate-200/60 dark:border-zinc-800">
+                  <span className="text-slate-500 dark:text-zinc-400 block text-[10px]">NVDA</span>
+                  <span className="font-bold text-slate-900 dark:text-white">$214.13</span>
+                  <span className="text-rose-600 dark:text-rose-400 text-[10px] block font-semibold">-1.2%</span>
+                </div>
+                <div className="bg-slate-50 dark:bg-zinc-900/80 p-2 rounded-lg border border-slate-200/60 dark:border-zinc-800">
+                  <span className="text-slate-500 dark:text-zinc-400 block text-[10px]">ORCL CDS</span>
+                  <span className="font-bold text-rose-600 dark:text-rose-400">187 bp</span>
+                  <span className="text-rose-600 dark:text-rose-400 text-[10px] block font-semibold">+131%</span>
+                </div>
+                <div className="bg-slate-50 dark:bg-zinc-900/80 p-2 rounded-lg border border-slate-200/60 dark:border-zinc-800">
+                  <span className="text-slate-500 dark:text-zinc-400 block text-[10px]">US 10Y</span>
+                  <span className="font-bold text-slate-900 dark:text-white">4.42%</span>
+                  <span className="text-rose-600 dark:text-rose-400 text-[10px] block font-semibold">+8.4bp</span>
+                </div>
+                <div className="bg-slate-50 dark:bg-zinc-900/80 p-2 rounded-lg border border-slate-200/60 dark:border-zinc-800">
+                  <span className="text-slate-500 dark:text-zinc-400 block text-[10px]">AI DEBT</span>
+                  <span className="font-bold text-slate-900 dark:text-white">$85.0B/yr</span>
+                  <span className="text-amber-600 dark:text-amber-400 text-[10px] block font-semibold">+22%</span>
+                </div>
+              </div>
+            </div>
+
+            <Link
+              href="/markets"
+              className="mt-2 inline-flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 font-semibold text-xs sm:text-sm transition-all shadow-xs"
+            >
+              <span>Open Dedicated Markets Terminal</span>
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Link>
           </div>
-          <div className="lg:col-span-6 space-y-4">
-            <LiveNewsFeed />
+
+          {/* Spotlight Card 2: News Wire */}
+          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 space-y-4 shadow-xs flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                  <span className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+                    Institutional News Wire
+                  </span>
+                </div>
+                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-900">
+                  SEC EDGAR • Reuters
+                </span>
+              </div>
+
+              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+                AI Capital, Debt &amp; Infrastructure Breaking News
+              </h3>
+
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed">
+                Real-time verified dispatches on Anthropic&apos;s $518B cloud commitment disclosures, CoreWeave loan covenants, 
+                nuclear power off-take agreements, and OpenAI convertible notes.
+              </p>
+
+              {/* Latest Headline Highlights */}
+              <div className="space-y-2 pt-1">
+                <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-zinc-900/80 border border-slate-200/60 dark:border-zinc-800 text-xs">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-zinc-400 font-mono mb-1">
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">Reuters • 14m ago</span>
+                    <span className="text-rose-600 dark:text-rose-400 font-bold">High Impact</span>
+                  </div>
+                  <span className="font-semibold text-slate-800 dark:text-zinc-200 line-clamp-1">
+                    Anthropic S-1 Review: $4.6B Run-Rate Against $518B Long-Term Cloud Commitments
+                  </span>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-zinc-900/80 border border-slate-200/60 dark:border-zinc-800 text-xs">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-zinc-400 font-mono mb-1">
+                    <span className="font-bold text-blue-600 dark:text-blue-400">Bloomberg • 38m ago</span>
+                    <span className="text-amber-600 dark:text-amber-400 font-bold">Material Filing</span>
+                  </div>
+                  <span className="font-semibold text-slate-800 dark:text-zinc-200 line-clamp-1">
+                    Oracle 5Y CDS Swaps Blow Out to 187bps on Hyperscale GPU Debt Guarantees
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <Link
+              href="/news"
+              className="mt-2 inline-flex items-center justify-between px-4 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-900 dark:text-white font-semibold text-xs sm:text-sm transition-all shadow-xs"
+            >
+              <span>Open Dedicated Breaking News Wire</span>
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* ── 6. SPECIALIZED INTELLIGENCE PORTALS (DEEP DIVES) ─────────────────── */}
+      {/* ── 6. SPECIALIZED INTELLIGENCE PORTALS (6 SPACIOUS CARDS) ────────────── */}
       <section aria-labelledby="portals-heading" className="space-y-4 pt-4 border-t border-slate-200 dark:border-zinc-800">
         <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 pb-1">
           <div>
@@ -301,79 +415,123 @@ export default function HomePage() {
               Explore Specialized Intelligence Portals
             </h2>
             <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5 font-sans">
-              Dedicated analytical tools, complete deal archives, and interactive financial sandboxes.
+              Dedicated full-page analytical suites, complete deal databases, and interactive financial sandboxes.
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-          {/* Portal 1: Visual Analytics */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          {/* Portal 1: Live Markets */}
           <Link
-            href="/visualize"
+            href="/markets"
             className="group bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-3 hover:border-emerald-500 dark:hover:border-emerald-500 transition-all shadow-xs hover:shadow-md flex flex-col justify-between"
           >
             <div className="space-y-2.5">
               <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                <BarChart3 className="w-5 h-5" />
+                <TrendingUp className="w-5 h-5" />
               </div>
               <h3 className="font-extrabold text-base text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                Visual Analytics Suite
+                Live Markets &amp; Debt Tickers
               </h3>
               <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
-                Explore the 159-deal interactive bubble physics map, sigmoid sensitivity curves, multiple compression scatter plots, and capex composition.
+                Full-screen institutional monitor tracking NVDA, ORCL, MSFT, Treasury benchmark yields, and CDS credit default spreads.
               </p>
             </div>
             <div className="pt-2 text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 flex items-center space-x-1">
+              <span>Open Markets Suite</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
+
+          {/* Portal 2: News Wire */}
+          <Link
+            href="/news"
+            className="group bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-3 hover:border-blue-500 dark:hover:border-blue-500 transition-all shadow-xs hover:shadow-md flex flex-col justify-between"
+          >
+            <div className="space-y-2.5">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                <Newspaper className="w-5 h-5" />
+              </div>
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                Breaking News Wire
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
+                Searchable news dispatches with live category filtering, SEC filing citations, and debt covenant analysis.
+              </p>
+            </div>
+            <div className="pt-2 text-xs font-mono font-bold text-blue-600 dark:text-blue-400 flex items-center space-x-1">
+              <span>Read News Wire</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
+
+          {/* Portal 3: Visual Analytics */}
+          <Link
+            href="/visualize"
+            className="group bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-3 hover:border-purple-500 dark:hover:border-purple-500 transition-all shadow-xs hover:shadow-md flex flex-col justify-between"
+          >
+            <div className="space-y-2.5">
+              <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                <BarChart3 className="w-5 h-5" />
+              </div>
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                Visual Analytics Suite
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
+                Explore the 159-deal interactive bubble physics map, sigmoid sensitivity curves, multiple scatter plots, and capex composition.
+              </p>
+            </div>
+            <div className="pt-2 text-xs font-mono font-bold text-purple-600 dark:text-purple-400 flex items-center space-x-1">
               <span>Open Visual Suite</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
-          {/* Portal 2: Deal Ledger */}
+          {/* Portal 4: Deal Ledger */}
           <Link
             href="/ledger"
-            className="group bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-3 hover:border-blue-500 dark:hover:border-blue-500 transition-all shadow-xs hover:shadow-md flex flex-col justify-between"
+            className="group bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-3 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all shadow-xs hover:shadow-md flex flex-col justify-between"
           >
             <div className="space-y-2.5">
-              <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400">
+              <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                 <FileSpreadsheet className="w-5 h-5" />
               </div>
-              <h3 className="font-extrabold text-base text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                 159-Deal Capital Ledger
               </h3>
               <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
-                Inspect every verified filing ($2.81T disclosed). Filter by $196.8B in debt, circular chip vendor financing, compute contracts, and export CSV/JSON.
+                Inspect every verified filing ($2.81T disclosed). Filter by $196.8B in debt, circular chip vendor financing, and export CSV/JSON.
               </p>
             </div>
-            <div className="pt-2 text-xs font-mono font-bold text-blue-600 dark:text-blue-400 flex items-center space-x-1">
+            <div className="pt-2 text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 flex items-center space-x-1">
               <span>Browse Deal Database</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
-          {/* Portal 3: Macro Sandbox */}
+          {/* Portal 5: Macro Sandbox */}
           <Link
             href="/sandbox"
-            className="group bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-3 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all shadow-xs hover:shadow-md flex flex-col justify-between"
+            className="group bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-3 hover:border-rose-500 dark:hover:border-rose-500 transition-all shadow-xs hover:shadow-md flex flex-col justify-between"
           >
             <div className="space-y-2.5">
-              <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+              <div className="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 flex items-center justify-center text-rose-600 dark:text-rose-400">
                 <Sliders className="w-5 h-5" />
               </div>
-              <h3 className="font-extrabold text-base text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
                 Macro Sensitivity Sandbox
               </h3>
               <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
-                Tweak 8 financial sliders: US10Y bond yields, Oracle CDS blowout, private lab multiples, and hyperscaler capex cuts to stress test burst odds.
+                Tweak 8 financial sliders: US10Y bond yields, Oracle CDS blowout, private lab multiples, and hyperscaler capex cuts.
               </p>
             </div>
-            <div className="pt-2 text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 flex items-center space-x-1">
+            <div className="pt-2 text-xs font-mono font-bold text-rose-600 dark:text-rose-400 flex items-center space-x-1">
               <span>Launch Simulator</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
-          {/* Portal 4: 8-Factor Methodology */}
+          {/* Portal 6: 8-Factor Methodology */}
           <Link
             href="/methodology"
             className="group bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-3 hover:border-amber-500 dark:hover:border-amber-500 transition-all shadow-xs hover:shadow-md flex flex-col justify-between"
@@ -386,7 +544,7 @@ export default function HomePage() {
                 8-Factor Recipe &amp; Methodology
               </h3>
               <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
-                Review the mathematical formulas, systemic contagion synergy equations, historical backtests (2000, 2008, 2021), and degradation honesty protocol.
+                Review the mathematical formulas, systemic contagion synergy equations, historical backtests (2000, 2008, 2021), and honesty protocol.
               </p>
             </div>
             <div className="pt-2 text-xs font-mono font-bold text-amber-600 dark:text-amber-400 flex items-center space-x-1">

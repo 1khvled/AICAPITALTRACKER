@@ -122,6 +122,16 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/markets" className="hover:text-slate-900 dark:hover:text-white transition-colors">
+                  Live Markets &amp; Debt Monitor
+                </Link>
+              </li>
+              <li>
+                <Link href="/news" className="hover:text-slate-900 dark:hover:text-white transition-colors">
+                  Breaking Capital News Wire
+                </Link>
+              </li>
+              <li>
                 <Link href="/visualize" className="hover:text-slate-900 dark:hover:text-white transition-colors">
                   Interactive Bubble Charts
                 </Link>

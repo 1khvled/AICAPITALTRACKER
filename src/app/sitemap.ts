@@ -30,6 +30,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.85,
     },
     {
+      url: `${baseUrl}/markets`,
+      lastModified: now,
+      changeFrequency: "hourly",
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/news`,
+      lastModified: now,
+      changeFrequency: "hourly",
+      priority: 0.85,
+    },
+    {
       url: `${baseUrl}/sandbox`,
       lastModified: now,
       changeFrequency: "weekly",
