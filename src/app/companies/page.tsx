@@ -1,363 +1,624 @@
-import React from 'react';
-import Link from 'next/link';
-import { Metadata } from 'next';
-import { DataRepository } from '../../lib/data/db';
-import { Pagination, parsePageParam } from '../../components/Pagination';
-import { formatCurrency } from '../../lib/formatters';
-import { MiniDonut } from '../../components/charts/MiniDonut';
-import { AmountBars } from '../../components/charts/AmountBars';
-import { Search, Layers, ArrowRight, Globe2 } from 'lucide-react';
+"use client";
 
-export const metadata: Metadata = {
-  title: 'Company Directory — AI Labs, Chipmakers, Hyperscalers, Sovereign Funds & Financiers',
-  description:
-    'Comprehensive directory of 64+ tracked artificial intelligence labs, specialized cloud operators, GPU chipmakers, utility power providers, and debt financiers.',
-};
+import React, { useState, useMemo } from "react";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Building2,
+  ShieldAlert,
+  Search,
+  Filter,
+  TrendingUp,
+  Cpu,
+  Zap,
+  Server,
+  DollarSign,
+  ExternalLink,
+} from "lucide-react";
+import { AdSlot } from "@/components/AdSlot";
 
-export const revalidate = 1800;
-
-const PAGE_SIZE = 20;
-
-interface CompaniesPageProps {
-  searchParams: Promise<{
-    companyType?: string;
-    q?: string;
-    page?: string;
-  }>;
+interface CompanyProfile {
+  name: string;
+  ticker?: string;
+  sector: "Hyperscalers" | "GPU Neoclouds" | "Frontier Labs" | "Semiconductor" | "Nuclear & Energy";
+  role: string;
+  disclosedDealsCount: number;
+  totalVolumeUsd: number;
+  debtInvolvedUsd: number;
+  valuationUsd: number;
+  runRateRevenueUsd?: number;
+  psMultiple?: number;
+  circularityConnections: string[];
+  riskTier: "Critical" | "High" | "Elevated" | "Guarded";
+  exposureSummary: string;
 }
 
-export default async function CompaniesPage({ searchParams }: CompaniesPageProps) {
-  const params = await searchParams;
-  const [companies, allCompanies, allDeals] = await Promise.all([
-    DataRepository.getCompanies({
-      companyType: params.companyType,
-      query: params.q,
-    }),
-    DataRepository.getCompanies(),
-    DataRepository.getDeals(),
-  ]);
+const COMPANIES: CompanyProfile[] = [
+  // 1. HYPERSCALERS
+  {
+    name: "Oracle",
+    ticker: "ORCL",
+    sector: "Hyperscalers",
+    role: "Hyperscaler & Compute Debt Anchor",
+    disclosedDealsCount: 14,
+    totalVolumeUsd: 145_000_000_000,
+    debtInvolvedUsd: 48_000_000_000,
+    valuationUsd: 350_000_000_000,
+    runRateRevenueUsd: 53_000_000_000,
+    psMultiple: 6.6,
+    circularityConnections: ["OpenAI", "Cohere", "CoreWeave", "NVIDIA"],
+    riskTier: "Critical",
+    exposureSummary: "The market's primary credit benchmark. 5Y CDS jumped from 81bp to 187bp (+131%); heavy commitments to GPU cluster debt.",
+  },
+  {
+    name: "Microsoft",
+    ticker: "MSFT",
+    sector: "Hyperscalers",
+    role: "Hyperscaler & OpenAI Anchor Cloud",
+    disclosedDealsCount: 22,
+    totalVolumeUsd: 590_000_000_000,
+    debtInvolvedUsd: 15_000_000_000,
+    valuationUsd: 3_150_000_000_000,
+    runRateRevenueUsd: 245_000_000_000,
+    psMultiple: 12.8,
+    circularityConnections: ["OpenAI", "Constellation Energy", "QTS Data Centers", "Mistral"],
+    riskTier: "Elevated",
+    exposureSummary: "Anchor funding for OpenAI ($13B+); signed 20-year Three Mile Island nuclear restart power agreement; massive $50B+ capex acceleration.",
+  },
+  {
+    name: "Amazon AWS",
+    ticker: "AMZN",
+    sector: "Hyperscalers",
+    role: "Hyperscaler & Anthropic Anchor",
+    disclosedDealsCount: 16,
+    totalVolumeUsd: 220_000_000_000,
+    debtInvolvedUsd: 0,
+    valuationUsd: 1_950_000_000_000,
+    runRateRevenueUsd: 105_000_000_000,
+    psMultiple: 18.5,
+    circularityConnections: ["Anthropic", "Talen Energy", "Annapurna Labs"],
+    riskTier: "Elevated",
+    exposureSummary: "$8B total commitment to Anthropic with Trainium2 custom silicon commitments; $650M acquisition of Talen Energy nuclear-adjacent datacenter campus.",
+  },
+  {
+    name: "Alphabet / Google",
+    ticker: "GOOGL",
+    sector: "Hyperscalers",
+    role: "Full-Stack TPU Cloud & Gemini Developer",
+    disclosedDealsCount: 18,
+    totalVolumeUsd: 240_000_000_000,
+    debtInvolvedUsd: 0,
+    valuationUsd: 2_050_000_000_000,
+    runRateRevenueUsd: 350_000_000_000,
+    psMultiple: 5.8,
+    circularityConnections: ["Anthropic", "Marvell", "Kairos Power", "Runway"],
+    riskTier: "Guarded",
+    exposureSummary: "TPU v5p/v6 infrastructure lead; signed corporate off-take with Kairos Power for 500MW of Small Modular Nuclear Reactors (SMRs).",
+  },
+  {
+    name: "Meta Platforms",
+    ticker: "META",
+    sector: "Hyperscalers",
+    role: "Open Weights & Massive Capex Builder",
+    disclosedDealsCount: 11,
+    totalVolumeUsd: 180_000_000_000,
+    debtInvolvedUsd: 10_500_000_000,
+    valuationUsd: 1_480_000_000_000,
+    runRateRevenueUsd: 160_000_000_000,
+    psMultiple: 9.2,
+    circularityConnections: ["NVIDIA", "Broadcom", "CoreWeave"],
+    riskTier: "Elevated",
+    exposureSummary: "Targeting 600,000+ H100 equivalents; $40B+ annual capex guide with zero direct enterprise LLM API subscription revenue.",
+  },
 
-  const sectorCounts: Record<string, number> = {
-    all: allCompanies.length,
-    ai_lab: allCompanies.filter((c) => c.company_type === 'ai_lab').length,
-    chipmaker: allCompanies.filter((c) => c.company_type === 'chipmaker').length,
-    cloud_provider: allCompanies.filter((c) => c.company_type === 'cloud_provider').length,
-    utility_power: allCompanies.filter((c) => c.company_type === 'utility_power').length,
-    data_center_operator: allCompanies.filter((c) => c.company_type === 'data_center_operator').length,
-    lender: allCompanies.filter((c) => c.company_type === 'lender').length,
-    investor: allCompanies.filter((c) => c.company_type === 'investor').length,
-    infrastructure_equipment: allCompanies.filter((c) => c.company_type === 'infrastructure_equipment').length,
-  };
+  // 2. GPU NEOCLOUDS & DEBT ANCHORS
+  {
+    name: "CoreWeave",
+    ticker: "CRWV",
+    sector: "GPU Neoclouds",
+    role: "Specialized GPU Cloud Provider",
+    disclosedDealsCount: 9,
+    totalVolumeUsd: 26_700_000_000,
+    debtInvolvedUsd: 15_900_000_000,
+    valuationUsd: 23_000_000_000,
+    runRateRevenueUsd: 2_000_000_000,
+    psMultiple: 11.5,
+    circularityConnections: ["NVIDIA", "Blackstone", "Magnetar", "OpenAI"],
+    riskTier: "Critical",
+    exposureSummary: "$4.2B convertibles issued Sep 2026 + $7.5B debt facilities collateralized by NVIDIA GPU silicon. High debt-to-equity leverage ratio.",
+  },
+  {
+    name: "Crusoe Energy",
+    ticker: "Private",
+    sector: "GPU Neoclouds",
+    role: "Clean Compute & Flare Gas Datacenters",
+    disclosedDealsCount: 5,
+    totalVolumeUsd: 4_800_000_000,
+    debtInvolvedUsd: 3_400_000_000,
+    valuationUsd: 3_500_000_000,
+    runRateRevenueUsd: 450_000_000,
+    psMultiple: 7.7,
+    circularityConnections: ["Lancium", "OpenAI", "Blue Owl"],
+    riskTier: "High",
+    exposureSummary: "$3.4B joint venture with Blue Owl Capital to construct a 200MW purpose-built GPU datacenter in Abilene, Texas for OpenAI.",
+  },
+  {
+    name: "Lambda Labs",
+    ticker: "Private",
+    sector: "GPU Neoclouds",
+    role: "GPU Cloud & Compute Clustering",
+    disclosedDealsCount: 4,
+    totalVolumeUsd: 1_820_000_000,
+    debtInvolvedUsd: 800_000_000,
+    valuationUsd: 1_500_000_000,
+    runRateRevenueUsd: 250_000_000,
+    psMultiple: 6.0,
+    circularityConnections: ["NVIDIA", "Macquarie", "Braidwell"],
+    riskTier: "Elevated",
+    exposureSummary: "$500M GPU-collateralized asset-backed loan backed by NVIDIA H100 inventory plus $320M Series C.",
+  },
+  {
+    name: "Northern Data",
+    ticker: "NB2.DE",
+    sector: "GPU Neoclouds",
+    role: "HPC Cloud & Crypto Infrastructure Pivot",
+    disclosedDealsCount: 3,
+    totalVolumeUsd: 1_200_000_000,
+    debtInvolvedUsd: 620_000_000,
+    valuationUsd: 1_400_000_000,
+    runRateRevenueUsd: 180_000_000,
+    psMultiple: 7.7,
+    circularityConnections: ["Tether", "Taiga Cloud"],
+    riskTier: "Critical",
+    exposureSummary: "Funded via debt and equity lines from stablecoin issuer Tether; pivoting mining infrastructure to host 20,000+ NVIDIA H100 GPUs.",
+  },
 
-  const selectedSector = params.companyType || 'all';
+  // 3. FRONTIER LABS
+  {
+    name: "OpenAI",
+    ticker: "Private",
+    sector: "Frontier Labs",
+    role: "Frontier Foundation Model Developer",
+    disclosedDealsCount: 19,
+    totalVolumeUsd: 540_000_000_000,
+    debtInvolvedUsd: 4_000_000_000,
+    valuationUsd: 157_000_000_000,
+    runRateRevenueUsd: 3_700_000_000,
+    psMultiple: 42.4,
+    circularityConnections: ["Microsoft", "Oracle", "NVIDIA", "SoftBank"],
+    riskTier: "High",
+    exposureSummary: "Valued at $157B at 42.4× run-rate. Anchor tenant for the $500B Stargate supercluster; massive multi-year compute commitments.",
+  },
+  {
+    name: "Anthropic",
+    ticker: "Private",
+    sector: "Frontier Labs",
+    role: "Frontier Foundation Model Developer",
+    disclosedDealsCount: 12,
+    totalVolumeUsd: 68_000_000_000,
+    debtInvolvedUsd: 0,
+    valuationUsd: 40_000_000_000,
+    runRateRevenueUsd: 1_000_000_000,
+    psMultiple: 40.0,
+    circularityConnections: ["Amazon", "Google", "BlackRock"],
+    riskTier: "High",
+    exposureSummary: "IPO prospectus shows ~$1B run-rate against $518B of coming infrastructure and cloud compute obligations over 4 years.",
+  },
+  {
+    name: "xAI",
+    ticker: "Private",
+    sector: "Frontier Labs",
+    role: "Frontier Model & Colossus Supercluster",
+    disclosedDealsCount: 6,
+    totalVolumeUsd: 56_000_000_000,
+    debtInvolvedUsd: 0,
+    valuationUsd: 50_000_000_000,
+    runRateRevenueUsd: 500_000_000,
+    psMultiple: 100.0,
+    circularityConnections: ["NVIDIA", "Valor Equity", "Tesla", "Oracle"],
+    riskTier: "Critical",
+    exposureSummary: "Rapidly deployed 100,000 H100 Colossus cluster in Memphis; Series C valued at $50B with ~100× price-to-sales multiple.",
+  },
+  {
+    name: "Mistral AI",
+    ticker: "Private",
+    sector: "Frontier Labs",
+    role: "European Open Weights Developer",
+    disclosedDealsCount: 5,
+    totalVolumeUsd: 25_000_000_000,
+    debtInvolvedUsd: 0,
+    valuationUsd: 23_000_000_000,
+    runRateRevenueUsd: 165_000_000,
+    psMultiple: 139.4,
+    circularityConnections: ["Microsoft", "NVIDIA", "ASML", "CMA CGM"],
+    riskTier: "Critical",
+    exposureSummary: "Series D closed at €21B ($23B) with ~€150M ($165M) revenue run-rate (139.4× P/S). Highest valuation froth multiple in the model.",
+  },
+  {
+    name: "Databricks",
+    ticker: "Private",
+    sector: "Frontier Labs",
+    role: "Enterprise Data & AI Agent Platform",
+    disclosedDealsCount: 6,
+    totalVolumeUsd: 28_000_000_000,
+    debtInvolvedUsd: 0,
+    valuationUsd: 190_000_000_000,
+    runRateRevenueUsd: 7_000_000_000,
+    psMultiple: 27.1,
+    circularityConnections: ["Coatue", "NVIDIA", "Blackstone"],
+    riskTier: "Guarded",
+    exposureSummary: "$5B strategic round at $190B valuation with $7B revenue run-rate (27.1× P/S) and positive operational cash flow.",
+  },
+  {
+    name: "Scale AI",
+    ticker: "Private",
+    sector: "Frontier Labs",
+    role: "Data Annotation & Evaluation Infrastructure",
+    disclosedDealsCount: 4,
+    totalVolumeUsd: 15_200_000_000,
+    debtInvolvedUsd: 0,
+    valuationUsd: 13_800_000_000,
+    runRateRevenueUsd: 900_000_000,
+    psMultiple: 15.3,
+    circularityConnections: ["Meta", "Amazon", "OpenAI", "Defense Dept"],
+    riskTier: "Guarded",
+    exposureSummary: "$1B Series F at $13.8B valuation; profitable enterprise and government data curation foundation.",
+  },
 
-  // Visual aggregates: sector mix from FILTERED companies; disclosed volume
-  // per company summed from deal parties across all published deals.
-  const COMPANY_TYPE_COLORS: Record<string, string> = {
-    ai_lab: '#2563eb',
-    chipmaker: '#db2777',
-    cloud_provider: '#0d9488',
-    data_center_operator: '#7c3aed',
-    investor: '#d97706',
-    lender: '#4f46e5',
-    utility_power: '#059669',
-    infrastructure_equipment: '#64748b',
-    other: '#a3a3a3',
-  };
-  const filteredTypeCounts = new Map<string, number>();
-  for (const c of companies) {
-    filteredTypeCounts.set(c.company_type, (filteredTypeCounts.get(c.company_type) ?? 0) + 1);
-  }
-  const sectorDonut = [...filteredTypeCounts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .map(([key, value]) => ({
-      label: key
-        .split('_')
-        .map((w) => (w.length > 0 ? w[0].toUpperCase() + w.slice(1) : w))
-        .join(' '),
-      value,
-      color: COMPANY_TYPE_COLORS[key] ?? '#a3a3a3',
-    }));
+  // 4. HARDWARE & CUSTOM SILICON
+  {
+    name: "NVIDIA",
+    ticker: "NVDA",
+    sector: "Semiconductor",
+    role: "Accelerator Silicon & Ecosystem",
+    disclosedDealsCount: 38,
+    totalVolumeUsd: 185_000_000_000,
+    debtInvolvedUsd: 0,
+    valuationUsd: 3_350_000_000_000,
+    runRateRevenueUsd: 120_000_000_000,
+    psMultiple: 27.9,
+    circularityConnections: ["CoreWeave", "OpenAI", "xAI", "Mistral", "Hugging Face"],
+    riskTier: "Elevated",
+    exposureSummary: "Primary benefactor of AI capex. Highly circular: invests equity in compute clouds and model labs who use the capital to purchase GPUs.",
+  },
+  {
+    name: "Marvell Technology",
+    ticker: "MRVL",
+    sector: "Semiconductor",
+    role: "Custom AI Accelerators & Interconnect",
+    disclosedDealsCount: 4,
+    totalVolumeUsd: 120_000_000_000,
+    debtInvolvedUsd: 0,
+    valuationUsd: 72_000_000_000,
+    runRateRevenueUsd: 5_500_000_000,
+    psMultiple: 13.0,
+    circularityConnections: ["Google", "Amazon", "TPU Ecosystem"],
+    riskTier: "Elevated",
+    exposureSummary: "Issued Google a $12.2B stock warrant tied to up to $120B of TPU-attached custom silicon purchases through 2033.",
+  },
+  {
+    name: "Supermicro",
+    ticker: "SMCI",
+    sector: "Semiconductor",
+    role: "Liquid-Cooled GPU Server Integration",
+    disclosedDealsCount: 6,
+    totalVolumeUsd: 22_000_000_000,
+    debtInvolvedUsd: 1_725_000_000,
+    valuationUsd: 28_000_000_000,
+    runRateRevenueUsd: 14_900_000_000,
+    psMultiple: 1.9,
+    circularityConnections: ["NVIDIA", "xAI", "CoreWeave"],
+    riskTier: "High",
+    exposureSummary: "Short-seller reports and accounting review delayed 10-K; $1.725B convertible notes face refinancing strain if audit issues persist.",
+  },
 
-  const volumeByCompanyId = new Map<string, number>();
-  const dealCountByCompanyId = new Map<string, number>();
-  for (const d of allDeals) {
-    if (!d.amount_disclosed || !d.amount_value || d.amount_value <= 0) continue;
-    for (const p of d.parties ?? []) {
-      volumeByCompanyId.set(p.company_id, (volumeByCompanyId.get(p.company_id) ?? 0) + (d.amount_value ?? 0));
-      dealCountByCompanyId.set(p.company_id, (dealCountByCompanyId.get(p.company_id) ?? 0) + 1);
-    }
-  }
-  const topVolumeRows = companies
-    .map((c) => ({
-      company: c,
-      vol: volumeByCompanyId.get(c.id) ?? 0,
-      n: dealCountByCompanyId.get(c.id) ?? 0,
-    }))
-    .filter((r) => r.vol > 0)
-    .sort((a, b) => b.vol - a.vol)
-    .slice(0, 10)
-    .map((r) => ({
-      label: r.company.name,
-      value: r.vol,
-      href: `/companies/${r.company.slug}`,
-      sub: `${r.n} deal${r.n === 1 ? '' : 's'}`,
-      color: COMPANY_TYPE_COLORS[r.company.company_type] ?? '#09090b',
-    }));
-  const maxCompanyVolume = companies.reduce(
-    (m, c) => Math.max(m, volumeByCompanyId.get(c.id) ?? 0),
-    0
-  );
+  // 5. NUCLEAR & CLEAN ENERGY OFF-TAKERS
+  {
+    name: "Constellation Energy",
+    ticker: "CEG",
+    sector: "Nuclear & Energy",
+    role: "Nuclear Power & Three Mile Island Restart",
+    disclosedDealsCount: 3,
+    totalVolumeUsd: 16_000_000_000,
+    debtInvolvedUsd: 0,
+    valuationUsd: 82_000_000_000,
+    runRateRevenueUsd: 24_000_000_000,
+    psMultiple: 3.4,
+    circularityConnections: ["Microsoft", "PJM Interconnection"],
+    riskTier: "Guarded",
+    exposureSummary: "Signed landmark 20-year Power Purchase Agreement with Microsoft to restart Unit 1 of Three Mile Island (835MW Crane Clean Energy Center).",
+  },
+  {
+    name: "Talen Energy",
+    ticker: "TLN",
+    sector: "Nuclear & Energy",
+    role: "Susquehanna Nuclear Plant Datacenter Campus",
+    disclosedDealsCount: 3,
+    totalVolumeUsd: 18_800_000_000,
+    debtInvolvedUsd: 0,
+    valuationUsd: 11_500_000_000,
+    runRateRevenueUsd: 2_100_000_000,
+    psMultiple: 5.5,
+    circularityConnections: ["Amazon AWS", "FERC"],
+    riskTier: "Elevated",
+    exposureSummary: "Sold Cumulus datacenter campus to AWS for $650M; FERC challenged co-located interconnection agreement on grid cost-allocation grounds.",
+  },
+];
 
-  const totalPages = Math.max(1, Math.ceil(companies.length / PAGE_SIZE));
-  const page = parsePageParam(params.page, totalPages);
-  const pagedCompanies = companies.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const rangeStart = companies.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const rangeEnd = Math.min(page * PAGE_SIZE, companies.length);
+export default function CompaniesPage() {
+  const [selectedSector, setSelectedSector] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedRisk, setSelectedRisk] = useState<string>("All");
+
+  const sectors = ["All", "Hyperscalers", "GPU Neoclouds", "Frontier Labs", "Semiconductor", "Nuclear & Energy"];
+
+  const filteredCompanies = useMemo(() => {
+    return COMPANIES.filter((c) => {
+      if (selectedSector !== "All" && c.sector !== selectedSector) return false;
+      if (selectedRisk !== "All" && c.riskTier !== selectedRisk) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        return (
+          c.name.toLowerCase().includes(q) ||
+          c.role.toLowerCase().includes(q) ||
+          c.exposureSummary.toLowerCase().includes(q) ||
+          (c.ticker && c.ticker.toLowerCase().includes(q))
+        );
+      }
+      return true;
+    });
+  }, [selectedSector, selectedRisk, searchQuery]);
+
+  const totalTrackedUsd = useMemo(() => {
+    return COMPANIES.reduce((s, c) => s + c.totalVolumeUsd, 0);
+  }, []);
+
+  const totalDebtUsd = useMemo(() => {
+    return COMPANIES.reduce((s, c) => s + c.debtInvolvedUsd, 0);
+  }, []);
 
   return (
-    <div className="pb-16">
-      {/* Terminal hero */}
-      <section className="hero-terminal">
-        <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-          <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-            <div className="max-w-3xl space-y-4">
-              <span className="pill pill-terminal-mint">
-                <Layers aria-hidden="true" className="h-3.5 w-3.5" />
-                Global entity directory
-              </span>
-              <h1 className="text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
-                Tracked Companies &amp; Infrastructure Entities
-              </h1>
-              <p className="max-w-2xl text-xs leading-relaxed text-zinc-400 sm:text-sm">
-                Auditing 64+ foundation labs, hyperscalers, chipmakers, sovereign funds, utility off-takers, and
-                data center REITs.
-              </p>
-            </div>
+    <div className="space-y-8">
+      {/* Top Banner Ad */}
+      <AdSlot format="leaderboard" />
 
-            <div className="flex shrink-0 flex-wrap items-center gap-3">
-              <div className="terminal-card px-3.5 py-2">
-                <span className="micro-label-terminal">MATCHING:</span>{' '}
-                <span className="num text-sm font-bold text-white">{companies.length}</span>
-              </div>
-              <span className="pill pill-terminal-mint px-3 py-1.5 text-[11px]">
-                TOTAL CATALOG: <span className="num text-white">{allCompanies.length}</span>
-              </span>
+      {/* Header */}
+      <div className="pb-6 border-b border-slate-200 dark:border-zinc-800 space-y-3">
+        <div className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-zinc-400">
+          <Link href="/" className="hover:text-slate-900 dark:hover:text-white flex items-center space-x-1">
+            <ArrowLeft className="w-3 h-3" />
+            <span>Home</span>
+          </Link>
+          <span>/</span>
+          <span className="text-slate-900 dark:text-white font-semibold">Corporate Exposure</span>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Corporate AI Exposure &amp; Risk Matrix
+            </h1>
+            <p className="text-sm text-slate-600 dark:text-zinc-300 font-sans mt-1 max-w-2xl leading-relaxed">
+              Systemic risk mapping, debt leverage ratios, and circular counterparty exposure across the 20 companies 
+              carrying the $2.75T AI capital superstructure.
+            </p>
+          </div>
+          <div className="flex items-center space-x-3 text-sm">
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800">
+              <span className="text-slate-500 dark:text-zinc-400 block text-xs font-bold uppercase tracking-wider">Tracked Volume</span>
+              <span className="font-black text-slate-900 dark:text-white font-mono text-xl sm:text-2xl">${(totalTrackedUsd / 1e12).toFixed(2)}T</span>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800">
+              <span className="text-rose-600 dark:text-rose-400 block text-xs font-bold uppercase tracking-wider">Debt Involved</span>
+              <span className="font-black text-rose-600 dark:text-rose-400 font-mono text-xl sm:text-2xl">${(totalDebtUsd / 1e9).toFixed(1)}B</span>
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      <div className="mx-auto max-w-7xl space-y-8 px-4 py-10 sm:px-6 lg:px-8">
-        {/* Sector quick filters */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="micro-label mr-1">Sector quick filters:</span>
-          {[
-            { key: 'all', label: 'All Entities' },
-            { key: 'ai_lab', label: 'AI Labs' },
-            { key: 'cloud_provider', label: 'Neoclouds & Hyperscalers' },
-            { key: 'chipmaker', label: 'Chipmakers' },
-            { key: 'utility_power', label: 'Power & Nuclear' },
-            { key: 'data_center_operator', label: 'Data Center REITs' },
-            { key: 'lender', label: 'Credit & Lenders' },
-            { key: 'investor', label: 'Sovereign & Strategic' },
-            { key: 'infrastructure_equipment', label: 'Thermal & Hardware' },
-          ].map((tabItem) => {
-            const isActive = selectedSector === tabItem.key;
-            const href = tabItem.key === 'all' ? '/companies' : `/companies?companyType=${tabItem.key}`;
+      {/* Filter Toolbar: Search, Sector Tabs, Risk Tier */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Search Input */}
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3" />
+            <input
+              type="text"
+              placeholder="Search 20 tracked companies..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm font-medium rounded-xl border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-[#0c0f16] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
 
-            return (
-              <Link
-                key={tabItem.key}
-                href={href}
-                aria-current={isActive ? 'true' : undefined}
-                className={`chip ${isActive ? 'chip-active' : ''}`}
+          {/* Risk Tier Quick Filter */}
+          <div className="flex items-center space-x-1.5 text-xs sm:text-sm">
+            <span className="text-xs font-bold text-slate-600 dark:text-zinc-400 mr-1 hidden sm:inline">Risk Band:</span>
+            {["All", "Critical", "High", "Elevated", "Guarded"].map((tier) => (
+              <button
+                key={tier}
+                onClick={() => setSelectedRisk(tier)}
+                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all ${
+                  selectedRisk === tier
+                    ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-950 shadow-sm"
+                    : "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700"
+                }`}
               >
-                {tabItem.label}
-                <span className="chip-count">({sectorCounts[tabItem.key] || 0})</span>
-              </Link>
+                {tier}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Sector Tabs */}
+        <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none text-xs sm:text-sm">
+          {sectors.map((sec) => {
+            const isSelected = selectedSector === sec;
+            const count = sec === "All" ? COMPANIES.length : COMPANIES.filter((c) => c.sector === sec).length;
+            return (
+              <button
+                key={sec}
+                onClick={() => setSelectedSector(sec)}
+                className={`whitespace-nowrap px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                  isSelected
+                    ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-950 font-bold shadow-sm"
+                    : "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-zinc-700"
+                }`}
+              >
+                <span>{sec}</span>
+                <span className="text-xs opacity-70 ml-1.5">({count})</span>
+              </button>
             );
           })}
         </div>
-
-        {/* Search + sector console */}
-        <div className="panel p-5 sm:p-6">
-          <form method="GET" className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div className="sm:col-span-2">
-              <label htmlFor="q" className="field-label">
-                Search entities by keyword, ticker, or location
-              </label>
-              <div className="relative mt-1.5">
-                <Search aria-hidden="true" className="absolute left-3 top-2.5 h-3.5 w-3.5 text-zinc-500" />
-                <input
-                  id="q"
-                  name="q"
-                  type="text"
-                  defaultValue={params.q || ''}
-                  placeholder="Name (e.g. CoreWeave, NVIDIA), ticker (CEG), or city…"
-                  className="field-search pl-9"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-end gap-2">
-              <div className="flex-1">
-                <label htmlFor="companyType" className="field-label">
-                  Sector
-                </label>
-                <select
-                  id="companyType"
-                  name="companyType"
-                  defaultValue={params.companyType || 'all'}
-                  className="field-native mt-1.5"
-                >
-                  <option value="all">All Sectors ({allCompanies.length})</option>
-                  <option value="ai_lab">Frontier AI Lab ({sectorCounts.ai_lab})</option>
-                  <option value="cloud_provider">
-                    Cloud &amp; Neocloud Provider ({sectorCounts.cloud_provider})
-                  </option>
-                  <option value="chipmaker">
-                    Chipmaker &amp; Accelerators ({sectorCounts.chipmaker})
-                  </option>
-                  <option value="utility_power">
-                    Utility &amp; Nuclear Power ({sectorCounts.utility_power})
-                  </option>
-                  <option value="data_center_operator">
-                    Hyperscale Data Center Operator ({sectorCounts.data_center_operator})
-                  </option>
-                  <option value="lender">
-                    Private Credit &amp; Syndicate Lender ({sectorCounts.lender})
-                  </option>
-                  <option value="investor">
-                    Sovereign &amp; Strategic Investor ({sectorCounts.investor})
-                  </option>
-                  <option value="infrastructure_equipment">
-                    Thermal &amp; Infrastructure Equipment ({sectorCounts.infrastructure_equipment})
-                  </option>
-                </select>
-              </div>
-              <button type="submit" className="btn btn-primary">
-                Filter
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* Capital visuals */}
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <div className="panel-interactive p-5">
-            <h2 className="panel-title border-b border-zinc-100 pb-2">
-              Filtered entities by sector
-            </h2>
-            <div className="mt-3">
-              <MiniDonut data={sectorDonut} centerLabel="entities" />
-            </div>
-          </div>
-          <div className="panel-interactive p-5">
-            <AmountBars
-              rows={topVolumeRows}
-              title="Top 10 by Disclosed Deal Volume"
-              emptyNote="No disclosed deal volume for the filtered entities."
-            />
-          </div>
-        </div>
-
-        {/* Companies grid */}
-        {companies.length > 0 ? (
-          <>
-            <p className="caption">
-              Showing {rangeStart}&ndash;{rangeEnd} of {companies.length} matching entities
-            </p>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {pagedCompanies.map((company) => {
-                const vol = volumeByCompanyId.get(company.id) ?? 0;
-                const dealCount = dealCountByCompanyId.get(company.id) ?? 0;
-                return (
-                  <Link
-                    key={company.id}
-                    href={`/companies/${company.slug}`}
-                    className="panel-interactive group flex flex-col justify-between p-5"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="pill pill-neutral">
-                          {company.company_type.replace(/_/g, ' ')}
-                        </span>
-                        {company.ticker ? (
-                          <span className="pill pill-neutral num text-zinc-900">${company.ticker}</span>
-                        ) : (
-                          <span className="pill pill-neutral">Private</span>
-                        )}
-                      </div>
-
-                      <h2 className="text-base font-bold text-zinc-950 transition-colors group-hover:text-emerald-800">
-                        {company.name}
-                      </h2>
-                      <p className="line-clamp-3 text-xs leading-relaxed text-zinc-500">
-                        {company.description}
-                      </p>
-                      <div>
-                        <div className="flex items-baseline justify-between gap-2">
-                          <span className="micro-label">Disclosed volume</span>
-                          <span className="num font-semibold text-zinc-700">
-                            {vol > 0 ? formatCurrency(vol) : 'Undisclosed'}
-                            {dealCount > 0 && <span className="text-zinc-500"> · {dealCount}</span>}
-                          </span>
-                        </div>
-                        <div
-                          role="img"
-                          aria-label={`${company.name}: ${vol > 0 ? formatCurrency(vol) : 'no disclosed volume'} across ${dealCount} deals`}
-                          className="bar-track h-1.5"
-                        >
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-700"
-                            style={{
-                              width: `${
-                                maxCompanyVolume > 0 && vol > 0
-                                  ? Math.max((vol / maxCompanyVolume) * 100, 2)
-                                  : 0
-                              }%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-5 flex items-center justify-between gap-2 border-t border-zinc-100 pt-3">
-                      <span className="inline-flex items-center gap-1.5">
-                        <Globe2 aria-hidden="true" className="h-3 w-3 text-zinc-500" />
-                        {company.headquarters_city
-                          ? `${company.headquarters_city}, ${company.headquarters_country}`
-                          : company.headquarters_country || 'Global'}
-                      </span>
-                      <span className="inline-flex items-center gap-1 font-mono text-[11px] font-semibold text-zinc-700 transition-colors group-hover:text-emerald-800">
-                        Dossier
-                        <ArrowRight aria-hidden="true" className="h-3 w-3" />
-                      </span>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              basePath="/companies"
-              params={{ companyType: params.companyType, q: params.q }}
-            />
-          </>
-        ) : (
-          <div className="empty-state">
-            <p className="font-mono text-label font-bold uppercase text-zinc-500">No entities match filter</p>
-            <p className="mx-auto mt-2 max-w-sm text-xs text-zinc-500">
-              Try broadening your search query or reset the sector filter.
-            </p>
-            <Link href="/companies" className="btn btn-primary mt-5">
-              Reset filters
-            </Link>
-          </div>
-        )}
       </div>
+
+      {/* Grid of 20 Company Profiles */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {filteredCompanies.map((c) => {
+          let tierBadge = "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300";
+          if (c.riskTier === "Critical") {
+            tierBadge = "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200 dark:border-rose-900/60";
+          } else if (c.riskTier === "High") {
+            tierBadge = "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-200 dark:border-amber-900/60";
+          } else if (c.riskTier === "Elevated") {
+            tierBadge = "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400 border border-blue-200 dark:border-blue-900/60";
+          } else if (c.riskTier === "Guarded") {
+            tierBadge = "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/60";
+          }
+
+          return (
+            <div
+              key={c.name}
+              className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 space-y-4 hover:border-slate-300 dark:hover:border-zinc-700 transition-all shadow-sm hover:shadow-md flex flex-col justify-between"
+            >
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                        {c.name}
+                      </h3>
+                      {c.ticker && (
+                        <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 font-bold">
+                          {c.ticker}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 font-medium mt-0.5">
+                      {c.role}
+                    </div>
+                  </div>
+
+                  <span className={`text-xs font-mono px-2.5 py-1 rounded-full font-bold uppercase shrink-0 ${tierBadge}`}>
+                    {c.riskTier}
+                  </span>
+                </div>
+
+                <p className="text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans line-clamp-3">
+                  {c.exposureSummary}
+                </p>
+
+                {/* Metrics Matrix */}
+                <div className="grid grid-cols-3 gap-2.5 text-xs font-mono pt-1">
+                  <div className="bg-slate-50 dark:bg-[#0c0f16] p-2.5 rounded-xl border border-slate-200/80 dark:border-zinc-800/80">
+                    <span className="text-slate-500 dark:text-zinc-400 block text-xs font-bold uppercase tracking-wider">Deals</span>
+                    <span className="text-slate-900 dark:text-white font-extrabold font-tabular text-sm sm:text-base mt-0.5 block">
+                      ${(c.totalVolumeUsd / 1e9).toFixed(1)}B
+                    </span>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-[#0c0f16] p-2.5 rounded-xl border border-slate-200/80 dark:border-zinc-800/80">
+                    <span className="text-slate-500 dark:text-zinc-400 block text-xs font-bold uppercase tracking-wider">Debt</span>
+                    <span className={c.debtInvolvedUsd > 0 ? "text-rose-600 dark:text-rose-400 font-extrabold font-tabular text-sm sm:text-base mt-0.5 block" : "text-slate-400 dark:text-zinc-500 text-sm sm:text-base mt-0.5 block font-bold"}>
+                      {c.debtInvolvedUsd > 0 ? `$${(c.debtInvolvedUsd / 1e9).toFixed(1)}B` : "None"}
+                    </span>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-[#0c0f16] p-2.5 rounded-xl border border-slate-200/80 dark:border-zinc-800/80">
+                    <span className="text-slate-500 dark:text-zinc-400 block text-xs font-bold uppercase tracking-wider">P/S</span>
+                    <span className={c.psMultiple && c.psMultiple > 35 ? "text-amber-600 dark:text-amber-400 font-extrabold font-tabular text-sm sm:text-base mt-0.5 block" : "text-slate-900 dark:text-white font-extrabold font-tabular text-sm sm:text-base mt-0.5 block"}>
+                      {c.psMultiple ? `${c.psMultiple}×` : "N/A"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Footer: Circular Links, Polymarket Trade Links & Ledger Link */}
+              <div className="pt-3 border-t border-slate-100 dark:border-zinc-800/80 space-y-2">
+                <div className="flex items-center justify-between text-xs sm:text-sm font-medium text-slate-600 dark:text-zinc-400">
+                  <div className="truncate max-w-[170px]" title={c.circularityConnections.join(", ")}>
+                    <span className="text-slate-400 dark:text-zinc-500">Links: </span>
+                    <span className="text-slate-700 dark:text-zinc-300 font-semibold">{c.circularityConnections.slice(0, 2).join(", ")}{c.circularityConnections.length > 2 ? "…" : ""}</span>
+                  </div>
+                  <Link
+                    href={`/ledger?search=${encodeURIComponent(c.name)}`}
+                    className="text-emerald-600 dark:text-emerald-400 hover:underline flex items-center space-x-1 font-bold shrink-0"
+                  >
+                    <span>{c.disclosedDealsCount} Deals</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+
+                {/* Contextual Polymarket Odds Shortcut */}
+                {(c.name === "Oracle" || c.name === "OpenAI" || c.name === "NVIDIA" || c.name === "Anthropic") && (
+                  <div className="pt-2 border-t border-slate-100 dark:border-zinc-800/60 flex items-center justify-between text-xs font-semibold">
+                    <span className="text-indigo-600 dark:text-indigo-400 flex items-center space-x-1">
+                      <Zap className="w-3 h-3 fill-current" />
+                      <span>Prediction Market:</span>
+                    </span>
+                    {c.name === "Oracle" && (
+                      <a
+                        href="https://polymarket.com/?r=AIbubble"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center space-x-0.5"
+                      >
+                        <span>Trade ORCL CDS (38¢)</span>
+                        <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
+                      </a>
+                    )}
+                    {c.name === "OpenAI" && (
+                      <a
+                        href="https://polymarket.com/event/openai-ipo-by?r=AIbubble"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center space-x-0.5"
+                      >
+                        <span>Trade IPO Odds (4.3¢)</span>
+                        <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
+                      </a>
+                    )}
+                    {c.name === "NVIDIA" && (
+                      <a
+                        href="https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center space-x-0.5"
+                      >
+                        <span>Trade AI Downturn (7.6¢)</span>
+                        <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
+                      </a>
+                    )}
+                    {c.name === "Anthropic" && (
+                      <a
+                        href="https://polymarket.com/event/anthropic-acquired-before-2027?r=AIbubble"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center space-x-0.5"
+                      >
+                        <span>Trade Buyout Odds (2.6¢)</span>
+                        <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Bottom Ad */}
+      <AdSlot format="in-feed" />
     </div>
   );
 }

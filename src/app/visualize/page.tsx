@@ -1,148 +1,133 @@
-import React from 'react';
-import Link from 'next/link';
-import type { Metadata } from 'next';
-import { DataRepository } from '../../lib/data/db';
-import { formatCurrency } from '../../lib/formatters';
-import { VisualizeClient } from '../../components/charts/VisualizeClient';
-import { BarChart3, ArrowRight, ShieldCheck, Terminal } from 'lucide-react';
+"use client";
 
-export const metadata: Metadata = {
-  title: 'Capital Flow Visualizations — Bubbles, Circular Loops & Sector Bars',
-  description:
-    'Zero-estimate visual analysis of verified AI infrastructure deals: bubble chart of deal sizes, circular financing detector, disclosed-dollar breakdowns by type and sector, and quarterly deal flow — all filterable in place.',
-  alternates: { canonical: '/visualize' },
-};
+import React, { useState } from "react";
+import rawDeals from "@/data/deals.json";
+import { DealBubbleChart, Deal } from "@/components/DealBubbleChart";
+import {
+  SensitivityCurveChart,
+  AiRevenueGapChart,
+  TokenPriceDeflationChart,
+  LabMultiplesChart,
+  CapitalCompositionChart,
+  YearlySurgeChart,
+  CdsTrajectoryChart,
+} from "@/components/VisualCharts";
+import { AdSlot } from "@/components/AdSlot";
+import { PolymarketCharts } from "@/components/PolymarketCharts";
+import { BarChart3, PieChart, TrendingUp, Layers, X, ChevronRight, Sparkles } from "lucide-react";
+import Link from "next/link";
 
-export const revalidate = 3600;
-
-interface VisualizePageProps {
-  searchParams: Promise<{ q?: string }>;
-}
-
-export default async function VisualizePage({ searchParams }: VisualizePageProps) {
-  const params = await searchParams;
-  const [deals, relationships, companies] = await Promise.all([
-    DataRepository.getDeals(),
-    DataRepository.getRelationships(),
-    DataRepository.getCompanies(),
-  ]);
-  const disclosedTotal = deals
-    .filter((d) => d.amount_disclosed && typeof d.amount_value === 'number')
-    .reduce((sum, d) => sum + (d.amount_value as number), 0);
+export default function VisualizePage() {
+  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
 
   return (
-    <div className="pb-4">
-      {/* Flagship dark hero */}
-      <section className="hero-terminal">
-        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8">
-          <p className="eyebrow-terminal text-emerald-300">
-            <BarChart3 aria-hidden="true" className="h-3.5 w-3.5" />
-            <span>Visual analysis</span>
-            <span className="text-zinc-600" aria-hidden="true">
-              {'//'}
-            </span>
-            <span className="text-zinc-400">Zero-estimate ledger views</span>
-          </p>
+    <div className="space-y-10">
+      {/* Top Sponsored Ad Banner */}
+      <AdSlot format="leaderboard" slotId="viz-top-banner" />
 
-          <div className="mt-3 grid items-end gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-            <div>
-              <h1 className="text-3xl font-black leading-[1.05] tracking-tight sm:text-4xl lg:text-5xl">
-                See the{' '}
-                <span className="bg-gradient-to-r from-emerald-300 via-teal-200 to-sky-300 bg-clip-text text-transparent">
-                  capital flows
-                </span>
-              </h1>
-              <p className="mt-3 max-w-2xl text-xs leading-relaxed text-zinc-400 sm:text-sm">
-                Interactive, zero-estimate views over the same verified ledger you can audit in the{' '}
-                <Link href="/deals" className="font-semibold text-emerald-300 hover:text-emerald-200 hover:underline">
-                  deal ledger &rarr;
-                </Link>
-                . Share a filtered view with{' '}
-                <code className="rounded border border-white/10 bg-white/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-emerald-200">
-                  /visualize?q=…
-                </code>
-                .{' '}
-                <Link href="/methodology" className="font-semibold text-emerald-300 hover:text-emerald-200 hover:underline">
-                  Evidence standards &rarr;
-                </Link>
-              </p>
-            </div>
-            <dl className="flex flex-wrap gap-2.5 lg:justify-end">
-              <div className="terminal-card flex items-baseline gap-2 px-4 py-2">
-                <dt className="micro-label-terminal">Deals</dt>
-                <dd className="num text-sm font-bold text-white">{deals.length}</dd>
-              </div>
-              <div className="flex items-baseline gap-2 rounded-terminal bg-emerald-400 px-4 py-2 shadow-glow">
-                <dt className="micro-label text-zinc-900">Disclosed $</dt>
-                <dd className="num text-sm font-bold text-zinc-950">{formatCurrency(disclosedTotal)}</dd>
-              </div>
-              <div className="terminal-card flex items-baseline gap-2 border-emerald-500/25 px-4 py-2">
-                <dt className="micro-label-terminal">Estimates used</dt>
-                <dd className="num text-sm font-bold text-emerald-300">0</dd>
-              </div>
-            </dl>
+      {/* Title */}
+      <div className="pb-6 border-b border-slate-200 dark:border-zinc-800">
+        <div className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-zinc-400">
+          <Link href="/" className="hover:text-slate-900 dark:hover:text-white">Home</Link>
+          <span>/</span>
+          <span className="text-slate-900 dark:text-white font-semibold">Visual Analytics</span>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-1">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Visualizing the $2.75T AI Infrastructure Superstructure
+            </h1>
+            <p className="text-sm text-slate-600 dark:text-zinc-300 font-sans mt-1 max-w-2xl leading-relaxed">
+              High-density institutional charts tracking the $237B revenue gap, token price collapse, 
+              private multiples, and credit default insurance trajectory.
+            </p>
           </div>
+          <Link
+            href="/ledger"
+            className="self-start sm:self-auto flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-900 text-white dark:bg-white dark:text-zinc-950 hover:opacity-90 transition-opacity"
+          >
+            <span>Open 158-Deal Ledger</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      </div>
 
-          <div className="mt-6 flex flex-wrap items-center gap-2">
-            <span className="pill pill-terminal">
-              <Terminal aria-hidden="true" className="h-3 w-3 text-emerald-400" />
-              00 Overview &middot; 01 Scale &middot; 02 Circularity &middot; 03 Composition &middot; 04 Timeline
-            </span>
-            <span className="pill pill-terminal-mint">
-              Hover, Tab and click any chart &mdash; every view filters in place
-            </span>
-            <Link
-              href="/deals"
-              className="pill pill-terminal transition-colors hover:border-emerald-400/40 hover:text-emerald-200"
+      {/* Flagship Feature: Finviz-Style Treemap & Category Bubble Pods */}
+      <div className="space-y-2">
+        <DealBubbleChart
+          deals={rawDeals as Deal[]}
+          onSelectDeal={(d) => setSelectedDeal(d)}
+        />
+      </div>
+
+      {/* 2 Critical Microeconomic Charts: The AI Revenue Gap + Token Price Deflation */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <AiRevenueGapChart />
+        <TokenPriceDeflationChart />
+      </div>
+
+      {/* Mid-Page In-Feed Sponsored Placement */}
+      <AdSlot format="in-feed" slotId="viz-mid-native" />
+
+      {/* Polymarket Prediction Markets Intelligence */}
+      <PolymarketCharts />
+
+      {/* Grid of 4 Macroeconomic Risk Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <CapitalCompositionChart />
+        <YearlySurgeChart />
+        <LabMultiplesChart />
+        <CdsTrajectoryChart />
+      </div>
+
+      {/* Full-Width Sigmoid Calibration Curve */}
+      <SensitivityCurveChart />
+
+      {/* Deal Details Modal */}
+      {selectedDeal && (
+        <div className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-zinc-800 rounded-xl max-w-xl w-full p-6 space-y-5 shadow-2xl relative">
+            <button
+              onClick={() => setSelectedDeal(null)}
+              className="absolute right-4 top-4 text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-lg"
             >
-              Audit the ledger
-              <ArrowRight aria-hidden="true" className="h-3 w-3" />
-            </Link>
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="space-y-1.5">
+              <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300">
+                {selectedDeal.category}
+              </span>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white leading-snug">
+                {selectedDeal.title}
+              </h2>
+              <div className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400 font-tabular pt-1">
+                {selectedDeal.amount_display}
+              </div>
+            </div>
+
+            <p className="text-sm text-slate-700 dark:text-zinc-200 font-sans leading-relaxed bg-slate-50 dark:bg-zinc-950 p-4 rounded-xl border border-slate-100 dark:border-zinc-800/80">
+              {selectedDeal.description}
+            </p>
+
+            <div className="flex items-center justify-between pt-2">
+              <Link
+                href={`/ledger?search=${encodeURIComponent(selectedDeal.title)}`}
+                className="text-xs font-mono text-emerald-600 dark:text-emerald-400 hover:underline flex items-center space-x-1"
+              >
+                <span>View in complete 158-deal ledger</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+              <button
+                onClick={() => setSelectedDeal(null)}
+                className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 dark:bg-white text-white dark:text-zinc-950"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
-      </section>
-
-      <div className="mx-auto max-w-7xl space-y-8 px-4 py-10 sm:px-6 lg:px-8">
-        <VisualizeClient
-          deals={deals}
-          relationships={relationships}
-          companies={companies}
-          initialQuery={params.q ?? ''}
-        />
-
-        {/* Methodology note */}
-        <section
-          aria-label="Visualization methodology"
-          className="terminal-panel terminal-ring relative overflow-hidden p-5 text-xs leading-relaxed sm:p-6"
-        >
-          <div className="relative flex items-center gap-2">
-            <ShieldCheck aria-hidden="true" className="h-4 w-4 text-emerald-400" />
-            <h2 className="panel-title text-emerald-300">Methodology note</h2>
-          </div>
-          <p className="relative mt-3">
-            Bubble area scales with the square root of the disclosed amount, so area &mdash; not diameter
-            &mdash; is proportional to dollars. Deals with undisclosed amounts appear as small dashed grey
-            bubbles and are excluded from all sizing, totals, and chord widths; we never impute values.
-          </p>
-          <p className="relative mt-2 text-zinc-400">
-            Circular-flow chords combine documented relationships with directed deal edges inferred from
-            party roles (investor / lender / supplier &rarr; investee / borrower / customer). Loops
-            (A&rarr;B&rarr;A, A&rarr;B&rarr;C&rarr;A) are computed live from the filtered dataset and
-            highlighted amber. Sector totals group disclosed dollars by the capital
-            recipient&apos;s company type. Full audit trail:{' '}
-            <Link href="/methodology" className="font-semibold text-emerald-300 hover:text-emerald-200 hover:underline">
-              evidence standards
-            </Link>
-            .
-          </p>
-          <p className="relative mt-2 text-zinc-400">
-            Interaction never changes the arithmetic: filters are applied in the browser to the same published
-            dataset, so every view below shows exactly the rows the filters admit. Hover or keyboard-focus a
-            point to read its value; where a highlight is shown, the underlying figure is also printed in the
-            live readout beneath the graphic. No estimates, no interpolation, no imputed amounts.
-          </p>
-        </section>
-      </div>
+      )}
     </div>
   );
 }

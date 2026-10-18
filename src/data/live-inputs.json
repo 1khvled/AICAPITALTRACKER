@@ -1,0 +1,258 @@
+{
+  "cds": {
+    "currentBps": 187,
+    "baselineBps": 81,
+    "priorBps": 155,
+    "otherBps": 135,
+    "note": "Reuters & ICE Fixed Income 5Y USD CDS on Oracle (AI debt anchor)"
+  },
+  "valuations": [
+    {
+      "company": "OpenAI",
+      "valuationUsd": 157000000000,
+      "runRateRevenueUsd": 3700000000,
+      "note": "Oct 2026 round ($157B post-money, $3.7B run-rate)"
+    },
+    {
+      "company": "Anthropic",
+      "valuationUsd": 40000000000,
+      "runRateRevenueUsd": 1000000000,
+      "note": "IPO prospectus reviewed Sep 2026 ($1B run-rate)"
+    },
+    {
+      "company": "Databricks",
+      "valuationUsd": 190000000000,
+      "runRateRevenueUsd": 7000000000,
+      "note": "Coatue-led strategic round ($190B valuation)"
+    },
+    {
+      "company": "xAI",
+      "valuationUsd": 50000000000,
+      "runRateRevenueUsd": 500000000,
+      "note": "Colossus supercluster buildout & Series C"
+    },
+    {
+      "company": "Mistral AI",
+      "valuationUsd": 23000000000,
+      "runRateRevenueUsd": 165000000,
+      "note": "€21B ($23B) Series D valuation, €150M revenue"
+    },
+    {
+      "company": "Scale AI",
+      "valuationUsd": 13800000000,
+      "runRateRevenueUsd": 900000000,
+      "note": "Accel-led round and government contract disclosures"
+    }
+  ],
+  "ledger": {
+    "totalDisclosedUsd": 2753757802026,
+    "byYear": {
+      "2023": 26345000000,
+      "2024": 295235000000,
+      "2025": 1719997500000,
+      "2026": 712180302026
+    },
+    "debtShare": 0.05,
+    "computeContractShare": 0.271,
+    "top10Share": 0.665,
+    "circularShare": 0.013,
+    "announcedShare": 0.127,
+    "megaCountLast12m": 44,
+    "daysSinceLastMega": 33
+  },
+  "crowd": {
+    "yesProbability": 0.076,
+    "volumeUsd": 9112321.227263004,
+    "bubble2026Probability": 0.076,
+    "bubble2027Probability": 0.155,
+    "activeContractsCount": 16,
+    "markets": [
+      {
+        "id": "691336",
+        "question": "AI Industry Downturn by March 31, 2026?",
+        "slug": "ai-industry-downturn-by-march-31-2026-547",
+        "eventSlug": "ai-bubble-burst-by",
+        "yesProbabilityPct": 0,
+        "noProbabilityPct": 100,
+        "volumeUsd": 385004,
+        "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
+      },
+      {
+        "id": "691340",
+        "question": "AI bubble burst in 2026?",
+        "slug": "ai-industry-downturn-by-december-31-2026-857",
+        "eventSlug": "ai-bubble-burst-by",
+        "yesProbabilityPct": 7.6,
+        "noProbabilityPct": 92.4,
+        "volumeUsd": 2443553,
+        "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
+      },
+      {
+        "id": "692245",
+        "question": "AI Industry Downturn by December 31, 2025?",
+        "slug": "ai-industry-downturn-by-december-31-2025",
+        "eventSlug": "ai-bubble-burst-by",
+        "yesProbabilityPct": 0,
+        "noProbabilityPct": 100,
+        "volumeUsd": 202991,
+        "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
+      },
+      {
+        "id": "4838928",
+        "question": "AI bubble burst by June 30, 2027?",
+        "slug": "ai-bubble-burst-by-june-30-2027",
+        "eventSlug": "ai-bubble-burst-by",
+        "yesProbabilityPct": 15.5,
+        "noProbabilityPct": 84.5,
+        "volumeUsd": 27206,
+        "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
+      },
+      {
+        "id": "2314378",
+        "question": "Will OpenAI IPO by August 31 2026?",
+        "slug": "will-openai-ipo-by-august-31-2026",
+        "eventSlug": "openai-ipo-by",
+        "yesProbabilityPct": 0,
+        "noProbabilityPct": 100,
+        "volumeUsd": 207401,
+        "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
+      },
+      {
+        "id": "2314379",
+        "question": "Will OpenAI IPO by September 30 2026?",
+        "slug": "will-openai-ipo-by-september-30-2026",
+        "eventSlug": "openai-ipo-by",
+        "yesProbabilityPct": 0,
+        "noProbabilityPct": 100,
+        "volumeUsd": 150890,
+        "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
+      },
+      {
+        "id": "2314474",
+        "question": "Will OpenAI IPO by July 31 2026?",
+        "slug": "will-openai-ipo-by-july-31-2026",
+        "eventSlug": "openai-ipo-by",
+        "yesProbabilityPct": 0,
+        "noProbabilityPct": 100,
+        "volumeUsd": 184102,
+        "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
+      },
+      {
+        "id": "656310",
+        "question": "Will OpenAI IPO by December 31 2025?",
+        "slug": "will-openai-ipo-by-december-31-2025",
+        "eventSlug": "openai-ipo-by",
+        "yesProbabilityPct": 0,
+        "noProbabilityPct": 100,
+        "volumeUsd": 495527,
+        "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
+      },
+      {
+        "id": "656311",
+        "question": "Will OpenAI IPO by June 30 2026?",
+        "slug": "will-openai-ipo-by-june-30-2026",
+        "eventSlug": "openai-ipo-by",
+        "yesProbabilityPct": 0,
+        "noProbabilityPct": 100,
+        "volumeUsd": 957465,
+        "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
+      },
+      {
+        "id": "656312",
+        "question": "Will OpenAI IPO by December 31 2026?",
+        "slug": "will-openai-ipo-by-december-31-2026",
+        "eventSlug": "openai-ipo-by",
+        "yesProbabilityPct": 4.3,
+        "noProbabilityPct": 95.8,
+        "volumeUsd": 1056347,
+        "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
+      },
+      {
+        "id": "3956999",
+        "question": "Will OpenAI IPO by March 31 2027?",
+        "slug": "will-openai-ipo-by-march-31-2027",
+        "eventSlug": "openai-ipo-by",
+        "yesProbabilityPct": 20.5,
+        "noProbabilityPct": 79.5,
+        "volumeUsd": 2270,
+        "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
+      },
+      {
+        "id": "3957123",
+        "question": "Will OpenAI IPO by June 30, 2027?",
+        "slug": "will-openai-ipo-by-june-30-2027",
+        "eventSlug": "openai-ipo-by",
+        "yesProbabilityPct": 34.5,
+        "noProbabilityPct": 65.5,
+        "volumeUsd": 4736,
+        "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
+      },
+      {
+        "id": "653788",
+        "question": "OpenAI announces it has achieved AGI before 2027?",
+        "slug": "openai-announces-it-has-achieved-agi-before-2027",
+        "eventSlug": "openai-announces-it-has-achieved-agi-before-2027",
+        "yesProbabilityPct": 8.5,
+        "noProbabilityPct": 91.5,
+        "volumeUsd": 325394,
+        "referralUrl": "https://polymarket.com/event/openai-announces-it-has-achieved-agi-before-2027?r=AIbubble"
+      },
+      {
+        "id": "656313",
+        "question": "OpenAI $1t+ IPO before 2027?",
+        "slug": "openai-1t-ipo-before-2027",
+        "eventSlug": "openai-1t-ipo-before-2027",
+        "yesProbabilityPct": 2.4,
+        "noProbabilityPct": 97.6,
+        "volumeUsd": 317022,
+        "referralUrl": "https://polymarket.com/event/openai-1t-ipo-before-2027?r=AIbubble"
+      },
+      {
+        "id": "676846",
+        "question": "Anthropic acquired before 2027?",
+        "slug": "anthropic-acquired-before-2027",
+        "eventSlug": "anthropic-acquired-before-2027",
+        "yesProbabilityPct": 2.4,
+        "noProbabilityPct": 97.6,
+        "volumeUsd": 30586,
+        "referralUrl": "https://polymarket.com/event/anthropic-acquired-before-2027?r=AIbubble"
+      },
+      {
+        "id": "609655",
+        "question": "US recession by end of 2026?",
+        "slug": "us-recession-by-end-of-2026",
+        "eventSlug": "us-recession-by-end-of-2026",
+        "yesProbabilityPct": 7,
+        "noProbabilityPct": 93,
+        "volumeUsd": 2321829,
+        "referralUrl": "https://polymarket.com/event/us-recession-by-end-of-2026?r=AIbubble"
+      }
+    ],
+    "referralCode": "AIbubble",
+    "referralUrl": "https://polymarket.com/?r=AIbubble",
+    "note": "Live Polymarket sync across 6 active AI prediction events (Volume: $9.11M)"
+  },
+  "adoption": {
+    "topProductUsers": 350000000,
+    "annualUserGrowth": 0.65,
+    "apiPriceDeclineMultiple": 25,
+    "trainingCostBand": "rising",
+    "note": "Public API rate cards & model benchmarks"
+  },
+  "capex": {
+    "aggregateCapexUsd": 210000000000,
+    "aggregateFcfUsd": 184000000000,
+    "note": "Microsoft, Alphabet, Meta, Amazon 10-Q consensus annualized"
+  },
+  "meta": {
+    "last_synced_at": "2026-10-18T14:38:50.246Z",
+    "sync_mode": "github_actions_cron_24h",
+    "sources": [
+      "OpenRouter Public Models Pricing API",
+      "Polymarket Gamma Events API",
+      "Yahoo Finance ORCL Market Stream",
+      "SEC EDGAR Submissions CIK 0001341439",
+      "AI Capital Tracker Verified Primary Ledger (deals.json)"
+    ]
+  }
+}

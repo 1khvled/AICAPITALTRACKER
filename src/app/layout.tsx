@@ -1,123 +1,41 @@
-import type { Metadata, Viewport } from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
-import './globals.css';
-import { Navbar } from '../components/Navbar';
-import { Footer } from '../components/Footer';
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-  display: 'swap',
-});
-
-// Matches `--terminal` in globals.css so the mobile browser chrome is the
-// same near-black the hero and footer paint.
-export const viewport: Viewport = {
-  themeColor: '#09090b',
-  colorScheme: 'light',
-};
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aicapitaltracker.com';
+import type { Metadata } from "next";
+import "./globals.css";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { MarketTickerTape } from "@/components/MarketTickerTape";
 
 export const metadata: Metadata = {
-  title: {
-    default: 'AI Capital Tracker — Financial Intelligence & Capital Flow Database',
-    template: '%s | AI Capital Tracker',
-  },
-  description:
-    'Independent, source-backed research database tracking investments, debt facilities, GPU collateral, cloud commitments, and power agreements behind AI infrastructure.',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://aicapitaltracker.com'),
-  creator: 'AI Capital Tracker Research Desk',
-  publisher: 'AI Capital Tracker',
-  icons: { icon: '/icon.svg' },
-  keywords: [
-    'AI infrastructure financing',
-    'GPU debt facilities',
-    'AI data center capital',
-    'AI power purchase agreements',
-    'NVIDIA GPU collateral',
-    'CoreWeave financing',
-    'AI cloud commitments',
-  ],
-  authors: [{ name: 'AI Capital Tracker Research Desk' }],
-  openGraph: {
-    title: 'AI Capital Tracker — Financial Intelligence & Capital Flow Database',
-    description:
-      'Transparent, source-backed tracking of capital flows into AI companies, data centers, and power infrastructure.',
-    url: siteUrl,
-    siteName: 'AI Capital Tracker',
-    locale: 'en_US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'AI Capital Tracker',
-    description: 'Transparent, source-backed database of AI infrastructure financing.',
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  title: "AI Capital Tracker — 12-Month Bubble Burst Probability & 158-Deal Ledger",
+  description: "A transparent, receipt-backed model converting verified SEC filings, reported CDS spreads, private lab revenues, and token economics into an empirical bubble probability.",
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
-  const siteUrlValue = process.env.NEXT_PUBLIC_SITE_URL || 'https://aicapitaltracker.com';
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'AI Capital Tracker',
-    url: siteUrlValue,
-    description: 'Source-backed financial research database tracking capital flows into AI companies and infrastructure.',
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: `${siteUrlValue}/search?q={search_term_string}`,
-      'query-input': 'required name=search_term_string',
-    },
-  };
-
-  const orgJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'AI Capital Tracker',
-    url: siteUrlValue,
-    description:
-      'Independent, source-backed research database tracking investments, debt facilities, GPU collateral, cloud commitments, and power agreements behind AI infrastructure.',
-  };
-
+}>) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@300;400;500;600;700;800&display=swap"
         />
       </head>
-      <body className="flex min-h-screen flex-col font-sans">
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:inline-flex focus:items-center focus:gap-2 focus:rounded-panel focus:border focus:border-emerald-500/40 focus:bg-zinc-950 focus:px-4 focus:py-2.5 focus:font-mono focus:text-xs focus:uppercase focus:tracking-[0.08em] focus:text-emerald-300 focus:shadow-glow"
-        >
-          Skip to main content
-        </a>
-        <Navbar />
-        <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
-          {children}
-        </main>
-        <Footer />
+      <body className="min-h-screen bg-[#f8fafc] dark:bg-[#090b10] text-slate-900 dark:text-zinc-100 antialiased font-sans selection:bg-emerald-500 selection:text-black text-base">
+        <ThemeProvider>
+          <div className="flex flex-col min-h-screen">
+            <MarketTickerTape />
+            <Header />
+            <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+              {children}
+            </main>
+            <Footer />
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );

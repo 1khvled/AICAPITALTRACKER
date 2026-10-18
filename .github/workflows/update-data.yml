@@ -1,0 +1,51 @@
+name: 24h Automated Market Data Sync
+
+on:
+  schedule:
+    # Runs every 24 hours at 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allows manual trigger anytime from GitHub UI
+
+permissions:
+  contents: write
+
+jobs:
+  update-market-data:
+    name: Fetch Live Feeds & Rebuild
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run 24h data fetcher (OpenRouter, Polymarket, Yahoo, SEC EDGAR)
+        run: npm run update-data
+
+      - name: Verify Next.js build with fresh data
+        run: npm run build
+
+      - name: Commit and push updated market data
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add src/data/live-inputs.json src/data/sync-history.json src/data/deals.json
+          
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No data changes detected in this 24h cycle."
+          else
+            echo "Data changes detected. Committing and pushing..."
+            git commit -m "chore(data): automated 24h market feeds update [skip ci]"
+            git push
+          fi
