@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { MODEL_FACTORS, MODEL_CALIBRATION } from "@/lib/model/factors";
+import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import {
   ArrowLeft,
   BookOpen,
@@ -28,6 +29,7 @@ import { AdSlot } from "@/components/AdSlot";
 
 export default function MethodologyPage() {
   const [activeTab, setActiveTab] = useState<string>("all-factors");
+  const currentModel = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
 
   const historicalBacktests = [
     {
@@ -56,11 +58,11 @@ export default function MethodologyPage() {
     },
     {
       era: "Current AI Superstructure (October 2026)",
-      score: 61.2,
-      prob: "68.4%",
-      band: "High Stress",
-      driver: "Oracle 5Y CDS 187bp (+131%), $196.8B verified debt across 20 facilities, counterbalanced by 40× token price deflation.",
-      leverage: "AI infrastructure debt: $196.8B ($85B/yr velocity)",
+      score: currentModel.compositeScore,
+      prob: `${currentModel.burstProbability.toFixed(1)}%`,
+      band: currentModel.band === "critical" ? "Critical" : currentModel.band === "high" ? "High Stress" : currentModel.band === "elevated" ? "Elevated" : "Guarded",
+      driver: `Oracle 5Y CDS ${DEFAULT_MODEL_INPUTS.cds?.currentBps ?? 187}bp, $196.8B verified debt across 20 facilities, counterbalanced by 40× token price deflation.`,
+      leverage: `AI infrastructure debt: $196.8B ($85B/yr velocity)`,
     },
     {
       era: "Early ChatGPT Era (January 2023)",
@@ -315,7 +317,10 @@ export default function MethodologyPage() {
               Current Calibration Anchor ($S_0 = 55$)
             </span>
           </div>
-          <SensitivityCurveChart />
+          <SensitivityCurveChart
+            currentScore={currentModel.compositeScore}
+            currentProb={currentModel.burstProbability}
+          />
         </div>
       </section>
 

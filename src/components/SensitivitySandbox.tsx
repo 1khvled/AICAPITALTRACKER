@@ -826,9 +826,9 @@ export function SensitivitySandbox() {
           {/* Visual Shift Bar from Baseline */}
           <div className="space-y-2 pt-1">
             <div className="flex justify-between text-xs font-mono font-bold text-slate-700 dark:text-zinc-300">
-              <span>Shift vs Baseline (68.4%)</span>
+              <span>Shift vs Baseline ({baselineResult.burstProbability.toFixed(1)}%)</span>
               <span className={delta > 0 ? "text-rose-600 dark:text-rose-400" : delta < 0 ? "text-emerald-600 dark:text-emerald-400" : "text-slate-500"}>
-                {delta > 0 ? `+${delta.toFixed(1)}% Risk Expansion` : delta < 0 ? `${delta.toFixed(1)}% Risk Compression` : "Calibrated at 68.4%"}
+                {delta > 0 ? `+${delta.toFixed(1)}% Risk Expansion` : delta < 0 ? `${delta.toFixed(1)}% Risk Compression` : `Calibrated at ${baselineResult.burstProbability.toFixed(1)}%`}
               </span>
             </div>
 

@@ -3,8 +3,10 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, TrendingUp, TrendingDown, ShieldAlert, Zap, Activity, Pause, Play } from "lucide-react";
-import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
+import { POLYMARKET_REFERRAL_CODE, POLYMARKET_FEATURED_MARKETS } from "@/data/polymarket-data";
 import { LIVE_STOCKS } from "@/data/live-stocks";
+import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
+import rawDeals from "@/data/deals.json";
 
 interface TickerItem {
   id: string;
@@ -20,6 +22,34 @@ interface TickerItem {
 export function MarketTickerTape() {
   const [isPaused, setIsPaused] = useState(false);
 
+  // Dynamic model result linked directly to engine
+  const modelResult = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
+  const probVal = `${modelResult.burstProbability.toFixed(1)}%`;
+  const probBand = modelResult.band.toUpperCase();
+
+  // Polymarket contracts dynamically linked
+  const poly2026Market =
+    POLYMARKET_FEATURED_MARKETS.find((m) => m.id === "poly-bubble-2026") ||
+    POLYMARKET_FEATURED_MARKETS[0];
+  const poly2027Market =
+    POLYMARKET_FEATURED_MARKETS.find((m) => m.id === "poly-bubble-2027") ||
+    POLYMARKET_FEATURED_MARKETS[1];
+
+  // Capital ledger stats dynamically computed
+  const totalDealsCount = rawDeals.length;
+  const totalDisclosedUsd = rawDeals.reduce((sum, d) => sum + (d.amount_usd || 0), 0);
+  const disclosedCapDisplay = `$${(totalDisclosedUsd / 1e12).toFixed(3)}T`;
+
+  // Macro & Credit spread inputs dynamically linked
+  const orclCds = DEFAULT_MODEL_INPUTS.cds?.currentBps ?? 187;
+  const us10y = DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 4.42;
+  const hygSpread = DEFAULT_MODEL_INPUTS.macro?.highYieldSpreadBps ?? 328;
+  const cpi = DEFAULT_MODEL_INPUTS.macro?.cpiInflationYoY ?? 2.9;
+  const fedFunds = DEFAULT_MODEL_INPUTS.macro?.fedFundsRatePct ?? 4.75;
+  const debtPace = DEFAULT_MODEL_INPUTS.aiDebt?.annualDebtIssuanceUsd
+    ? `$${(DEFAULT_MODEL_INPUTS.aiDebt.annualDebtIssuanceUsd / 1e9).toFixed(1)}B/yr`
+    : "$85.0B/yr";
+
   // High-contrast live stock items
   const stockItems: TickerItem[] = LIVE_STOCKS.map((s) => ({
     id: `stock-${s.ticker}`,
@@ -31,13 +61,13 @@ export function MarketTickerTape() {
     href: `/companies?search=${encodeURIComponent(s.ticker)}`,
   }));
 
-  // Institutional macro, credit spread, and Polymarket items
+  // Institutional macro, credit spread, and Polymarket items dynamically linked
   const macroItems: TickerItem[] = [
     {
       id: "us10y",
       label: "US10Y",
-      value: "4.42%",
-      change: "+8.4 bps",
+      value: `${us10y.toFixed(2)}%`,
+      change: `+${((us10y - (DEFAULT_MODEL_INPUTS.macro?.us10yBaselinePct ?? 3.75)) * 100).toFixed(0)} bps`,
       isPositive: false, // rising yield = tightening stress
       type: "macro",
       href: "/sandbox",
@@ -45,8 +75,8 @@ export function MarketTickerTape() {
     {
       id: "hyg-oas",
       label: "HYG / HY-OAS",
-      value: "328 bps",
-      change: "+24 bps",
+      value: `${hygSpread} bps`,
+      change: "Credit Spread",
       isPositive: false,
       type: "risk",
       href: "/companies",
@@ -54,17 +84,17 @@ export function MarketTickerTape() {
     {
       id: "prob",
       label: "BUBBLE PROB (12M)",
-      value: "68.4%",
-      change: "HIGH STRESS",
-      isPositive: false,
+      value: probVal,
+      change: `${probBand} (${modelResult.compositeScore.toFixed(0)} PTS)`,
+      isPositive: modelResult.burstProbability < 45,
       type: "risk",
       href: "/",
     },
     {
       id: "orcl-cds",
       label: "ORCL 5Y CDS",
-      value: "187 bps",
-      change: "+131% stress",
+      value: `${orclCds} bps`,
+      change: `+${Math.round(((orclCds - (DEFAULT_MODEL_INPUTS.cds?.baselineBps ?? 81)) / (DEFAULT_MODEL_INPUTS.cds?.baselineBps ?? 81)) * 100)}% stress`,
       isPositive: false,
       type: "risk",
       href: "/companies?search=ORCL",
@@ -72,17 +102,17 @@ export function MarketTickerTape() {
     {
       id: "ai-debt-pace",
       label: "AI DEBT PACE",
-      value: "$85.0B/yr",
-      change: "+215% YoY",
+      value: debtPace,
+      change: "$196.8B verified debt",
       isPositive: false,
       type: "risk",
-      href: "/ledger?category=Debt+Issuance",
+      href: "/ledger",
     },
     {
       id: "cpi",
       label: "CPI INFLATION",
-      value: "2.9% YoY",
-      change: "+0.2% sticky",
+      value: `${cpi.toFixed(1)}% YoY`,
+      change: "Sticky Core",
       isPositive: false,
       type: "macro",
       href: "/sandbox",
@@ -90,8 +120,8 @@ export function MarketTickerTape() {
     {
       id: "fedfunds",
       label: "FED FUNDS",
-      value: "4.75%",
-      change: "+25bp hike",
+      value: `${fedFunds.toFixed(2)}%`,
+      change: `+${DEFAULT_MODEL_INPUTS.macro?.rateHikeRiskBps ?? 25}bp hike`,
       isPositive: false,
       type: "macro",
       href: "/sandbox",
@@ -99,25 +129,25 @@ export function MarketTickerTape() {
     {
       id: "poly-26",
       label: "POLYMARKET '26 BUBBLE",
-      value: "7.6% YES",
-      change: "8¢/sh",
+      value: `${poly2026Market.yesProbabilityPct.toFixed(1)}% YES`,
+      change: `${Math.round(poly2026Market.yesPriceUsd * 100)}¢/sh`,
       type: "polymarket",
-      href: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
+      href: poly2026Market.referralUrl,
       isExternal: true,
     },
     {
       id: "poly-27",
       label: "POLYMARKET '27 BUBBLE",
-      value: "15.5% YES",
-      change: "16¢/sh",
+      value: `${poly2027Market.yesProbabilityPct.toFixed(1)}% YES`,
+      change: `${Math.round(poly2027Market.yesPriceUsd * 100)}¢/sh`,
       type: "polymarket",
-      href: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
+      href: poly2027Market.referralUrl,
       isExternal: true,
     },
     {
       id: "tokens",
       label: "TOKEN DEFLATION",
-      value: "25× cheaper",
+      value: "40× cheaper",
       change: "Gross Margin Headwind",
       isPositive: false,
       type: "damper",
@@ -126,8 +156,8 @@ export function MarketTickerTape() {
     {
       id: "disclosed-cap",
       label: "DISCLOSED CAPITAL",
-      value: "$2.810T",
-      change: "159 verified deals",
+      value: disclosedCapDisplay,
+      change: `${totalDealsCount} verified deals`,
       isPositive: true,
       type: "deal",
       href: "/ledger",

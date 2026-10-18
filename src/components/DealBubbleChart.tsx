@@ -20,6 +20,7 @@ import {
   Atom,
   Move,
 } from "lucide-react";
+import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 
 export interface Deal {
   id: string;
@@ -37,6 +38,50 @@ export interface Deal {
   is_compute: boolean;
   is_circular: boolean;
   is_mega: boolean;
+}
+
+export interface DealRiskProfile {
+  riskScorePct: number;
+  riskBand: "Critical" | "High" | "Elevated" | "Guarded";
+  riskImpactDisplay: string;
+  contagionWeight: string;
+}
+
+export function computeDealBubbleRisk(deal: Deal): DealRiskProfile {
+  // Deterministic empirical risk mapping linked to model factor channels
+  let score = 35; // base level
+  if (deal.is_debt) score += 30; // Debt reliance & insolvency risk
+  if (deal.is_circular) score += 18; // Circular counterparty flow
+  if (deal.is_compute) score += 12; // Capex hardware amortization drag
+  if (deal.is_mega) score += 10; // Systemic megadeal contagion (>=$10B)
+
+  // Scale by capital magnitude
+  if (deal.amount_usd >= 40_000_000_000) score += 14;
+  else if (deal.amount_usd >= 10_000_000_000) score += 8;
+  else if (deal.amount_usd >= 1_000_000_000) score += 4;
+
+  if (deal.category === "Borrowed") score += 8;
+  else if (deal.category === "Big construction") score += 5;
+
+  const clamped = Math.min(96, Math.max(16, score));
+  let band: "Critical" | "High" | "Elevated" | "Guarded" = "Guarded";
+  if (clamped >= 80) band = "Critical";
+  else if (clamped >= 65) band = "High";
+  else if (clamped >= 45) band = "Elevated";
+
+  const impactVal = ((clamped / 100) * 2.5).toFixed(1);
+  return {
+    riskScorePct: clamped,
+    riskBand: band,
+    riskImpactDisplay: `+${impactVal}% systemic stress`,
+    contagionWeight: deal.is_debt
+      ? "Debt Solvency"
+      : deal.is_circular
+      ? "Circular Flow"
+      : deal.is_compute
+      ? "Hardware Capex"
+      : "Equity Multiples",
+  };
 }
 
 interface DealBubbleChartProps {
@@ -449,10 +494,10 @@ function InteractiveBubblePod({
                   className="transition-transform duration-75"
                 />
 
-                {b.r >= 19 && (
+                {b.r >= 18 && (
                   <text
                     x={b.x}
-                    y={b.y + 3.5}
+                    y={b.r >= 26 ? b.y - 2 : b.y + 3.5}
                     textAnchor="middle"
                     fill="#ffffff"
                     fontSize={b.r >= 26 ? 11 : 9.5}
@@ -461,6 +506,20 @@ function InteractiveBubblePod({
                     className="pointer-events-none select-none drop-shadow-sm"
                   >
                     {b.deal.amount_display}
+                  </text>
+                )}
+                {b.r >= 26 && (
+                  <text
+                    x={b.x}
+                    y={b.y + 9}
+                    textAnchor="middle"
+                    fill={b.deal.is_debt ? "#fca5a5" : "#a7f3d0"}
+                    fontSize={8.5}
+                    fontWeight="800"
+                    fontFamily="Geist Mono, monospace"
+                    className="pointer-events-none select-none drop-shadow-sm"
+                  >
+                    Prob {computeDealBubbleRisk(b.deal).riskScorePct}%
                   </text>
                 )}
               </g>
@@ -863,10 +922,10 @@ function GravityArena({
                 />
 
                 {/* Bubble Text */}
-                {b.r >= 22 && (
+                {b.r >= 20 && (
                   <text
                     x={b.x}
-                    y={b.r >= 34 ? b.y - 4 : b.y + 4}
+                    y={b.r >= 34 ? b.y - 7 : b.y + 4}
                     textAnchor="middle"
                     fill="#ffffff"
                     fontSize={Math.min(13, Math.max(10, b.r / 3.4))}
@@ -881,16 +940,31 @@ function GravityArena({
                 {b.r >= 34 && (
                   <text
                     x={b.x}
-                    y={b.y + 13}
+                    y={b.y + 5}
                     textAnchor="middle"
                     fill="#ffffff"
-                    opacity="0.9"
+                    opacity="0.95"
                     fontSize={Math.min(11, Math.max(9, b.r / 4.4))}
                     fontWeight="700"
                     fontFamily="Geist, sans-serif"
                     className="pointer-events-none select-none drop-shadow-md"
                   >
                     {b.deal.title.split(" ")[0]}
+                  </text>
+                )}
+
+                {b.r >= 36 && (
+                  <text
+                    x={b.x}
+                    y={b.y + 17}
+                    textAnchor="middle"
+                    fill={b.deal.is_debt ? "#fca5a5" : "#a7f3d0"}
+                    fontSize={9}
+                    fontWeight="800"
+                    fontFamily="Geist Mono, monospace"
+                    className="pointer-events-none select-none drop-shadow-md"
+                  >
+                    Prob {computeDealBubbleRisk(b.deal).riskScorePct}%
                   </text>
                 )}
               </g>
@@ -1084,10 +1158,10 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
     if (viewMode !== "timeline") return [];
 
     const years = [
-      { key: "2023", label: "2023 & Prior", subtitle: "Pre-Bubble Base" },
-      { key: "2024", label: "2024 Inflection", subtitle: "$382B Disclosed" },
-      { key: "2025", label: "2025 Capex Surge", subtitle: "$1.42T Committed" },
-      { key: "2026", label: "2026 Gigawatt Era", subtitle: "$920B Run-rate" },
+      { key: "2023", label: "2023 & Prior" },
+      { key: "2024", label: "2024 Inflection" },
+      { key: "2025", label: "2025 Capex Surge" },
+      { key: "2026", label: "2026 Gigawatt Era" },
     ];
 
     return years.map((y) => {
@@ -1099,14 +1173,21 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
         .sort((a, b) => b.amount_usd - a.amount_usd);
 
       const total = yearDeals.reduce((sum, d) => sum + d.amount_usd, 0);
+      const totalDisplay =
+        total >= 1e12
+          ? `$${(total / 1e12).toFixed(2)}T Committed`
+          : `$${(total / 1e9).toFixed(1)}B Committed`;
 
       return {
         ...y,
+        subtitle: totalDisplay,
         deals: yearDeals,
         totalUsd: total,
       };
     });
   }, [filteredDeals, viewMode]);
+
+  const liveModelResult = useMemo(() => evaluateBubbleModel(DEFAULT_MODEL_INPUTS), []);
 
   return (
     <div
@@ -1117,7 +1198,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
       <div className="p-5 sm:p-6 border-b border-slate-200 dark:border-zinc-800 space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <div className="flex items-center space-x-2 text-xs sm:text-sm font-semibold text-slate-600 dark:text-zinc-400">
+            <div className="flex items-center space-x-2 text-xs sm:text-sm font-semibold text-slate-600 dark:text-zinc-400 flex-wrap gap-y-1">
               <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center space-x-1.5">
                 <Sparkles className="w-4 h-4" />
                 <span>Capital Allocation Universe</span>
@@ -1127,6 +1208,10 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
               <span>•</span>
               <span className="text-slate-900 dark:text-white font-extrabold font-tabular">
                 {filteredDeals.length} Deals (${(totalFilteredUsd / 1e12).toFixed(2)}T)
+              </span>
+              <span>•</span>
+              <span className="text-rose-600 dark:text-rose-400 font-mono font-bold">
+                12M Bubble Prob: {liveModelResult.burstProbability.toFixed(1)}% ({liveModelResult.band.toUpperCase()})
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
@@ -1489,31 +1574,48 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
         )}
 
         {/* Live Hover Inspection Popover Card */}
-        {hoveredDeal && (
-          <div className="mt-3 p-4 rounded-2xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#121214] shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
-            <div className="space-y-1.5 flex-1">
-              <div className="flex items-center space-x-2.5">
-                <span className="font-extrabold text-slate-900 dark:text-white text-base sm:text-lg">
-                  {hoveredDeal.title}
-                </span>
-                <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-900/60 text-sm">
-                  {hoveredDeal.amount_display}
-                </span>
+        {hoveredDeal && (() => {
+          const riskInfo = computeDealBubbleRisk(hoveredDeal);
+          return (
+            <div className="mt-3 p-4 rounded-2xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#121214] shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
+              <div className="space-y-1.5 flex-1">
+                <div className="flex items-center space-x-2.5 flex-wrap gap-y-1">
+                  <span className="font-extrabold text-slate-900 dark:text-white text-base sm:text-lg">
+                    {hoveredDeal.title}
+                  </span>
+                  <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-900/60 text-sm">
+                    {hoveredDeal.amount_display}
+                  </span>
+                  <span
+                    className={`font-mono text-xs font-bold px-2.5 py-0.5 rounded-md border ${
+                      riskInfo.riskBand === "Critical"
+                        ? "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border-rose-300 dark:border-rose-800"
+                        : riskInfo.riskBand === "High"
+                        ? "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-300 dark:border-amber-800"
+                        : "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400 border-blue-300 dark:border-blue-800"
+                    }`}
+                  >
+                    Bubble Exposure: {riskInfo.riskScorePct}% ({riskInfo.riskBand})
+                  </span>
+                  <span className="font-mono text-xs text-slate-500 dark:text-zinc-400 font-medium">
+                    {riskInfo.riskImpactDisplay} • {riskInfo.contagionWeight}
+                  </span>
+                </div>
+                <p className="text-slate-700 dark:text-zinc-300 text-sm line-clamp-1 font-sans">
+                  {hoveredDeal.description}
+                </p>
               </div>
-              <p className="text-slate-700 dark:text-zinc-300 text-sm line-clamp-1 font-sans">
-                {hoveredDeal.description}
-              </p>
-            </div>
 
-            <button
-              onClick={() => onSelectDeal(hoveredDeal)}
-              className="shrink-0 flex items-center space-x-1.5 px-4 py-2 rounded-xl text-sm font-bold bg-slate-900 text-white dark:bg-white dark:text-zinc-950 hover:opacity-90 transition-opacity shadow-sm"
-            >
-              <span>Inspect Disclosure</span>
-              <ArrowRight className="w-4 h-4 ml-1" />
-            </button>
-          </div>
-        )}
+              <button
+                onClick={() => onSelectDeal(hoveredDeal)}
+                className="shrink-0 flex items-center space-x-1.5 px-4 py-2 rounded-xl text-sm font-bold bg-slate-900 text-white dark:bg-white dark:text-zinc-950 hover:opacity-90 transition-opacity shadow-sm"
+              >
+                <span>Inspect Disclosure</span>
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </button>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Footer Meta & Stats */}

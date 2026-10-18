@@ -38,8 +38,8 @@ import {
  * - High-contrast institutional dark styling
  */
 export function SensitivityCurveChart({
-  currentScore = 61.2,
-  currentProb = 68.4,
+  currentScore = 51.0,
+  currentProb = 39.1,
 }: {
   currentScore?: number;
   currentProb?: number;

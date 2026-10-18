@@ -25,6 +25,23 @@ export default function HomePage() {
   const result = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
   const factorMap = new Map(MODEL_FACTORS.map((f) => [f.id, f]));
 
+  const totalDeals = rawDeals.length;
+  const totalDisclosedUsd = rawDeals.reduce((sum, d) => sum + (d.amount_usd || 0), 0);
+  const totalDisclosedT = (totalDisclosedUsd / 1e12).toFixed(2);
+
+  const orclCds = DEFAULT_MODEL_INPUTS.cds?.currentBps ?? 187;
+  const orclBase = DEFAULT_MODEL_INPUTS.cds?.baselineBps ?? 81;
+  const orclStressPct = Math.round(((orclCds - orclBase) / orclBase) * 100);
+
+  const us10y = DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 4.42;
+  const cpi = DEFAULT_MODEL_INPUTS.macro?.cpiInflationYoY ?? 2.9;
+  const annualDebtB = DEFAULT_MODEL_INPUTS.aiDebt?.annualDebtIssuanceUsd
+    ? (DEFAULT_MODEL_INPUTS.aiDebt.annualDebtIssuanceUsd / 1e9).toFixed(1)
+    : "85.0";
+  const totalDebtB = DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd
+    ? (DEFAULT_MODEL_INPUTS.aiDebt.totalTrackedDebtUsd / 1e9).toFixed(1)
+    : "196.8";
+
   return (
     <div className="space-y-10">
       {/* Top Responsive Leaderboard Ad Placement */}
@@ -37,9 +54,9 @@ export default function HomePage() {
             <div className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-zinc-400">
               <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Verified Research</span>
               <span>•</span>
-              <span>159 Sourced Deals</span>
+              <span>{totalDeals} Sourced Deals</span>
               <span>•</span>
-              <span>$2.81T Disclosed</span>
+              <span>${totalDisclosedT}T Disclosed</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white tracking-tight mt-1">
               Will the AI Bubble Burst in the Next 12 Months?
@@ -63,7 +80,7 @@ export default function HomePage() {
               className="flex items-center space-x-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-slate-900 text-white dark:bg-white dark:text-zinc-950 hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors shadow-sm"
             >
               <Database className="w-4 h-4" />
-              <span>Browse 159 Deals</span>
+              <span>Browse {totalDeals} Deals</span>
               <ArrowRight className="w-4 h-4 ml-0.5" />
             </Link>
           </div>
@@ -92,10 +109,10 @@ export default function HomePage() {
             <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">18% Weight</span>
           </div>
           <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-            Oracle CDS at 187 bp
+            Oracle CDS at {orclCds} bp
           </h3>
           <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-            Oracle debt is AI’s primary credit proxy. 5-year CDS default insurance jumped from 81bp to 187bp (+131%), 
+            Oracle debt is AI’s primary credit proxy. 5-year CDS default insurance trades at {orclCds}bp (+{orclStressPct}% vs baseline), 
             pricing refinancing risk across GPU infrastructure.
           </p>
         </div>
@@ -126,10 +143,10 @@ export default function HomePage() {
             <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">12% Weight</span>
           </div>
           <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-            US10Y: 4.42% • CPI: 2.9%
+            US10Y: {us10y.toFixed(2)}% • CPI: {cpi.toFixed(1)}%
           </h3>
           <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-            10-Year Treasury at 4.42% and sticky 2.9% CPI push cost of capital higher. Markets price +25bp rate hike risk, 
+            10-Year Treasury at {us10y.toFixed(2)}% and sticky {cpi.toFixed(1)}% CPI push cost of capital higher. Markets price +25bp rate hike risk, 
             crushing long-duration DCF cash flow horizons.
           </p>
         </div>
@@ -143,10 +160,10 @@ export default function HomePage() {
             <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">14% Weight</span>
           </div>
           <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-            $85.0B/yr Debt Pace
+            ${annualDebtB}B/yr Debt Pace
           </h3>
           <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-            $196.8B verified AI debt tracked across 20 facilities (Anthropic, CoreWeave, Vantage, Oracle). Capex consumes 54.8% of hyperscaler operating cash flow with 
+            ${totalDebtB}B verified AI debt tracked across 20 facilities (Anthropic, CoreWeave, Vantage, Oracle). Capex consumes 54.8% of hyperscaler operating cash flow with 
             $38.5B/yr in GPU hardware amortization drag.
           </p>
         </div>

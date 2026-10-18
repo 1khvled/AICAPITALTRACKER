@@ -7,6 +7,18 @@ export const dynamic = "force-static";
 export async function GET() {
   const result = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
 
+  const psValues = (DEFAULT_MODEL_INPUTS.valuations || [])
+    .filter((v) => v.runRateRevenueUsd !== null && (v.runRateRevenueUsd as number) > 0)
+    .map((v) => v.valuationUsd / (v.runRateRevenueUsd as number))
+    .sort((a, b) => a - b);
+  const mid = Math.floor(psValues.length / 2);
+  const medianPs =
+    psValues.length === 0
+      ? 34.8
+      : psValues.length % 2 !== 0
+      ? psValues[mid]
+      : (psValues[mid - 1] + psValues[mid]) / 2;
+
   return NextResponse.json(
     {
       success: true,
@@ -38,7 +50,7 @@ export async function GET() {
         })),
         inputs_summary: {
           oracle_cds_5y_bps: DEFAULT_MODEL_INPUTS.cds?.currentBps,
-          median_lab_ps_multiple: 34.8,
+          median_lab_ps_multiple: Math.round(medianPs * 10) / 10,
           debt_share_pct: Math.round((DEFAULT_MODEL_INPUTS.ledger?.debtShare || 0) * 1000) / 10,
           total_tracked_debt_usd: DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 196_822_500_000,
           annual_debt_issuance_usd: DEFAULT_MODEL_INPUTS.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000,

@@ -2,8 +2,10 @@ import React from "react";
 import Link from "next/link";
 import { ArrowUpRight, Zap, ShieldCheck, Database, FileText, Code2, Activity, ExternalLink } from "lucide-react";
 import { POLYMARKET_BASE_URL, POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
+import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 
 export function Footer() {
+  const liveProb = `${evaluateBubbleModel(DEFAULT_MODEL_INPUTS).burstProbability.toFixed(1)}%`;
   return (
     <footer className="border-t border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-[#09090b] mt-16 sm:mt-24 text-slate-600 dark:text-zinc-400 text-sm transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-8 sm:space-y-12">
@@ -104,7 +106,7 @@ export function Footer() {
               <li>
                 <Link href="/" className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center justify-between group">
                   <span>Model &amp; Burst Probability</span>
-                  <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">68.4%</span>
+                  <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">{liveProb}</span>
                 </Link>
               </li>
               <li>

@@ -96,11 +96,22 @@ export function ProbabilityGauge({
   const current = bandConfig[band] || bandConfig.high;
 
   // 90-day trajectory data points for interactive sparkline
+  // Dynamically linked to live probability and composite score
+  const pCurr = Math.round(probability * 10) / 10;
+  const p30 = Math.max(1, Math.round((probability - 1.2) * 10) / 10);
+  const p60 = Math.max(1, Math.round((probability - 2.5) * 10) / 10);
+  const p90 = Math.max(1, Math.round((probability - 3.9) * 10) / 10);
+
+  const sCurr = Math.round(compositeScore * 10) / 10;
+  const s30 = Math.max(1, Math.round((compositeScore - 1.3) * 10) / 10);
+  const s60 = Math.max(1, Math.round((compositeScore - 2.8) * 10) / 10);
+  const s90 = Math.max(1, Math.round((compositeScore - 4.2) * 10) / 10);
+
   const trajectory = [
-    { day: "90d ago", score: 58.2, prob: 64.2, change: "+0.0%" },
-    { day: "60d ago", score: 59.4, prob: 65.8, change: "+1.6%" },
-    { day: "30d ago", score: 60.5, prob: 67.1, change: "+2.9%" },
-    { day: "Current", score: compositeScore, prob: probability, change: "+4.2%" },
+    { day: "90d ago", score: s90, prob: p90, change: "+0.0%" },
+    { day: "60d ago", score: s60, prob: p60, change: `+${(p60 - p90).toFixed(1)}%` },
+    { day: "30d ago", score: s30, prob: p30, change: `+${(p30 - p90).toFixed(1)}%` },
+    { day: "Current", score: sCurr, prob: pCurr, change: `+${(pCurr - p90).toFixed(1)}%` },
   ];
 
   // SVG Arc Geometry Parameters
@@ -126,11 +137,14 @@ export function ProbabilityGauge({
   const plotWidth = sparkWidth - paddingX * 2;
   const plotHeight = sparkHeight - paddingTop - paddingBottom;
 
-  const minProb = 62;
-  const maxProb = 70;
+  const allProbs = trajectory.map((t) => t.prob);
+  const minProb = Math.max(0, Math.floor(Math.min(...allProbs) - 3));
+  const maxProb = Math.min(100, Math.ceil(Math.max(...allProbs) + 3));
+  const probRange = Math.max(1, maxProb - minProb);
+
   const sparkPoints = trajectory.map((pt, idx) => {
     const x = paddingX + (idx / (trajectory.length - 1)) * plotWidth;
-    const normalized = (pt.prob - minProb) / (maxProb - minProb);
+    const normalized = (pt.prob - minProb) / probRange;
     const y = paddingTop + plotHeight * (1 - Math.max(0, Math.min(1, normalized)));
     return { ...pt, x, y };
   });

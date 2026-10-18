@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import rawDeals from "@/data/deals.json";
+import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import { DealBubbleChart, Deal } from "@/components/DealBubbleChart";
 import {
   SensitivityCurveChart,
@@ -42,6 +43,11 @@ type TabView = "all" | "multiples" | "gap" | "sensitivity" | "allocation";
 export default function VisualizePage() {
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [activeTab, setActiveTab] = useState<TabView>("all");
+
+  const modelResult = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
+  const totalCapUsd = rawDeals.reduce((sum, d) => sum + (d.amount_usd || 0), 0);
+  const totalCapT = (totalCapUsd / 1e12).toFixed(2);
+  const orclCds = DEFAULT_MODEL_INPUTS.cds?.currentBps ?? 187;
 
   return (
     <div className="space-y-8 sm:space-y-10 pb-12">
@@ -111,10 +117,10 @@ export default function VisualizePage() {
               <span className="text-emerald-500 font-bold">+482% YoY</span>
             </div>
             <div className="text-xl sm:text-2xl font-black font-mono text-slate-900 dark:text-white font-tabular">
-              $2.81T
+              ${totalCapT}T
             </div>
             <div className="text-[11px] font-mono text-slate-500 dark:text-zinc-400 truncate">
-              159 verified facilities
+              {rawDeals.length} verified facilities
             </div>
           </div>
 
@@ -153,7 +159,7 @@ export default function VisualizePage() {
               <span className="font-bold">+131% Wide</span>
             </div>
             <div className="text-xl sm:text-2xl font-black font-mono text-rose-600 dark:text-rose-400 font-tabular">
-              187 bp
+              {orclCds} bp
             </div>
             <div className="text-[11px] font-mono text-slate-500 dark:text-zinc-400 truncate">
               Anchor debt insurance cost
@@ -164,13 +170,13 @@ export default function VisualizePage() {
           <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-sm space-y-1 col-span-2 md:col-span-1">
             <div className="flex items-center justify-between text-[11px] font-mono text-rose-500 dark:text-rose-400">
               <span className="uppercase font-semibold">Burst Probability</span>
-              <span className="font-bold">S=61.2 pts</span>
+              <span className="font-bold">S={modelResult.compositeScore.toFixed(1)} pts</span>
             </div>
             <div className="text-xl sm:text-2xl font-black font-mono text-rose-600 dark:text-rose-400 font-tabular">
-              68.4%
+              {modelResult.burstProbability.toFixed(1)}%
             </div>
             <div className="text-[11px] font-mono text-slate-500 dark:text-zinc-400 truncate">
-              Convex stress regime
+              {modelResult.band.toUpperCase()} stress regime
             </div>
           </div>
         </div>
@@ -322,7 +328,7 @@ export default function VisualizePage() {
                 Decoding the Sensitivity Curve: The Non-Linear Inflection Threshold
               </h4>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed max-w-3xl">
-                The calibration sigmoid function behaves linearly below 50 points, but exhibits convex acceleration once stress breaches 55 points. Because systemic risk compounds multiplicatively through counterparty leverage, a mere 6-point increase (from 55 to 61.2) amplifies burst probability from 50.0% to 68.4%.
+                The calibration sigmoid function behaves linearly below 50 points, but exhibits convex acceleration once stress breaches 55 points. Because systemic risk compounds multiplicatively through counterparty leverage, an increase in composite stress directly amplifies the burst probability curve. Current model calibration puts composite stress at {modelResult.compositeScore.toFixed(1)} points, yielding a quantifiable 12-month burst probability of {modelResult.burstProbability.toFixed(1)}%.
               </p>
             </div>
           </div>
@@ -339,7 +345,10 @@ export default function VisualizePage() {
       {/* Full-Width Sigmoid Calibration Curve & CDS Trajectory */}
       {(activeTab === "all" || activeTab === "sensitivity") && (
         <section className="space-y-6">
-          <SensitivityCurveChart />
+          <SensitivityCurveChart
+            currentScore={modelResult.compositeScore}
+            currentProb={modelResult.burstProbability}
+          />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <CdsTrajectoryChart />
             <YearlySurgeChart />
