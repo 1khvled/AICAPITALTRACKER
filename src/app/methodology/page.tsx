@@ -97,14 +97,14 @@ export default function MethodologyPage() {
 
       {/* Header with Academic Working Paper Styling */}
       <div className="pb-8 border-b border-slate-200 dark:border-zinc-800 space-y-4">
-        <div className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-zinc-400">
+        <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-zinc-400">
           <Link href="/" className="hover:text-slate-900 dark:hover:text-white flex items-center space-x-1">
             <ArrowLeft className="w-3 h-3" />
             <span>Home</span>
           </Link>
           <span>/</span>
           <span className="text-slate-900 dark:text-white font-semibold">Mathematical Methodology</span>
-        </div>
+        </nav>
 
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="space-y-2">
@@ -467,10 +467,10 @@ export default function MethodologyPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
           <div className="p-5 rounded-xl bg-slate-50 dark:bg-[#09090b] border border-slate-200/80 dark:border-zinc-800/80 space-y-2">
-            <h4 className="text-sm font-bold text-slate-900 dark:text-white font-mono flex items-center space-x-2">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white font-mono flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-indigo-500" />
-              <span>Fractional Coverage $c_i \\in [0, 1]$</span>
-            </h4>
+              <span>Fractional Coverage $c_i \in [0, 1]$</span>
+            </h3>
             <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
               If only 2 of 5 private labs disclose revenue, valuation coverage is $c = 0.4$. The unobserved portion does not deflate the score; 
               instead, the denominator rescales across verified computable factors.
@@ -478,10 +478,10 @@ export default function MethodologyPage() {
           </div>
 
           <div className="p-5 rounded-xl bg-slate-50 dark:bg-[#09090b] border border-slate-200/80 dark:border-zinc-800/80 space-y-2">
-            <h4 className="text-sm font-bold text-slate-900 dark:text-white font-mono flex items-center space-x-2">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white font-mono flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
               <span>Automated 24h Cron Protocol</span>
-            </h4>
+            </h3>
             <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
               Market inputs are updated every 24 hours via open-source GitHub Actions directly from OpenRouter, Polymarket, and SEC EDGAR. 
               Every commit is permanently immutably preserved in git history, preventing narrative revisions.

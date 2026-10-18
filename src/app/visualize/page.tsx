@@ -58,7 +58,7 @@ export default function VisualizePage() {
       <div className="pb-6 border-b border-slate-200 dark:border-zinc-800 space-y-4">
         {/* Navigation Breadcrumb & Live Marker */}
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
-          <div className="flex items-center space-x-2 text-slate-500 dark:text-zinc-400">
+          <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-slate-500 dark:text-zinc-400">
             <Link href="/" className="hover:text-slate-900 dark:hover:text-white transition-colors">
               Home
             </Link>
@@ -68,7 +68,7 @@ export default function VisualizePage() {
             </span>
             <span>/</span>
             <span className="text-emerald-600 dark:text-emerald-400">Institutional Terminal</span>
-          </div>
+          </nav>
 
           <div className="flex items-center space-x-2 bg-slate-100 dark:bg-zinc-900/90 px-2.5 py-1 rounded-full border border-slate-200 dark:border-zinc-800 text-[11px]">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -272,9 +272,9 @@ export default function VisualizePage() {
               <TrendingUp className="w-5 h-5" />
             </div>
             <div className="space-y-1">
-              <h4 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
                 Institutional Analysis: The Mechanics of Multiple Compression
-              </h4>
+              </h3>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed max-w-3xl">
                 In a 4.5% risk-free rate environment, long-duration cash flows cannot mathematically support 40×–100× P/S ratios without generating near-infinite terminal operating leverage. When public equity markets derate frontier suppliers, private marks face an abrupt 50%–70% valuation compression.
               </p>
@@ -324,9 +324,9 @@ export default function VisualizePage() {
               <Activity className="w-5 h-5" />
             </div>
             <div className="space-y-1">
-              <h4 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
                 Decoding the Sensitivity Curve: The Non-Linear Inflection Threshold
-              </h4>
+              </h3>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed max-w-3xl">
                 The calibration sigmoid function behaves linearly below 50 points, but exhibits convex acceleration once stress breaches 55 points. Because systemic risk compounds multiplicatively through counterparty leverage, an increase in composite stress directly amplifies the burst probability curve. Current model calibration puts composite stress at {modelResult.compositeScore.toFixed(1)} points, yielding a quantifiable 12-month burst probability of {modelResult.burstProbability.toFixed(1)}%.
               </p>
@@ -389,9 +389,9 @@ export default function VisualizePage() {
               <ShieldAlert className="w-5 h-5" />
             </div>
             <div className="space-y-1">
-              <h4 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
                 Credit Markets as the Leading Indicator: The 90-Day Warning Window
-              </h4>
+              </h3>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed max-w-3xl">
                 Equity investors often ignore balance sheet distress until credit default swaps (CDS) force bond yield re-evaluations. Oracle’s CDS spread widening from 81 bp to 187 bp (+131%) reflects fixed-income market skepticism regarding AI datacenter debt servicing capacity.
               </p>
@@ -409,7 +409,12 @@ export default function VisualizePage() {
 
       {/* Deal Details Modal */}
       {selectedDeal && (
-        <div className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="viz-deal-modal-title"
+          className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4"
+        >
           <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-xl w-full p-6 space-y-5 shadow-2xl relative">
             <button
               onClick={() => setSelectedDeal(null)}
@@ -422,9 +427,9 @@ export default function VisualizePage() {
               <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300">
                 {selectedDeal.category}
               </span>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white leading-snug">
+              <h3 id="viz-deal-modal-title" className="text-xl font-bold text-slate-900 dark:text-white leading-snug">
                 {selectedDeal.title}
-              </h2>
+              </h3>
               <div className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400 font-tabular pt-1">
                 {selectedDeal.amount_display}
               </div>

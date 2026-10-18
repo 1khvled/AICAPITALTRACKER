@@ -99,75 +99,121 @@ export default function HomePage() {
       />
 
       {/* 4 Executive Pillars - Solid, Clean Surfaces with Top Accents & Bold Typography */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-rose-500 rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md">
-          <div className="flex items-center justify-between text-xs sm:text-sm">
-            <span className="text-rose-600 dark:text-rose-400 font-bold flex items-center space-x-1.5">
-              <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-              <span className="uppercase tracking-wider">Credit Stress</span>
-            </span>
-            <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">18% Weight</span>
-          </div>
-          <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-            Oracle CDS at {orclCds} bp
-          </h3>
-          <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-            Oracle debt is AI’s primary credit proxy. 5-year CDS default insurance trades at {orclCds}bp (+{orclStressPct}% vs baseline), 
-            pricing refinancing risk across GPU infrastructure.
-          </p>
+      <section aria-labelledby="executive-pillars-heading" className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 pb-1">
+          <h2 id="executive-pillars-heading" className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+            Executive Diagnostic Pillars: Credit Stress, Valuation Multiples &amp; Macro Liquidity
+          </h2>
+          <span className="text-xs font-mono text-slate-500 dark:text-zinc-400">
+            Weighted Structural Risk Components
+          </span>
         </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-rose-500 rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="text-rose-600 dark:text-rose-400 font-bold flex items-center space-x-1.5">
+                  <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                  <span className="uppercase tracking-wider">Credit Stress</span>
+                </span>
+                <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">18% Weight</span>
+              </div>
+              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+                Oracle CDS at {orclCds} bp
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
+                Oracle debt is AI’s primary credit proxy. 5-year CDS default insurance trades at {orclCds}bp (+{orclStressPct}% vs baseline), 
+                pricing refinancing risk across GPU infrastructure.
+              </p>
+            </div>
+            <Link
+              href="/companies"
+              className="pt-2 text-xs font-mono font-semibold text-rose-600 dark:text-rose-400 hover:underline flex items-center space-x-1"
+            >
+              <span>Inspect Oracle &amp; peer debt</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
 
-        <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-amber-500 rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md">
-          <div className="flex items-center justify-between text-xs sm:text-sm">
-            <span className="text-amber-600 dark:text-amber-400 font-bold flex items-center space-x-1.5">
-              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-              <span className="uppercase tracking-wider">Valuation Froth</span>
-            </span>
-            <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">16% Weight</span>
+          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-amber-500 rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="text-amber-600 dark:text-amber-400 font-bold flex items-center space-x-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                  <span className="uppercase tracking-wider">Valuation Froth</span>
+                </span>
+                <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">16% Weight</span>
+              </div>
+              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+                Median Lab P/S: 34.8×
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
+                OpenAI ($157B at 42.4×), Anthropic ($65B at 14.1× with $57B in Broadcom &amp; syndicate debt), and Mistral (€21B at &gt;100×) trade at multiples 
+                vastly exceeding historical tech bubble peaks.
+              </p>
+            </div>
+            <Link
+              href="/companies"
+              className="pt-2 text-xs font-mono font-semibold text-amber-600 dark:text-amber-400 hover:underline flex items-center space-x-1"
+            >
+              <span>View 20 corporate profiles</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
           </div>
-          <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-            Median Lab P/S: 34.8×
-          </h3>
-          <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-            OpenAI ($157B at 42.4×), Anthropic ($65B at 14.1× with $57B in Broadcom &amp; syndicate debt), and Mistral (€21B at &gt;100×) trade at multiples 
-            vastly exceeding historical tech bubble peaks.
-          </p>
-        </div>
 
-        <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-indigo-500 rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md">
-          <div className="flex items-center justify-between text-xs sm:text-sm">
-            <span className="text-indigo-600 dark:text-indigo-400 font-bold flex items-center space-x-1.5">
-              <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-              <span className="uppercase tracking-wider">Macro &amp; US10Y</span>
-            </span>
-            <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">12% Weight</span>
+          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-indigo-500 rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="text-indigo-600 dark:text-indigo-400 font-bold flex items-center space-x-1.5">
+                  <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                  <span className="uppercase tracking-wider">Macro &amp; US10Y</span>
+                </span>
+                <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">12% Weight</span>
+              </div>
+              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+                US10Y: {us10y.toFixed(2)}% • CPI: {cpi.toFixed(1)}%
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
+                10-Year Treasury at {us10y.toFixed(2)}% and sticky {cpi.toFixed(1)}% CPI push cost of capital higher. Markets price +25bp rate hike risk, 
+                crushing long-duration DCF cash flow horizons.
+              </p>
+            </div>
+            <Link
+              href="/sandbox"
+              className="pt-2 text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center space-x-1"
+            >
+              <span>Simulate macro rate shocks</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
           </div>
-          <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-            US10Y: {us10y.toFixed(2)}% • CPI: {cpi.toFixed(1)}%
-          </h3>
-          <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-            10-Year Treasury at {us10y.toFixed(2)}% and sticky {cpi.toFixed(1)}% CPI push cost of capital higher. Markets price +25bp rate hike risk, 
-            crushing long-duration DCF cash flow horizons.
-          </p>
-        </div>
 
-        <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-rose-600 rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md">
-          <div className="flex items-center justify-between text-xs sm:text-sm">
-            <span className="text-rose-600 dark:text-rose-400 font-bold flex items-center space-x-1.5">
-              <span className="w-2 h-2 rounded-full bg-rose-600"></span>
-              <span className="uppercase tracking-wider">AI Debt Velocity</span>
-            </span>
-            <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">14% Weight</span>
+          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-rose-600 rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="text-rose-600 dark:text-rose-400 font-bold flex items-center space-x-1.5">
+                  <span className="w-2 h-2 rounded-full bg-rose-600"></span>
+                  <span className="uppercase tracking-wider">AI Debt Velocity</span>
+                </span>
+                <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">14% Weight</span>
+              </div>
+              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+                ${annualDebtB}B/yr Debt Pace
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
+                ${totalDebtB}B verified AI debt tracked across 20 facilities (Anthropic, CoreWeave, Vantage, Oracle). Capex consumes 54.8% of hyperscaler operating cash flow with 
+                $38.5B/yr in GPU hardware amortization drag.
+              </p>
+            </div>
+            <Link
+              href="/ledger"
+              className="pt-2 text-xs font-mono font-semibold text-rose-600 dark:text-rose-400 hover:underline flex items-center space-x-1"
+            >
+              <span>Filter $197B debt facilities</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
           </div>
-          <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-            ${annualDebtB}B/yr Debt Pace
-          </h3>
-          <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-            ${totalDebtB}B verified AI debt tracked across 20 facilities (Anthropic, CoreWeave, Vantage, Oracle). Capex consumes 54.8% of hyperscaler operating cash flow with 
-            $38.5B/yr in GPU hardware amortization drag.
-          </p>
         </div>
-      </div>
+      </section>
 
       {/* Live AI Equities & Bellwether Stocks Feed */}
       <LiveStockMonitor />
@@ -176,12 +222,20 @@ export default function HomePage() {
       <PolymarketCharts />
 
       {/* Flagship Feature: Institutional Capital Treemap & Visual Universe */}
-      <div className="space-y-3">
+      <section aria-labelledby="capital-universe-heading" className="space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 pb-1">
+          <h2 id="capital-universe-heading" className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+            Capital Allocation Universe: Interactive Bubble &amp; Treemap Explorer
+          </h2>
+          <span className="text-xs font-mono text-slate-500 dark:text-zinc-400">
+            {totalDeals} Disclosed Frontier AI Deals
+          </span>
+        </div>
         <DealBubbleChart
           deals={rawDeals as Deal[]}
           onSelectDeal={(deal) => setSelectedDeal(deal)}
         />
-      </div>
+      </section>
 
       {/* Visual Models Section */}
       <div className="space-y-4 pt-4">
@@ -269,9 +323,9 @@ export default function HomePage() {
           <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
             100% Verified Receipts &amp; Institutional Capital Matrix
           </span>
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
             Inspect All 159 Tracked Deals ($2.81T Total Disclosed)
-          </h3>
+          </h2>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 leading-relaxed font-sans">
             Every dollar in this model links to a filing or announcement. Visualize timeline volume distributions with 
             our Finviz-style squarified treemap or category bubble pods, and filter by debt facilities, GPU compute contracts, 
@@ -302,7 +356,12 @@ export default function HomePage() {
 
       {/* Deal Details Modal */}
       {selectedDeal && (
-        <div className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="deal-modal-title"
+          className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4"
+        >
           <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl max-w-xl w-full p-6 space-y-5 shadow-2xl relative">
             <button
               onClick={() => setSelectedDeal(null)}
@@ -315,9 +374,9 @@ export default function HomePage() {
               <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300">
                 {selectedDeal.category}
               </span>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white leading-snug">
+              <h3 id="deal-modal-title" className="text-lg font-bold text-slate-900 dark:text-white leading-snug">
                 {selectedDeal.title}
-              </h2>
+              </h3>
               <div className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 font-tabular pt-1">
                 {selectedDeal.amount_display}
               </div>

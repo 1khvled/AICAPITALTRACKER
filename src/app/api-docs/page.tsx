@@ -360,13 +360,13 @@ print(data)`;
 
       {/* Header */}
       <div className="pb-6 border-b border-slate-200 dark:border-zinc-800 space-y-4">
-        <div className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-zinc-400">
+        <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-zinc-400">
           <Link href="/" className="hover:text-slate-900 dark:hover:text-white transition-colors">
             Home
           </Link>
           <span>/</span>
           <span className="text-slate-900 dark:text-white font-semibold">API Documentation</span>
-        </div>
+        </nav>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center space-x-2.5 mb-1.5">
@@ -432,7 +432,16 @@ print(data)`;
       </div>
 
       {/* Main Interactive Explorer Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <section aria-labelledby="api-endpoints-heading" className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 pb-1">
+          <h2 id="api-endpoints-heading" className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+            REST API Endpoints &amp; Interactive Explorer
+          </h2>
+          <span className="text-xs font-mono text-slate-500 dark:text-zinc-400">
+            Open JSON API • Free Rate Limits
+          </span>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: 4 Endpoint Selector Cards */}
         <div className="lg:col-span-4 space-y-3">
           <div className="flex items-center justify-between pb-1">
@@ -766,7 +775,8 @@ print(data)`;
             </pre>
           </div>
         </div>
-      </div>
+        </div>
+      </section>
 
       {/* Bottom Ad */}
       <AdSlot format="in-feed" />

@@ -830,14 +830,14 @@ export default function CompaniesPage() {
 
       {/* Header */}
       <div className="pb-6 border-b border-slate-200 dark:border-zinc-800 space-y-4">
-        <div className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-zinc-400">
+        <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-zinc-400">
           <Link href="/" className="hover:text-slate-900 dark:hover:text-white flex items-center space-x-1">
             <ArrowLeft className="w-3 h-3" />
             <span>Home</span>
           </Link>
           <span>/</span>
           <span className="text-slate-900 dark:text-white font-semibold">Corporate Exposure</span>
-        </div>
+        </nav>
 
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
           <div>
@@ -987,7 +987,16 @@ export default function CompaniesPage() {
       </div>
 
       {/* Grid of Company Profiles */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <section aria-labelledby="corporate-profiles-heading" className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 pb-1">
+          <h2 id="corporate-profiles-heading" className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+            Institutional Company Profiles &amp; Counterparty Matrix ({filteredCompanies.length})
+          </h2>
+          <span className="text-xs font-mono text-slate-500 dark:text-zinc-400">
+            Click any profile for debt tranches and counterparty mapping
+          </span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filteredCompanies.map((c) => {
           let tierBadge = "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300";
           if (c.riskTier === "Critical") {
@@ -1133,11 +1142,17 @@ export default function CompaniesPage() {
             </div>
           );
         })}
-      </div>
+        </div>
+      </section>
 
       {/* Inspect Company Modal Dialog */}
       {inspectCompany && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="company-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+        >
           <div
             className="bg-white dark:bg-[#121214] border border-slate-300 dark:border-zinc-700 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl space-y-6 relative"
             onClick={(e) => e.stopPropagation()}
@@ -1153,9 +1168,9 @@ export default function CompaniesPage() {
             {/* Modal Header */}
             <div className="space-y-1.5 pr-8">
               <div className="flex items-center space-x-2">
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                <h3 id="company-modal-title" className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                   {inspectCompany.name}
-                </h2>
+                </h3>
                 {inspectCompany.ticker && (
                   <span className="text-xs font-mono px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 font-bold">
                     {inspectCompany.ticker}

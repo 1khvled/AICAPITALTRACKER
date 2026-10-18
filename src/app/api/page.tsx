@@ -1,3 +1,5 @@
-import ApiDocsPage from "../api-docs/page";
+import { redirect } from "next/navigation";
 
-export default ApiDocsPage;
+export default function ApiRedirectPage() {
+  redirect("/api-docs");
+}

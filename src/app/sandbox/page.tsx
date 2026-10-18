@@ -69,14 +69,14 @@ export default function SandboxPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-200 dark:border-zinc-800">
         <div>
-          <div className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-zinc-400">
+          <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-zinc-400">
             <Link href="/" className="hover:text-slate-900 dark:hover:text-white flex items-center space-x-1">
               <ArrowLeft className="w-3 h-3" />
               <span>Home</span>
             </Link>
             <span>/</span>
             <span className="text-slate-900 dark:text-white font-semibold">Macroeconomic Simulator</span>
-          </div>
+          </nav>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight mt-1">
             Macroeconomic Sensitivity &amp; Stress Simulator
           </h1>
@@ -199,13 +199,13 @@ export default function SandboxPage() {
       </div>
 
       {/* Sensitivity Logistic Curve visualization */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
-          <BarChart3 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-          <span>Non-Linear Sigmoid Response Curve</span>
-        </h3>
+      <section aria-labelledby="sigmoid-curve-heading" className="space-y-3">
+        <h2 id="sigmoid-curve-heading" className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+          <BarChart3 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+          <span>Non-Linear Sigmoid Response Curve Calibration</span>
+        </h2>
         <SensitivityCurveChart />
-      </div>
+      </section>
 
       {/* Bottom Ad */}
       <AdSlot format="in-feed" />

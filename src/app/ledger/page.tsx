@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback } from "react";
+import Link from "next/link";
 import rawDeals from "@/data/deals.json";
 import { DealBubbleChart } from "@/components/DealBubbleChart";
 import { AdSlot } from "@/components/AdSlot";
@@ -12,6 +13,7 @@ import {
   CircleDot,
   ChevronDown,
   ChevronUp,
+  ArrowLeft,
   Copy,
   Check,
   Sparkles,
@@ -547,6 +549,14 @@ export default function LedgerPage() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 pb-6 border-b border-slate-200 dark:border-zinc-800">
         <div>
+          <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-zinc-400 mb-2">
+            <Link href="/" className="hover:text-slate-900 dark:hover:text-white flex items-center space-x-1">
+              <ArrowLeft className="w-3 h-3" />
+              <span>Home</span>
+            </Link>
+            <span>/</span>
+            <span className="text-slate-900 dark:text-white font-semibold">Deal Ledger</span>
+          </nav>
           <div className="flex items-center space-x-2.5 text-xs sm:text-sm font-semibold text-slate-600 dark:text-zinc-400">
             <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">
               Institutional Terminal
@@ -963,8 +973,18 @@ export default function LedgerPage() {
       </div>
 
       {/* Primary Display: Sourced Deal Table UX or Cards View */}
-      {viewMode === "table" ? (
-        <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">
+      <section aria-labelledby="deals-heading" className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 pb-1">
+          <h2 id="deals-heading" className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+            Verified AI Transactions &amp; Financing Facilities ({filteredDeals.length})
+          </h2>
+          <span className="text-xs font-mono text-slate-500 dark:text-zinc-400">
+            SEC EDGAR Form 10-K/Q, Prospectuses &amp; Bilateral Receipts
+          </span>
+        </div>
+
+        {viewMode === "table" ? (
+          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto max-h-[820px] overflow-y-auto scrollbar-thin">
             <table className="w-full text-left border-collapse">
               {/* Sticky Header with Sort Indicators */}
@@ -1367,12 +1387,14 @@ export default function LedgerPage() {
           </div>
         </div>
       )}
+      </section>
 
       {/* Comprehensive Deal Disclosure Modal */}
       {activeDeal && (
         <div
           role="dialog"
           aria-modal="true"
+          aria-labelledby="deal-disclosure-title"
           onClick={() => setActiveDeal(null)}
           className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-150"
         >
@@ -1405,9 +1427,9 @@ export default function LedgerPage() {
                 </span>
               </div>
 
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white leading-tight">
+              <h3 id="deal-disclosure-title" className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white leading-tight">
                 {activeDeal.title}
-              </h2>
+              </h3>
 
               <div className="pt-2 flex flex-col sm:flex-row sm:items-baseline gap-2">
                 <span className="text-3xl sm:text-4xl font-black font-mono text-emerald-600 dark:text-emerald-400 font-tabular tracking-tight">
