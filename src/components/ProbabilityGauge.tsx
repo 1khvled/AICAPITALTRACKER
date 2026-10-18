@@ -11,6 +11,8 @@ interface ProbabilityGaugeProps {
   band: BubbleBand;
   coverage: number;
   topDrivers: string[];
+  confidenceInterval?: [number, number];
+  fragilityIndex?: number;
 }
 
 export function ProbabilityGauge({
@@ -18,6 +20,8 @@ export function ProbabilityGauge({
   compositeScore,
   band,
   coverage,
+  confidenceInterval,
+  fragilityIndex,
 }: ProbabilityGaugeProps) {
   const [selectedDriver, setSelectedDriver] = useState<string | null>(null);
 
@@ -74,7 +78,7 @@ export function ProbabilityGauge({
     { day: "90d ago", score: 58.2, prob: 64.2 },
     { day: "60d ago", score: 59.4, prob: 65.8 },
     { day: "30d ago", score: 60.5, prob: 67.1 },
-    { day: "Now", score: 61.2, prob: 68.4 },
+    { day: "Now", score: compositeScore, prob: probability },
   ];
 
   return (
@@ -93,6 +97,16 @@ export function ProbabilityGauge({
             <span className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-semibold">
               • Confidence: {(coverage * 100).toFixed(0)}% Disclosed Data
             </span>
+            {confidenceInterval && (
+              <span className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-semibold font-mono">
+                • 90% CI: [{confidenceInterval[0]}%, {confidenceInterval[1]}%]
+              </span>
+            )}
+            {fragilityIndex !== undefined && (
+              <span className="text-xs sm:text-sm text-amber-600 dark:text-amber-400 font-bold font-mono">
+                • Fragility: {fragilityIndex}/100
+              </span>
+            )}
           </div>
 
           <div className="flex items-baseline space-x-5">
@@ -115,7 +129,7 @@ export function ProbabilityGauge({
 
           <p className="text-sm sm:text-base text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
             {current.desc} Driven by Oracle 5Y CDS default spreads widening to 187 bp (+131% increase), 
-            a median 42.4× private frontier lab sales multiple, and $801B+ in debt obligations — partially 
+            a median 34.8× private frontier lab sales multiple, and $196.8B in verified debt facilities (including Anthropic's $57B Broadcom convertible note and credit facility) — partially 
             cushioned by a 40× drop in token inference costs.
           </p>
 

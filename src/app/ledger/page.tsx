@@ -166,7 +166,7 @@ export default function LedgerPage() {
           <div className="flex items-center space-x-2 text-xs sm:text-sm font-semibold text-slate-600 dark:text-zinc-400">
             <span className="text-emerald-600 dark:text-emerald-400">Primary Ledger</span>
             <span>•</span>
-            <span className="text-slate-900 dark:text-white font-bold">158 Verified Deals</span>
+            <span className="text-slate-900 dark:text-white font-bold">159 Verified Deals</span>
             <span>•</span>
             <span className="text-slate-900 dark:text-white font-bold">${(totalVolume / 1e12).toFixed(2)}T Disclosed</span>
           </div>
@@ -226,7 +226,7 @@ export default function LedgerPage() {
           </div>
           <div className="text-xs sm:text-sm font-medium text-slate-600 dark:text-zinc-400 mt-1.5 flex items-center space-x-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>158 verified transactions</span>
+            <span>159 verified transactions</span>
           </div>
         </div>
 
@@ -499,7 +499,7 @@ export default function LedgerPage() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 text-sm font-medium shadow-sm">
           <div className="flex items-center space-x-2 text-slate-600 dark:text-zinc-400">
             <span className="font-semibold">Per page:</span>
-            {[25, 50, 100, 158].map((size) => (
+            {[25, 50, 100, 159].map((size) => (
               <button
                 key={size}
                 onClick={() => {
@@ -512,7 +512,7 @@ export default function LedgerPage() {
                     : "hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300"
                 }`}
               >
-                {size === 158 ? "All" : size}
+                {size === 159 ? "All" : size}
               </button>
             ))}
           </div>

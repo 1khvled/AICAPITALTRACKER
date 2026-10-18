@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { MarketTickerTape } from "@/components/MarketTickerTape";
 
 export const metadata: Metadata = {
-  title: "AI Capital Tracker — 12-Month Bubble Burst Probability & 158-Deal Ledger",
+  title: "AI Capital Tracker — 12-Month Bubble Burst Probability & 159-Deal Ledger",
   description: "A transparent, receipt-backed model converting verified SEC filings, reported CDS spreads, private lab revenues, and token economics into an empirical bubble probability.",
 };
 

@@ -34,7 +34,7 @@ export function SensitivitySandbox() {
         },
         aiDebt: {
           annualDebtIssuanceUsd: 95_000_000_000,
-          totalTrackedDebtUsd: 137_822_500_000,
+          totalTrackedDebtUsd: 196_822_500_000,
           capexToOcfRatio: 0.65,
           gpuDepreciationDragUsd: 45_000_000_000,
           capexToRevenueMultiple: 12.0,
@@ -75,9 +75,9 @@ export function SensitivitySandbox() {
   };
 
   const currentCds = inputs.cds?.currentBps || 187;
-  const currentDebt = Math.round((inputs.ledger?.debtShare ?? 0.05) * 100);
+  const currentDebt = Math.round((inputs.ledger?.debtShare ?? 0.07) * 100);
   const currentUs10y = inputs.macro?.us10yYieldPct ?? 4.42;
-  const currentAnnualDebtB = Math.round((inputs.aiDebt?.annualDebtIssuanceUsd ?? 68_000_000_000) / 1e9);
+  const currentAnnualDebtB = Math.round((inputs.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000) / 1e9);
   const currentTokenDiscount = inputs.adoption?.apiPriceDeclineMultiple || 40;
   const currentUserGrowth = Math.round((inputs.adoption?.annualUserGrowth || 0.65) * 100);
   const currentOdds = Math.round((inputs.crowd?.yesProbability || 0.54) * 100);
@@ -211,7 +211,7 @@ export function SensitivitySandbox() {
             />
             <div className="flex justify-between text-xs font-mono font-medium text-slate-500 dark:text-zinc-400">
               <span>0% Equity-only</span>
-              <span className="text-amber-600 dark:text-amber-400 font-bold">5.0% (Current Verified: $137B)</span>
+              <span className="text-amber-600 dark:text-amber-400 font-bold">7.0% (Current Verified: $197B)</span>
               <span>50% Leveraged</span>
             </div>
           </div>
@@ -283,8 +283,8 @@ export function SensitivitySandbox() {
                   ...inputs,
                   aiDebt: {
                     ...(inputs.aiDebt || {
-                      annualDebtIssuanceUsd: 68_000_000_000,
-                      totalTrackedDebtUsd: 137_822_500_000,
+                      annualDebtIssuanceUsd: 85_000_000_000,
+                      totalTrackedDebtUsd: 196_822_500_000,
                       capexToOcfRatio: 0.548,
                       gpuDepreciationDragUsd: 38_500_000_000,
                       capexToRevenueMultiple: 8.75,
@@ -298,7 +298,7 @@ export function SensitivitySandbox() {
             />
             <div className="flex justify-between text-xs font-mono font-medium text-slate-500 dark:text-zinc-400">
               <span>$10B/yr (Restrained)</span>
-              <span className="text-rose-600 dark:text-rose-400 font-bold">$68B/yr (Current Pace)</span>
+              <span className="text-rose-600 dark:text-rose-400 font-bold">$85B/yr (Current Pace)</span>
               <span>$140B/yr (Extreme Leverage)</span>
             </div>
           </div>

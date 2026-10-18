@@ -52,8 +52,8 @@ export function MarketTickerTape() {
     {
       id: "ai-debt-pace",
       label: "AI DEBT ISSUANCE",
-      value: "$68.0B/yr",
-      change: "+182% YoY",
+      value: "$85.0B/yr",
+      change: "+215% YoY",
       isPositive: false,
       type: "risk",
       href: "/companies",
@@ -113,8 +113,8 @@ export function MarketTickerTape() {
     {
       id: "ledger",
       label: "DISCLOSED CAPITAL",
-      value: "$2.753T",
-      change: "158 deals",
+      value: "$2.810T",
+      change: "159 deals",
       type: "deal",
       href: "/ledger",
     },

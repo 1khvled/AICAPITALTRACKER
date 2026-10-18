@@ -29,7 +29,7 @@ export function Header() {
 
   const navLinks = [
     { label: "Model", href: "/", icon: ShieldAlert },
-    { label: "Ledger", href: "/ledger", badge: "158", icon: Database },
+    { label: "Ledger", href: "/ledger", badge: "159", icon: Database },
     { label: "Charts", href: "/visualize", icon: BarChart3 },
     { label: "Simulator", href: "/sandbox", icon: Sliders },
     { label: "Companies", href: "/companies", icon: Cpu },

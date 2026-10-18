@@ -104,6 +104,8 @@ export interface MacroInputs {
   rateHikeRiskBps: number;
   /** 10-Year TIPS Real Yield (%), e.g. 2.05 */
   realYield10y: number;
+  /** US High Yield Option-Adjusted Spread (bps), e.g. 328 */
+  highYieldSpreadBps?: number;
   note: string;
 }
 
@@ -175,4 +177,10 @@ export interface BubbleModelResult {
   /** 12-month window the probability refers to. */
   horizonMonths: 12;
   generatedAt: string;
+  /** 90% Confidence Interval [lowProbability, highProbability] based on data coverage & dispersion */
+  confidenceInterval?: [number, number];
+  /** Financial Fragility Index (0-100): vulnerability to rate hikes or credit freeze */
+  fragilityIndex?: number;
+  /** Points added by non-linear systemic credit-debt-macro refinancing synergy */
+  systemicContagionPoints?: number;
 }

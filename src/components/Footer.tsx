@@ -59,7 +59,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/ledger" className="hover:text-slate-900 dark:hover:text-white transition-colors">
-                  Deal Ledger (158 Deals)
+                  Deal Ledger (159 Deals)
                 </Link>
               </li>
               <li>

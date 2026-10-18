@@ -773,7 +773,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
             {deals.filter((d) => d.category === "Bets & rounds").length} Equity Rounds
           </span>
           <span className="px-3 py-1 rounded-lg font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60">
-            Total Disclosed: $2.75T
+            Total Disclosed: ${(deals.reduce((acc, d) => acc + (d.amount_usd || 0), 0) / 1e12).toFixed(2)}T
           </span>
         </div>
       </div>

@@ -209,16 +209,16 @@ const COMPANIES: CompanyProfile[] = [
     name: "Anthropic",
     ticker: "Private",
     sector: "Frontier Labs",
-    role: "Frontier Foundation Model Developer",
-    disclosedDealsCount: 12,
-    totalVolumeUsd: 68_000_000_000,
-    debtInvolvedUsd: 0,
-    valuationUsd: 40_000_000_000,
-    runRateRevenueUsd: 1_000_000_000,
-    psMultiple: 40.0,
-    circularityConnections: ["Amazon", "Google", "BlackRock"],
-    riskTier: "High",
-    exposureSummary: "Zero funded debt; $40B valuation (~$1B run-rate) against $50B+ in compute commitments to AWS and Google Cloud.",
+    role: "Frontier Foundation Model Developer & Claude Creator",
+    disclosedDealsCount: 14,
+    totalVolumeUsd: 185_000_000_000,
+    debtInvolvedUsd: 57_000_000_000,
+    valuationUsd: 65_000_000_000,
+    runRateRevenueUsd: 4_600_000_000,
+    psMultiple: 14.1,
+    circularityConnections: ["Broadcom", "Amazon", "Google", "Morgan Stanley", "Blackstone"],
+    riskTier: "Critical",
+    exposureSummary: "$57.0B in verified debt & credit facilities: $42B convertible note facility from Broadcom (underwriting 5-year $125.2B TPU lease) plus $15B multi-bank revolving credit line led by Morgan Stanley, Citi, and JPMorgan against $518B in total cloud commitments.",
   },
   {
     name: "xAI",
@@ -415,7 +415,7 @@ export default function CompaniesPage() {
             </h1>
             <p className="text-sm text-slate-600 dark:text-zinc-300 font-sans mt-1 max-w-2xl leading-relaxed">
               Systemic risk mapping, debt leverage ratios, and circular counterparty exposure across the {COMPANIES.length} companies 
-              carrying the $2.75T AI capital superstructure.
+              carrying the $2.81T AI capital superstructure.
             </p>
           </div>
           <div className="flex items-center space-x-3 text-sm">

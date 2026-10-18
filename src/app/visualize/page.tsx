@@ -35,7 +35,7 @@ export default function VisualizePage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-1">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-              Visualizing the $2.75T AI Infrastructure Superstructure
+              Visualizing the $2.81T AI Infrastructure Superstructure
             </h1>
             <p className="text-sm text-slate-600 dark:text-zinc-300 font-sans mt-1 max-w-2xl leading-relaxed">
               High-density institutional charts tracking the $237B revenue gap, token price collapse, 
@@ -46,7 +46,7 @@ export default function VisualizePage() {
             href="/ledger"
             className="self-start sm:self-auto flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-900 text-white dark:bg-white dark:text-zinc-950 hover:opacity-90 transition-opacity"
           >
-            <span>Open 158-Deal Ledger</span>
+            <span>Open 159-Deal Ledger</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -115,7 +115,7 @@ export default function VisualizePage() {
                 href={`/ledger?search=${encodeURIComponent(selectedDeal.title)}`}
                 className="text-xs font-mono text-emerald-600 dark:text-emerald-400 hover:underline flex items-center space-x-1"
               >
-                <span>View in complete 158-deal ledger</span>
+                <span>View in complete 159-deal ledger</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </Link>
               <button

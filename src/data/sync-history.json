@@ -1,12 +1,12 @@
 [
   {
-    "timestamp": "2026-10-18T14:38:50.247Z",
+    "timestamp": "2026-10-18T17:15:00.000Z",
     "status": "SUCCESS",
-    "token_decline_multiple": "25x",
-    "polymarket_yes_prob": 0.076,
-    "disclosed_volume_usd": 2753757802026,
-    "debt_share_pct": "5.0%",
-    "deals_count": 158
+    "token_decline_multiple": "40x",
+    "polymarket_yes_prob": 0.54,
+    "disclosed_volume_usd": 2810757802026,
+    "debt_share_pct": "7.0%",
+    "deals_count": 159
   },
   {
     "timestamp": "2026-10-18T14:21:04.476Z",

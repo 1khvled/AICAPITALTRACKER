@@ -255,8 +255,9 @@ export function LabMultiplesChart() {
     { name: "Mistral AI", multiple: 139.4, val: "€21B", rev: "€150M", isExtreme: true },
     { name: "xAI Colossus", multiple: 100.0, val: "$50B", rev: "$500M", isExtreme: true },
     { name: "OpenAI", multiple: 42.4, val: "$157B", rev: "$3.7B", isMedian: true },
-    { name: "Anthropic", multiple: 40.0, val: "$40B+", rev: "$1.0B" },
     { name: "Databricks", multiple: 27.1, val: "$190B", rev: "$7.0B" },
+    { name: "Scale AI", multiple: 15.3, val: "$13.8B", rev: "$900M" },
+    { name: "Anthropic", multiple: 14.1, val: "$65B", rev: "$4.6B", isDebtExposed: true },
     { name: "Historical Tech Peak (2000)", multiple: 32.0, val: "Benchmark", rev: "Equilibrium", isBenchmark: true },
   ];
 
@@ -272,7 +273,7 @@ export function LabMultiplesChart() {
           </h4>
         </div>
         <span className="text-xs font-mono font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-zinc-800 px-2.5 py-1 rounded">
-          Median: 42.4×
+          Median: 34.8×
         </span>
       </div>
 
@@ -284,6 +285,11 @@ export function LabMultiplesChart() {
               <div className="flex justify-between text-xs sm:text-sm font-mono">
                 <span className={`font-semibold ${lab.isBenchmark ? "text-slate-400 dark:text-zinc-500 italic" : "text-slate-800 dark:text-zinc-200"}`}>
                   {lab.name} <span className="text-xs text-slate-500 dark:text-zinc-400 font-normal">({lab.val} / {lab.rev})</span>
+                  {lab.isDebtExposed && (
+                    <span className="ml-1.5 text-[10px] font-mono text-rose-500 font-semibold bg-rose-50 dark:bg-rose-950/40 px-1.5 py-0.5 rounded border border-rose-200 dark:border-rose-900/60">
+                      $57B Debt
+                    </span>
+                  )}
                 </span>
                 <span className={`font-bold font-tabular ${lab.isExtreme ? "text-rose-600 dark:text-rose-400" : "text-slate-900 dark:text-white"}`}>
                   {lab.multiple.toFixed(1)}×
@@ -308,7 +314,7 @@ export function LabMultiplesChart() {
 
       <div className="pt-2 border-t border-slate-100 dark:border-zinc-800 flex justify-between text-xs sm:text-sm font-mono text-slate-500 dark:text-zinc-400">
         <span>Historical SaaS Median: 8× – 12×</span>
-        <span className="text-rose-600 dark:text-rose-400 font-bold">3.5× – 10× above equilibrium</span>
+        <span className="text-rose-600 dark:text-rose-400 font-bold">3.0× – 11× above equilibrium</span>
       </div>
     </div>
   );
@@ -320,12 +326,12 @@ export function LabMultiplesChart() {
  */
 export function CapitalCompositionChart() {
   const slices = [
-    { label: "Compute Capacity Contracts", share: 25.9, amount: "$712B", color: "#71717a" },
-    { label: "Big Construction & Facilities", share: 24.4, amount: "$672B", color: "#52525b" },
-    { label: "Equity Rounds & Strategic Bets", share: 19.4, amount: "$534B", color: "#3f3f46" },
-    { label: "M&A & Platform Buyouts", share: 15.7, amount: "$432B", color: "#27272a" },
-    { label: "Borrowed Debt & Converts", share: 5.0, amount: "$137B", color: "#f43f5e" },
-    { label: "Power, Land & Other", share: 9.6, amount: "$267B", color: "#18181b" },
+    { label: "Compute Capacity Contracts", share: 25.3, amount: "$712B", color: "#71717a" },
+    { label: "Big Construction & Facilities", share: 23.9, amount: "$672B", color: "#52525b" },
+    { label: "Equity Rounds & Strategic Bets", share: 19.0, amount: "$534B", color: "#3f3f46" },
+    { label: "M&A & Platform Buyouts", share: 15.4, amount: "$432B", color: "#27272a" },
+    { label: "Borrowed Debt & Converts", share: 7.0, amount: "$197B", color: "#f43f5e" },
+    { label: "Power, Land & Other", share: 9.4, amount: "$264B", color: "#18181b" },
   ];
 
   return (
@@ -336,11 +342,11 @@ export function CapitalCompositionChart() {
             CAPITAL ALLOCATION
           </span>
           <h4 className="text-base font-bold text-slate-900 dark:text-white mt-0.5">
-            $2.75T Tracked Disclosures: Capital Composition
+            $2.81T Tracked Disclosures: Capital Composition
           </h4>
         </div>
         <span className="text-xs font-mono font-semibold text-slate-600 dark:text-zinc-400">
-          158 Verified Deals
+          159 Verified Deals
         </span>
       </div>
 
@@ -382,10 +388,10 @@ export function CapitalCompositionChart() {
  */
 export function YearlySurgeChart() {
   const years = [
-    { year: "2023", volume: 32, label: "$32B", count: 8, heightPct: 15 },
-    { year: "2024", volume: 382, label: "$382B", count: 48, heightPct: 40 },
-    { year: "2025", volume: 1419, label: "$1.42T", count: 77, heightPct: 100 },
-    { year: "2026 (YTD)", volume: 920, label: "$920B", count: 25, heightPct: 75 },
+    { year: "2023", volume: 26, label: "$26B", count: 8, heightPct: 15 },
+    { year: "2024", volume: 295, label: "$295B", count: 48, heightPct: 35 },
+    { year: "2025", volume: 1720, label: "$1.72T", count: 77, heightPct: 100 },
+    { year: "2026 (YTD)", volume: 769, label: "$769B", count: 26, heightPct: 55 },
   ];
 
   return (

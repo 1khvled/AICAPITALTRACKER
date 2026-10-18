@@ -37,9 +37,9 @@ export default function HomePage() {
             <div className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-zinc-400">
               <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Verified Research</span>
               <span>•</span>
-              <span>158 Sourced Deals</span>
+              <span>159 Sourced Deals</span>
               <span>•</span>
-              <span>$2.75T Disclosed</span>
+              <span>$2.81T Disclosed</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white tracking-tight mt-1">
               Will the AI Bubble Burst in the Next 12 Months?
@@ -63,7 +63,7 @@ export default function HomePage() {
               className="flex items-center space-x-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-slate-900 text-white dark:bg-white dark:text-zinc-950 hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors shadow-sm"
             >
               <Database className="w-4 h-4" />
-              <span>Browse 158 Deals</span>
+              <span>Browse 159 Deals</span>
               <ArrowRight className="w-4 h-4 ml-0.5" />
             </Link>
           </div>
@@ -77,6 +77,8 @@ export default function HomePage() {
         band={result.band}
         coverage={result.coverage}
         topDrivers={result.topDriverIds}
+        confidenceInterval={result.confidenceInterval}
+        fragilityIndex={result.fragilityIndex}
       />
 
       {/* 4 Executive Pillars - Solid, Clean Surfaces with Top Accents & Bold Typography */}
@@ -107,10 +109,10 @@ export default function HomePage() {
             <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">16% Weight</span>
           </div>
           <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-            Median Lab P/S: 42.4×
+            Median Lab P/S: 34.8×
           </h3>
           <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-            OpenAI ($157B at 42.4×), Anthropic ($40B at ~40×), and Mistral (€21B at &gt;100×) trade at multiples 
+            OpenAI ($157B at 42.4×), Anthropic ($65B at 14.1× with $57B in Broadcom &amp; syndicate debt), and Mistral (€21B at &gt;100×) trade at multiples 
             vastly exceeding historical tech bubble peaks.
           </p>
         </div>
@@ -141,10 +143,10 @@ export default function HomePage() {
             <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">14% Weight</span>
           </div>
           <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-            $68.0B/yr Debt Pace
+            $85.0B/yr Debt Pace
           </h3>
           <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-            $137.8B verified AI debt tracked across 17 deals. Capex consumes 54.8% of hyperscaler operating cash flow with 
+            $196.8B verified AI debt tracked across 20 facilities (Anthropic, CoreWeave, Vantage, Oracle). Capex consumes 54.8% of hyperscaler operating cash flow with 
             $38.5B/yr in GPU hardware amortization drag.
           </p>
         </div>
@@ -251,7 +253,7 @@ export default function HomePage() {
             100% Verified Receipts &amp; Institutional Capital Matrix
           </span>
           <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-            Inspect All 158 Tracked Deals ($2.75T Total Disclosed)
+            Inspect All 159 Tracked Deals ($2.81T Total Disclosed)
           </h3>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 leading-relaxed font-sans">
             Every dollar in this model links to a filing or announcement. Visualize timeline volume distributions with 
@@ -313,7 +315,7 @@ export default function HomePage() {
                 href={`/ledger?search=${encodeURIComponent(selectedDeal.title)}`}
                 className="text-xs font-mono text-emerald-600 dark:text-emerald-400 hover:underline flex items-center space-x-1"
               >
-                <span>View in complete 158-deal ledger</span>
+                <span>View in complete 159-deal ledger</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </Link>
               <button

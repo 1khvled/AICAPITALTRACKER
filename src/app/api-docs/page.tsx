@@ -33,14 +33,14 @@ const ENDPOINTS: EndpointDoc[] = [
     name: "Live Bubble Probability & Factors",
     method: "GET",
     path: "/api/v1/model",
-    description: "Returns the 12-month bubble burst probability, linear composite stress score, risk band, US10Y macro yield, CPI inflation, AI debt pace ($68B/yr), and individual factor contribution readings.",
+    description: "Returns the 12-month bubble burst probability, composite stress score, confidence interval, fragility index, risk band, US10Y macro yield, CPI inflation, AI debt pace ($85B/yr), and individual factor contribution readings.",
   },
   {
     id: "deals",
     name: "Verified Deal Ledger",
     method: "GET",
     path: "/api/v1/deals",
-    description: "Retrieves verified transaction records from the $2.75T AI capital ledger with support for full-text search, category filtering, and debt tagging.",
+    description: "Retrieves verified transaction records from the $2.81T AI capital ledger with support for full-text search, category filtering, and debt tagging.",
     defaultQuery: "?limit=5&category=Borrowed",
     params: [
       { name: "search", type: "string", required: false, desc: "Search title, description, or participants" },

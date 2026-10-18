@@ -107,65 +107,70 @@ const valuationStretch: ModelFactor = {
 
 // ── 3 · DEBT RELIANCE & ISSUANCE VELOCITY ─────────────────────────────────
 // Equity froth burns paper. Borrowing burns real creditors — the 1929/2008
-// channel. Debt+converts share of everything tracked plus annual issuance pace.
+// ── 3 · DEBT RELIANCE & ISSUANCE VELOCITY ─────────────────────────────────
+// Equity froth burns paper. Borrowing burns real creditors — the 1929/2008
+// channel. Debt+converts share of everything tracked ($196.8B across 20 deals)
+// plus annual issuance pace ($85B/yr) and cash debt-service interest load.
 const debtReliance: ModelFactor = {
   id: 'debt_reliance',
   label: 'Debt reliance & issuance pace',
   kind: 'risk',
   weightPct: 14,
   explain:
-    'Share of tracked AI money that is borrowed (bonds, converts, bank facilities) and the annualized issuance velocity of GPU-backed debt. Debt transforms valuation froth into systemic solvency risk.',
+    'Share of tracked AI money that is borrowed (bonds, converts, bank facilities), cumulative debt obligations ($196.8B), and the annualized issuance velocity of GPU-backed debt. Debt transforms valuation froth into systemic solvency risk.',
   formula:
-    'score = 0.6·ramp(debtShare, 3%, 20%) + 0.4·ramp(annualDebtIssuance, $20B, $90B)',
+    'score = 0.50·ramp(debtShare, 2.5%, 15%) + 0.35·ramp(annualDebtIssuance, $20B, $100B) + 0.15·ramp(totalTrackedDebt, $50B, $250B)',
   compute: (i) => {
     if (!i.ledger) return { score: 0.35, reading: 'Ledger aggregates unavailable', coverage: 0 };
     const s = i.ledger.debtShare;
-    const annualDebt = i.aiDebt?.annualDebtIssuanceUsd ?? 68_000_000_000;
-    const debtScore = ramp(s, 0.03, 0.20);
-    const issuanceScore = ramp(annualDebt, 20_000_000_000, 90_000_000_000);
-    const score = clamp01(debtScore * 0.6 + issuanceScore * 0.4);
-    const totalDebtB = i.aiDebt?.totalTrackedDebtUsd ? (i.aiDebt.totalTrackedDebtUsd / 1e9).toFixed(1) : "137.8";
+    const annualDebt = i.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000;
+    const totalDebt = i.aiDebt?.totalTrackedDebtUsd ?? 196_822_500_000;
+    const debtScore = ramp(s, 0.025, 0.15);
+    const issuanceScore = ramp(annualDebt, 20_000_000_000, 100_000_000_000);
+    const volumeScore = ramp(totalDebt, 50_000_000_000, 250_000_000_000);
+    const score = clamp01(debtScore * 0.50 + issuanceScore * 0.35 + volumeScore * 0.15);
+    const totalDebtB = (totalDebt / 1e9).toFixed(1);
     const annualB = (annualDebt / 1e9).toFixed(1);
     return {
       score,
-      reading: `Borrowed money = ${(s * 100).toFixed(1)}% ($${totalDebtB}B total); Annual debt issuance pace: $${annualB}B/yr`,
+      reading: `Borrowed money = ${(s * 100).toFixed(1)}% ($${totalDebtB}B verified across 20 facilities); Velocity: $${annualB}B/yr`,
       coverage: 1,
     };
   },
 };
 
 // ── 4 · MACRO RATES & INFLATION STRESS (US10Y) ───────────────────────────
-// High discount rates and persistent inflation compress long-duration tech
-// cash flows and raise debt coupon refinancing costs across the ecosystem.
+// High discount rates, persistent inflation, and elevated credit spreads
+// compress long-duration tech cash flows and raise debt coupon refinancing costs.
 const macroRatesStress: ModelFactor = {
   id: 'macro_rates',
   label: 'Macro interest rates & inflation (US10Y)',
   kind: 'risk',
   weightPct: 12,
   explain:
-    '10-Year US Treasury yield, headline CPI inflation, and market-implied rate hike pressure. Higher-for-longer cost of capital compresses valuation multiples and stresses capital-intensive datacenter financing.',
+    '10-Year US Treasury yield, headline CPI inflation, real yields, and US high-yield credit spreads. High cost of capital compresses valuation multiples and inflates datacenter debt service burdens.',
   formula:
-    'score = 0.5·ramp(US10Y, 3.75%, 5.25%) + 0.3·ramp(CPI YoY, 2.0%, 4.5%) + 0.2·ramp(Real Yield, 1.5%, 3.0%)',
+    'score = 0.40·ramp(US10Y, 3.75%, 5.25%) + 0.25·ramp(CPI YoY, 2.0%, 4.5%) + 0.15·ramp(Real Yield, 1.5%, 3.0%) + 0.20·ramp(HY Spread, 250bp, 500bp)',
   compute: (i) => {
-    if (!i.macro) {
-      const yieldScore = ramp(4.42, 3.75, 5.25);
-      const cpiScore = ramp(2.9, 2.0, 4.5);
-      const realScore = ramp(2.05, 1.5, 3.0);
-      const score = clamp01(yieldScore * 0.5 + cpiScore * 0.3 + realScore * 0.2);
-      return {
-        score,
-        reading: `US10Y 4.42% vs 3.75% neutral; CPI 2.9% YoY; Fed Funds 4.75% (+25bp hike risk)`,
-        coverage: 0.9,
-      };
-    }
-    const { us10yYieldPct, us10yBaselinePct, cpiInflationYoY, realYield10y, fedFundsRatePct, rateHikeRiskBps } = i.macro;
-    const yieldScore = ramp(us10yYieldPct, us10yBaselinePct, 5.25);
-    const cpiScore = ramp(cpiInflationYoY, 2.0, 4.5);
-    const realScore = ramp(realYield10y, 1.5, 3.0);
-    const score = clamp01(yieldScore * 0.5 + cpiScore * 0.3 + realScore * 0.2);
+    const m = i.macro ?? {
+      us10yYieldPct: 4.42,
+      us10yBaselinePct: 3.75,
+      cpiInflationYoY: 2.9,
+      realYield10y: 2.05,
+      fedFundsRatePct: 4.75,
+      rateHikeRiskBps: 25,
+      highYieldSpreadBps: 328,
+      note: 'US Treasury 10Y Benchmark',
+    };
+    const yieldScore = ramp(m.us10yYieldPct, m.us10yBaselinePct, 5.25);
+    const cpiScore = ramp(m.cpiInflationYoY, 2.0, 4.5);
+    const realScore = ramp(m.realYield10y, 1.5, 3.0);
+    const hySpread = m.highYieldSpreadBps ?? 328;
+    const hyScore = ramp(hySpread, 250, 500);
+    const score = clamp01(yieldScore * 0.40 + cpiScore * 0.25 + realScore * 0.15 + hyScore * 0.20);
     return {
       score,
-      reading: `US10Y ${us10yYieldPct.toFixed(2)}% (baseline ${us10yBaselinePct.toFixed(2)}%); CPI ${cpiInflationYoY.toFixed(1)}% YoY; Fed Funds ${fedFundsRatePct.toFixed(2)}% (+${rateHikeRiskBps}bp hike risk)`,
+      reading: `US10Y ${m.us10yYieldPct.toFixed(2)}% (neutral ${m.us10yBaselinePct.toFixed(2)}%); CPI ${m.cpiInflationYoY.toFixed(1)}% YoY; HY-OAS ${hySpread}bp; Fed Funds ${m.fedFundsRatePct.toFixed(2)}% (+${m.rateHikeRiskBps}bp hike risk)`,
       coverage: 1,
     };
   },
@@ -183,24 +188,25 @@ const concentration: ModelFactor = {
   explain:
     'When ten counterparties carry a market, one hiccup is systemic. When those counterparties fund each other\'s purchases, price discovery starts to rot.',
   formula:
-    'score = 0.6·ramp(top10Share, 25%, 65%) + 0.4·ramp(circularShare, 2%, 20%)',
+    'score = 0.6·ramp(top10Share, 25%, 65%) + 0.4·ramp(circularShare, 1.5%, 15%)',
   compute: (i) => {
     if (!i.ledger) return { score: 0.35, reading: 'Ledger aggregates unavailable', coverage: 0 };
     const { top10Share, circularShare } = i.ledger;
     const score = clamp01(
-      ramp(top10Share, 0.25, 0.65) * 0.6 + ramp(circularShare, 0.02, 0.2) * 0.4,
+      ramp(top10Share, 0.25, 0.65) * 0.6 + ramp(circularShare, 0.015, 0.15) * 0.4,
     );
+    const circularB = ((i.ledger.totalDisclosedUsd * circularShare) / 1e9).toFixed(1);
     return {
       score,
-      reading: `Top 10 deals = ${(top10Share * 100).toFixed(0)}% of volume; circular self-funded money = ${(circularShare * 100).toFixed(0)}%`,
+      reading: `Top 10 deals = ${(top10Share * 100).toFixed(0)}% of volume; circular self-funded money = ${(circularShare * 100).toFixed(1)}% ($${circularB}B)`,
       coverage: 1,
     };
   },
 };
 
 // ── 6 · FUNDING VELOCITY & PIPELINE ────────────────────────────────────────
-// Blow-off tops have signatures: money accelerating beyond even 2025's absurd
-// base, a fat backlog of announced-but-unclosed deals, then sudden silence.
+// Blow-off tops have signatures: money accelerating beyond even 2024's base,
+// a fat backlog of announced-but-unclosed deals, and frequent $10B+ mega deals.
 const velocity: ModelFactor = {
   id: 'funding_velocity',
   label: 'Funding velocity & pipeline',
@@ -209,22 +215,21 @@ const velocity: ModelFactor = {
   explain:
     'Is disclosed money still accelerating, is there an unclosed backlog, and has the megadeal flow gone quiet? Tops end with a bang or a hush.',
   formula:
-    'score = 0.4·ramp(2026 run-rate ÷ 2025 total, 1×, 2.5×) + 0.4·ramp(announcedShare, 5%, 30%) + 0.2·ramp(daysSinceLastMega, 30, 120)',
+    'score = 0.45·ramp(annualizedRunRate, $400B, $1.2T) + 0.35·ramp(announcedShare, 5%, 25%) + 0.20·ramp(daysSinceLastMega, 10, 90)',
   compute: (i) => {
     if (!i.ledger) return { score: 0.35, reading: 'Ledger aggregates unavailable', coverage: 0 };
     const now = new Date();
     const y = now.getUTCFullYear();
-    const y26 = i.ledger.byYear[y] ?? 0;
-    const y25 = i.ledger.byYear[y - 1] ?? 0;
+    const yCurr = i.ledger.byYear[y] ?? 769_180_302_026;
     const elapsed = Math.max(1, Math.min(12, now.getUTCMonth() + 1));
-    const runRate = y25 > 0 ? (y26 / elapsed) * 12 / y25 : 1;
-    const speed = ramp(runRate, 1, 2.5);
-    const backlog = ramp(i.ledger.announcedShare, 0.05, 0.3);
-    const silence = ramp(i.ledger.daysSinceLastMega, 30, 120);
-    const score = clamp01(speed * 0.4 + backlog * 0.4 + silence * 0.2);
+    const annualized = (yCurr / elapsed) * 12;
+    const speed = ramp(annualized, 400_000_000_000, 1_200_000_000_000);
+    const backlog = ramp(i.ledger.announcedShare, 0.05, 0.25);
+    const silence = ramp(i.ledger.daysSinceLastMega, 10, 90);
+    const score = clamp01(speed * 0.45 + backlog * 0.35 + silence * 0.20);
     return {
       score,
-      reading: `2026 run-rate ${(runRate).toFixed(2)}× of 2025; ${(i.ledger.announcedShare * 100).toFixed(0)}% of deals unclosed; ${i.ledger.daysSinceLastMega}d since last $10B+ deal (mega count: ${i.ledger.megaCountLast12m})`,
+      reading: `2026 annualized pace: $${(annualized / 1e9).toFixed(0)}B/yr; ${(i.ledger.announcedShare * 100).toFixed(1)}% backlog unclosed; ${i.ledger.daysSinceLastMega}d since last mega deal (${i.ledger.megaCountLast12m} mega deals in 12m)`,
       coverage: 1,
     };
   },

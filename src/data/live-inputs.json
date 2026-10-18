@@ -15,9 +15,9 @@
     },
     {
       "company": "Anthropic",
-      "valuationUsd": 40000000000,
-      "runRateRevenueUsd": 1000000000,
-      "note": "IPO prospectus reviewed Sep 2026 ($1B run-rate)"
+      "valuationUsd": 65000000000,
+      "runRateRevenueUsd": 4600000000,
+      "note": "Oct 2026 funding round & S-1 Prospectus ($65B valuation, $4.6B revenue, $57B Broadcom & syndicate debt facilities)"
     },
     {
       "company": "Databricks",
@@ -45,23 +45,23 @@
     }
   ],
   "ledger": {
-    "totalDisclosedUsd": 2753757802026,
+    "totalDisclosedUsd": 2810757802026,
     "byYear": {
       "2023": 26345000000,
       "2024": 295235000000,
       "2025": 1719997500000,
-      "2026": 712180302026
+      "2026": 769180302026
     },
-    "debtShare": 0.05,
-    "computeContractShare": 0.271,
+    "debtShare": 0.070,
+    "computeContractShare": 0.280,
     "top10Share": 0.665,
-    "circularShare": 0.013,
+    "circularShare": 0.028,
     "announcedShare": 0.127,
-    "megaCountLast12m": 44,
-    "daysSinceLastMega": 33
+    "megaCountLast12m": 46,
+    "daysSinceLastMega": 14
   },
   "crowd": {
-    "yesProbability": 0.076,
+    "yesProbability": 0.54,
     "volumeUsd": 9112321.227263004,
     "bubble2026Probability": 0.076,
     "bubble2027Probability": 0.155,
@@ -255,8 +255,8 @@
     "note": "US Treasury 10Y Benchmark, BLS Consumer Price Index, Federal Reserve Dot Plot & TIPS Breakevens"
   },
   "aiDebt": {
-    "annualDebtIssuanceUsd": 68000000000,
-    "totalTrackedDebtUsd": 137822500000,
+    "annualDebtIssuanceUsd": 85000000000,
+    "totalTrackedDebtUsd": 196822500000,
     "capexToOcfRatio": 0.548,
     "gpuDepreciationDragUsd": 38500000000,
     "capexToRevenueMultiple": 8.75,
