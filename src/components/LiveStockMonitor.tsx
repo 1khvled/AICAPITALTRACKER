@@ -68,11 +68,11 @@ export function LiveStockMonitor() {
                 key={macro.symbol}
                 className="bg-slate-50 dark:bg-[#09090b] border border-slate-200/90 dark:border-zinc-800 rounded-xl p-3 space-y-1.5 hover:border-slate-300 dark:hover:border-zinc-700 transition-all"
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono font-black text-xs text-slate-800 dark:text-zinc-200">
+                <div className="flex items-center justify-between gap-1.5">
+                  <span className="font-mono font-black text-xs text-slate-800 dark:text-zinc-200 truncate">
                     {macro.symbol}
                   </span>
-                  <span className="text-[11px] font-mono font-bold px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200 dark:border-rose-900/60">
+                  <span className="text-[10px] sm:text-[11px] font-mono font-bold px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200 dark:border-rose-900/60 whitespace-nowrap shrink-0">
                     {macro.changeDisplay}
                   </span>
                 </div>

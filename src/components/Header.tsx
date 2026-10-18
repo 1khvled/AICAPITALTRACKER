@@ -17,11 +17,16 @@ import {
 } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { POLYMARKET_BASE_URL, POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
+import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 
 export function Header() {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+
+  // Dynamically compute live risk score from verified model
+  const liveBurstProbability = evaluateBubbleModel(DEFAULT_MODEL_INPUTS).burstProbability;
+  const formattedRisk = `${liveBurstProbability.toFixed(1)}%`;
 
   useEffect(() => {
     setMounted(true);
@@ -39,7 +44,7 @@ export function Header() {
 
   return (
     <header className="border-b border-slate-200 dark:border-zinc-800/80 bg-white/95 dark:bg-[#09090b]/95 backdrop-blur-md sticky top-0 z-50 transition-colors w-full">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 h-15 flex items-center justify-between gap-2 xl:gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2 xl:gap-4">
         {/* Brand */}
         <Link href="/" className="flex items-center space-x-2.5 group flex-shrink-0">
           <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-700 flex items-center justify-center text-emerald-400 group-hover:border-emerald-500 transition-colors flex-shrink-0 shadow-sm">
@@ -86,17 +91,17 @@ export function Header() {
         </nav>
 
         {/* Right side controls: Polymarket + Theme Toggle + Live Risk Badge */}
-        <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
+        <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0 pr-0.5">
           {/* Polymarket Referral Pill — Compact & high contrast */}
           <a
             href={POLYMARKET_BASE_URL}
             target="_blank"
             rel="noopener noreferrer"
             title={`Trade AI Bubble contracts on Polymarket (Referral: ${POLYMARKET_REFERRAL_CODE})`}
-            className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/90 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-950/70 text-xs font-bold transition-all whitespace-nowrap shadow-sm"
+            className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/90 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-950/70 text-xs font-bold transition-all whitespace-nowrap shadow-sm flex-shrink-0"
           >
-            <Zap className="w-3.5 h-3.5 fill-current text-indigo-500" />
-            <span>Polymarket</span>
+            <Zap className="w-3.5 h-3.5 fill-current text-indigo-500 shrink-0" />
+            <span className="hidden sm:inline">Polymarket</span>
           </a>
 
           {/* Theme Toggle Button — Clean icon button */}
@@ -105,7 +110,7 @@ export function Header() {
               onClick={toggleTheme}
               aria-label="Toggle dark/light mode"
               title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-              className="p-1.5 sm:p-2 rounded-lg border border-slate-300 dark:border-zinc-700/80 bg-slate-100 dark:bg-zinc-900 text-slate-800 dark:text-zinc-200 hover:bg-slate-200 dark:hover:bg-zinc-800 transition-all shadow-sm flex items-center justify-center"
+              className="p-1.5 sm:p-2 rounded-lg border border-slate-300 dark:border-zinc-700/80 bg-slate-100 dark:bg-zinc-900 text-slate-800 dark:text-zinc-200 hover:bg-slate-200 dark:hover:bg-zinc-800 transition-all shadow-sm flex items-center justify-center flex-shrink-0"
             >
               {theme === "dark" ? (
                 <Sun className="w-4 h-4 text-amber-400" />
@@ -119,10 +124,10 @@ export function Header() {
           <Link
             href="/"
             title="Current 12-Month Bubble Burst Probability"
-            className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-xs font-bold text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/70 transition-all whitespace-nowrap shadow-sm"
+            className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-xs font-bold text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/70 transition-all whitespace-nowrap shadow-sm flex-shrink-0"
           >
-            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-            <span className="font-mono font-black">68.4%</span>
+            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0"></span>
+            <span className="font-mono font-black">{formattedRisk}</span>
             <span className="hidden sm:inline text-slate-600 dark:text-zinc-400 text-xs font-medium">Risk</span>
           </Link>
         </div>

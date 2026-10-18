@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import {
   Search,
   LayoutGrid,
@@ -13,6 +13,12 @@ import {
   Layers,
   ArrowRight,
   TrendingUp,
+  Play,
+  Pause,
+  RotateCcw,
+  Hand,
+  Atom,
+  Move,
 } from "lucide-react";
 
 export interface Deal {
@@ -38,9 +44,9 @@ interface DealBubbleChartProps {
   onSelectDeal: (deal: Deal) => void;
 }
 
-type ViewMode = "treemap" | "bubbles" | "timeline";
+export type ViewMode = "treemap" | "bubbles" | "arena" | "timeline";
 
-const CATEGORY_CONFIG: Record<
+export const CATEGORY_CONFIG: Record<
   string,
   {
     name: string;
@@ -135,6 +141,41 @@ const CATEGORY_CONFIG: Record<
   },
 };
 
+function getDarkerHex(hex: string): string {
+  const colorMap: Record<string, string> = {
+    "#ef4444": "#991b1b",
+    "#8b5cf6": "#5b21b6",
+    "#06b6d4": "#0e7490",
+    "#f59e0b": "#b45309",
+    "#3b82f6": "#1d4ed8",
+    "#f97316": "#c2410c",
+    "#10b981": "#047857",
+    "#64748b": "#334155",
+  };
+  return colorMap[hex] || "#1e293b";
+}
+
+function getSvgPoint(
+  e: React.PointerEvent<SVGSVGElement>,
+  svg: SVGSVGElement,
+  viewBoxW = 300,
+  viewBoxH = 190
+) {
+  const pt = svg.createSVGPoint();
+  pt.x = e.clientX;
+  pt.y = e.clientY;
+  const ctm = svg.getScreenCTM();
+  if (ctm) {
+    const transformed = pt.matrixTransform(ctm.inverse());
+    return { x: transformed.x, y: transformed.y };
+  }
+  const rect = svg.getBoundingClientRect();
+  return {
+    x: ((e.clientX - rect.left) / (rect.width || 1)) * viewBoxW,
+    y: ((e.clientY - rect.top) / (rect.height || 1)) * viewBoxH,
+  };
+}
+
 interface TreemapTile {
   deal: Deal;
   x: number;
@@ -144,12 +185,740 @@ interface TreemapTile {
   category: string;
 }
 
+interface PodBubbleNode {
+  deal: Deal;
+  r: number;
+  x: number;
+  y: number;
+  origX: number;
+  origY: number;
+}
+
+// ── 1. Interactive Category Bubble Pod with Draggable Physics ──────────────────
+interface InteractiveBubblePodProps {
+  pod: {
+    categoryKey: string;
+    config: (typeof CATEGORY_CONFIG)[string];
+    deals: Deal[];
+    totalUsd: number;
+    bubbles: Array<{ deal: Deal; r: number; x: number; y: number }>;
+  };
+  onSelectDeal: (deal: Deal) => void;
+  hoveredDeal: Deal | null;
+  setHoveredDeal: (deal: Deal | null) => void;
+  searchQuery: string;
+  matchesSearch: (deal: Deal) => boolean;
+  isDriftEnabled: boolean;
+  resetCounter: number;
+}
+
+function InteractiveBubblePod({
+  pod,
+  onSelectDeal,
+  hoveredDeal,
+  setHoveredDeal,
+  searchQuery,
+  matchesSearch,
+  isDriftEnabled,
+  resetCounter,
+}: InteractiveBubblePodProps) {
+  const [nodes, setNodes] = useState<PodBubbleNode[]>(() =>
+    pod.bubbles.map((b) => ({
+      ...b,
+      origX: b.x,
+      origY: b.y,
+    }))
+  );
+
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
+  const startClientPosRef = useRef({ x: 0, y: 0 });
+  const hasMovedRef = useRef(false);
+  const svgRef = useRef<SVGSVGElement | null>(null);
+
+  // Sync state whenever underlying deals, layout, or reset counter changes
+  useEffect(() => {
+    setNodes(
+      pod.bubbles.map((b) => ({
+        ...b,
+        origX: b.x,
+        origY: b.y,
+      }))
+    );
+    setDraggingId(null);
+  }, [pod.bubbles, resetCounter]);
+
+  const handlePointerDown = (
+    e: React.PointerEvent<SVGGElement>,
+    node: PodBubbleNode
+  ) => {
+    e.stopPropagation();
+    try {
+      (e.currentTarget as Element).setPointerCapture(e.pointerId);
+    } catch {
+      // Fallback if pointer capture is not supported
+    }
+
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    const pt = getSvgPoint(e as unknown as React.PointerEvent<SVGSVGElement>, svg, 300, 190);
+    dragOffsetRef.current = { x: pt.x - node.x, y: pt.y - node.y };
+    startClientPosRef.current = { x: e.clientX, y: e.clientY };
+    hasMovedRef.current = false;
+    setDraggingId(node.deal.id);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!draggingId) return;
+
+    const dist = Math.hypot(
+      e.clientX - startClientPosRef.current.x,
+      e.clientY - startClientPosRef.current.y
+    );
+    if (dist > 3) {
+      hasMovedRef.current = true;
+    }
+
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    const pt = getSvgPoint(e, svg, 300, 190);
+    const targetX = pt.x - dragOffsetRef.current.x;
+    const targetY = pt.y - dragOffsetRef.current.y;
+
+    setNodes((prev) => {
+      const next = prev.map((n) => ({ ...n }));
+      const dragged = next.find((n) => n.deal.id === draggingId);
+      if (!dragged) return prev;
+
+      // Constrain dragged bubble within pod boundary
+      dragged.x = Math.max(dragged.r + 4, Math.min(300 - dragged.r - 4, targetX));
+      dragged.y = Math.max(dragged.r + 4, Math.min(190 - dragged.r - 4, targetY));
+
+      // Elastic repulsive collision against neighboring bubbles
+      for (let i = 0; i < next.length; i++) {
+        if (next[i].deal.id === draggingId) continue;
+        const other = next[i];
+        const dx = other.x - dragged.x;
+        const dy = other.y - dragged.y;
+        const d = Math.hypot(dx, dy) || 0.1;
+        const minDist = dragged.r + other.r + 4;
+
+        if (d < minDist) {
+          const overlap = minDist - d;
+          const nx = dx / d;
+          const ny = dy / d;
+          other.x = Math.max(other.r + 4, Math.min(300 - other.r - 4, other.x + nx * overlap * 0.8));
+          other.y = Math.max(other.r + 4, Math.min(190 - other.r - 4, other.y + ny * overlap * 0.8));
+        }
+      }
+
+      return next;
+    });
+  };
+
+  const handlePointerUp = (
+    e: React.PointerEvent<SVGGElement>,
+    node: PodBubbleNode
+  ) => {
+    if (draggingId === node.deal.id) {
+      try {
+        (e.currentTarget as Element).releasePointerCapture(e.pointerId);
+      } catch {
+        // Fallback
+      }
+      if (!hasMovedRef.current) {
+        onSelectDeal(node.deal);
+      }
+      setDraggingId(null);
+    }
+  };
+
+  const handleResetPod = () => {
+    setNodes((prev) =>
+      prev.map((n) => ({
+        ...n,
+        x: n.origX,
+        y: n.origY,
+      }))
+    );
+  };
+
+  const gradId = `sphere-grad-${pod.categoryKey.replace(/[^a-zA-Z0-9]/g, "")}`;
+  const darker = getDarkerHex(pod.config.accentHex);
+
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] p-4 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 transition-all">
+      <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-zinc-800/80">
+        <div className="flex items-center space-x-2">
+          <span
+            className="w-2.5 h-2.5 rounded-full"
+            style={{ backgroundColor: pod.config.accentHex }}
+          />
+          <span className="font-bold text-slate-900 dark:text-white text-sm">
+            {pod.config.name}
+          </span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="text-right font-mono text-xs sm:text-sm">
+            <span className="text-slate-900 dark:text-white font-extrabold">
+              ${(pod.totalUsd / 1e9).toFixed(1)}B
+            </span>
+            <span className="text-slate-500 dark:text-zinc-400 ml-1 font-medium text-xs">
+              ({pod.deals.length})
+            </span>
+          </div>
+          <button
+            onClick={handleResetPod}
+            title="Reset positions in this pod"
+            className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
+      <div className="relative">
+        <svg
+          ref={svgRef}
+          viewBox="0 0 300 190"
+          className="w-full h-auto bg-slate-50/60 dark:bg-[#09090b]/60 rounded-lg select-none block touch-none cursor-grab active:cursor-grabbing"
+          style={{ minHeight: "170px" }}
+          onPointerMove={handlePointerMove}
+        >
+          <defs>
+            <radialGradient id={gradId} cx="35%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.45" />
+              <stop offset="35%" stopColor={pod.config.accentHex} stopOpacity="0.9" />
+              <stop offset="100%" stopColor={darker} stopOpacity="1" />
+            </radialGradient>
+            <filter id={`glow-${gradId}`} x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.25" />
+            </filter>
+          </defs>
+
+          {nodes.map((b, idx) => {
+            const isHovered = hoveredDeal?.id === b.deal.id;
+            const isBeingDragged = draggingId === b.deal.id;
+            const matched = matchesSearch(b.deal);
+            const opacity = searchQuery.trim() && !matched ? 0.15 : 0.95;
+
+            // Fluid sinusoidal floating keyframes when idle
+            const floatClass =
+              isDriftEnabled && !isBeingDragged
+                ? idx % 3 === 0
+                  ? "animate-float-1"
+                  : idx % 3 === 1
+                  ? "animate-float-2"
+                  : "animate-float-3"
+                : "";
+
+            return (
+              <g
+                key={b.deal.id}
+                className={`cursor-grab active:cursor-grabbing ${floatClass}`}
+                style={{ opacity: isHovered || isBeingDragged ? 1 : opacity }}
+                onPointerDown={(e) => handlePointerDown(e, b)}
+                onPointerUp={(e) => handlePointerUp(e, b)}
+                onMouseEnter={() => setHoveredDeal(b.deal)}
+                onMouseLeave={() => setHoveredDeal(null)}
+              >
+                {/* Drag elevation aura */}
+                {isBeingDragged && (
+                  <circle
+                    cx={b.x}
+                    cy={b.y}
+                    r={b.r + 5}
+                    fill="none"
+                    stroke={pod.config.accentHex}
+                    strokeWidth="2"
+                    strokeDasharray="4 3"
+                    className="animate-spin opacity-80"
+                  />
+                )}
+
+                <circle
+                  cx={b.x}
+                  cy={b.y}
+                  r={isBeingDragged ? b.r + 2 : isHovered ? b.r + 1.5 : b.r}
+                  fill={`url(#${gradId})`}
+                  stroke={isBeingDragged ? "#ffffff" : isHovered ? "#ffffff" : pod.config.accentHex}
+                  strokeWidth={isBeingDragged ? 2.5 : isHovered ? 2 : 1}
+                  filter={`url(#glow-${gradId})`}
+                  className="transition-transform duration-75"
+                />
+
+                {b.r >= 19 && (
+                  <text
+                    x={b.x}
+                    y={b.y + 3.5}
+                    textAnchor="middle"
+                    fill="#ffffff"
+                    fontSize={b.r >= 26 ? 11 : 9.5}
+                    fontWeight="800"
+                    fontFamily="Geist Mono, monospace"
+                    className="pointer-events-none select-none drop-shadow-sm"
+                  >
+                    {b.deal.amount_display}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+
+        <div className="absolute bottom-1.5 right-2 pointer-events-none opacity-40 hover:opacity-80 transition-opacity">
+          <span className="text-[10px] font-mono text-slate-500 dark:text-zinc-400 flex items-center gap-1">
+            <Hand className="w-2.5 h-2.5" /> Draggable
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── 2. Unified Gravity Arena Physics Universe ─────────────────────────────────
+interface ArenaNode {
+  deal: Deal;
+  r: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  config: (typeof CATEGORY_CONFIG)[string];
+  origX: number;
+  origY: number;
+}
+
+interface GravityArenaProps {
+  deals: Deal[];
+  onSelectDeal: (deal: Deal) => void;
+  hoveredDeal: Deal | null;
+  setHoveredDeal: (deal: Deal | null) => void;
+  searchQuery: string;
+  matchesSearch: (deal: Deal) => boolean;
+  isDriftEnabled: boolean;
+  resetCounter: number;
+}
+
+function GravityArena({
+  deals,
+  onSelectDeal,
+  hoveredDeal,
+  setHoveredDeal,
+  searchQuery,
+  matchesSearch,
+  isDriftEnabled,
+  resetCounter,
+}: GravityArenaProps) {
+  const [nodes, setNodes] = useState<ArenaNode[]>([]);
+  const [isSimRunning, setIsSimRunning] = useState(true);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const nodesRef = useRef<ArenaNode[]>([]);
+  const draggingIdRef = useRef<string | null>(null);
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
+  const prevPointerPosRef = useRef({ x: 0, y: 0, time: 0 });
+  const startClientPosRef = useRef({ x: 0, y: 0 });
+  const hasMovedRef = useRef(false);
+  const animFrameRef = useRef<number | null>(null);
+
+  draggingIdRef.current = draggingId;
+
+  // Initialize nodes from top deals
+  const initNodes = useCallback(() => {
+    const topDeals = [...deals]
+      .sort((a, b) => b.amount_usd - a.amount_usd)
+      .slice(0, 42);
+
+    const CANVAS_W = 1000;
+    const CANVAS_H = 560;
+
+    const initialNodes: ArenaNode[] = topDeals.map((deal, idx) => {
+      const config = CATEGORY_CONFIG[deal.category] || CATEGORY_CONFIG["Other"];
+      let r = 16;
+      if (deal.amount_usd > 0) {
+        const log = Math.log10(deal.amount_usd);
+        r = Math.max(14, Math.min(58, (log - 7) * 13 + 18));
+      }
+
+      // Orbital sunflower distribution
+      const angle = idx * 2.39996;
+      const dist = Math.min(220, 35 + Math.sqrt(idx) * 32);
+      const x = CANVAS_W / 2 + Math.cos(angle) * dist * 1.5;
+      const y = CANVAS_H / 2 + Math.sin(angle) * dist * 0.95;
+
+      const vx = (Math.random() - 0.5) * 0.5;
+      const vy = (Math.random() - 0.5) * 0.5;
+
+      return {
+        deal,
+        r,
+        x,
+        y,
+        vx,
+        vy,
+        config,
+        origX: x,
+        origY: y,
+      };
+    });
+
+    nodesRef.current = initialNodes;
+    setNodes(initialNodes);
+  }, [deals]);
+
+  useEffect(() => {
+    initNodes();
+  }, [initNodes, resetCounter]);
+
+  // Main 60FPS physics loop
+  useEffect(() => {
+    const CANVAS_W = 1000;
+    const CANVAS_H = 560;
+
+    const step = () => {
+      if (isSimRunning) {
+        const currentNodes = nodesRef.current;
+        const currentDraggingId = draggingIdRef.current;
+
+        for (let i = 0; i < currentNodes.length; i++) {
+          const b = currentNodes[i];
+
+          // Skip integration for currently dragged bubble
+          if (b.deal.id === currentDraggingId) continue;
+
+          // Apply velocity
+          b.x += b.vx;
+          b.y += b.vy;
+
+          // Gentle ambient drag/friction
+          b.vx *= 0.992;
+          b.vy *= 0.992;
+
+          // Gentle harmonic float oscillation if drift is on
+          if (isDriftEnabled) {
+            b.vx += (Math.random() - 0.5) * 0.04;
+            b.vy += (Math.random() - 0.5) * 0.04;
+          }
+
+          // Wall bouncing with restitution
+          if (b.x - b.r < 10) {
+            b.x = 10 + b.r;
+            b.vx = Math.abs(b.vx) * 0.85;
+          } else if (b.x + b.r > CANVAS_W - 10) {
+            b.x = CANVAS_W - 10 - b.r;
+            b.vx = -Math.abs(b.vx) * 0.85;
+          }
+
+          if (b.y - b.r < 10) {
+            b.y = 10 + b.r;
+            b.vy = Math.abs(b.vy) * 0.85;
+          } else if (b.y + b.r > CANVAS_H - 10) {
+            b.y = CANVAS_H - 10 - b.r;
+            b.vy = -Math.abs(b.vy) * 0.85;
+          }
+        }
+
+        // Mutual collision detection & momentum exchange
+        for (let i = 0; i < currentNodes.length; i++) {
+          for (let j = i + 1; j < currentNodes.length; j++) {
+            const b1 = currentNodes[i];
+            const b2 = currentNodes[j];
+            const dx = b2.x - b1.x;
+            const dy = b2.y - b1.y;
+            const dist = Math.hypot(dx, dy) || 0.1;
+            const minDist = b1.r + b2.r + 3;
+
+            if (dist < minDist) {
+              const overlap = minDist - dist;
+              const nx = dx / dist;
+              const ny = dy / dist;
+
+              // Positional separation
+              if (b1.deal.id !== currentDraggingId && b2.deal.id !== currentDraggingId) {
+                b1.x -= nx * overlap * 0.5;
+                b1.y -= ny * overlap * 0.5;
+                b2.x += nx * overlap * 0.5;
+                b2.y += ny * overlap * 0.5;
+
+                // Momentum swap
+                const kx = b1.vx - b2.vx;
+                const ky = b1.vy - b2.vy;
+                const p = 2 * (nx * kx + ny * ky) / 2;
+                b1.vx -= p * nx * 0.65;
+                b1.vy -= p * ny * 0.65;
+                b2.vx += p * nx * 0.65;
+                b2.vy += p * ny * 0.65;
+              } else if (b1.deal.id === currentDraggingId) {
+                b2.x += nx * overlap;
+                b2.y += ny * overlap;
+                b2.vx += nx * 2;
+                b2.vy += ny * 2;
+              } else if (b2.deal.id === currentDraggingId) {
+                b1.x -= nx * overlap;
+                b1.y -= ny * overlap;
+                b1.vx -= nx * 2;
+                b1.vy -= ny * 2;
+              }
+            }
+          }
+        }
+
+        setNodes([...currentNodes]);
+      }
+
+      animFrameRef.current = requestAnimationFrame(step);
+    };
+
+    animFrameRef.current = requestAnimationFrame(step);
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
+  }, [isSimRunning, isDriftEnabled]);
+
+  const handlePointerDown = (
+    e: React.PointerEvent<SVGGElement>,
+    node: ArenaNode
+  ) => {
+    e.stopPropagation();
+    try {
+      (e.currentTarget as Element).setPointerCapture(e.pointerId);
+    } catch {
+      // Fallback
+    }
+
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    const pt = getSvgPoint(e as unknown as React.PointerEvent<SVGSVGElement>, svg, 1000, 560);
+    dragOffsetRef.current = { x: pt.x - node.x, y: pt.y - node.y };
+    prevPointerPosRef.current = { x: pt.x, y: pt.y, time: performance.now() };
+    startClientPosRef.current = { x: e.clientX, y: e.clientY };
+    hasMovedRef.current = false;
+    setDraggingId(node.deal.id);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!draggingId) return;
+
+    const dist = Math.hypot(
+      e.clientX - startClientPosRef.current.x,
+      e.clientY - startClientPosRef.current.y
+    );
+    if (dist > 3) {
+      hasMovedRef.current = true;
+    }
+
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    const pt = getSvgPoint(e, svg, 1000, 560);
+    const targetX = pt.x - dragOffsetRef.current.x;
+    const targetY = pt.y - dragOffsetRef.current.y;
+
+    const now = performance.now();
+    const dt = Math.max(1, now - prevPointerPosRef.current.time);
+    const vx = ((pt.x - prevPointerPosRef.current.x) / dt) * 16;
+    const vy = ((pt.y - prevPointerPosRef.current.y) / dt) * 16;
+
+    prevPointerPosRef.current = { x: pt.x, y: pt.y, time: now };
+
+    const draggedNode = nodesRef.current.find((n) => n.deal.id === draggingId);
+    if (draggedNode) {
+      draggedNode.x = Math.max(draggedNode.r + 10, Math.min(1000 - draggedNode.r - 10, targetX));
+      draggedNode.y = Math.max(draggedNode.r + 10, Math.min(560 - draggedNode.r - 10, targetY));
+      draggedNode.vx = vx;
+      draggedNode.vy = vy;
+    }
+  };
+
+  const handlePointerUp = (
+    e: React.PointerEvent<SVGGElement>,
+    node: ArenaNode
+  ) => {
+    if (draggingId === node.deal.id) {
+      try {
+        (e.currentTarget as Element).releasePointerCapture(e.pointerId);
+      } catch {
+        // Fallback
+      }
+      if (!hasMovedRef.current) {
+        onSelectDeal(node.deal);
+      }
+      setDraggingId(null);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      {/* HUD Header Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+        <div className="flex items-center space-x-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-zinc-300">
+          <Atom className="w-4 h-4 text-purple-500 animate-spin" />
+          <span>Interactive Zero-G Arena: Click &amp; fling any bubble into space!</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setIsSimRunning(!isSimRunning)}
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700 shadow-sm"
+          >
+            {isSimRunning ? (
+              <>
+                <Pause className="w-3.5 h-3.5 text-amber-500" />
+                <span>Pause Motion</span>
+              </>
+            ) : (
+              <>
+                <Play className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Resume Motion</span>
+              </>
+            )}
+          </button>
+          <button
+            onClick={initNodes}
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700 shadow-sm"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Recenter Arena</span>
+          </button>
+        </div>
+      </div>
+
+      {/* SVG Physics Arena Viewport */}
+      <div className="relative w-full rounded-2xl border border-slate-200 dark:border-zinc-800 bg-[#070709] overflow-hidden shadow-inner">
+        <svg
+          ref={svgRef}
+          viewBox="0 0 1000 560"
+          className="w-full h-auto block select-none touch-none cursor-grab active:cursor-grabbing"
+          style={{ minHeight: "440px" }}
+          onPointerMove={handlePointerMove}
+        >
+          <defs>
+            {Object.entries(CATEGORY_CONFIG).map(([key, config]) => {
+              const gid = `arena-grad-${key.replace(/[^a-zA-Z0-9]/g, "")}`;
+              const darker = getDarkerHex(config.accentHex);
+              return (
+                <radialGradient key={gid} id={gid} cx="35%" cy="30%" r="70%">
+                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.5" />
+                  <stop offset="40%" stopColor={config.accentHex} stopOpacity="0.9" />
+                  <stop offset="100%" stopColor={darker} stopOpacity="1" />
+                </radialGradient>
+              );
+            })}
+            <filter id="arena-glow" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="4" stdDeviation="5" floodOpacity="0.4" />
+            </filter>
+          </defs>
+
+          {/* Background constellation grid lines */}
+          <g opacity="0.1" stroke="#ffffff" strokeWidth="0.5" strokeDasharray="3 6">
+            <line x1="0" y1="280" x2="1000" y2="280" />
+            <line x1="500" y1="0" x2="500" y2="560" />
+            <circle cx="500" cy="280" r="140" fill="none" />
+            <circle cx="500" cy="280" r="260" fill="none" />
+          </g>
+
+          {nodes.map((b) => {
+            const isHovered = hoveredDeal?.id === b.deal.id;
+            const isBeingDragged = draggingId === b.deal.id;
+            const matched = matchesSearch(b.deal);
+            const opacity = searchQuery.trim() && !matched ? 0.2 : 0.95;
+            const gid = `arena-grad-${b.deal.category.replace(/[^a-zA-Z0-9]/g, "")}`;
+
+            return (
+              <g
+                key={b.deal.id}
+                className="cursor-grab active:cursor-grabbing"
+                style={{ opacity: isHovered || isBeingDragged ? 1 : opacity }}
+                onPointerDown={(e) => handlePointerDown(e, b)}
+                onPointerUp={(e) => handlePointerUp(e, b)}
+                onMouseEnter={() => setHoveredDeal(b.deal)}
+                onMouseLeave={() => setHoveredDeal(null)}
+              >
+                {/* Dragging elevation halo */}
+                {isBeingDragged && (
+                  <circle
+                    cx={b.x}
+                    cy={b.y}
+                    r={b.r + 7}
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeWidth="2.5"
+                    strokeDasharray="6 4"
+                    className="animate-spin opacity-90"
+                  />
+                )}
+
+                <circle
+                  cx={b.x}
+                  cy={b.y}
+                  r={isBeingDragged ? b.r + 3 : isHovered ? b.r + 2 : b.r}
+                  fill={`url(#${gid})`}
+                  stroke={isBeingDragged ? "#ffffff" : isHovered ? "#ffffff" : b.config.accentHex}
+                  strokeWidth={isBeingDragged ? 3 : isHovered ? 2.5 : 1.2}
+                  filter="url(#arena-glow)"
+                />
+
+                {/* Bubble Text */}
+                {b.r >= 22 && (
+                  <text
+                    x={b.x}
+                    y={b.r >= 34 ? b.y - 4 : b.y + 4}
+                    textAnchor="middle"
+                    fill="#ffffff"
+                    fontSize={Math.min(13, Math.max(10, b.r / 3.4))}
+                    fontWeight="800"
+                    fontFamily="Geist Mono, monospace"
+                    className="pointer-events-none select-none drop-shadow-md"
+                  >
+                    {b.deal.amount_display}
+                  </text>
+                )}
+
+                {b.r >= 34 && (
+                  <text
+                    x={b.x}
+                    y={b.y + 13}
+                    textAnchor="middle"
+                    fill="#ffffff"
+                    opacity="0.9"
+                    fontSize={Math.min(11, Math.max(9, b.r / 4.4))}
+                    fontWeight="700"
+                    fontFamily="Geist, sans-serif"
+                    className="pointer-events-none select-none drop-shadow-md"
+                  >
+                    {b.deal.title.split(" ")[0]}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+
+        <div className="absolute bottom-3 left-4 pointer-events-none">
+          <div className="flex items-center space-x-2 text-xs font-mono text-zinc-400 bg-zinc-950/80 px-3 py-1.5 rounded-lg border border-zinc-800 backdrop-blur-sm">
+            <Hand className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Fling bubbles to test collision physics • Double click to inspect</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── 3. Main DealBubbleChart Component ─────────────────────────────────────────
 export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("treemap");
   const [selectedCat, setSelectedCat] = useState<string>("All");
   const [minVolume, setMinVolume] = useState<"all" | "1b" | "10b" | "50b">("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [hoveredDeal, setHoveredDeal] = useState<Deal | null>(null);
+  const [isDriftEnabled, setIsDriftEnabled] = useState(true);
+  const [resetCounter, setResetCounter] = useState(0);
+
   const containerRef = useRef<HTMLDivElement>(null);
 
   // 1. Filter deals by category and volume threshold
@@ -167,7 +936,6 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
     return filteredDeals.reduce((sum, d) => sum + d.amount_usd, 0);
   }, [filteredDeals]);
 
-  // Check search match
   const matchesSearch = (deal: Deal) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
@@ -178,14 +946,13 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
     );
   };
 
-  // 2. High-performance Squarified Treemap Layout (Finviz / Institutional Heatmap Standard)
+  // 2. High-performance Squarified Treemap Layout (Finviz Standard)
   const treemapTiles = useMemo(() => {
     if (viewMode !== "treemap") return [];
 
     const CANVAS_W = 1000;
     const CANVAS_H = 560;
 
-    // Sort descending by amount for best geometric packing
     const sorted = [...filteredDeals].sort((a, b) => {
       const valA = a.amount_usd > 0 ? a.amount_usd : 100e6;
       const valB = b.amount_usd > 0 ? b.amount_usd : 100e6;
@@ -196,7 +963,6 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
 
     const tiles: TreemapTile[] = [];
 
-    // Recursive bisection squarify
     function partition(list: Deal[], cx: number, cy: number, cw: number, ch: number) {
       if (list.length === 0 || cw <= 0 || ch <= 0) return;
       if (list.length === 1) {
@@ -242,7 +1008,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
     return tiles;
   }, [filteredDeals, viewMode]);
 
-  // 3. Category Islands Grouping (Separated & Zero-Overlap Bubble Pods)
+  // 3. Category Islands Grouping
   const categoryPods = useMemo(() => {
     if (viewMode !== "bubbles") return [];
 
@@ -259,7 +1025,6 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
       const catTotal = catDeals.reduce((sum, d) => sum + d.amount_usd, 0);
       const config = CATEGORY_CONFIG[catKey] || CATEGORY_CONFIG["Other"];
 
-      // Layout bubbles inside a clean 300x200 sub-canvas with collision avoidance
       const POD_W = 300;
       const POD_H = 190;
 
@@ -270,7 +1035,6 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
           r = Math.max(9, Math.min(38, (log - 6.5) * 6.5));
         }
 
-        // Circular spiral initial placement
         const angle = idx * 1.8;
         const dist = Math.min(80, 15 + idx * 7);
         const x = POD_W / 2 + Math.cos(angle) * dist;
@@ -279,7 +1043,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
         return { deal, r, x, y };
       });
 
-      // Relaxation passes to push apart overlapping bubbles inside the pod
+      // Initial relaxation passes to prevent overlapping in pods
       for (let iter = 0; iter < 45; iter++) {
         for (let i = 0; i < bubbles.length; i++) {
           for (let j = i + 1; j < bubbles.length; j++) {
@@ -299,7 +1063,6 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
             }
           }
         }
-        // Clamping to pod boundaries
         for (let i = 0; i < bubbles.length; i++) {
           bubbles[i].x = Math.max(bubbles[i].r + 6, Math.min(POD_W - bubbles[i].r - 6, bubbles[i].x));
           bubbles[i].y = Math.max(bubbles[i].r + 6, Math.min(POD_H - bubbles[i].r - 6, bubbles[i].y));
@@ -372,7 +1135,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
           </div>
 
           {/* View Mode Segmented Controls */}
-          <div className="flex items-center space-x-1 p-1.5 rounded-xl bg-slate-100 dark:bg-[#09090b] border border-slate-200 dark:border-zinc-800 self-start sm:self-auto shadow-inner">
+          <div className="flex items-center flex-wrap gap-1 p-1.5 rounded-xl bg-slate-100 dark:bg-[#09090b] border border-slate-200 dark:border-zinc-800 self-start sm:self-auto shadow-inner">
             <button
               onClick={() => setViewMode("treemap")}
               className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
@@ -393,7 +1156,18 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
               }`}
             >
               <CircleDot className="w-4 h-4 text-purple-500" />
-              <span>Category Bubble Pods</span>
+              <span>Bubble Pods</span>
+            </button>
+            <button
+              onClick={() => setViewMode("arena")}
+              className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
+                viewMode === "arena"
+                  ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm"
+                  : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <Atom className="w-4 h-4 text-cyan-400" />
+              <span>Gravity Arena</span>
             </button>
             <button
               onClick={() => setViewMode("timeline")}
@@ -403,7 +1177,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                   : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <Calendar className="w-4 h-4 text-cyan-500" />
+              <Calendar className="w-4 h-4 text-amber-500" />
               <span>Timeline Flow</span>
             </button>
           </div>
@@ -411,7 +1185,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
 
         {/* Filter Controls: Search & Volume Thresholds */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-          {/* Quick Search with clear button */}
+          {/* Quick Search */}
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3" />
             <input
@@ -457,7 +1231,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
           </div>
         </div>
 
-        {/* Category Pills Strip */}
+        {/* Sector Pills Strip */}
         <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none text-xs sm:text-sm">
           <button
             onClick={() => setSelectedCat("All")}
@@ -491,9 +1265,44 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
         </div>
       </div>
 
+      {/* Physics & Drift Controls Bar for Bubble Views */}
+      {(viewMode === "bubbles" || viewMode === "arena") && (
+        <div className="px-5 sm:px-6 py-2.5 bg-slate-100/70 dark:bg-zinc-900/60 border-b border-slate-200 dark:border-zinc-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center space-x-2 text-slate-700 dark:text-zinc-300 font-medium">
+            <Hand className="w-4 h-4 text-emerald-500 animate-pulse" />
+            <span>Interactive Drag Physics: Drag any bubble to move it and push other deals.</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setIsDriftEnabled(!isDriftEnabled)}
+              className="flex items-center space-x-1 px-2.5 py-1 rounded-md font-semibold bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-750 text-slate-800 dark:text-zinc-200 shadow-sm transition-all"
+            >
+              {isDriftEnabled ? (
+                <>
+                  <Pause className="w-3 h-3 text-amber-500" />
+                  <span>Float Drift: ON</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-3 h-3 text-emerald-500" />
+                  <span>Float Drift: PAUSED</span>
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => setResetCounter((c) => c + 1)}
+              className="flex items-center space-x-1 px-2.5 py-1 rounded-md font-semibold bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-750 text-slate-800 dark:text-zinc-200 shadow-sm transition-all"
+            >
+              <RotateCcw className="w-3 h-3 text-slate-500" />
+              <span>Reset Positions</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Visual Canvas Viewport */}
       <div className="relative p-3 sm:p-4 bg-slate-50/50 dark:bg-[#09090b] overflow-hidden">
-        {/* VIEW 1: FINVIZ-STYLE SQUARIFIED CAPITAL TREEMAP */}
+        {/* VIEW 1: SQUARIFIED CAPITAL TREEMAP */}
         {viewMode === "treemap" && (
           <div className="relative w-full overflow-hidden rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#09090b]">
             <svg
@@ -507,7 +1316,6 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                 const isHovered = hoveredDeal?.id === tile.deal.id;
                 const opacity = searchQuery.trim() && !matched ? 0.15 : 1;
 
-                // Title extraction
                 let shortTitle = tile.deal.title;
                 if (tile.deal.title.includes("Stargate")) shortTitle = "Stargate Project";
                 else if (tile.deal.title.includes("OpenAI")) shortTitle = "OpenAI";
@@ -535,7 +1343,6 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                     onMouseEnter={() => setHoveredDeal(tile.deal)}
                     onMouseLeave={() => setHoveredDeal(null)}
                   >
-                    {/* Tile Rectangle */}
                     <rect
                       x={tile.x + 1}
                       y={tile.y + 1}
@@ -548,7 +1355,6 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                       rx={3}
                     />
 
-                    {/* Text Labels inside large enough tiles */}
                     {canShowTitle && (
                       <text
                         x={tile.x + tile.w / 2}
@@ -586,88 +1392,40 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
           </div>
         )}
 
-        {/* VIEW 2: CATEGORY BUBBLE PODS (SEPARATED & ORGANIZED) */}
+        {/* VIEW 2: CATEGORY BUBBLE PODS WITH DRAGGABLE PHYSICS */}
         {viewMode === "bubbles" && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {categoryPods.map((pod) => (
-              <div
+              <InteractiveBubblePod
                 key={pod.categoryKey}
-                className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] p-4 space-y-3 shadow-sm"
-              >
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-zinc-800/80">
-                  <div className="flex items-center space-x-2">
-                    <span
-                      className="w-2.5 h-2.5 rounded-full"
-                      style={{ backgroundColor: pod.config.accentHex }}
-                    />
-                    <span className="font-bold text-slate-900 dark:text-white text-sm">
-                      {pod.config.name}
-                    </span>
-                  </div>
-                  <div className="text-right font-mono text-xs sm:text-sm">
-                    <span className="text-slate-900 dark:text-white font-extrabold">
-                      ${(pod.totalUsd / 1e9).toFixed(1)}B
-                    </span>
-                    <span className="text-slate-500 dark:text-zinc-400 ml-1.5 font-medium">
-                      ({pod.deals.length})
-                    </span>
-                  </div>
-                </div>
-
-                {/* Pod SVG Canvas */}
-                <svg
-                  viewBox="0 0 300 190"
-                  className="w-full h-auto bg-slate-50/50 dark:bg-[#09090b]/60 rounded-lg select-none block"
-                  style={{ minHeight: "170px" }}
-                >
-                  {pod.bubbles.map((b) => {
-                    const isHovered = hoveredDeal?.id === b.deal.id;
-                    const matched = matchesSearch(b.deal);
-                    const opacity = searchQuery.trim() && !matched ? 0.15 : 0.85;
-
-                    return (
-                      <g
-                        key={b.deal.id}
-                        className="cursor-pointer"
-                        style={{ opacity: isHovered ? 1 : opacity }}
-                        onClick={() => onSelectDeal(b.deal)}
-                        onMouseEnter={() => setHoveredDeal(b.deal)}
-                        onMouseLeave={() => setHoveredDeal(null)}
-                      >
-                        <circle
-                          cx={b.x}
-                          cy={b.y}
-                          r={b.r}
-                          fill={pod.config.accentHex}
-                          stroke={isHovered ? "#ffffff" : pod.config.accentHex}
-                          strokeWidth={isHovered ? 2 : 1}
-                          className="transition-all duration-150"
-                        />
-                        {/* Only print text if bubble is large enough (>= 18px radius) */}
-                        {b.r >= 19 && (
-                          <text
-                            x={b.x}
-                            y={b.y + 3}
-                            textAnchor="middle"
-                            fill="#ffffff"
-                            fontSize={b.r >= 26 ? 11 : 9.5}
-                            fontWeight="bold"
-                            fontFamily="Geist Mono, monospace"
-                            className="pointer-events-none select-none drop-shadow-sm"
-                          >
-                            {b.deal.amount_display}
-                          </text>
-                        )}
-                      </g>
-                    );
-                  })}
-                </svg>
-              </div>
+                pod={pod}
+                onSelectDeal={onSelectDeal}
+                hoveredDeal={hoveredDeal}
+                setHoveredDeal={setHoveredDeal}
+                searchQuery={searchQuery}
+                matchesSearch={matchesSearch}
+                isDriftEnabled={isDriftEnabled}
+                resetCounter={resetCounter}
+              />
             ))}
           </div>
         )}
 
-        {/* VIEW 3: TIMELINE FLOW MATRIX */}
+        {/* VIEW 3: UNIFIED GRAVITY ARENA PHYSICS UNIVERSE */}
+        {viewMode === "arena" && (
+          <GravityArena
+            deals={filteredDeals}
+            onSelectDeal={onSelectDeal}
+            hoveredDeal={hoveredDeal}
+            setHoveredDeal={setHoveredDeal}
+            searchQuery={searchQuery}
+            matchesSearch={matchesSearch}
+            isDriftEnabled={isDriftEnabled}
+            resetCounter={resetCounter}
+          />
+        )}
+
+        {/* VIEW 4: TIMELINE FLOW MATRIX */}
         {viewMode === "timeline" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {timelineColumns.map((col) => (
@@ -689,7 +1447,6 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                   </span>
                 </div>
 
-                {/* Deals Stack */}
                 <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
                   {col.deals.slice(0, 10).map((deal) => {
                     const config = CATEGORY_CONFIG[deal.category] || CATEGORY_CONFIG["Other"];
@@ -759,11 +1516,11 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
         )}
       </div>
 
-      {/* Footer Meta & Stats - High Contrast, Large Bold Text & Badges */}
+      {/* Footer Meta & Stats */}
       <div className="p-4 sm:p-5 border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="flex items-center space-x-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-zinc-300">
           <Layers className="w-4 h-4 text-emerald-500" />
-          <span>Click any block to inspect SEC filings &amp; audited disclosures.</span>
+          <span>Click any block or bubble to inspect SEC filings &amp; audited disclosures.</span>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm">
           <span className="px-3 py-1 rounded-lg font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60">

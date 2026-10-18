@@ -93,3 +93,53 @@ button, a, input, select {
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+/* Organic harmonic floating animations for bubbles */
+@keyframes bubbleFloat1 {
+  0%, 100% {
+    transform: translate(0px, 0px);
+  }
+  33% {
+    transform: translate(2.5px, -3px);
+  }
+  66% {
+    transform: translate(-2px, 2px);
+  }
+}
+
+@keyframes bubbleFloat2 {
+  0%, 100% {
+    transform: translate(0px, 0px);
+  }
+  40% {
+    transform: translate(-3px, 2.5px);
+  }
+  75% {
+    transform: translate(2px, -2px);
+  }
+}
+
+@keyframes bubbleFloat3 {
+  0%, 100% {
+    transform: translate(0px, 0px);
+  }
+  30% {
+    transform: translate(2px, 3px);
+  }
+  70% {
+    transform: translate(-2.5px, -2px);
+  }
+}
+
+.animate-float-1 {
+  animation: bubbleFloat1 4.8s ease-in-out infinite;
+  transform-origin: center;
+}
+.animate-float-2 {
+  animation: bubbleFloat2 5.5s ease-in-out infinite;
+  transform-origin: center;
+}
+.animate-float-3 {
+  animation: bubbleFloat3 6.2s ease-in-out infinite;
+  transform-origin: center;
+}
