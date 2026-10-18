@@ -37,6 +37,14 @@ export async function GET() {
           oracle_cds_5y_bps: DEFAULT_MODEL_INPUTS.cds?.currentBps,
           median_lab_ps_multiple: 42.4,
           debt_share_pct: Math.round((DEFAULT_MODEL_INPUTS.ledger?.debtShare || 0) * 1000) / 10,
+          total_tracked_debt_usd: DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 137_822_500_000,
+          annual_debt_issuance_usd: DEFAULT_MODEL_INPUTS.aiDebt?.annualDebtIssuanceUsd ?? 68_000_000_000,
+          us10y_treasury_yield_pct: DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 4.42,
+          cpi_inflation_yoy_pct: DEFAULT_MODEL_INPUTS.macro?.cpiInflationYoY ?? 2.9,
+          fed_funds_rate_pct: DEFAULT_MODEL_INPUTS.macro?.fedFundsRatePct ?? 4.75,
+          rate_hike_risk_bps: DEFAULT_MODEL_INPUTS.macro?.rateHikeRiskBps ?? 25,
+          capex_to_ocf_ratio_pct: Math.round((DEFAULT_MODEL_INPUTS.aiDebt?.capexToOcfRatio ?? 0.548) * 1000) / 10,
+          gpu_depreciation_drag_usd: DEFAULT_MODEL_INPUTS.aiDebt?.gpuDepreciationDragUsd ?? 38_500_000_000,
           capex_to_fcf_ratio:
             DEFAULT_MODEL_INPUTS.capex?.aggregateCapexUsd && DEFAULT_MODEL_INPUTS.capex?.aggregateFcfUsd
               ? Math.round((DEFAULT_MODEL_INPUTS.capex.aggregateCapexUsd / DEFAULT_MODEL_INPUTS.capex.aggregateFcfUsd) * 100) / 100

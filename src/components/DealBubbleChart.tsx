@@ -348,7 +348,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
   return (
     <div
       ref={containerRef}
-      className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#10141d] overflow-hidden transition-colors shadow-sm"
+      className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] overflow-hidden transition-colors shadow-sm"
     >
       {/* Top Header Bar & Mode Selector */}
       <div className="p-5 sm:p-6 border-b border-slate-200 dark:border-zinc-800 space-y-4">
@@ -372,7 +372,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
           </div>
 
           {/* View Mode Segmented Controls */}
-          <div className="flex items-center space-x-1 p-1.5 rounded-xl bg-slate-100 dark:bg-[#0c0f16] border border-slate-200 dark:border-zinc-800 self-start sm:self-auto shadow-inner">
+          <div className="flex items-center space-x-1 p-1.5 rounded-xl bg-slate-100 dark:bg-[#09090b] border border-slate-200 dark:border-zinc-800 self-start sm:self-auto shadow-inner">
             <button
               onClick={() => setViewMode("treemap")}
               className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
@@ -419,7 +419,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
               placeholder="Filter company, project, or amount..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm font-medium rounded-xl border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-[#0c0f16] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm font-medium rounded-xl border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-[#09090b] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
             {searchQuery && (
               <button
@@ -492,10 +492,10 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
       </div>
 
       {/* Visual Canvas Viewport */}
-      <div className="relative p-3 sm:p-4 bg-slate-50/50 dark:bg-[#0a0d14] overflow-hidden">
+      <div className="relative p-3 sm:p-4 bg-slate-50/50 dark:bg-[#09090b] overflow-hidden">
         {/* VIEW 1: FINVIZ-STYLE SQUARIFIED CAPITAL TREEMAP */}
         {viewMode === "treemap" && (
-          <div className="relative w-full overflow-hidden rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#0c0f16]">
+          <div className="relative w-full overflow-hidden rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#09090b]">
             <svg
               viewBox="0 0 1000 560"
               className="w-full h-auto block select-none"
@@ -543,7 +543,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                       height={Math.max(0, tile.h - 2)}
                       fill={config.accentHex}
                       fillOpacity={isHovered ? 0.95 : 0.78}
-                      stroke={isHovered ? "#ffffff" : "#090b10"}
+                      stroke={isHovered ? "#ffffff" : "#09090b"}
                       strokeWidth={isHovered ? 2 : 1}
                       rx={3}
                     />
@@ -592,7 +592,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
             {categoryPods.map((pod) => (
               <div
                 key={pod.categoryKey}
-                className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#10141d] p-4 space-y-3 shadow-sm"
+                className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] p-4 space-y-3 shadow-sm"
               >
                 <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-zinc-800/80">
                   <div className="flex items-center space-x-2">
@@ -617,7 +617,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                 {/* Pod SVG Canvas */}
                 <svg
                   viewBox="0 0 300 190"
-                  className="w-full h-auto bg-slate-50/50 dark:bg-[#0c0f16]/60 rounded-lg select-none block"
+                  className="w-full h-auto bg-slate-50/50 dark:bg-[#09090b]/60 rounded-lg select-none block"
                   style={{ minHeight: "170px" }}
                 >
                   {pod.bubbles.map((b) => {
@@ -673,7 +673,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
             {timelineColumns.map((col) => (
               <div
                 key={col.key}
-                className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#10141d] p-4 space-y-3 shadow-sm flex flex-col justify-between"
+                className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] p-4 space-y-3 shadow-sm flex flex-col justify-between"
               >
                 <div className="pb-2 border-b border-slate-100 dark:border-zinc-800">
                   <div className="flex items-center justify-between">
@@ -701,7 +701,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                         key={deal.id}
                         onClick={() => onSelectDeal(deal)}
                         style={{ opacity }}
-                        className={`p-2.5 rounded-lg border border-slate-100 dark:border-zinc-800/80 bg-slate-50 dark:bg-[#0c0f16] hover:border-slate-300 dark:hover:border-zinc-700 cursor-pointer transition-all space-y-1`}
+                        className={`p-2.5 rounded-lg border border-slate-100 dark:border-zinc-800/80 bg-slate-50 dark:bg-[#09090b] hover:border-slate-300 dark:hover:border-zinc-700 cursor-pointer transition-all space-y-1`}
                       >
                         <div className="flex items-center justify-between text-xs font-mono">
                           <span
@@ -733,7 +733,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
 
         {/* Live Hover Inspection Popover Card */}
         {hoveredDeal && (
-          <div className="mt-3 p-4 rounded-2xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#121620] shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
+          <div className="mt-3 p-4 rounded-2xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#121214] shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
             <div className="space-y-1.5 flex-1">
               <div className="flex items-center space-x-2.5">
                 <span className="font-extrabold text-slate-900 dark:text-white text-base sm:text-lg">
@@ -760,7 +760,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
       </div>
 
       {/* Footer Meta & Stats - High Contrast, Large Bold Text & Badges */}
-      <div className="p-4 sm:p-5 border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#10141d] flex flex-col md:flex-row items-center justify-between gap-3">
+      <div className="p-4 sm:p-5 border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="flex items-center space-x-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-zinc-300">
           <Layers className="w-4 h-4 text-emerald-500" />
           <span>Click any block to inspect SEC filings &amp; audited disclosures.</span>

@@ -25,7 +25,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@300;400;500;600;700;800&display=swap"
         />
       </head>
-      <body className="min-h-screen bg-[#f8fafc] dark:bg-[#090b10] text-slate-900 dark:text-zinc-100 antialiased font-sans selection:bg-emerald-500 selection:text-black text-base">
+      <body className="min-h-screen bg-[#f8fafc] dark:bg-[#09090b] text-slate-900 dark:text-zinc-100 antialiased font-sans selection:bg-emerald-500 selection:text-black text-base">
         <ThemeProvider>
           <div className="flex flex-col min-h-screen">
             <MarketTickerTape />

@@ -23,12 +23,38 @@ export function SensitivitySandbox() {
       setInputs({
         ...DEFAULT_MODEL_INPUTS,
         cds: { ...DEFAULT_MODEL_INPUTS.cds!, currentBps: 260 },
-        ledger: { ...DEFAULT_MODEL_INPUTS.ledger!, debtShare: 0.38 },
+        macro: {
+          us10yYieldPct: 5.25,
+          us10yBaselinePct: 3.75,
+          cpiInflationYoY: 3.5,
+          fedFundsRatePct: 5.25,
+          rateHikeRiskBps: 50,
+          realYield10y: 2.65,
+          note: "Credit shock rate surge",
+        },
+        aiDebt: {
+          annualDebtIssuanceUsd: 95_000_000_000,
+          totalTrackedDebtUsd: 137_822_500_000,
+          capexToOcfRatio: 0.65,
+          gpuDepreciationDragUsd: 45_000_000_000,
+          capexToRevenueMultiple: 12.0,
+          note: "Elevated debt reliance",
+        },
+        ledger: { ...DEFAULT_MODEL_INPUTS.ledger!, debtShare: 0.15 },
         crowd: { ...DEFAULT_MODEL_INPUTS.crowd!, yesProbability: 0.75 },
       });
     } else if (preset === "soft_landing") {
       setInputs({
         ...DEFAULT_MODEL_INPUTS,
+        macro: {
+          us10yYieldPct: 3.80,
+          us10yBaselinePct: 3.75,
+          cpiInflationYoY: 2.2,
+          fedFundsRatePct: 4.25,
+          rateHikeRiskBps: 0,
+          realYield10y: 1.65,
+          note: "Easing rates & disinflation",
+        },
         adoption: {
           ...DEFAULT_MODEL_INPUTS.adoption!,
           apiPriceDeclineMultiple: 90,
@@ -49,13 +75,15 @@ export function SensitivitySandbox() {
   };
 
   const currentCds = inputs.cds?.currentBps || 187;
-  const currentDebt = Math.round((inputs.ledger?.debtShare || 0.291) * 100);
+  const currentDebt = Math.round((inputs.ledger?.debtShare ?? 0.05) * 100);
+  const currentUs10y = inputs.macro?.us10yYieldPct ?? 4.42;
+  const currentAnnualDebtB = Math.round((inputs.aiDebt?.annualDebtIssuanceUsd ?? 68_000_000_000) / 1e9);
   const currentTokenDiscount = inputs.adoption?.apiPriceDeclineMultiple || 40;
   const currentUserGrowth = Math.round((inputs.adoption?.annualUserGrowth || 0.65) * 100);
   const currentOdds = Math.round((inputs.crowd?.yesProbability || 0.54) * 100);
 
   return (
-    <div className="rounded-xl bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 p-6 sm:p-8 space-y-6 transition-colors shadow-sm">
+    <div className="rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 p-6 sm:p-8 space-y-6 transition-colors shadow-sm">
       {/* Title & Presets */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-slate-200 dark:border-zinc-800">
         <div>
@@ -167,8 +195,8 @@ export function SensitivitySandbox() {
             </div>
             <input
               type="range"
-              min="10"
-              max="60"
+              min="0"
+              max="50"
               step="1"
               value={currentDebt}
               onChange={(e) => {
@@ -182,13 +210,100 @@ export function SensitivitySandbox() {
               className="w-full accent-amber-500 h-1.5 bg-slate-200 dark:bg-zinc-800 rounded-lg cursor-pointer"
             />
             <div className="flex justify-between text-xs font-mono font-medium text-slate-500 dark:text-zinc-400">
-              <span>10% Equity-heavy</span>
-              <span>29.1% (Current Verified)</span>
-              <span>60% Leveraged</span>
+              <span>0% Equity-only</span>
+              <span className="text-amber-600 dark:text-amber-400 font-bold">5.0% (Current Verified: $137B)</span>
+              <span>50% Leveraged</span>
             </div>
           </div>
 
-          {/* Slider 3: Token Price Deflation */}
+          {/* Slider 3: US 10-Year Treasury Yield */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-800 dark:text-zinc-200 font-medium">
+                US 10-Year Benchmark Yield (US10Y)
+              </span>
+              <span className="text-slate-900 dark:text-white font-bold font-tabular bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded">
+                {currentUs10y.toFixed(2)}%
+              </span>
+            </div>
+            <input
+              type="range"
+              min="300"
+              max="650"
+              step="5"
+              value={Math.round(currentUs10y * 100)}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10) / 100;
+                setScenarioName("custom");
+                setInputs({
+                  ...inputs,
+                  macro: {
+                    ...(inputs.macro || {
+                      us10yYieldPct: 4.42,
+                      us10yBaselinePct: 3.75,
+                      cpiInflationYoY: 2.9,
+                      fedFundsRatePct: 4.75,
+                      rateHikeRiskBps: 25,
+                      realYield10y: 2.05,
+                      note: "US Treasury 10Y Benchmark",
+                    }),
+                    us10yYieldPct: val,
+                  },
+                });
+              }}
+              className="w-full accent-indigo-500 h-1.5 bg-slate-200 dark:bg-zinc-800 rounded-lg cursor-pointer"
+            />
+            <div className="flex justify-between text-xs font-mono font-medium text-slate-500 dark:text-zinc-400">
+              <span>3.00% (Accommodative)</span>
+              <span className="text-indigo-600 dark:text-indigo-400 font-bold">4.42% (Current Verified)</span>
+              <span>6.50% (Liquidity Crunch)</span>
+            </div>
+          </div>
+
+          {/* Slider 4: Annual AI Debt Issuance Velocity */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-800 dark:text-zinc-200 font-medium">
+                Annual AI Debt Issuance Velocity
+              </span>
+              <span className="text-slate-900 dark:text-white font-bold font-tabular bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded">
+                ${currentAnnualDebtB}B/yr
+              </span>
+            </div>
+            <input
+              type="range"
+              min="10"
+              max="140"
+              step="2"
+              value={currentAnnualDebtB}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                setScenarioName("custom");
+                setInputs({
+                  ...inputs,
+                  aiDebt: {
+                    ...(inputs.aiDebt || {
+                      annualDebtIssuanceUsd: 68_000_000_000,
+                      totalTrackedDebtUsd: 137_822_500_000,
+                      capexToOcfRatio: 0.548,
+                      gpuDepreciationDragUsd: 38_500_000_000,
+                      capexToRevenueMultiple: 8.75,
+                      note: "SEC 10-Q Capex vs OCF synthesis",
+                    }),
+                    annualDebtIssuanceUsd: val * 1e9,
+                  },
+                });
+              }}
+              className="w-full accent-rose-500 h-1.5 bg-slate-200 dark:bg-zinc-800 rounded-lg cursor-pointer"
+            />
+            <div className="flex justify-between text-xs font-mono font-medium text-slate-500 dark:text-zinc-400">
+              <span>$10B/yr (Restrained)</span>
+              <span className="text-rose-600 dark:text-rose-400 font-bold">$68B/yr (Current Pace)</span>
+              <span>$140B/yr (Extreme Leverage)</span>
+            </div>
+          </div>
+
+          {/* Slider 5: Token Price Deflation */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs font-mono">
               <span className="text-slate-800 dark:text-zinc-200 font-medium">
@@ -295,7 +410,7 @@ export function SensitivitySandbox() {
         </div>
 
         {/* Right Side: Live Simulator Result Card */}
-        <div className="lg:col-span-5 bg-slate-50 dark:bg-[#0c0f16] border border-slate-200 dark:border-zinc-800 rounded-xl p-5 space-y-5">
+        <div className="lg:col-span-5 bg-slate-50 dark:bg-[#09090b] border border-slate-200 dark:border-zinc-800 rounded-xl p-5 space-y-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-mono font-semibold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
               Simulated Probability
@@ -358,7 +473,7 @@ export function SensitivitySandbox() {
           </div>
 
           {/* Dynamic Sensitivity Insight */}
-          <div className="p-3 bg-white dark:bg-[#10141d] rounded-lg border border-slate-200 dark:border-zinc-800 text-xs text-slate-600 dark:text-zinc-300 leading-relaxed font-sans">
+          <div className="p-3 bg-white dark:bg-[#121214] rounded-lg border border-slate-200 dark:border-zinc-800 text-xs text-slate-600 dark:text-zinc-300 leading-relaxed font-sans">
             {delta > 5 ? (
               <span className="text-rose-600 dark:text-rose-400 font-medium">
                 ⚠️ Stress regime: The combination of elevated debt leverage and higher credit spreads pushes the refinancing burden into dangerous territory.

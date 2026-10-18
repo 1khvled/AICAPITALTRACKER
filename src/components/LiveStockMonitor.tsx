@@ -2,32 +2,35 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { LIVE_STOCKS, StockQuote } from "@/data/live-stocks";
-import { TrendingUp, TrendingDown, ExternalLink, ArrowUpRight, BarChart2, ShieldAlert } from "lucide-react";
+import { LIVE_STOCKS, LIVE_MACRO_INDICATORS, StockQuote } from "@/data/live-stocks";
+import { TrendingUp, TrendingDown, ExternalLink, ArrowUpRight, BarChart2, ShieldAlert, Percent, Activity } from "lucide-react";
 import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 
 export function LiveStockMonitor() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
-  const categories = ["All", "Hyperscaler", "Semiconductor", "Power & Infrastructure", "Frontier Lab Partner"];
+  const categories = ["All", "Macro & Rates", "Hyperscaler", "Semiconductor", "Power & Infrastructure", "Frontier Lab Partner"];
 
   const filteredStocks = LIVE_STOCKS.filter((s) => {
     if (selectedCategory !== "All" && s.category !== selectedCategory) return false;
     return true;
   });
 
+  const showMacro = selectedCategory === "All" || selectedCategory === "Macro & Rates";
+  const showEquities = selectedCategory !== "Macro & Rates";
+
   return (
-    <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 rounded-xl p-5 sm:p-6 space-y-5 transition-colors shadow-sm">
+    <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-5 sm:p-6 space-y-5 transition-colors shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200 dark:border-zinc-800">
         <div>
           <div className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-zinc-400">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="font-semibold text-slate-800 dark:text-zinc-200">Live Equities Feed</span>
+            <span className="font-semibold text-slate-800 dark:text-zinc-200">Live Equities &amp; Macro Monitor</span>
             <span>•</span>
-            <span>11 Bellwether AI Stocks</span>
+            <span>US10Y • CPI Inflation • AI Debt • 11 Tech Tickers</span>
           </div>
           <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight mt-0.5">
-            AI Infrastructure &amp; Hyperscaler Stock Tickers
+            Macro Rates, AI Debt Velocity &amp; Public Tech Tickers
           </h3>
         </div>
 
@@ -49,14 +52,51 @@ export function LiveStockMonitor() {
         </div>
       </div>
 
+      {/* Macro Indicators Panel */}
+      {showMacro && (
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between text-xs font-mono">
+            <span className="font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400 flex items-center space-x-1.5">
+              <Percent className="w-3.5 h-3.5 text-amber-500" />
+              <span>Macro Rates, Inflation &amp; AI Debt Benchmark</span>
+            </span>
+            <span className="text-slate-500 dark:text-zinc-500">Live Fixed Income &amp; BLS Feeds</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {LIVE_MACRO_INDICATORS.map((macro) => (
+              <div
+                key={macro.symbol}
+                className="bg-slate-50 dark:bg-[#09090b] border border-slate-200/90 dark:border-zinc-800 rounded-xl p-3 space-y-1.5 hover:border-slate-300 dark:hover:border-zinc-700 transition-all"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-black text-xs text-slate-800 dark:text-zinc-200">
+                    {macro.symbol}
+                  </span>
+                  <span className="text-[11px] font-mono font-bold px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200 dark:border-rose-900/60">
+                    {macro.changeDisplay}
+                  </span>
+                </div>
+                <div className="text-lg sm:text-xl font-mono font-black text-slate-900 dark:text-white font-tabular">
+                  {macro.valueDisplay}
+                </div>
+                <div className="text-[11px] text-slate-600 dark:text-zinc-400 truncate" title={macro.description}>
+                  {macro.name}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Stock Cards Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5">
+      {showEquities && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5">
         {filteredStocks.map((stock) => {
           const isNegative = stock.change24hPct < 0;
           return (
             <div
               key={stock.ticker}
-              className="bg-slate-50 dark:bg-[#0c0f16] border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-4 space-y-2.5 hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md transition-all"
+              className="bg-slate-50 dark:bg-[#09090b] border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-4 space-y-2.5 hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md transition-all"
             >
               <div className="flex items-center justify-between">
                 <span className="font-black text-slate-900 dark:text-white font-mono text-base sm:text-lg tracking-tight">
@@ -90,7 +130,8 @@ export function LiveStockMonitor() {
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

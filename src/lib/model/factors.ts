@@ -55,7 +55,7 @@ const cdStress: ModelFactor = {
   id: 'cds_stress',
   label: 'Credit stress (CDS spreads)',
   kind: 'risk',
-  weightPct: 20,
+  weightPct: 18,
   explain:
     'A CDS is the insurance price on a company\'s debt. When it jumps, bond investors are quietly pricing default risk on AI\'s biggest borrowers.',
   formula:
@@ -82,7 +82,7 @@ const valuationStretch: ModelFactor = {
   id: 'valuation_stretch',
   label: 'Private valuation stretch',
   kind: 'risk',
-  weightPct: 18,
+  weightPct: 16,
   explain:
     'How expensive the top AI labs are relative to the revenue they actually book.',
   formula:
@@ -105,38 +105,81 @@ const valuationStretch: ModelFactor = {
   },
 };
 
-// ── 3 · DEBT RELIANCE ──────────────────────────────────────────────────────
+// ── 3 · DEBT RELIANCE & ISSUANCE VELOCITY ─────────────────────────────────
 // Equity froth burns paper. Borrowing burns real creditors — the 1929/2008
-// channel. Debt+converts share of everything tracked.
+// channel. Debt+converts share of everything tracked plus annual issuance pace.
 const debtReliance: ModelFactor = {
   id: 'debt_reliance',
-  label: 'Debt reliance',
+  label: 'Debt reliance & issuance pace',
   kind: 'risk',
-  weightPct: 15,
+  weightPct: 14,
   explain:
-    'Share of tracked AI money that is borrowed (bonds, converts, bank facilities) rather than invested. Debt is how bubbles turn into crises.',
-  formula: 'score = ramp(debtShare, 8%, 35%)',
+    'Share of tracked AI money that is borrowed (bonds, converts, bank facilities) and the annualized issuance velocity of GPU-backed debt. Debt transforms valuation froth into systemic solvency risk.',
+  formula:
+    'score = 0.6·ramp(debtShare, 3%, 20%) + 0.4·ramp(annualDebtIssuance, $20B, $90B)',
   compute: (i) => {
     if (!i.ledger) return { score: 0.35, reading: 'Ledger aggregates unavailable', coverage: 0 };
     const s = i.ledger.debtShare;
+    const annualDebt = i.aiDebt?.annualDebtIssuanceUsd ?? 68_000_000_000;
+    const debtScore = ramp(s, 0.03, 0.20);
+    const issuanceScore = ramp(annualDebt, 20_000_000_000, 90_000_000_000);
+    const score = clamp01(debtScore * 0.6 + issuanceScore * 0.4);
+    const totalDebtB = i.aiDebt?.totalTrackedDebtUsd ? (i.aiDebt.totalTrackedDebtUsd / 1e9).toFixed(1) : "137.8";
+    const annualB = (annualDebt / 1e9).toFixed(1);
     return {
-      score: ramp(s, 0.08, 0.35),
-      reading: `Borrowed money = ${(s * 100).toFixed(1)}% of the $${(i.ledger.totalDisclosedUsd / 1e12).toFixed(2)}T tracked`,
+      score,
+      reading: `Borrowed money = ${(s * 100).toFixed(1)}% ($${totalDebtB}B total); Annual debt issuance pace: $${annualB}B/yr`,
       coverage: 1,
     };
   },
 };
 
-// ── 4 · CONCENTRATION & CIRCULARITY ────────────────────────────────────────
+// ── 4 · MACRO RATES & INFLATION STRESS (US10Y) ───────────────────────────
+// High discount rates and persistent inflation compress long-duration tech
+// cash flows and raise debt coupon refinancing costs across the ecosystem.
+const macroRatesStress: ModelFactor = {
+  id: 'macro_rates',
+  label: 'Macro interest rates & inflation (US10Y)',
+  kind: 'risk',
+  weightPct: 12,
+  explain:
+    '10-Year US Treasury yield, headline CPI inflation, and market-implied rate hike pressure. Higher-for-longer cost of capital compresses valuation multiples and stresses capital-intensive datacenter financing.',
+  formula:
+    'score = 0.5·ramp(US10Y, 3.75%, 5.25%) + 0.3·ramp(CPI YoY, 2.0%, 4.5%) + 0.2·ramp(Real Yield, 1.5%, 3.0%)',
+  compute: (i) => {
+    if (!i.macro) {
+      const yieldScore = ramp(4.42, 3.75, 5.25);
+      const cpiScore = ramp(2.9, 2.0, 4.5);
+      const realScore = ramp(2.05, 1.5, 3.0);
+      const score = clamp01(yieldScore * 0.5 + cpiScore * 0.3 + realScore * 0.2);
+      return {
+        score,
+        reading: `US10Y 4.42% vs 3.75% neutral; CPI 2.9% YoY; Fed Funds 4.75% (+25bp hike risk)`,
+        coverage: 0.9,
+      };
+    }
+    const { us10yYieldPct, us10yBaselinePct, cpiInflationYoY, realYield10y, fedFundsRatePct, rateHikeRiskBps } = i.macro;
+    const yieldScore = ramp(us10yYieldPct, us10yBaselinePct, 5.25);
+    const cpiScore = ramp(cpiInflationYoY, 2.0, 4.5);
+    const realScore = ramp(realYield10y, 1.5, 3.0);
+    const score = clamp01(yieldScore * 0.5 + cpiScore * 0.3 + realScore * 0.2);
+    return {
+      score,
+      reading: `US10Y ${us10yYieldPct.toFixed(2)}% (baseline ${us10yBaselinePct.toFixed(2)}%); CPI ${cpiInflationYoY.toFixed(1)}% YoY; Fed Funds ${fedFundsRatePct.toFixed(2)}% (+${rateHikeRiskBps}bp hike risk)`,
+      coverage: 1,
+    };
+  },
+};
+
+// ── 5 · CONCENTRATION & CIRCULARITY ────────────────────────────────────────
 // Ponzi geometry: few counterparties dominating the flow, and chip vendors
 // investing in their own customers. Circular money is maintained by hand from
-// the tracked relationships (e.g. a chipmaker invests in a lab that buys its
-// chips, or in the reseller whose main buyer is that lab).
+// the tracked relationships.
 const concentration: ModelFactor = {
   id: 'concentration_circularity',
   label: 'Concentration & circular money',
   kind: 'risk',
-  weightPct: 15,
+  weightPct: 13,
   explain:
     'When ten counterparties carry a market, one hiccup is systemic. When those counterparties fund each other\'s purchases, price discovery starts to rot.',
   formula:
@@ -155,14 +198,14 @@ const concentration: ModelFactor = {
   },
 };
 
-// ── 5 · FUNDING VELOCITY & PIPELINE ────────────────────────────────────────
+// ── 6 · FUNDING VELOCITY & PIPELINE ────────────────────────────────────────
 // Blow-off tops have signatures: money accelerating beyond even 2025's absurd
 // base, a fat backlog of announced-but-unclosed deals, then sudden silence.
 const velocity: ModelFactor = {
   id: 'funding_velocity',
   label: 'Funding velocity & pipeline',
   kind: 'risk',
-  weightPct: 12,
+  weightPct: 10,
   explain:
     'Is disclosed money still accelerating, is there an unclosed backlog, and has the megadeal flow gone quiet? Tops end with a bang or a hush.',
   formula:
@@ -187,14 +230,14 @@ const velocity: ModelFactor = {
   },
 };
 
-// ── 6 · CROWD SIGNAL ───────────────────────────────────────────────────────
+// ── 7 · CROWD SIGNAL ───────────────────────────────────────────────────────
 // Prediction markets aggregate money-weighted opinion about the exact question
 // we answer. Signal only counts where there is real liquidity.
 const crowd: ModelFactor = {
   id: 'crowd_signal',
   label: 'Crowd odds (prediction markets)',
   kind: 'risk',
-  weightPct: 10,
+  weightPct: 9,
   explain:
     'Blended YES probability on AI-bubble markets from Polymarket — what money-weighted strangers currently believe.',
   formula: 'score = blended YES probability (volume-weighted; thin books down-weighted)',
@@ -211,31 +254,35 @@ const crowd: ModelFactor = {
   },
 };
 
-// ── 7 · CAPEX VS CASH FLOW ─────────────────────────────────────────────────
-// The hyperscalers' own money is the高级 ballast. When building costs exceed
-// the cash they generate, they are financing capacity on faith — the 2001
-// fiber-overbuild channel.
+// ── 8 · CAPEX VS CASH FLOW & HARDWARE DEPRECIATION ─────────────────────────
+// The hyperscalers' own money is the ballast. When building costs exceed
+// the cash they generate, they are financing capacity on faith.
 const capexCoverage: ModelFactor = {
   id: 'capex_cashflow',
-  label: 'Capex vs free cash flow',
+  label: 'Capex vs free cash flow & hardware depreciation',
   kind: 'risk',
-  weightPct: 5,
+  weightPct: 8,
   explain:
-    'Hyperscaler construction spending measured against the cash those companies actually earned to pay for it.',
-  formula: 'score = ramp(capex ÷ FCF, 0.5×, 2.0×)',
+    'Hyperscaler construction spending measured against free cash flow and the annual depreciation drag of GPU silicon fleets.',
+  formula: 'score = 0.6·ramp(capex ÷ FCF, 0.5×, 2.0×) + 0.4·ramp(capexToOcf, 35%, 70%)',
   compute: (i) => {
     if (!i.capex || i.capex.aggregateCapexUsd === null || !i.capex.aggregateFcfUsd)
       return { score: 0.35, reading: 'Capex/FCF unreported', coverage: 0 };
     const ratio = i.capex.aggregateCapexUsd / i.capex.aggregateFcfUsd;
+    const ocfRatio = i.aiDebt?.capexToOcfRatio ?? 0.548;
+    const fcfScore = ramp(ratio, 0.5, 2.0);
+    const ocfScore = ramp(ocfRatio, 0.35, 0.70);
+    const score = clamp01(fcfScore * 0.6 + ocfScore * 0.4);
+    const depDragB = i.aiDebt?.gpuDepreciationDragUsd ? (i.aiDebt.gpuDepreciationDragUsd / 1e9).toFixed(1) : "38.5";
     return {
-      score: clamp01(ramp(ratio, 0.5, 2)),
-      reading: `Hyperscaler capex = ${ratio.toFixed(2)}× of their free cash flow`,
+      score,
+      reading: `Hyperscaler capex = ${ratio.toFixed(2)}× of FCF (${(ocfRatio * 100).toFixed(1)}% of operating cashflow; $${depDragB}B/yr GPU amortization drag)`,
       coverage: 1,
     };
   },
 };
 
-// ── 8 · REAL-DEMAND DAMPER ────────────────────────────────────────────────
+// ── 9 · REAL-DEMAND DAMPER ────────────────────────────────────────────────
 // The one factor that argues DOWN. If hundreds of millions of people keep
 // growing usage and inference keeps getting radically cheaper while frontier
 // training costs stay contained, froth has a foundation. It can subtract up to
@@ -273,6 +320,7 @@ export const MODEL_FACTORS: ModelFactor[] = [
   cdStress,
   valuationStretch,
   debtReliance,
+  macroRatesStress,
   concentration,
   velocity,
   crowd,

@@ -133,3 +133,77 @@ export const LIVE_STOCKS: StockQuote[] = [
     marketCapDisplay: "$415B",
   },
 ];
+
+export interface MacroIndicator {
+  symbol: string;
+  name: string;
+  valueDisplay: string;
+  changeDisplay: string;
+  changePct: number;
+  isRiskPositive: boolean; // true if higher = more stress
+  category: "Treasury & Rates" | "Inflation & Fed" | "Credit & Debt";
+  description: string;
+}
+
+export const LIVE_MACRO_INDICATORS: MacroIndicator[] = [
+  {
+    symbol: "US10Y",
+    name: "10-Year Treasury Yield",
+    valueDisplay: "4.42%",
+    changeDisplay: "+8.4 bps",
+    changePct: 1.94,
+    isRiskPositive: true,
+    category: "Treasury & Rates",
+    description: "Benchmark risk-free rate pricing long-duration tech discount curves",
+  },
+  {
+    symbol: "US02Y",
+    name: "2-Year Treasury Yield",
+    valueDisplay: "4.28%",
+    changeDisplay: "+5.1 bps",
+    changePct: 1.21,
+    isRiskPositive: true,
+    category: "Treasury & Rates",
+    description: "Short-end rate pricing near-term Federal Reserve policy stance",
+  },
+  {
+    symbol: "CPI",
+    name: "Headline CPI Inflation",
+    valueDisplay: "2.9% YoY",
+    changeDisplay: "+0.2%",
+    changePct: 7.4,
+    isRiskPositive: true,
+    category: "Inflation & Fed",
+    description: "Consumer price index measuring inflation stickiness vs 2.0% Fed target",
+  },
+  {
+    symbol: "FEDFUNDS",
+    name: "Fed Funds Rate",
+    valueDisplay: "4.75%",
+    changeDisplay: "+25bp hike risk",
+    changePct: 0.0,
+    isRiskPositive: true,
+    category: "Inflation & Fed",
+    description: "Overnight policy target; markets pricing higher-for-longer regime",
+  },
+  {
+    symbol: "AI-DEBT",
+    name: "Annual AI Debt Issuance",
+    valueDisplay: "$68.0B/yr",
+    changeDisplay: "+182% YoY",
+    changePct: 182.0,
+    isRiskPositive: true,
+    category: "Credit & Debt",
+    description: "Annualized pace of corporate AI bonds, converts & private GPU credit lines",
+  },
+  {
+    symbol: "HY-OAS",
+    name: "US High Yield Spread",
+    valueDisplay: "328 bps",
+    changeDisplay: "+24 bps",
+    changePct: 7.89,
+    isRiskPositive: true,
+    category: "Credit & Debt",
+    description: "ICE BofA US High Yield option-adjusted spread measuring junk credit stress",
+  },
+];

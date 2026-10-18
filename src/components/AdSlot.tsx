@@ -13,7 +13,7 @@ interface AdSlotProps {
 export function AdSlot({ format = "leaderboard", slotId = "slot-default", className = "" }: AdSlotProps) {
   if (format === "in-feed") {
     return (
-      <div className={`p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/80 dark:bg-[#111520] transition-colors shadow-sm ${className}`}>
+      <div className={`p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/80 dark:bg-[#121214] transition-colors shadow-sm ${className}`}>
         <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-zinc-400 mb-2">
           <span className="flex items-center space-x-1.5 font-bold text-indigo-600 dark:text-indigo-400">
             <Zap className="w-3.5 h-3.5 fill-current" />
@@ -53,7 +53,7 @@ export function AdSlot({ format = "leaderboard", slotId = "slot-default", classN
 
   if (format === "rectangle") {
     return (
-      <div className={`w-full max-w-[320px] mx-auto p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111520] text-center space-y-3 transition-colors shadow-sm ${className}`}>
+      <div className={`w-full max-w-[320px] mx-auto p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] text-center space-y-3 transition-colors shadow-sm ${className}`}>
         <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-semibold">
           <span>SPONSORED BRIEF</span>
           <span className="text-indigo-500 font-bold">PARTNER</span>
@@ -83,7 +83,7 @@ export function AdSlot({ format = "leaderboard", slotId = "slot-default", classN
 
   // Default: Leaderboard Banner (Solid, institutional, no wireframe dashed borders)
   return (
-    <div className={`w-full rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#0f131c] p-3 transition-colors shadow-sm ${className}`}>
+    <div className={`w-full rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] p-3 transition-colors shadow-sm ${className}`}>
       <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-zinc-400 px-2 pb-1.5">
         <span className="uppercase tracking-wider font-bold text-slate-600 dark:text-zinc-400">INSTITUTIONAL PARTNER BRIEF</span>
         <span className="text-indigo-600 dark:text-indigo-400 font-bold">Ref Code: {POLYMARKET_REFERRAL_CODE}</span>

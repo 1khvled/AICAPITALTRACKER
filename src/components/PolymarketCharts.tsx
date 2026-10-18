@@ -74,7 +74,7 @@ export function PolymarketCharts() {
   const openaiAgiPath = makePath("openaiAgiOdds");
 
   return (
-    <div className="bg-white dark:bg-[#0e121a] border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm transition-colors">
+    <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm transition-colors">
       {/* Polymarket Partner Integration Header */}
       <div className="border-b border-slate-200 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-900/40 p-5 sm:p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -237,7 +237,7 @@ export function PolymarketCharts() {
               {POLYMARKET_FEATURED_MARKETS.map((market) => (
                 <div
                   key={market.id}
-                  className="bg-white dark:bg-[#111520] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 flex flex-col justify-between hover:border-slate-300 dark:hover:border-zinc-700 transition-all shadow-sm hover:shadow-md space-y-4"
+                  className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 flex flex-col justify-between hover:border-slate-300 dark:hover:border-zinc-700 transition-all shadow-sm hover:shadow-md space-y-4"
                 >
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between text-xs font-mono">
@@ -441,7 +441,7 @@ export function PolymarketCharts() {
 
               {/* Real-Time Outcome Calculation Dashboard */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-200 dark:border-zinc-800">
-                <div className="bg-white dark:bg-[#111520] p-3 rounded-xl border border-slate-200 dark:border-zinc-800">
+                <div className="bg-white dark:bg-[#121214] p-3 rounded-xl border border-slate-200 dark:border-zinc-800">
                   <div className="text-xs font-mono font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">Shares Received</div>
                   <div className="text-xl font-black font-mono text-slate-900 dark:text-white font-tabular mt-1">
                     {Math.round(numShares).toLocaleString()}
@@ -449,7 +449,7 @@ export function PolymarketCharts() {
                   <div className="text-xs font-mono text-slate-600 dark:text-zinc-400 mt-0.5">@ {Math.round(activePrice * 100)}¢ / share</div>
                 </div>
 
-                <div className="bg-white dark:bg-[#111520] p-3 rounded-xl border border-slate-200 dark:border-zinc-800">
+                <div className="bg-white dark:bg-[#121214] p-3 rounded-xl border border-slate-200 dark:border-zinc-800">
                   <div className="text-xs font-mono font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">Total Payout on Resolution</div>
                   <div className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400 font-tabular mt-1">
                     ${totalPayout.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -457,7 +457,7 @@ export function PolymarketCharts() {
                   <div className="text-xs font-mono text-slate-600 dark:text-zinc-400 mt-0.5">$1.00 per winning share</div>
                 </div>
 
-                <div className="bg-white dark:bg-[#111520] p-3 rounded-xl border border-slate-200 dark:border-zinc-800">
+                <div className="bg-white dark:bg-[#121214] p-3 rounded-xl border border-slate-200 dark:border-zinc-800">
                   <div className="text-xs font-mono font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">Net Profit</div>
                   <div className="text-xl font-black font-mono text-indigo-600 dark:text-indigo-400 font-tabular mt-1">
                     +${netProfit.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -465,7 +465,7 @@ export function PolymarketCharts() {
                   <div className="text-xs font-mono text-slate-600 dark:text-zinc-400 mt-0.5">Less initial ${calcAmount}</div>
                 </div>
 
-                <div className="bg-white dark:bg-[#111520] p-3 rounded-xl border border-slate-200 dark:border-zinc-800">
+                <div className="bg-white dark:bg-[#121214] p-3 rounded-xl border border-slate-200 dark:border-zinc-800">
                   <div className="text-xs font-mono font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">Return on Investment (ROI)</div>
                   <div className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400 font-tabular mt-1">
                     +{roiPct.toFixed(1)}%
@@ -689,7 +689,7 @@ export function PolymarketCharts() {
               {POLYMARKET_RESOLUTION_CONDITIONS.map((cond) => (
                 <div
                   key={cond.id}
-                  className="bg-white dark:bg-[#111520] border border-slate-200 dark:border-zinc-800 rounded-xl p-4 space-y-2.5 transition-colors shadow-sm"
+                  className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-4 space-y-2.5 transition-colors shadow-sm"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-slate-900 dark:text-white text-sm">{cond.title}</span>

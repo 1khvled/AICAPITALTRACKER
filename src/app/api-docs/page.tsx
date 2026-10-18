@@ -33,7 +33,7 @@ const ENDPOINTS: EndpointDoc[] = [
     name: "Live Bubble Probability & Factors",
     method: "GET",
     path: "/api/v1/model",
-    description: "Returns the 12-month bubble burst probability (68.4%), linear composite stress score (61.2), risk band, and individual factor contribution readings.",
+    description: "Returns the 12-month bubble burst probability, linear composite stress score, risk band, US10Y macro yield, CPI inflation, AI debt pace ($68B/yr), and individual factor contribution readings.",
   },
   {
     id: "deals",
@@ -56,7 +56,7 @@ const ENDPOINTS: EndpointDoc[] = [
     name: "Mathematical Factors & Weights",
     method: "GET",
     path: "/api/v1/factors",
-    description: "Returns the exact mathematical formulas, calibration anchor score (55), sigmoid steepness (9), and published weights for all 8 factors.",
+    description: "Returns the exact mathematical formulas, calibration anchor score (55), sigmoid steepness (9), and published weights for all 9 empirical factors (including US10Y Macro Stress and AI Debt Velocity).",
   },
 ];
 
@@ -151,19 +151,19 @@ export default function ApiDocsPage() {
 
       {/* Overview Specs Bar */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
-        <div className="p-3.5 rounded-xl bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800">
+        <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800">
           <span className="text-slate-500 dark:text-zinc-400 block text-xs font-medium">Architecture</span>
           <span className="text-slate-900 dark:text-white font-bold text-sm mt-0.5 block">REST JSON / CORS</span>
         </div>
-        <div className="p-3.5 rounded-xl bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800">
+        <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800">
           <span className="text-slate-500 dark:text-zinc-400 block text-xs font-medium">Base URL</span>
           <span className="text-slate-900 dark:text-white font-bold text-sm mt-0.5 truncate block">/api/v1</span>
         </div>
-        <div className="p-3.5 rounded-xl bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800">
+        <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800">
           <span className="text-slate-500 dark:text-zinc-400 block text-xs font-medium">Rate Limit (Free)</span>
           <span className="text-slate-900 dark:text-white font-bold text-sm mt-0.5 block">1,000 req / hour</span>
         </div>
-        <div className="p-3.5 rounded-xl bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800">
+        <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800">
           <span className="text-slate-500 dark:text-zinc-400 block text-xs font-medium">Auth Required</span>
           <span className="text-emerald-600 dark:text-emerald-400 font-bold text-sm mt-0.5 block">None (Open Public)</span>
         </div>
@@ -185,7 +185,7 @@ export default function ApiDocsPage() {
                 className={`w-full text-left p-3.5 rounded-xl border transition-all space-y-1.5 ${
                   isSelected
                     ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-950 border-transparent shadow-sm"
-                    : "bg-white dark:bg-[#10141d] border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:border-slate-300 dark:hover:border-zinc-700"
+                    : "bg-white dark:bg-[#121214] border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:border-slate-300 dark:hover:border-zinc-700"
                 }`}
               >
                 <div className="flex items-center space-x-2">
@@ -211,7 +211,7 @@ export default function ApiDocsPage() {
         {/* Right Column: Interactive Test Console & Code Snippet */}
         <div className="lg:col-span-8 space-y-5">
           {/* Active Endpoint Info & URL Input Bar */}
-          <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 rounded-xl p-5 space-y-4 shadow-sm">
+          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-5 space-y-4 shadow-sm">
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
                 {activeEndpoint.name}
@@ -223,7 +223,7 @@ export default function ApiDocsPage() {
 
             {/* URL input and Try It button */}
             <div className="flex items-center space-x-2">
-              <div className="flex-1 flex items-center bg-slate-50 dark:bg-[#0c0f16] border border-slate-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs font-mono">
+              <div className="flex-1 flex items-center bg-slate-50 dark:bg-[#09090b] border border-slate-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs font-mono">
                 <span className="text-emerald-600 dark:text-emerald-400 font-bold mr-2">GET</span>
                 <span className="text-slate-400 dark:text-zinc-500">{activeEndpoint.path}</span>
                 <input
@@ -256,7 +256,7 @@ export default function ApiDocsPage() {
                     <div
                       key={p.name}
                       className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 font-mono ${
-                        idx % 2 === 0 ? "bg-slate-50/50 dark:bg-[#0c0f16]/40" : "bg-white dark:bg-[#10141d]"
+                        idx % 2 === 0 ? "bg-slate-50/50 dark:bg-[#09090b]/40" : "bg-white dark:bg-[#121214]"
                       }`}
                     >
                       <div className="flex items-center space-x-2">
@@ -279,8 +279,8 @@ export default function ApiDocsPage() {
           </div>
 
           {/* Code Snippet Tabs */}
-          <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
-            <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-[#0c0f16]">
+          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-[#09090b]">
               <div className="flex items-center space-x-1">
                 {(["curl", "js", "python"] as const).map((lang) => (
                   <button
@@ -315,14 +315,14 @@ export default function ApiDocsPage() {
               </button>
             </div>
 
-            <pre className="p-4 text-xs font-mono text-slate-800 dark:text-zinc-200 overflow-x-auto bg-slate-50/50 dark:bg-[#090b10] leading-relaxed">
+            <pre className="p-4 text-xs font-mono text-slate-800 dark:text-zinc-200 overflow-x-auto bg-slate-50/50 dark:bg-[#09090b] leading-relaxed">
               <code>{getCodeSnippet()}</code>
             </pre>
           </div>
 
           {/* Live Response Output Viewer */}
-          <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
-            <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-[#0c0f16]">
+          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-[#09090b]">
               <div className="flex items-center space-x-3 text-xs font-mono">
                 <span className="font-semibold text-slate-700 dark:text-zinc-300">Live Response</span>
                 {statusCode !== null && (
@@ -363,7 +363,7 @@ export default function ApiDocsPage() {
               )}
             </div>
 
-            <pre className="p-4 text-xs font-mono text-slate-800 dark:text-emerald-400 overflow-x-auto max-h-[420px] bg-slate-50/50 dark:bg-[#080a0f] leading-relaxed">
+            <pre className="p-4 text-xs font-mono text-slate-800 dark:text-emerald-400 overflow-x-auto max-h-[420px] bg-slate-50/50 dark:bg-[#09090b] leading-relaxed">
               {responseJson ? (
                 <code>{JSON.stringify(responseJson, null, 2)}</code>
               ) : (

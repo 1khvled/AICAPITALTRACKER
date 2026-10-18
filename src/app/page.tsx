@@ -79,56 +79,73 @@ export default function HomePage() {
         topDrivers={result.topDriverIds}
       />
 
-      {/* 3 Executive Pillars - Solid, Clean Surfaces with Top Accents & Bold Typography */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-rose-500 rounded-2xl p-6 space-y-3 transition-all shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md">
+      {/* 4 Executive Pillars - Solid, Clean Surfaces with Top Accents & Bold Typography */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-rose-500 rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md">
           <div className="flex items-center justify-between text-xs sm:text-sm">
-            <span className="text-rose-600 dark:text-rose-400 font-bold flex items-center space-x-2">
+            <span className="text-rose-600 dark:text-rose-400 font-bold flex items-center space-x-1.5">
               <span className="w-2 h-2 rounded-full bg-rose-500"></span>
               <span className="uppercase tracking-wider">Credit Stress</span>
-            </span>
-            <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">20% Weight</span>
-          </div>
-          <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-            Oracle CDS at 187 bp
-          </h3>
-          <p className="text-sm sm:text-base text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-            Oracle debt is AI’s primary credit proxy. 5-year CDS default insurance has jumped from 81bp to 187bp (+131%), 
-            showing bond investors are quietly pricing refinancing risk on compute infrastructure.
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-amber-500 rounded-2xl p-6 space-y-3 transition-all shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md">
-          <div className="flex items-center justify-between text-xs sm:text-sm">
-            <span className="text-amber-600 dark:text-amber-400 font-bold flex items-center space-x-2">
-              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-              <span className="uppercase tracking-wider">Valuation Froth</span>
             </span>
             <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">18% Weight</span>
           </div>
           <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-            Median Lab P/S: 42.4×
+            Oracle CDS at 187 bp
           </h3>
-          <p className="text-sm sm:text-base text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-            OpenAI ($157B at 42.4×), Anthropic ($40B at ~40×), and Mistral (€21B at &gt;100×) trade at multiples 
-            vastly exceeding historical tech peaks. Continued multiple justification requires flawless growth.
+          <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
+            Oracle debt is AI’s primary credit proxy. 5-year CDS default insurance jumped from 81bp to 187bp (+131%), 
+            pricing refinancing risk across GPU infrastructure.
           </p>
         </div>
 
-        <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-emerald-500 rounded-2xl p-6 space-y-3 transition-all shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md">
+        <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-amber-500 rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md">
           <div className="flex items-center justify-between text-xs sm:text-sm">
-            <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center space-x-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span className="uppercase tracking-wider">Adoption Damper</span>
+            <span className="text-amber-600 dark:text-amber-400 font-bold flex items-center space-x-1.5">
+              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+              <span className="uppercase tracking-wider">Valuation Froth</span>
             </span>
-            <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">-10 Pts Max</span>
+            <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">16% Weight</span>
           </div>
           <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-            40× Cheaper Tokens &amp; +65% YoY MAU
+            Median Lab P/S: 42.4×
           </h3>
-          <p className="text-sm sm:text-base text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-            Unlike 2000 fiber, AI shows genuine adoption. With 350M+ weekly users and token inference costs dropping 
-            40-fold since 2023, unit economics improve rapidly, knocking points off the bubble score.
+          <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
+            OpenAI ($157B at 42.4×), Anthropic ($40B at ~40×), and Mistral (€21B at &gt;100×) trade at multiples 
+            vastly exceeding historical tech bubble peaks.
+          </p>
+        </div>
+
+        <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-indigo-500 rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md">
+          <div className="flex items-center justify-between text-xs sm:text-sm">
+            <span className="text-indigo-600 dark:text-indigo-400 font-bold flex items-center space-x-1.5">
+              <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+              <span className="uppercase tracking-wider">Macro &amp; US10Y</span>
+            </span>
+            <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">12% Weight</span>
+          </div>
+          <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+            US10Y: 4.42% • CPI: 2.9%
+          </h3>
+          <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
+            10-Year Treasury at 4.42% and sticky 2.9% CPI push cost of capital higher. Markets price +25bp rate hike risk, 
+            crushing long-duration DCF cash flow horizons.
+          </p>
+        </div>
+
+        <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-rose-600 rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md">
+          <div className="flex items-center justify-between text-xs sm:text-sm">
+            <span className="text-rose-600 dark:text-rose-400 font-bold flex items-center space-x-1.5">
+              <span className="w-2 h-2 rounded-full bg-rose-600"></span>
+              <span className="uppercase tracking-wider">AI Debt Velocity</span>
+            </span>
+            <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">14% Weight</span>
+          </div>
+          <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+            $68.0B/yr Debt Pace
+          </h3>
+          <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
+            $137.8B verified AI debt tracked across 17 deals. Capex consumes 54.8% of hyperscaler operating cash flow with 
+            $38.5B/yr in GPU hardware amortization drag.
           </p>
         </div>
       </div>
@@ -228,7 +245,7 @@ export default function HomePage() {
       <SensitivitySandbox />
 
       {/* Sourced Deal Ledger Teaser */}
-      <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 rounded-xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 transition-colors shadow-sm">
+      <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 transition-colors shadow-sm">
         <div className="space-y-2 max-w-xl">
           <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
             100% Verified Receipts &amp; Institutional Capital Matrix
@@ -267,7 +284,7 @@ export default function HomePage() {
       {/* Deal Details Modal */}
       {selectedDeal && (
         <div className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-zinc-800 rounded-xl max-w-xl w-full p-6 space-y-5 shadow-2xl relative">
+          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl max-w-xl w-full p-6 space-y-5 shadow-2xl relative">
             <button
               onClick={() => setSelectedDeal(null)}
               className="absolute right-4 top-4 text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-lg"

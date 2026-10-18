@@ -244,6 +244,24 @@
     "aggregateFcfUsd": 184000000000,
     "note": "Microsoft, Alphabet, Meta, Amazon 10-Q consensus annualized"
   },
+  "macro": {
+    "us10yYieldPct": 4.42,
+    "us10yBaselinePct": 3.75,
+    "cpiInflationYoY": 2.9,
+    "fedFundsRatePct": 4.75,
+    "rateHikeRiskBps": 25,
+    "realYield10y": 2.05,
+    "highYieldSpreadBps": 328,
+    "note": "US Treasury 10Y Benchmark, BLS Consumer Price Index, Federal Reserve Dot Plot & TIPS Breakevens"
+  },
+  "aiDebt": {
+    "annualDebtIssuanceUsd": 68000000000,
+    "totalTrackedDebtUsd": 137822500000,
+    "capexToOcfRatio": 0.548,
+    "gpuDepreciationDragUsd": 38500000000,
+    "capexToRevenueMultiple": 8.75,
+    "note": "AI Capital Tracker institutional synthesis: SEC 10-Q Capex vs OCF, private GPU SPV issuances & hardware amortization"
+  },
   "meta": {
     "last_synced_at": "2026-10-18T14:38:50.246Z",
     "sync_mode": "github_actions_cron_24h",

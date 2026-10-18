@@ -59,7 +59,7 @@ export function LiveNewsFeed() {
   });
 
   return (
-    <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 rounded-xl p-5 sm:p-6 space-y-5 transition-colors shadow-sm">
+    <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-5 sm:p-6 space-y-5 transition-colors shadow-sm">
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200 dark:border-zinc-800">
         <div>
@@ -117,7 +117,7 @@ export function LiveNewsFeed() {
             href={item.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="group block bg-slate-50/80 dark:bg-[#0c0f16] border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-5 hover:border-slate-300 dark:hover:border-zinc-700 transition-all shadow-sm hover:shadow-md space-y-3"
+            className="group block bg-slate-50/80 dark:bg-[#09090b] border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-5 hover:border-slate-300 dark:hover:border-zinc-700 transition-all shadow-sm hover:shadow-md space-y-3"
           >
             <div className="flex items-center justify-between text-xs font-mono">
               <span className="px-2.5 py-1 rounded-md bg-slate-200/90 dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 font-bold text-xs">

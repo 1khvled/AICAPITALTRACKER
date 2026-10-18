@@ -39,7 +39,7 @@ export function SensitivityCurveChart({
   const currY = toY(currentProb);
 
   return (
-    <div className="p-5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#10141d] space-y-3 transition-colors shadow-sm">
+    <div className="p-5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] space-y-3 transition-colors shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <span className="text-xs font-mono text-slate-500 dark:text-zinc-400 font-bold uppercase tracking-wider">
@@ -98,7 +98,7 @@ export function SensitivityCurveChart({
 
           {/* Annotation */}
           <g transform={`translate(${currX - 55}, ${currY - 26})`}>
-            <rect width="110" height="20" rx="4" fill="#0f172a" />
+            <rect width="110" height="20" rx="4" fill="#18181b" stroke="#27272a" />
             <text x="55" y="14" textAnchor="middle" fill="#ffffff" fontSize="10" fontFamily="monospace" fontWeight="bold">
               LIVE: {currentProb.toFixed(1)}% (S={currentScore.toFixed(1)})
             </text>
@@ -131,7 +131,7 @@ export function AiRevenueGapChart() {
   const gap = 210 + 65 - 38; // $237B gap
 
   return (
-    <div className="p-5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#10141d] space-y-4 transition-colors shadow-sm">
+    <div className="p-5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] space-y-4 transition-colors shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <span className="text-xs font-mono text-rose-600 dark:text-rose-400 font-bold uppercase tracking-wider">
@@ -174,7 +174,7 @@ export function AiRevenueGapChart() {
         })}
       </div>
 
-      <div className="p-3 rounded-lg bg-slate-50 dark:bg-[#0c0f16] border border-slate-100 dark:border-zinc-800 flex items-start space-x-2 text-xs sm:text-sm">
+      <div className="p-3 rounded-lg bg-slate-50 dark:bg-[#09090b] border border-slate-100 dark:border-zinc-800 flex items-start space-x-2 text-xs sm:text-sm">
         <span className="text-rose-500 font-bold shrink-0">⚠️ Gap Analysis:</span>
         <span className="text-slate-700 dark:text-zinc-300 font-sans leading-relaxed">
           Hyperscalers are investing $7.20 in compute infrastructure for every $1.00 of end-user software subscription revenue generated today.
@@ -199,7 +199,7 @@ export function TokenPriceDeflationChart() {
   ];
 
   return (
-    <div className="p-5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#10141d] space-y-4 transition-colors shadow-sm">
+    <div className="p-5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] space-y-4 transition-colors shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">
@@ -261,7 +261,7 @@ export function LabMultiplesChart() {
   ];
 
   return (
-    <div className="p-5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#10141d] space-y-4 transition-colors shadow-sm">
+    <div className="p-5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] space-y-4 transition-colors shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <span className="text-xs font-mono text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wider">
@@ -320,15 +320,16 @@ export function LabMultiplesChart() {
  */
 export function CapitalCompositionChart() {
   const slices = [
-    { label: "Equity & Strategic Bets", share: 40.2, amount: "$1.11T", color: "#64748b" },
-    { label: "Borrowed Debt & Converts", share: 29.1, amount: "$801B", color: "#f43f5e" },
-    { label: "Compute Capacity Contracts", share: 18.5, amount: "$510B", color: "#475569" },
-    { label: "Power & Clean Energy", share: 6.9, amount: "$190B", color: "#334155" },
-    { label: "M&A & Platform Buyouts", share: 5.3, amount: "$146B", color: "#1e293b" },
+    { label: "Compute Capacity Contracts", share: 25.9, amount: "$712B", color: "#71717a" },
+    { label: "Big Construction & Facilities", share: 24.4, amount: "$672B", color: "#52525b" },
+    { label: "Equity Rounds & Strategic Bets", share: 19.4, amount: "$534B", color: "#3f3f46" },
+    { label: "M&A & Platform Buyouts", share: 15.7, amount: "$432B", color: "#27272a" },
+    { label: "Borrowed Debt & Converts", share: 5.0, amount: "$137B", color: "#f43f5e" },
+    { label: "Power, Land & Other", share: 9.6, amount: "$267B", color: "#18181b" },
   ];
 
   return (
-    <div className="p-5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#10141d] space-y-4 transition-colors shadow-sm">
+    <div className="p-5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] space-y-4 transition-colors shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <span className="text-xs font-mono text-slate-500 dark:text-zinc-400 font-bold uppercase tracking-wider">
@@ -357,7 +358,7 @@ export function CapitalCompositionChart() {
       {/* Legend Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 pt-1 text-xs font-mono">
         {slices.map((s) => (
-          <div key={s.label} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-[#0c0f16] border border-slate-100 dark:border-zinc-800">
+          <div key={s.label} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-[#09090b] border border-slate-100 dark:border-zinc-800">
             <div className="flex items-center space-x-2">
               <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />
               <span className="text-slate-800 dark:text-zinc-200 text-xs font-medium truncate max-w-[140px]">
@@ -388,7 +389,7 @@ export function YearlySurgeChart() {
   ];
 
   return (
-    <div className="p-5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#10141d] space-y-4 transition-colors shadow-sm">
+    <div className="p-5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] space-y-4 transition-colors shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <span className="text-xs font-mono text-slate-500 dark:text-zinc-400 font-bold uppercase tracking-wider">
@@ -403,7 +404,7 @@ export function YearlySurgeChart() {
         </span>
       </div>
 
-      <div className="h-40 flex items-end justify-between gap-4 pt-4 px-4 pb-2 bg-slate-50 dark:bg-[#0c0f16] rounded-xl border border-slate-100 dark:border-zinc-800">
+      <div className="h-40 flex items-end justify-between gap-4 pt-4 px-4 pb-2 bg-slate-50 dark:bg-[#09090b] rounded-xl border border-slate-100 dark:border-zinc-800">
         {years.map((y) => (
           <div key={y.year} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
             <span className="text-xs sm:text-sm font-mono font-bold text-slate-900 dark:text-white font-tabular">
@@ -436,7 +437,7 @@ export function CdsTrajectoryChart() {
   ];
 
   return (
-    <div className="p-5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#10141d] space-y-4 transition-colors shadow-sm">
+    <div className="p-5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] space-y-4 transition-colors shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <span className="text-xs font-mono text-rose-600 dark:text-rose-400 font-bold uppercase tracking-wider">
@@ -458,7 +459,7 @@ export function CdsTrajectoryChart() {
             className={`p-3.5 rounded-xl border text-center space-y-1.5 ${
               s.isWarning
                 ? "bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/60 shadow-sm"
-                : "bg-slate-50 dark:bg-[#0c0f16] border-slate-100 dark:border-zinc-800"
+                : "bg-slate-50 dark:bg-[#09090b] border-slate-100 dark:border-zinc-800"
             }`}
           >
             <span className="text-xs font-mono text-slate-500 dark:text-zinc-400 block truncate font-medium">

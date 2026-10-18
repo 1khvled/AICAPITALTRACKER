@@ -78,7 +78,7 @@ export function ProbabilityGauge({
   ];
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 p-6 sm:p-8 space-y-6 transition-colors shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 p-6 sm:p-8 space-y-6 transition-colors shadow-sm">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         {/* Left Side: Probability Display & Executive Summary */}
         <div className="lg:col-span-7 space-y-5">
@@ -130,7 +130,7 @@ export function ProbabilityGauge({
             </div>
 
             {/* Segmented meter tracks */}
-            <div className="relative h-4 w-full bg-slate-100 dark:bg-[#0c0f16] rounded-full overflow-hidden flex border border-slate-300 dark:border-zinc-700 p-0.5">
+            <div className="relative h-4 w-full bg-slate-100 dark:bg-zinc-950 rounded-full overflow-hidden flex border border-slate-300 dark:border-zinc-700 p-0.5">
               <div className="h-full w-[25%] bg-emerald-400/80 rounded-l-full mr-0.5" title="Calm: 0-25%"></div>
               <div className="h-full w-[20%] bg-blue-400/80 mr-0.5" title="Guarded: 25-45%"></div>
               <div className="h-full w-[20%] bg-amber-400/80 mr-0.5" title="Elevated: 45-65%"></div>
@@ -147,7 +147,7 @@ export function ProbabilityGauge({
         </div>
 
         {/* Right Side: 90-Day Trajectory Sparkline & Top Risk Drivers */}
-        <div className="lg:col-span-5 bg-slate-50 dark:bg-[#0c0f16] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 space-y-4">
+        <div className="lg:col-span-5 bg-slate-50 dark:bg-[#09090b] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-zinc-200 uppercase tracking-wider">
               90-Day Risk Trajectory

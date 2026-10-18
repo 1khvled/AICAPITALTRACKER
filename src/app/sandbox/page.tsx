@@ -99,7 +99,7 @@ export default function SandboxPage() {
       <SensitivitySandbox />
 
       {/* Stress Scenarios Comparison Matrix */}
-      <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 rounded-xl p-6 sm:p-8 space-y-4 transition-colors shadow-sm">
+      <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-6 sm:p-8 space-y-4 transition-colors shadow-sm">
         <div>
           <span className="text-xs font-mono text-slate-500 dark:text-zinc-400 font-bold uppercase tracking-wider">
             SCENARIO BENCHMARKS
@@ -116,7 +116,7 @@ export default function SandboxPage() {
           {stressScenarios.map((sc) => (
             <div
               key={sc.name}
-              className={`p-4 rounded-xl border ${sc.color} bg-slate-50/50 dark:bg-[#0c0f16]/60 space-y-3 flex flex-col justify-between`}
+              className={`p-4 rounded-xl border ${sc.color} bg-slate-50/50 dark:bg-[#09090b]/60 space-y-3 flex flex-col justify-between`}
             >
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs font-mono">
@@ -161,7 +161,7 @@ export default function SandboxPage() {
       </div>
 
       {/* Sensitivity Elasticity Table */}
-      <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 rounded-xl p-6 sm:p-8 space-y-4 transition-colors shadow-sm">
+      <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-6 sm:p-8 space-y-4 transition-colors shadow-sm">
         <div>
           <span className="text-xs font-mono text-slate-500 dark:text-zinc-400 font-bold uppercase tracking-wider">
             QUANTITATIVE ELASTICITY
@@ -176,7 +176,7 @@ export default function SandboxPage() {
 
         <div className="overflow-x-auto border border-slate-100 dark:border-zinc-800 rounded-xl">
           <table className="w-full text-left text-xs sm:text-sm font-mono">
-            <thead className="bg-slate-50 dark:bg-[#0c0f16] border-b border-slate-100 dark:border-zinc-800 text-slate-500 dark:text-zinc-400">
+            <thead className="bg-slate-50 dark:bg-[#09090b] border-b border-slate-100 dark:border-zinc-800 text-slate-500 dark:text-zinc-400">
               <tr>
                 <th className="p-3.5">Variable / Lever</th>
                 <th className="p-3.5">Delta Tested</th>

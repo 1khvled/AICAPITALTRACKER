@@ -148,17 +148,17 @@ const BASELINE_FALLBACK: BubbleModelInputs = {
   ledger: {
     totalDisclosedUsd: 2_753_757_802_026,
     byYear: {
-      2023: 32_000_000_000,
-      2024: 382_000_000_000,
-      2025: 1_419_000_000_000,
-      2026: 920_757_802_026,
+      2023: 26_345_000_000,
+      2024: 295_235_000_000,
+      2025: 1_719_997_500_000,
+      2026: 712_180_302_026,
     },
-    debtShare: 0.291, // 29.1% borrowed
-    computeContractShare: 0.185, // 18.5% in compute capacity commitments
-    top10Share: 0.618, // Top 10 deals represent ~61.8% of volume
-    circularShare: 0.124, // 12.4% circular/intertwined money
-    announcedShare: 0.322, // 32.2% unclosed/waiting deals
-    megaCountLast12m: 14,
+    debtShare: 0.05, // 5.0% borrowed ($137B across verified debt & convertible facilities)
+    computeContractShare: 0.259, // 25.9% in compute capacity commitments ($712B)
+    top10Share: 0.665, // Top 10 deals represent ~66.5% of volume
+    circularShare: 0.013, // 1.3% circular money
+    announcedShare: 0.127, // 12.7% unclosed/waiting deals
+    megaCountLast12m: 44,
     daysSinceLastMega: 33,
   },
   crowd: {
@@ -177,6 +177,23 @@ const BASELINE_FALLBACK: BubbleModelInputs = {
     aggregateCapexUsd: 210_000_000_000, // $210B annualized hyperscaler capex
     aggregateFcfUsd: 184_000_000_000, // $184B free cash flow
     note: 'Microsoft, Alphabet, Meta, Amazon Q2/Q3 2026 10-Q consensus annualized',
+  },
+  macro: {
+    us10yYieldPct: 4.42,
+    us10yBaselinePct: 3.75,
+    cpiInflationYoY: 2.9,
+    fedFundsRatePct: 4.75,
+    rateHikeRiskBps: 25,
+    realYield10y: 2.05,
+    note: 'US Treasury 10Y Benchmark, BLS CPI & Federal Reserve policy baseline',
+  },
+  aiDebt: {
+    annualDebtIssuanceUsd: 68_000_000_000,
+    totalTrackedDebtUsd: 137_822_500_000,
+    capexToOcfRatio: 0.548,
+    gpuDepreciationDragUsd: 38_500_000_000,
+    capexToRevenueMultiple: 8.75,
+    note: 'SEC 10-Q Capex vs OCF synthesis & private debt facilities',
   },
 };
 

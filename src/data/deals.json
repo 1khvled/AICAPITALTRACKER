@@ -2306,7 +2306,7 @@
     "sources_count": 1,
     "description": "Alat (backed by PIF) completed a $2.0 billion strategic investment in Lenovo Group via 3-year zero-coupon convertible bonds, establishing Lenovo Middle East & Africa headquarters and a sustainable PC and AI server manufacturing hub in Riyadh.",
     "year": 2024,
-    "is_debt": false,
+    "is_debt": true,
     "is_compute": false,
     "is_circular": false,
     "is_mega": false

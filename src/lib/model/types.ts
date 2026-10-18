@@ -91,7 +91,37 @@ export interface CapexInput {
   note: string;
 }
 
-/** Everything the model reads; the adapter (Wave 3) supplies this from live sources. */
+export interface MacroInputs {
+  /** 10-Year US Treasury benchmark yield (%), e.g. 4.42 */
+  us10yYieldPct: number;
+  /** Baseline yield considered neutral/calm (%), e.g. 3.75 */
+  us10yBaselinePct: number;
+  /** Year-over-year headline CPI inflation (%), e.g. 2.9 */
+  cpiInflationYoY: number;
+  /** Upper bound of Federal Funds Effective Rate (%), e.g. 4.75 */
+  fedFundsRatePct: number;
+  /** Market-implied 12-month rate hike / tightening risk spread (bps), e.g. 25 */
+  rateHikeRiskBps: number;
+  /** 10-Year TIPS Real Yield (%), e.g. 2.05 */
+  realYield10y: number;
+  note: string;
+}
+
+export interface AiDebtMetricsInput {
+  /** Annualized pace of dedicated AI debt and convertible bond issuance (USD) */
+  annualDebtIssuanceUsd: number;
+  /** Cumulative tracked AI debt and convertibles across ledger (USD) */
+  totalTrackedDebtUsd: number;
+  /** Capex as a percentage of aggregate hyperscaler operating cash flow (0-1) */
+  capexToOcfRatio: number;
+  /** Annualized GPU hardware depreciation and amortization drag (USD) */
+  gpuDepreciationDragUsd: number;
+  /** Ratio of hyperscaler capex to aggregate generative AI software revenues */
+  capexToRevenueMultiple: number;
+  note: string;
+}
+
+/** Everything the model reads; the adapter supplies this from live sources. */
 export interface BubbleModelInputs {
   cds: CdsStressInput | null;
   valuations: LabValuationInput[] | null;
@@ -99,6 +129,8 @@ export interface BubbleModelInputs {
   crowd: CrowdSignalInput | null;
   adoption: AdoptionInput | null;
   capex: CapexInput | null;
+  macro?: MacroInputs | null;
+  aiDebt?: AiDebtMetricsInput | null;
 }
 
 export type FactorKind = 'risk' | 'damper';

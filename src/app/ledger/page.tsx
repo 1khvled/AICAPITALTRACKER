@@ -181,7 +181,7 @@ export default function LedgerPage() {
         <div className="flex items-center space-x-2.5">
           <button
             onClick={() => setShowBubbleChart(!showBubbleChart)}
-            className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#10141d] text-slate-800 dark:text-zinc-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-zinc-800/80 transition-all shadow-sm"
+            className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#121214] text-slate-800 dark:text-zinc-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-zinc-800/80 transition-all shadow-sm"
           >
             <CircleDot className="w-4 h-4 text-emerald-500" />
             <span>{showBubbleChart ? "Hide Visual Map" : "Show Visual Map"}</span>
@@ -212,7 +212,7 @@ export default function LedgerPage() {
 
       {/* Summary KPI Strip - Redesigned with High Contrast & Large Bolder Typography */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-emerald-500 p-5 rounded-2xl shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-emerald-500 p-5 rounded-2xl shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-zinc-300">
               Total Tracked Capital
@@ -230,7 +230,7 @@ export default function LedgerPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-rose-500 p-5 rounded-2xl shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-rose-500 p-5 rounded-2xl shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
               Borrowed / Debt Share
@@ -248,7 +248,7 @@ export default function LedgerPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-indigo-500 p-5 rounded-2xl shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-indigo-500 p-5 rounded-2xl shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
               Largest Deal
@@ -266,7 +266,7 @@ export default function LedgerPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-cyan-500 p-5 rounded-2xl shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 border-t-2 border-t-cyan-500 p-5 rounded-2xl shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-md transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">
               Companies Involved
@@ -286,7 +286,7 @@ export default function LedgerPage() {
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 space-y-4 shadow-sm">
+      <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 space-y-4 shadow-sm">
         {/* Search Input & Sort */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="relative flex-1">
@@ -435,7 +435,7 @@ export default function LedgerPage() {
 
               <div
                 onClick={() => setActiveDeal(deal)}
-                className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 rounded-2xl p-5 sm:p-6 transition-all cursor-pointer group shadow-sm hover:shadow-md"
+                className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 rounded-2xl p-5 sm:p-6 transition-all cursor-pointer group shadow-sm hover:shadow-md"
               >
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                   <div className="space-y-2.5 flex-1">
@@ -496,7 +496,7 @@ export default function LedgerPage() {
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 text-sm font-medium shadow-sm">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 text-sm font-medium shadow-sm">
           <div className="flex items-center space-x-2 text-slate-600 dark:text-zinc-400">
             <span className="font-semibold">Per page:</span>
             {[25, 50, 100, 158].map((size) => (
@@ -544,7 +544,7 @@ export default function LedgerPage() {
       {/* Deal Details Modal with Copy Citation */}
       {activeDeal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-7 space-y-6 shadow-2xl relative">
+          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-7 space-y-6 shadow-2xl relative">
             <button
               onClick={() => setActiveDeal(null)}
               className="absolute right-5 top-5 text-slate-400 hover:text-slate-900 dark:hover:text-white p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"

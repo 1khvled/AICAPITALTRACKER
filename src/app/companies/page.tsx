@@ -43,13 +43,13 @@ const COMPANIES: CompanyProfile[] = [
     role: "Hyperscaler & Compute Debt Anchor",
     disclosedDealsCount: 14,
     totalVolumeUsd: 145_000_000_000,
-    debtInvolvedUsd: 48_000_000_000,
+    debtInvolvedUsd: 18_000_000_000,
     valuationUsd: 350_000_000_000,
     runRateRevenueUsd: 53_000_000_000,
     psMultiple: 6.6,
     circularityConnections: ["OpenAI", "Cohere", "CoreWeave", "NVIDIA"],
     riskTier: "Critical",
-    exposureSummary: "The market's primary credit benchmark. 5Y CDS jumped from 81bp to 187bp (+131%); heavy commitments to GPU cluster debt.",
+    exposureSummary: "The market's primary credit benchmark. 5Y CDS jumped from 81bp to 187bp (+131%); issued $18B dedicated AI senior notes in ledger; carries $87.5B total corporate debt with heavy GPU commitments.",
   },
   {
     name: "Microsoft",
@@ -58,13 +58,13 @@ const COMPANIES: CompanyProfile[] = [
     role: "Hyperscaler & OpenAI Anchor Cloud",
     disclosedDealsCount: 22,
     totalVolumeUsd: 590_000_000_000,
-    debtInvolvedUsd: 15_000_000_000,
+    debtInvolvedUsd: 0,
     valuationUsd: 3_150_000_000_000,
     runRateRevenueUsd: 245_000_000_000,
     psMultiple: 12.8,
     circularityConnections: ["OpenAI", "Constellation Energy", "QTS Data Centers", "Mistral"],
     riskTier: "Elevated",
-    exposureSummary: "Anchor funding for OpenAI ($13B+); signed 20-year Three Mile Island nuclear restart power agreement; massive $50B+ capex acceleration.",
+    exposureSummary: "Anchor funding for OpenAI ($13B+); signed 20-year Three Mile Island nuclear restart power agreement; massive capex acceleration funded internally via operating cash flow.",
   },
   {
     name: "Amazon AWS",
@@ -73,13 +73,13 @@ const COMPANIES: CompanyProfile[] = [
     role: "Hyperscaler & Anthropic Anchor",
     disclosedDealsCount: 16,
     totalVolumeUsd: 220_000_000_000,
-    debtInvolvedUsd: 0,
+    debtInvolvedUsd: 15_000_000_000,
     valuationUsd: 1_950_000_000_000,
     runRateRevenueUsd: 105_000_000_000,
     psMultiple: 18.5,
     circularityConnections: ["Anthropic", "Talen Energy", "Annapurna Labs"],
     riskTier: "Elevated",
-    exposureSummary: "$8B total commitment to Anthropic with Trainium2 custom silicon commitments; $650M acquisition of Talen Energy nuclear-adjacent datacenter campus.",
+    exposureSummary: "Issued $15B bond offering dedicated to AI infrastructure; $8B total commitment to Anthropic with Trainium2 custom silicon; $650M acquisition of Talen nuclear datacenter campus.",
   },
   {
     name: "Alphabet / Google",
@@ -88,13 +88,13 @@ const COMPANIES: CompanyProfile[] = [
     role: "Full-Stack TPU Cloud & Gemini Developer",
     disclosedDealsCount: 18,
     totalVolumeUsd: 240_000_000_000,
-    debtInvolvedUsd: 0,
+    debtInvolvedUsd: 25_000_000_000,
     valuationUsd: 2_050_000_000_000,
     runRateRevenueUsd: 350_000_000_000,
     psMultiple: 5.8,
     circularityConnections: ["Anthropic", "Marvell", "Kairos Power", "Runway"],
     riskTier: "Guarded",
-    exposureSummary: "TPU v5p/v6 infrastructure lead; signed corporate off-take with Kairos Power for 500MW of Small Modular Nuclear Reactors (SMRs).",
+    exposureSummary: "Issued $25B global bond sale for AI capex; TPU v5p/v6 infrastructure lead; signed corporate off-take with Kairos Power for 500MW of Small Modular Nuclear Reactors.",
   },
   {
     name: "Meta Platforms",
@@ -103,13 +103,13 @@ const COMPANIES: CompanyProfile[] = [
     role: "Open Weights & Massive Capex Builder",
     disclosedDealsCount: 11,
     totalVolumeUsd: 180_000_000_000,
-    debtInvolvedUsd: 10_500_000_000,
+    debtInvolvedUsd: 30_000_000_000,
     valuationUsd: 1_480_000_000_000,
     runRateRevenueUsd: 160_000_000_000,
     psMultiple: 9.2,
     circularityConnections: ["NVIDIA", "Broadcom", "CoreWeave"],
     riskTier: "Elevated",
-    exposureSummary: "Targeting 600,000+ H100 equivalents; $40B+ annual capex guide with zero direct enterprise LLM API subscription revenue.",
+    exposureSummary: "Issued $30B senior notes offering for AI infrastructure; targeting 600,000+ H100 equivalents; $40B+ annual capex guide with zero direct enterprise LLM API subscription revenue.",
   },
 
   // 2. GPU NEOCLOUDS & DEBT ANCHORS
@@ -120,13 +120,28 @@ const COMPANIES: CompanyProfile[] = [
     role: "Specialized GPU Cloud Provider",
     disclosedDealsCount: 9,
     totalVolumeUsd: 26_700_000_000,
-    debtInvolvedUsd: 15_900_000_000,
+    debtInvolvedUsd: 25_087_500_000,
     valuationUsd: 23_000_000_000,
     runRateRevenueUsd: 2_000_000_000,
     psMultiple: 11.5,
     circularityConnections: ["NVIDIA", "Blackstone", "Magnetar", "OpenAI"],
     riskTier: "Critical",
-    exposureSummary: "$4.2B convertibles issued Sep 2026 + $7.5B debt facilities collateralized by NVIDIA GPU silicon. High debt-to-equity leverage ratio.",
+    exposureSummary: "$25.1B total debt across 5 verified deals: $4.2B 2033 convertibles + $8.5B DDTL 4.0 + $2.59B convertibles + $7.5B Blackstone facility + $2.3B loan collateralized by NVIDIA GPUs.",
+  },
+  {
+    name: "Nebius Group",
+    ticker: "NBIS",
+    sector: "GPU Neoclouds",
+    role: "AI Neocloud & Supercomputing Infrastructure",
+    disclosedDealsCount: 4,
+    totalVolumeUsd: 19_400_000_000,
+    debtInvolvedUsd: 1_000_000_000,
+    valuationUsd: 6_200_000_000,
+    runRateRevenueUsd: 350_000_000,
+    psMultiple: 17.7,
+    circularityConnections: ["Microsoft", "NVIDIA", "Accolade"],
+    riskTier: "High",
+    exposureSummary: "$1.0B convertible notes private placement; secured $17.4B compute infrastructure agreement with Microsoft through 2030.",
   },
   {
     name: "Crusoe Energy",
@@ -135,13 +150,13 @@ const COMPANIES: CompanyProfile[] = [
     role: "Clean Compute & Flare Gas Datacenters",
     disclosedDealsCount: 5,
     totalVolumeUsd: 4_800_000_000,
-    debtInvolvedUsd: 3_400_000_000,
+    debtInvolvedUsd: 225_000_000,
     valuationUsd: 3_500_000_000,
     runRateRevenueUsd: 450_000_000,
     psMultiple: 7.7,
     circularityConnections: ["Lancium", "OpenAI", "Blue Owl"],
     riskTier: "High",
-    exposureSummary: "$3.4B joint venture with Blue Owl Capital to construct a 200MW purpose-built GPU datacenter in Abilene, Texas for OpenAI.",
+    exposureSummary: "$225M GPU asset-backed credit facility from Upper90 plus $3.4B joint venture project financing with Blue Owl Capital for 200MW Abilene datacenter for OpenAI.",
   },
   {
     name: "Lambda Labs",
@@ -150,13 +165,13 @@ const COMPANIES: CompanyProfile[] = [
     role: "GPU Cloud & Compute Clustering",
     disclosedDealsCount: 4,
     totalVolumeUsd: 1_820_000_000,
-    debtInvolvedUsd: 800_000_000,
+    debtInvolvedUsd: 500_000_000,
     valuationUsd: 1_500_000_000,
     runRateRevenueUsd: 250_000_000,
     psMultiple: 6.0,
     circularityConnections: ["NVIDIA", "Macquarie", "Braidwell"],
     riskTier: "Elevated",
-    exposureSummary: "$500M GPU-collateralized asset-backed loan backed by NVIDIA H100 inventory plus $320M Series C.",
+    exposureSummary: "$500M GPU-collateralized asset-backed financing facility backed by NVIDIA H100 inventory, plus $320M Series C equity.",
   },
   {
     name: "Northern Data",
@@ -165,13 +180,13 @@ const COMPANIES: CompanyProfile[] = [
     role: "HPC Cloud & Crypto Infrastructure Pivot",
     disclosedDealsCount: 3,
     totalVolumeUsd: 1_200_000_000,
-    debtInvolvedUsd: 620_000_000,
+    debtInvolvedUsd: 610_000_000,
     valuationUsd: 1_400_000_000,
     runRateRevenueUsd: 180_000_000,
     psMultiple: 7.7,
     circularityConnections: ["Tether", "Taiga Cloud"],
     riskTier: "Critical",
-    exposureSummary: "Funded via debt and equity lines from stablecoin issuer Tether; pivoting mining infrastructure to host 20,000+ NVIDIA H100 GPUs.",
+    exposureSummary: "$610M (€575M) debt financing facility from stablecoin issuer Tether; pivoting mining infrastructure to host 20,000+ NVIDIA H100 GPUs.",
   },
 
   // 3. FRONTIER LABS
@@ -188,7 +203,7 @@ const COMPANIES: CompanyProfile[] = [
     psMultiple: 42.4,
     circularityConnections: ["Microsoft", "Oracle", "NVIDIA", "SoftBank"],
     riskTier: "High",
-    exposureSummary: "Valued at $157B at 42.4× run-rate. Anchor tenant for the $500B Stargate supercluster; massive multi-year compute commitments.",
+    exposureSummary: "$4.0B revolving bank credit facility from JPMorgan/Citi syndicate; valued at $157B at 42.4× run-rate. Anchor tenant for $500B Stargate with massive multi-year compute commitments.",
   },
   {
     name: "Anthropic",
@@ -203,7 +218,7 @@ const COMPANIES: CompanyProfile[] = [
     psMultiple: 40.0,
     circularityConnections: ["Amazon", "Google", "BlackRock"],
     riskTier: "High",
-    exposureSummary: "IPO prospectus shows ~$1B run-rate against $518B of coming infrastructure and cloud compute obligations over 4 years.",
+    exposureSummary: "Zero funded debt; $40B valuation (~$1B run-rate) against $50B+ in compute commitments to AWS and Google Cloud.",
   },
   {
     name: "xAI",
@@ -212,13 +227,13 @@ const COMPANIES: CompanyProfile[] = [
     role: "Frontier Model & Colossus Supercluster",
     disclosedDealsCount: 6,
     totalVolumeUsd: 56_000_000_000,
-    debtInvolvedUsd: 0,
+    debtInvolvedUsd: 17_500_000_000,
     valuationUsd: 50_000_000_000,
     runRateRevenueUsd: 500_000_000,
     psMultiple: 100.0,
     circularityConnections: ["NVIDIA", "Valor Equity", "Tesla", "Oracle"],
     riskTier: "Critical",
-    exposureSummary: "Rapidly deployed 100,000 H100 Colossus cluster in Memphis; Series C valued at $50B with ~100× price-to-sales multiple.",
+    exposureSummary: "$17.5B in total debt: $12.5B GPU-collateralized SPV debt for Colossus 2 (Apollo, Diameter participating) plus $5.0B secured debt by Morgan Stanley. Highest debt leverage among frontier labs.",
   },
   {
     name: "Mistral AI",
@@ -399,16 +414,16 @@ export default function CompaniesPage() {
               Corporate AI Exposure &amp; Risk Matrix
             </h1>
             <p className="text-sm text-slate-600 dark:text-zinc-300 font-sans mt-1 max-w-2xl leading-relaxed">
-              Systemic risk mapping, debt leverage ratios, and circular counterparty exposure across the 20 companies 
+              Systemic risk mapping, debt leverage ratios, and circular counterparty exposure across the {COMPANIES.length} companies 
               carrying the $2.75T AI capital superstructure.
             </p>
           </div>
           <div className="flex items-center space-x-3 text-sm">
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800">
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800">
               <span className="text-slate-500 dark:text-zinc-400 block text-xs font-bold uppercase tracking-wider">Tracked Volume</span>
               <span className="font-black text-slate-900 dark:text-white font-mono text-xl sm:text-2xl">${(totalTrackedUsd / 1e12).toFixed(2)}T</span>
             </div>
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800">
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800">
               <span className="text-rose-600 dark:text-rose-400 block text-xs font-bold uppercase tracking-wider">Debt Involved</span>
               <span className="font-black text-rose-600 dark:text-rose-400 font-mono text-xl sm:text-2xl">${(totalDebtUsd / 1e9).toFixed(1)}B</span>
             </div>
@@ -424,10 +439,10 @@ export default function CompaniesPage() {
             <Search className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3" />
             <input
               type="text"
-              placeholder="Search 20 tracked companies..."
+              placeholder={`Search ${COMPANIES.length} tracked companies...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm font-medium rounded-xl border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-[#0c0f16] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm font-medium rounded-xl border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-[#09090b] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
@@ -490,7 +505,7 @@ export default function CompaniesPage() {
           return (
             <div
               key={c.name}
-              className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 space-y-4 hover:border-slate-300 dark:hover:border-zinc-700 transition-all shadow-sm hover:shadow-md flex flex-col justify-between"
+              className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 space-y-4 hover:border-slate-300 dark:hover:border-zinc-700 transition-all shadow-sm hover:shadow-md flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
@@ -521,19 +536,19 @@ export default function CompaniesPage() {
 
                 {/* Metrics Matrix */}
                 <div className="grid grid-cols-3 gap-2.5 text-xs font-mono pt-1">
-                  <div className="bg-slate-50 dark:bg-[#0c0f16] p-2.5 rounded-xl border border-slate-200/80 dark:border-zinc-800/80">
+                  <div className="bg-slate-50 dark:bg-[#09090b] p-2.5 rounded-xl border border-slate-200/80 dark:border-zinc-800/80">
                     <span className="text-slate-500 dark:text-zinc-400 block text-xs font-bold uppercase tracking-wider">Deals</span>
                     <span className="text-slate-900 dark:text-white font-extrabold font-tabular text-sm sm:text-base mt-0.5 block">
                       ${(c.totalVolumeUsd / 1e9).toFixed(1)}B
                     </span>
                   </div>
-                  <div className="bg-slate-50 dark:bg-[#0c0f16] p-2.5 rounded-xl border border-slate-200/80 dark:border-zinc-800/80">
+                  <div className="bg-slate-50 dark:bg-[#09090b] p-2.5 rounded-xl border border-slate-200/80 dark:border-zinc-800/80">
                     <span className="text-slate-500 dark:text-zinc-400 block text-xs font-bold uppercase tracking-wider">Debt</span>
                     <span className={c.debtInvolvedUsd > 0 ? "text-rose-600 dark:text-rose-400 font-extrabold font-tabular text-sm sm:text-base mt-0.5 block" : "text-slate-400 dark:text-zinc-500 text-sm sm:text-base mt-0.5 block font-bold"}>
                       {c.debtInvolvedUsd > 0 ? `$${(c.debtInvolvedUsd / 1e9).toFixed(1)}B` : "None"}
                     </span>
                   </div>
-                  <div className="bg-slate-50 dark:bg-[#0c0f16] p-2.5 rounded-xl border border-slate-200/80 dark:border-zinc-800/80">
+                  <div className="bg-slate-50 dark:bg-[#09090b] p-2.5 rounded-xl border border-slate-200/80 dark:border-zinc-800/80">
                     <span className="text-slate-500 dark:text-zinc-400 block text-xs font-bold uppercase tracking-wider">P/S</span>
                     <span className={c.psMultiple && c.psMultiple > 35 ? "text-amber-600 dark:text-amber-400 font-extrabold font-tabular text-sm sm:text-base mt-0.5 block" : "text-slate-900 dark:text-white font-extrabold font-tabular text-sm sm:text-base mt-0.5 block"}>
                       {c.psMultiple ? `${c.psMultiple}×` : "N/A"}

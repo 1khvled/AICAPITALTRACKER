@@ -33,12 +33,48 @@ export function MarketTickerTape() {
 
   const macroItems: TickerItem[] = [
     {
+      id: "us10y",
+      label: "US 10Y YIELD",
+      value: "4.42%",
+      change: "+8.4 bps",
+      isPositive: false,
+      type: "risk",
+      href: "/sandbox",
+    },
+    {
       id: "prob",
       label: "BUBBLE PROB (12M)",
       value: "68.4%",
       change: "HIGH STRESS",
       type: "risk",
       href: "/",
+    },
+    {
+      id: "ai-debt-pace",
+      label: "AI DEBT ISSUANCE",
+      value: "$68.0B/yr",
+      change: "+182% YoY",
+      isPositive: false,
+      type: "risk",
+      href: "/companies",
+    },
+    {
+      id: "cpi",
+      label: "INFLATION (CPI)",
+      value: "2.9% YoY",
+      change: "+0.2% sticky",
+      isPositive: false,
+      type: "risk",
+      href: "/sandbox",
+    },
+    {
+      id: "fedfunds",
+      label: "FED FUNDS RATE",
+      value: "4.75%",
+      change: "+25bp hike risk",
+      isPositive: false,
+      type: "risk",
+      href: "/sandbox",
     },
     {
       id: "poly-26",
@@ -140,13 +176,13 @@ export function MarketTickerTape() {
 
   return (
     <div
-      className="bg-[#07090e] border-b border-zinc-800 text-slate-300 text-xs sm:text-sm py-2.5 overflow-hidden select-none relative z-40 transition-colors shadow-inner"
+      className="bg-[#09090b] border-b border-zinc-800 text-slate-300 text-xs sm:text-sm py-2.5 overflow-hidden select-none relative z-40 transition-colors shadow-inner"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
       <div className="max-w-7xl mx-auto flex items-center px-4">
         {/* Left Fixed Badge */}
-        <div className="flex-shrink-0 flex items-center space-x-2 pr-3.5 sm:pr-4 border-r border-zinc-800 z-10 bg-[#07090e]">
+        <div className="flex-shrink-0 flex items-center space-x-2 pr-3.5 sm:pr-4 border-r border-zinc-800 z-10 bg-[#09090b]">
           <span className="relative flex h-2.5 w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>

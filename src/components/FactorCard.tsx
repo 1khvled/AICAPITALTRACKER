@@ -39,7 +39,7 @@ export function FactorCard({ factor, explain, formula }: FactorCardProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 rounded-xl p-5 transition-all flex flex-col justify-between shadow-sm">
+    <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 rounded-xl p-5 transition-all flex flex-col justify-between shadow-sm">
       <div className="space-y-3">
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
@@ -70,7 +70,7 @@ export function FactorCard({ factor, explain, formula }: FactorCardProps) {
             <span>Factor Stress</span>
             <span>{intensity}%</span>
           </div>
-          <div className="h-2 w-full bg-slate-100 dark:bg-[#0c0f16] rounded-full overflow-hidden border border-slate-200/50 dark:border-zinc-800">
+          <div className="h-2 w-full bg-slate-100 dark:bg-zinc-950 rounded-full overflow-hidden border border-slate-200/50 dark:border-zinc-800">
             <div
               className={`h-full ${barColor} rounded-full transition-all duration-300`}
               style={{ width: `${intensity}%` }}
@@ -85,7 +85,7 @@ export function FactorCard({ factor, explain, formula }: FactorCardProps) {
 
         {/* Accordion for Formula */}
         {showFormula && (
-          <div className="p-3 bg-slate-50 dark:bg-[#0c0f16] rounded-lg border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-800 dark:text-zinc-200 space-y-1 transition-all">
+          <div className="p-3 bg-slate-50 dark:bg-[#09090b] rounded-lg border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-800 dark:text-zinc-200 space-y-1 transition-all">
             <div className="flex items-center space-x-1.5 text-slate-500 dark:text-zinc-400 text-xs font-semibold">
               <Code2 className="w-3.5 h-3.5" />
               <span>Published Formula</span>

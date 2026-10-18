@@ -5,10 +5,10 @@ import { POLYMARKET_BASE_URL, POLYMARKET_REFERRAL_CODE } from "@/data/polymarket
 
 export function Footer() {
   return (
-    <footer className="border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#0c0f16] mt-20 text-slate-600 dark:text-zinc-400 text-sm transition-colors">
+    <footer className="border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#09090b] mt-20 text-slate-600 dark:text-zinc-400 text-sm transition-colors">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 space-y-10">
         {/* Polymarket Referral Callout Box */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-[#111520] border border-slate-200 dark:border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-5 shadow-sm">
+        <div className="p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-5 shadow-sm">
           <div className="space-y-1.5 text-center md:text-left">
             <div className="flex items-center justify-center md:justify-start space-x-2.5">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>

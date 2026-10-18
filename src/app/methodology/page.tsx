@@ -52,7 +52,7 @@ export default function MethodologyPage() {
       </div>
 
       {/* Section 1: The Core Scientific Thesis */}
-      <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 rounded-xl p-6 sm:p-8 space-y-4 transition-colors shadow-sm">
+      <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-6 sm:p-8 space-y-4 transition-colors shadow-sm">
         <div className="flex items-center space-x-2 text-xs font-mono text-emerald-600 dark:text-emerald-400 font-semibold uppercase">
           <BookOpen className="w-4 h-4" />
           <span>Section 01: The Empirical Imperative</span>
@@ -66,19 +66,19 @@ export default function MethodologyPage() {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-          <div className="p-4 rounded-lg bg-slate-50 dark:bg-[#0c0f16] border border-slate-100 dark:border-zinc-800 space-y-1.5">
+          <div className="p-4 rounded-lg bg-slate-50 dark:bg-[#09090b] border border-slate-100 dark:border-zinc-800 space-y-1.5">
             <span className="text-xs font-mono font-bold text-slate-900 dark:text-white block">1. Sourced Receipts Only</span>
             <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
               Every single metric is anchored in an audited SEC 10-K/10-Q filing, indenture prospectus, or verified primary counterparty disclosure. Unconfirmed leaks remain marked undisclosed.
             </p>
           </div>
-          <div className="p-4 rounded-lg bg-slate-50 dark:bg-[#0c0f16] border border-slate-100 dark:border-zinc-800 space-y-1.5">
+          <div className="p-4 rounded-lg bg-slate-50 dark:bg-[#09090b] border border-slate-100 dark:border-zinc-800 space-y-1.5">
             <span className="text-xs font-mono font-bold text-slate-900 dark:text-white block">2. Credit Precedes Equity</span>
             <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
               In 2000 and 2008, credit default swap spreads and high-yield bond spreads blew out 3 to 6 months before stock indices rolled over. Oracle CDS is tracked as the foundational debt anchor.
             </p>
           </div>
-          <div className="p-4 rounded-lg bg-slate-50 dark:bg-[#0c0f16] border border-slate-100 dark:border-zinc-800 space-y-1.5">
+          <div className="p-4 rounded-lg bg-slate-50 dark:bg-[#09090b] border border-slate-100 dark:border-zinc-800 space-y-1.5">
             <span className="text-xs font-mono font-bold text-slate-900 dark:text-white block">3. Static A Priori Weights</span>
             <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
               Factor weights and ramp boundaries were defined a priori and published permanently. They are never tweaked ex-post to fit a preferred market bias.
@@ -88,7 +88,7 @@ export default function MethodologyPage() {
       </div>
 
       {/* Section 2: Mathematical Sigmoid Calibration */}
-      <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 rounded-xl p-6 sm:p-8 space-y-5 transition-colors shadow-sm">
+      <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-6 sm:p-8 space-y-5 transition-colors shadow-sm">
         <div className="flex items-center space-x-2 text-xs font-mono text-emerald-600 dark:text-emerald-400 font-semibold uppercase">
           <Code2 className="w-4 h-4" />
           <span>Section 02: Sigmoid Calibration</span>
@@ -101,26 +101,26 @@ export default function MethodologyPage() {
         </p>
 
         {/* LaTeX Math Box */}
-        <div className="p-4 bg-slate-50 dark:bg-[#0c0f16] rounded-xl border border-slate-200 dark:border-zinc-800 font-mono text-sm text-center text-slate-900 dark:text-emerald-400 overflow-x-auto shadow-inner">
+        <div className="p-4 bg-slate-50 dark:bg-[#09090b] rounded-xl border border-slate-200 dark:border-zinc-800 font-mono text-sm text-center text-slate-900 dark:text-emerald-400 overflow-x-auto shadow-inner">
           <code>{"\\mathcal{P}(\\text{burst}) = \\frac{1}{1 + e^{-(S - 55) / 9}} \\times 100\\%"}</code>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-xs font-mono pt-1">
-          <div className="p-3.5 bg-slate-50 dark:bg-[#0c0f16] rounded-xl border border-slate-100 dark:border-zinc-800 space-y-1">
+          <div className="p-3.5 bg-slate-50 dark:bg-[#09090b] rounded-xl border border-slate-100 dark:border-zinc-800 space-y-1">
             <span className="text-slate-500 dark:text-zinc-400 block text-xs font-medium">Anchor Point ($S_0 = 55$)</span>
             <span className="text-slate-900 dark:text-white font-bold text-sm block">50% Baseline Probability</span>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans mt-1 leading-relaxed">
               The threshold where debt service ratios and multiples surpass historic equilibrium.
             </p>
           </div>
-          <div className="p-3.5 bg-slate-50 dark:bg-[#0c0f16] rounded-xl border border-slate-100 dark:border-zinc-800 space-y-1">
+          <div className="p-3.5 bg-slate-50 dark:bg-[#09090b] rounded-xl border border-slate-100 dark:border-zinc-800 space-y-1">
             <span className="text-slate-500 dark:text-zinc-400 block text-xs font-medium">Steepness ($k = 9$)</span>
             <span className="text-slate-900 dark:text-white font-bold text-sm block">±9 Points ≈ ±50% Odds Shift</span>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans mt-1 leading-relaxed">
               Governs the sensitivity slope around the critical refinancing threshold.
             </p>
           </div>
-          <div className="p-3.5 bg-slate-50 dark:bg-[#0c0f16] rounded-xl border border-slate-100 dark:border-zinc-800 space-y-1">
+          <div className="p-3.5 bg-slate-50 dark:bg-[#09090b] rounded-xl border border-slate-100 dark:border-zinc-800 space-y-1">
             <span className="text-slate-500 dark:text-zinc-400 block text-xs font-medium">Adoption Damper Cap</span>
             <span className="text-emerald-600 dark:text-emerald-400 font-bold text-sm block">Max -10 Points Direct Discount</span>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans mt-1 leading-relaxed">
@@ -137,12 +137,12 @@ export default function MethodologyPage() {
       {/* Mid Ad */}
       <AdSlot format="in-feed" />
 
-      {/* Section 3: The 8 Published Factor Formulas */}
+      {/* Section 3: The Published Factor Formulas */}
       <div className="space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-zinc-800">
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-              Section 03: The 8 Published Mathematical Factors
+              Section 03: The {MODEL_FACTORS.length} Published Mathematical Factors
             </h2>
             <p className="text-xs text-slate-500 dark:text-zinc-400 font-sans mt-0.5">
               Exact weighting allocation, ramp boundary limits, and input definitions.
@@ -157,7 +157,7 @@ export default function MethodologyPage() {
           {MODEL_FACTORS.map((f, i) => (
             <div
               key={f.id}
-              className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 rounded-xl p-5 space-y-3 transition-colors shadow-sm"
+              className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-5 space-y-3 transition-colors shadow-sm"
             >
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="flex items-center space-x-2.5">
@@ -188,7 +188,7 @@ export default function MethodologyPage() {
                 {f.explain}
               </p>
 
-              <div className="bg-slate-50 dark:bg-[#0c0f16] p-3.5 rounded-lg border border-slate-100 dark:border-zinc-800 space-y-1">
+              <div className="bg-slate-50 dark:bg-[#09090b] p-3.5 rounded-lg border border-slate-100 dark:border-zinc-800 space-y-1">
                 <span className="text-xs font-mono text-slate-500 dark:text-zinc-400 block uppercase font-bold">
                   Mathematical Formula:
                 </span>
@@ -202,7 +202,7 @@ export default function MethodologyPage() {
       </div>
 
       {/* Section 4: Historical Backtest Comparison Table */}
-      <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 rounded-xl p-6 sm:p-8 space-y-4 transition-colors shadow-sm">
+      <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-6 sm:p-8 space-y-4 transition-colors shadow-sm">
         <div>
           <span className="text-xs font-mono text-slate-500 dark:text-zinc-400 font-bold uppercase tracking-wider">
             HISTORICAL VALIDATION
@@ -217,7 +217,7 @@ export default function MethodologyPage() {
 
         <div className="overflow-x-auto border border-slate-100 dark:border-zinc-800 rounded-xl">
           <table className="w-full text-left text-xs sm:text-sm font-mono">
-            <thead className="bg-slate-50 dark:bg-[#0c0f16] border-b border-slate-100 dark:border-zinc-800 text-slate-500 dark:text-zinc-400">
+            <thead className="bg-slate-50 dark:bg-[#09090b] border-b border-slate-100 dark:border-zinc-800 text-slate-500 dark:text-zinc-400">
               <tr>
                 <th className="p-3.5">Historical Epoch</th>
                 <th className="p-3.5">Score (0–100)</th>
@@ -247,7 +247,7 @@ export default function MethodologyPage() {
 
       {/* Section 5: Coverage Renormalization & Anti-Tampering Protocol */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 p-5 rounded-xl space-y-2.5 shadow-sm">
+        <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 p-5 rounded-xl space-y-2.5 shadow-sm">
           <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-bold text-sm">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
             <span>Coverage Renormalization Rule</span>
@@ -259,7 +259,7 @@ export default function MethodologyPage() {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-[#10141d] border border-slate-200 dark:border-zinc-800 p-5 rounded-xl space-y-2.5 shadow-sm">
+        <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 p-5 rounded-xl space-y-2.5 shadow-sm">
           <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-bold text-sm">
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
             <span>Automated 24h Cron Protocol</span>
