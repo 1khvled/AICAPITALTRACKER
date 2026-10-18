@@ -2,6 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LiveStockMonitor } from "@/components/LiveStockMonitor";
+import { PolymarketCharts } from "@/components/PolymarketCharts";
 import { AdSlot } from "@/components/AdSlot";
 import {
   TrendingUp,
@@ -89,6 +90,11 @@ export default function MarketsPage() {
         <LiveStockMonitor />
       </section>
 
+      {/* Real-Money Prediction Market Crowds (Polymarket) */}
+      <section aria-label="Polymarket Prediction Contracts" className="space-y-4 pt-4 border-t border-slate-200 dark:border-zinc-800">
+        <PolymarketCharts />
+      </section>
+
       {/* Institutional Explanatory Callouts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-4">
         <div className="p-5 rounded-2xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 space-y-2.5">
@@ -113,7 +119,7 @@ export default function MarketsPage() {
             </h3>
           </div>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed">
-            With the US 10-Year Treasury hovering around 4.42% and headline CPI at 2.9%, hurdle rates for frontier AI buildouts 
+            With the US 10-Year Treasury hovering around 5.10% and headline CPI at 2.9%, hurdle rates for frontier AI buildouts 
             remain elevated. Every 50 basis points of rate tightening increases annual interest expense across tracked debt facilities by ~$1.2B, 
             disproportionately impacting pre-revenue compute startups and asset-heavy datacenters.
           </p>

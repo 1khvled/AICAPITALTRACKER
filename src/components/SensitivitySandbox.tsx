@@ -57,7 +57,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
   // Baseline calibration values for diffing & resets
   const baseCds = DEFAULT_MODEL_INPUTS.cds?.currentBps || 187;
   const baseDebt = Math.round((DEFAULT_MODEL_INPUTS.ledger?.debtShare ?? 0.07) * 100);
-  const baseUs10y = DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 4.42;
+  const baseUs10y = DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 5.10;
   const baseAnnualDebtB = Math.round((DEFAULT_MODEL_INPUTS.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000) / 1e9);
   const baseTokenDiscount = DEFAULT_MODEL_INPUTS.adoption?.apiPriceDeclineMultiple || 40;
   const baseUserGrowth = Math.round((DEFAULT_MODEL_INPUTS.adoption?.annualUserGrowth || 0.65) * 100);
@@ -506,7 +506,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
 
             <div className="flex justify-between text-[11px] font-mono text-slate-500 dark:text-zinc-400">
               <span>3.00% (Accommodative)</span>
-              <span className="font-bold text-indigo-600 dark:text-indigo-400">4.42% (Baseline)</span>
+              <span className="font-bold text-indigo-600 dark:text-indigo-400">5.10% (Baseline)</span>
               <span>6.50% (Liquidity Freeze)</span>
             </div>
           </div>

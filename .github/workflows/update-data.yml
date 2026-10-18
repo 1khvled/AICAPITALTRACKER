@@ -13,6 +13,10 @@ jobs:
   update-market-data:
     name: Fetch Live Feeds, Quantitative Modeling & Rebuild
     runs-on: ubuntu-latest
+    env:
+      FRED_API_KEY: ${{ secrets.FRED_API_KEY || 'b1ecf294238515eab7bb6e2e4edd6fe8' }}
+      ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY || 'LZ3IO4EQQ58CD3C2' }}
+      FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY || 'd8cnqdhr01qidic8p4m0d8cnqdhr01qidic8p4mg' }}
 
     steps:
       - name: Checkout repository
@@ -72,6 +76,9 @@ jobs:
             
             fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
           '
+
+      - name: Run Quantitative Algorithm Test Suite (10/10 math tests)
+        run: npm run test:algo
 
       - name: Verify Next.js build with fresh data
         run: npm run build

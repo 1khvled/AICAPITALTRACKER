@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start -p 3000",
     "lint": "next lint",
+    "test": "node scripts/test-algo.mjs",
+    "test:algo": "node scripts/test-algo.mjs",
     "update-data": "node scripts/update-data.mjs"
   },
   "dependencies": {

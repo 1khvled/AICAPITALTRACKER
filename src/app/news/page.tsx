@@ -69,7 +69,7 @@ export default function NewsPage() {
               className="flex items-center space-x-1.5 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-xs"
             >
               <Database className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>Browse 159 Deals</span>
+              <span>Browse All Deals</span>
             </Link>
             <Link
               href="/markets"

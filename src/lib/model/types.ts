@@ -98,8 +98,10 @@ export interface CapexInput {
 }
 
 export interface MacroInputs {
-  /** 10-Year US Treasury benchmark yield (%), e.g. 4.42 */
+  /** 10-Year US Treasury benchmark yield (%), e.g. 5.10 */
   us10yYieldPct: number;
+  /** 2-Year US Treasury benchmark yield (%), e.g. 4.75 */
+  us02yYieldPct?: number;
   /** Baseline yield considered neutral/calm (%), e.g. 3.75 */
   us10yBaselinePct: number;
   /** Year-over-year headline CPI inflation (%), e.g. 2.9 */
@@ -108,10 +110,12 @@ export interface MacroInputs {
   fedFundsRatePct: number;
   /** Market-implied 12-month rate hike / tightening risk spread (bps), e.g. 25 */
   rateHikeRiskBps: number;
-  /** 10-Year TIPS Real Yield (%), e.g. 2.05 */
+  /** 10-Year TIPS Real Yield (%), e.g. 2.70 */
   realYield10y: number;
-  /** US High Yield Option-Adjusted Spread (bps), e.g. 328 */
+  /** US High Yield Option-Adjusted Spread (bps), e.g. 336 */
   highYieldSpreadBps?: number;
+  /** Sector or asset cyclically adjusted P/E multiple override */
+  capeMultiple?: number;
   note: string;
 }
 
@@ -203,4 +207,67 @@ export interface BubbleModelResult {
     impliedDistressProbPct: number;
     interpretation: string;
   };
+  /** Minsky (1986, 1992) Financial Instability Hypothesis regime classification */
+  minsky?: MinskyModelResult;
+  /** Robert Shiller Cyclically Adjusted P/E (CAPE) & Excess CAPE Yield (ECY) */
+  shillerCape?: ShillerCapeResult;
 }
+
+export type MinskyRegime = 'Hedge Dominant' | 'Speculative Transition' | 'Ponzi Instability';
+
+export interface MinskyModelResult {
+  /** Percentage of ecosystem debt held by cash-flow self-sufficient units (interest + principal amortization) */
+  hedgeSharePct: number;
+  /** Percentage of ecosystem debt where cash flows cover interest but principal must be rolled over */
+  speculativeSharePct: number;
+  /** Percentage of ecosystem debt where cash flows cannot cover interest without new equity or rising asset prices */
+  ponziSharePct: number;
+  /** Minsky Financial Fragility Index on a 0–100 scale */
+  minskyFragilityIndex: number;
+  /** Structural financing regime according to Minsky Financial Instability Hypothesis */
+  currentRegime: MinskyRegime;
+  /** Probability of credit rollover / refinancing seizure within 12 months (%) */
+  refinancingFreezeProbabilityPct: number;
+  /** Nominal debt exposure breakdown across the three regimes (USD) */
+  breakdown: {
+    hedgeDebtUsd: number;
+    speculativeDebtUsd: number;
+    ponziDebtUsd: number;
+  };
+  /** Academic contextual interpretation of the ecosystem financing structure */
+  interpretation: string;
+
+  // Compatibility aliases
+  fragilityIndex: number;
+  regime: MinskyRegime;
+  ponziDebtSharePct: number;
+}
+
+export type EquityRiskPremiumBand = 'Compressed (<1.5%)' | 'Normal (1.5–3.5%)' | 'Elevated (>3.5%)';
+
+export interface ShillerCapeResult {
+  /** Cyclically adjusted price-to-earnings multiple for AI and mega-cap tech sector */
+  aiCapeMultiple: number;
+  /** Historical long-term median CAPE benchmark (17.2x) */
+  historicalMedianCape: number;
+  /** Real earnings yield: 1 / aiCapeMultiple (%) */
+  earningsYieldPct: number;
+  /** 10-Year Real Treasury Benchmark Yield: Nominal 10Y - CPI YoY (%) */
+  real10yYieldPct: number;
+  /** Excess CAPE Yield (ECY) = Real Earnings Yield - Real 10Y Treasury Yield (%) */
+  excessCapeYieldPct: number;
+  /** Classification of the equity risk premium cushion over real safe assets */
+  equityRiskPremiumBand: EquityRiskPremiumBand;
+  /** Economic interpretation of multiple vulnerability vs real yields */
+  interpretation: string;
+
+  // Compatibility alias
+  equityRiskPremiumStatus: string;
+  /** Boolean flag indicating equity risk premium compression (< 1.0%) */
+  isCompressed?: boolean;
+  /** Boolean flag indicating extreme risk premium inversion (< 0.0%) */
+  isExtremelyCompressed?: boolean;
+}
+
+
+

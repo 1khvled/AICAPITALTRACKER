@@ -153,10 +153,11 @@ const macroRatesStress: ModelFactor = {
     'score = 0.40·ramp(US10Y, 3.75%, 5.25%) + 0.25·ramp(CPI YoY, 2.0%, 4.5%) + 0.15·ramp(Real Yield, 1.5%, 3.0%) + 0.20·ramp(HY Spread, 250bp, 500bp)',
   compute: (i) => {
     const m = i.macro ?? {
-      us10yYieldPct: 4.42,
+      us10yYieldPct: 5.10,
+      us02yYieldPct: 4.75,
       us10yBaselinePct: 3.75,
       cpiInflationYoY: 2.9,
-      realYield10y: 2.05,
+      realYield10y: 2.70,
       fedFundsRatePct: 4.75,
       rateHikeRiskBps: 25,
       highYieldSpreadBps: 328,

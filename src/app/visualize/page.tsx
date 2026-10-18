@@ -607,7 +607,7 @@ export default function VisualizePage() {
                 href={`/ledger?search=${encodeURIComponent(selectedDeal.title)}`}
                 className="text-xs font-mono text-emerald-600 dark:text-emerald-400 hover:underline flex items-center space-x-1"
               >
-                <span>View in complete 159-deal ledger</span>
+                <span>View in complete {totalDeals}-deal ledger</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </Link>
               <button

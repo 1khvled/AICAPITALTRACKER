@@ -21,6 +21,7 @@ import {
 import { useTheme } from "./ThemeProvider";
 import { POLYMARKET_BASE_URL, POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
+import rawDeals from "@/data/deals.json";
 
 export function Header() {
   const pathname = usePathname();
@@ -48,7 +49,7 @@ export function Header() {
   // Primary desktop links that always stay visible without crowding
   const primaryLinks = [
     { label: "Model", href: "/", icon: ShieldAlert },
-    { label: "Ledger", href: "/ledger", badge: "159", icon: Database },
+    { label: "Ledger", href: "/ledger", badge: String(rawDeals.length), icon: Database },
     { label: "Charts", href: "/visualize", icon: BarChart3 },
     { label: "Markets", href: "/markets", icon: TrendingUp },
     { label: "News", href: "/news", icon: Newspaper },

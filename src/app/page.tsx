@@ -57,7 +57,7 @@ export default function HomePage() {
   const orclBase = DEFAULT_MODEL_INPUTS.cds?.baselineBps ?? 81;
   const orclStressPct = Math.round(((orclCds - orclBase) / orclBase) * 100);
 
-  const us10y = DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 4.42;
+  const us10y = DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 5.10;
   const cpi = DEFAULT_MODEL_INPUTS.macro?.cpiInflationYoY ?? 2.9;
   const annualDebtB = DEFAULT_MODEL_INPUTS.aiDebt?.annualDebtIssuanceUsd
     ? (DEFAULT_MODEL_INPUTS.aiDebt.annualDebtIssuanceUsd / 1e9).toFixed(1)
@@ -207,7 +207,7 @@ export default function HomePage() {
               className="flex items-center space-x-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-slate-900 text-white dark:bg-white dark:text-zinc-950 hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors shadow-sm"
             >
               <Database className="w-4 h-4" />
-              <span>159 Deals</span>
+              <span>{totalDeals} Deals</span>
               <ArrowRight className="w-4 h-4 ml-0.5" />
             </Link>
           </div>
@@ -428,7 +428,7 @@ export default function HomePage() {
 
               <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed">
                 Track live market prices and intraday trendlines for NVDA ($214.13), ORCL ($128.23 • 187bp CDS), MSFT, 
-                and benchmark Treasury yields (US10Y at 4.42%, US02Y at 4.28%, High Yield OAS at 328 bps).
+                and benchmark Treasury yields (US10Y at 5.10%, US02Y at 4.75%, High Yield OAS at 336 bps).
               </p>
 
               {/* Ticker Snapshot Pills */}
@@ -445,8 +445,8 @@ export default function HomePage() {
                 </div>
                 <div className="bg-slate-50 dark:bg-zinc-900/80 p-2 rounded-lg border border-slate-200/60 dark:border-zinc-800">
                   <span className="text-slate-500 dark:text-zinc-400 block text-[10px]">US 10Y</span>
-                  <span className="font-bold text-slate-900 dark:text-white">4.42%</span>
-                  <span className="text-rose-600 dark:text-rose-400 text-[10px] block font-semibold">+8.4bp</span>
+                  <span className="font-bold text-slate-900 dark:text-white">5.10%</span>
+                  <span className="text-rose-600 dark:text-rose-400 text-[10px] block font-semibold">+1.0bp</span>
                 </div>
                 <div className="bg-slate-50 dark:bg-zinc-900/80 p-2 rounded-lg border border-slate-200/60 dark:border-zinc-800">
                   <span className="text-slate-500 dark:text-zinc-400 block text-[10px]">AI DEBT</span>
@@ -595,7 +595,7 @@ export default function HomePage() {
                 Visual Analytics Suite
               </h3>
               <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
-                Explore the 159-deal interactive bubble physics map, sigmoid sensitivity curves, multiple scatter plots, and capex composition.
+                Explore the {totalDeals}-deal interactive bubble physics map, sigmoid sensitivity curves, multiple scatter plots, and capex composition.
               </p>
             </div>
             <div className="pt-2 text-xs font-mono font-bold text-purple-600 dark:text-purple-400 flex items-center space-x-1">
@@ -614,7 +614,7 @@ export default function HomePage() {
                 <FileSpreadsheet className="w-5 h-5" />
               </div>
               <h3 className="font-extrabold text-base text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                159-Deal Capital Ledger
+                {totalDeals}-Deal Capital Ledger
               </h3>
               <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
                 Inspect every verified filing ($2.81T disclosed). Filter by $196.8B in debt, circular chip vendor financing, and export CSV/JSON.

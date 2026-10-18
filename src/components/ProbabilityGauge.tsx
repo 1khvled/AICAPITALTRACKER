@@ -8,6 +8,8 @@ import {
   DEFAULT_MODEL_INPUTS,
   computeMertonModel,
   computeAltmanZScore,
+  computeMinskyRegime,
+  computeShillerECY,
   runMonteCarloSimulation,
 } from "@/lib/model/engine";
 import rawTrajectoryHistory from "@/data/trajectory-history.json";
@@ -55,8 +57,8 @@ const FALLBACK_TRAJECTORY: TrajectoryPoint[] = Array.from({ length: 90 }, (_, i)
     dayLabel: i === 89 ? "Current" : `${89 - i}d ago`,
     probability: prob,
     compositeScore: Math.round(prob * 0.96 * 10) / 10,
-    mertonDD: 2.84,
-    altmanZ: 1.84,
+    mertonDD: 5.37,
+    altmanZ: 8.41,
     var95: 49.6,
     deltaVs90d: delta90 >= 0 ? `+${delta90.toFixed(1)}%` : `${delta90.toFixed(1)}%`,
     deltaVsYesterday: "+0.2%",
@@ -88,20 +90,20 @@ const WHAT_IF_SCENARIOS: WhatIfScenario[] = [
     id: "baseline",
     label: "Current Baseline",
     tag: "Verified Live",
-    description: "Current audited SEC filings, Oracle CDS (187bp), and 4.42% US 10Y yield",
+    description: "Current audited SEC filings, Oracle CDS (187bp), and 5.10% US 10Y yield",
     modify: (b) => b,
   },
   {
     id: "rate_hike",
-    label: "+50bps US10Y Hike (4.92%)",
+    label: "+50bps US10Y Hike (5.60%)",
     tag: "Macro Shock",
-    description: "Persistent inflation elevates yields to 4.92% and widens HY spreads to 415bp",
+    description: "Persistent inflation elevates yields to 5.60% and widens HY spreads to 415bp",
     modify: (b) => ({
       ...b,
       macro: b.macro
         ? {
             ...b.macro,
-            us10yYieldPct: 4.92,
+            us10yYieldPct: 5.60,
             cpiInflationYoY: 3.4,
             highYieldSpreadBps: 415,
             rateHikeRiskBps: 50,
@@ -305,13 +307,23 @@ export function ProbabilityGauge({
   const quantitativeData = useMemo(() => {
     const merton = computeMertonModel(activeInputs);
     const altman = computeAltmanZScore(activeInputs);
+    const minsky = computeMinskyRegime(activeInputs);
+    const shiller = computeShillerECY(activeInputs);
     const mc = runMonteCarloSimulation(activeInputs, 1000);
     return {
       mertonDD: merton.distanceToDefault,
+      mertonProb: merton.defaultProbabilityPct,
       mertonInterpretation: merton.interpretation,
       altmanScore: altman.score,
       altmanZone: altman.zone,
+      minskyIndex: minsky.fragilityIndex,
+      minskyRegime: minsky.regime,
+      minskyPonziShare: minsky.ponziDebtSharePct,
+      shillerECY: shiller.excessCapeYieldPct,
+      shillerStatus: shiller.equityRiskPremiumStatus,
       var95: mc.valueAtRisk95Pct,
+      var99: mc.valueAtRisk99Pct,
+      cvar95: mc.conditionalValueAtRisk95Pct,
     };
   }, [activeInputs]);
 
@@ -803,31 +815,58 @@ export function ProbabilityGauge({
               </div>
             </div>
 
-            {/* Quantitative Financial Models Cross-Validation Strip (100% Live from Model) */}
-            <div className="pt-1 grid grid-cols-3 gap-2 text-center text-xs font-mono">
+            {/* Quantitative Financial Models Cross-Validation Strip (5 Institutional Pillars - 100% Live) */}
+            <div className="pt-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 text-center text-xs font-mono">
+              {/* 1. Merton DD */}
               <div
-                title={quantitativeData.mertonInterpretation}
-                className="p-2 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 transition-colors cursor-help"
+                title={`Merton (1974) Distance-to-Default: ${quantitativeData.mertonDD.toFixed(2)}σ. Default prob: ${quantitativeData.mertonProb.toFixed(1)}%. ${quantitativeData.mertonInterpretation}`}
+                className="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between"
               >
-                <span className="text-[10px] text-slate-500 dark:text-zinc-400 block font-sans">Merton Model</span>
-                <span className="font-bold text-slate-900 dark:text-white">{quantitativeData.mertonDD.toFixed(2)}σ</span>
-                <span className="text-[9px] text-amber-600 dark:text-amber-400 block font-semibold">DD Distance</span>
+                <span className="text-[10px] text-slate-500 dark:text-zinc-400 block font-sans truncate">Merton DD</span>
+                <span className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">{quantitativeData.mertonDD.toFixed(2)}σ</span>
+                <span className="text-[9px] text-emerald-600 dark:text-emerald-400 block font-semibold truncate">Def Prob: {quantitativeData.mertonProb.toFixed(1)}%</span>
               </div>
+
+              {/* 2. Altman Z'' */}
               <div
-                title={`Altman Z''-Score: ${quantitativeData.altmanScore.toFixed(2)} (${quantitativeData.altmanZone})`}
-                className="p-2 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 transition-colors cursor-help"
+                title={`Altman Z''-Score: ${quantitativeData.altmanScore.toFixed(2)} (${quantitativeData.altmanZone}). Tech services balance-sheet solvency.`}
+                className="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between"
               >
-                <span className="text-[10px] text-slate-500 dark:text-zinc-400 block font-sans">Altman Z&apos;&apos;-Score</span>
-                <span className="font-bold text-slate-900 dark:text-white">{quantitativeData.altmanScore.toFixed(2)}</span>
-                <span className="text-[9px] text-amber-600 dark:text-amber-400 block font-semibold">{quantitativeData.altmanZone}</span>
+                <span className="text-[10px] text-slate-500 dark:text-zinc-400 block font-sans truncate">Altman Z&apos;&apos;</span>
+                <span className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">{quantitativeData.altmanScore.toFixed(2)}</span>
+                <span className="text-[9px] text-emerald-600 dark:text-emerald-400 block font-semibold truncate">{quantitativeData.altmanZone}</span>
               </div>
+
+              {/* 3. Minsky Fragility Index */}
               <div
-                title="10,000-Path Monte Carlo Joint Macro-Credit Simulation: 95th Percentile Value-at-Risk"
-                className="p-2 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 transition-colors cursor-help"
+                title={`Minsky Fragility Index: ${quantitativeData.minskyIndex.toFixed(1)} (${quantitativeData.minskyRegime} / Ponzi Debt Share: ${quantitativeData.minskyPonziShare.toFixed(1)}%). Operating cash flow services interest but requires debt rollover.`}
+                className="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between"
               >
-                <span className="text-[10px] text-slate-500 dark:text-zinc-400 block font-sans">10k Monte Carlo</span>
-                <span className="font-bold text-slate-900 dark:text-white">{quantitativeData.var95.toFixed(1)}%</span>
-                <span className="text-[9px] text-rose-600 dark:text-rose-400 block font-semibold">VaR 95%</span>
+                <span className="text-[10px] text-slate-500 dark:text-zinc-400 block font-sans truncate">Minsky Fragility</span>
+                <span className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">{quantitativeData.minskyIndex.toFixed(1)}</span>
+                <span className="text-[9px] text-amber-600 dark:text-amber-400 block font-semibold truncate">{quantitativeData.minskyRegime.split(" ")[0]} ({quantitativeData.minskyPonziShare.toFixed(1)}%)</span>
+              </div>
+
+              {/* 4. Shiller Excess CAPE Yield */}
+              <div
+                title={`Robert Shiller Excess CAPE Yield: ${quantitativeData.shillerECY >= 0 ? `+${quantitativeData.shillerECY.toFixed(2)}%` : `${quantitativeData.shillerECY.toFixed(2)}%`} (${quantitativeData.shillerStatus}). Tech equity risk premium relative to 10Y real yields.`}
+                className="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between"
+              >
+                <span className="text-[10px] text-slate-500 dark:text-zinc-400 block font-sans truncate">Shiller ECY</span>
+                <span className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">
+                  {quantitativeData.shillerECY >= 0 ? `+${quantitativeData.shillerECY.toFixed(2)}%` : `${quantitativeData.shillerECY.toFixed(2)}%`}
+                </span>
+                <span className="text-[9px] text-amber-600 dark:text-amber-400 block font-semibold truncate">{quantitativeData.shillerStatus}</span>
+              </div>
+
+              {/* 5. Monte Carlo 25k VaR 95% */}
+              <div
+                title={`25,000-Path Monte Carlo Cholesky Copula Simulation: VaR 95%: ${quantitativeData.var95.toFixed(1)}%, VaR 99%: ${quantitativeData.var99.toFixed(1)}%, CVaR 95%: ${quantitativeData.cvar95.toFixed(1)}%.`}
+                className="col-span-2 sm:col-span-1 p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between"
+              >
+                <span className="text-[10px] text-slate-500 dark:text-zinc-400 block font-sans truncate">25k MC VaR 95%</span>
+                <span className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">{quantitativeData.var95.toFixed(1)}%</span>
+                <span className="text-[9px] text-rose-600 dark:text-rose-400 block font-semibold truncate">CVaR: {quantitativeData.cvar95.toFixed(1)}%</span>
               </div>
             </div>
           </div>

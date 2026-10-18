@@ -1,5 +1,10 @@
 import { MODEL_FACTORS, MODEL_CALIBRATION } from './factors';
-import { computeMertonModel, computeAltmanZScore } from './quantitative';
+import {
+  computeMertonModel,
+  computeAltmanZScore,
+  computeMinskyModel,
+  computeShillerCapeModel,
+} from './quantitative';
 import type {
   BubbleBand,
   BubbleModelInputs,
@@ -11,7 +16,10 @@ import type {
  * Computes the unified burst probability and per-factor contribution breakdown
  * according to the published transparent recipe.
  */
-export function evaluateBubbleModel(inputs: BubbleModelInputs): BubbleModelResult {
+export function evaluateBubbleModel(
+  inputs: BubbleModelInputs,
+  options?: { skipSubModels?: boolean }
+): BubbleModelResult {
   const contributions: FactorContribution[] = [];
   let totalRiskEarned = 0;
   let totalRiskCoverageWeight = 0;
@@ -121,9 +129,11 @@ export function evaluateBubbleModel(inputs: BubbleModelInputs): BubbleModelResul
     .slice(0, 3)
     .map((c) => c.id);
 
-  // 10. Quantitative Academic Models Integration (Merton 1974 & Altman 2002)
-  const mertonResult = computeMertonModel(inputs);
-  const altmanResult = computeAltmanZScore(inputs);
+  // 10. Quantitative Academic Models Integration (Merton 1974, Altman 2002, Minsky 1986, Shiller 2000)
+  const mertonResult = options?.skipSubModels ? undefined : computeMertonModel(inputs);
+  const altmanResult = options?.skipSubModels ? undefined : computeAltmanZScore(inputs);
+  const minskyResult = options?.skipSubModels ? undefined : computeMinskyModel(inputs);
+  const shillerCapeResult = options?.skipSubModels ? undefined : computeShillerCapeModel(inputs);
 
   return {
     burstProbability,
@@ -137,22 +147,44 @@ export function evaluateBubbleModel(inputs: BubbleModelInputs): BubbleModelResul
     confidenceInterval,
     fragilityIndex,
     systemicContagionPoints,
-    merton: {
-      distanceToDefault: mertonResult.distanceToDefault,
-      defaultProbabilityPct: mertonResult.defaultProbabilityPct,
-      structuralSpreadBps: mertonResult.structuralSpreadBps,
-      interpretation: mertonResult.interpretation,
-    },
-    altman: {
-      score: altmanResult.score,
-      zone: altmanResult.zone,
-      impliedDistressProbPct: altmanResult.impliedDistressProbPct,
-      interpretation: altmanResult.interpretation,
-    },
+    merton: mertonResult
+      ? {
+          distanceToDefault: mertonResult.distanceToDefault,
+          defaultProbabilityPct: mertonResult.defaultProbabilityPct,
+          structuralSpreadBps: mertonResult.structuralSpreadBps,
+          interpretation: mertonResult.interpretation,
+        }
+      : undefined,
+    altman: altmanResult
+      ? {
+          score: altmanResult.score,
+          zone: altmanResult.zone,
+          impliedDistressProbPct: altmanResult.impliedDistressProbPct,
+          interpretation: altmanResult.interpretation,
+        }
+      : undefined,
+    minsky: minskyResult,
+    shillerCape: shillerCapeResult,
   };
 }
 
-export { computeMertonModel, computeAltmanZScore, computeLpplsMetrics, runMonteCarloSimulation, HISTORICAL_BACKTESTS } from './quantitative';
+export {
+  computeMertonModel,
+  computeAltmanZScore,
+  computeLpplsMetrics,
+  computeMinskyModel,
+  computeMinskyRegime,
+  computeShillerCapeModel,
+  computeShillerECY,
+  choleskyDecomposition,
+  runMonteCarloSimulation,
+  EMPIRICAL_CORRELATION_MATRIX,
+  HISTORICAL_BACKTESTS,
+  computeBrierAndAuc,
+  BACKTEST_CALIBRATION_SUMMARY,
+  EMPIRICAL_VERIFICATION_MATRIX,
+} from './quantitative';
+
 
 import liveInputsData from '@/data/live-inputs.json';
 
@@ -201,21 +233,39 @@ const BASELINE_FALLBACK: BubbleModelInputs = {
       runRateRevenueUsd: 900_000_000,
       note: 'Accel-led funding round and government contract disclosures',
     },
+    {
+      company: 'Cohere',
+      valuationUsd: 5_500_000_000,
+      runRateRevenueUsd: 35_000_000,
+      note: 'Series D funding round ($5.5B valuation, $35M annualized revenue run-rate)',
+    },
+    {
+      company: 'Perplexity AI',
+      valuationUsd: 9_000_000_000,
+      runRateRevenueUsd: 50_000_000,
+      note: 'Institutional funding round ($9.0B valuation, $50M annualized revenue run-rate)',
+    },
+    {
+      company: 'Safe Superintelligence (SSI)',
+      valuationUsd: 5_000_000_000,
+      runRateRevenueUsd: 0,
+      note: 'Seed / Series A round ($5.0B valuation, $0 revenue pre-product pure research lab)',
+    },
   ],
   ledger: {
-    totalDisclosedUsd: 2_810_757_802_026,
+    totalDisclosedUsd: 2_858_307_802_026,
     byYear: {
       2023: 26_345_000_000,
       2024: 295_235_000_000,
-      2025: 1_719_997_500_000,
-      2026: 769_180_302_026,
+      2025: 1_732_497_500_000,
+      2026: 804_230_302_026,
     },
-    debtShare: 0.070, // 7.0% borrowed ($196.8B across 20 verified debt & convertible facilities)
+    debtShare: 0.080, // 8.0% borrowed
     computeContractShare: 0.280, // 28.0% in compute capacity commitments ($712B)
-    top10Share: 0.665, // Top 10 deals represent ~66.5% of volume
-    circularShare: 0.028, // 2.8% circular money ($77.7B)
-    announcedShare: 0.127, // 12.7% unclosed/waiting deals
-    megaCountLast12m: 46,
+    top10Share: 0.641, // Top 10 deals represent ~64.1% of volume
+    circularShare: 0.027, // 2.7% circular money
+    announcedShare: 0.124, // 12.4% unclosed/waiting deals
+    megaCountLast12m: 48,
     daysSinceLastMega: 14,
   },
   crowd: {
@@ -239,12 +289,13 @@ const BASELINE_FALLBACK: BubbleModelInputs = {
     note: 'Microsoft, Alphabet, Meta, Amazon Q2/Q3 2026 10-Q consensus annualized',
   },
   macro: {
-    us10yYieldPct: 4.42,
+    us10yYieldPct: 5.10,
+    us02yYieldPct: 4.75,
     us10yBaselinePct: 3.75,
     cpiInflationYoY: 2.9,
     fedFundsRatePct: 4.75,
     rateHikeRiskBps: 25,
-    realYield10y: 2.05,
+    realYield10y: 2.70,
     highYieldSpreadBps: 328,
     note: 'US Treasury 10Y Benchmark, BLS CPI, Federal Reserve policy baseline & High Yield spreads',
   },

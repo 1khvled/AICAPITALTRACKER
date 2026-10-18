@@ -71,8 +71,8 @@ export function MarketTickerTape() {
 
   // Macro & Credit spread inputs dynamically linked
   const orclCds = DEFAULT_MODEL_INPUTS.cds?.currentBps ?? 187;
-  const us10y = DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 4.42;
-  const hygSpread = DEFAULT_MODEL_INPUTS.macro?.highYieldSpreadBps ?? 328;
+  const us10y = DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 5.10;
+  const hygSpread = DEFAULT_MODEL_INPUTS.macro?.highYieldSpreadBps ?? 336;
   const cpi = DEFAULT_MODEL_INPUTS.macro?.cpiInflationYoY ?? 2.9;
   const fedFunds = DEFAULT_MODEL_INPUTS.macro?.fedFundsRatePct ?? 4.75;
   const debtPace = DEFAULT_MODEL_INPUTS.aiDebt?.annualDebtIssuanceUsd

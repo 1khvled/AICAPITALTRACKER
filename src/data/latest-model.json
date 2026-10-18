@@ -1,20 +1,20 @@
 {
-  "timestamp": "2026-10-18T21:51:28.530Z",
+  "timestamp": "2026-10-18T22:30:39.224Z",
   "model_version": "2.5.0",
-  "burstProbability": 41.2,
-  "compositeScore": 51.8,
-  "band": "guarded",
+  "burstProbability": 63.9,
+  "compositeScore": 60.1,
+  "band": "elevated",
   "coverage": 1.1,
   "confidenceInterval": [
-    36.5,
-    46
+    57.2,
+    70.1
   ],
-  "fragilityIndex": 50,
-  "systemicContagionPoints": 4.4,
+  "fragilityIndex": 52,
+  "systemicContagionPoints": 4.6,
   "topDriverIds": [
+    "valuation_stretch",
     "cds_stress",
-    "concentration_circularity",
-    "valuation_stretch"
+    "debt_reliance"
   ],
   "contributions": [
     {
@@ -34,10 +34,10 @@
       "label": "Private valuation stretch",
       "kind": "risk",
       "weightPct": 16,
-      "earnedPoints": 8.2,
+      "earnedPoints": 16,
       "reading": {
-        "score": 0.5151470151470151,
-        "reading": "Median price/sales across tracked labs: 34.8×",
+        "score": 1,
+        "reading": "Median price/sales across tracked labs: 71.2×",
         "coverage": 1
       }
     },
@@ -46,10 +46,10 @@
       "label": "Debt reliance & issuance pace",
       "kind": "risk",
       "weightPct": 14,
-      "earnedPoints": 8,
+      "earnedPoints": 8.6,
       "reading": {
-        "score": 0.574491875,
-        "reading": "Borrowed money = 7.0% ($196.8B verified); Velocity: $85.0B/yr",
+        "score": 0.614491875,
+        "reading": "Borrowed money = 8.0% ($196.8B verified); Velocity: $85.0B/yr",
         "coverage": 1
       }
     },
@@ -70,10 +70,10 @@
       "label": "Concentration & circular money",
       "kind": "risk",
       "weightPct": 13,
-      "earnedPoints": 8.3,
+      "earnedPoints": 8.1,
       "reading": {
-        "score": 0.6385185185185185,
-        "reading": "Top 10 deals = 65% of volume; circular self-funded money = 2.8% ($78.7B)",
+        "score": 0.6220555555555556,
+        "reading": "Top 10 deals = 64% of volume; circular self-funded money = 2.7% ($77.2B)",
         "coverage": 1
       }
     },
@@ -82,10 +82,10 @@
       "label": "Funding velocity & pipeline",
       "kind": "risk",
       "weightPct": 10,
-      "earnedPoints": 4.5,
+      "earnedPoints": 4.6,
       "reading": {
-        "score": 0.44769670386755,
-        "reading": "Annualized pace: $923B/yr; 13.2% backlog; 14d since last mega deal",
+        "score": 0.45735545386755005,
+        "reading": "Annualized pace: $965B/yr; 12.4% backlog; 14d since last mega deal",
         "coverage": 1
       }
     },
@@ -96,8 +96,8 @@
       "weightPct": 9,
       "earnedPoints": 0.9,
       "reading": {
-        "score": 0.103,
-        "reading": "Polymarket crowd: 10.3% YES ($9.14M volume)",
+        "score": 0.097,
+        "reading": "Polymarket crowd: 9.7% YES ($9.15M volume)",
         "coverage": 1
       }
     },
@@ -147,75 +147,104 @@
     "crashHazardRatePct": 59.1,
     "interpretation": "Superexponential capital commitment growth with accelerating log-periodic Capex-to-FCF oscillations, placing critical singularity window in early 2027."
   },
+  "minsky": {
+    "hedgeSharePct": 59.2,
+    "speculativeSharePct": 27.9,
+    "ponziSharePct": 12.9,
+    "minskyFragilityIndex": 59.4,
+    "currentRegime": "Speculative Transition",
+    "refinancingFreezeProbabilityPct": 14.1,
+    "breakdown": {
+      "hedgeDebtUsd": 116518920000,
+      "speculativeDebtUsd": 54913477500,
+      "ponziDebtUsd": 25390102500
+    },
+    "interpretation": "Speculative Transition: 27.9% of debt requires continuous market rollover, and 12.9% relies on equity subsidies. While hyperscalers remain Hedge units (59.2%), peripheral cloud providers and foundation labs face a 14.1% probability of refinancing freeze.",
+    "fragilityIndex": 59.4,
+    "regime": "Speculative Transition",
+    "ponziDebtSharePct": 12.9
+  },
+  "shillerCape": {
+    "aiCapeMultiple": 78.6,
+    "historicalMedianCape": 17.2,
+    "earningsYieldPct": 1.27,
+    "real10yYieldPct": 2.7,
+    "excessCapeYieldPct": -1.43,
+    "equityRiskPremiumBand": "Compressed (<1.5%)",
+    "equityRiskPremiumStatus": "Compressed (<1.5%)",
+    "interpretation": "Excess CAPE Yield of +-1.43% is in the Compressed band (<1.5%), indicating that AI and mega-cap tech equities offer a wafer-thin risk premium over real Treasuries (2.70%). Tech valuation multiples (CAPE 78.6x vs historical median 17.2x) leave negligible safety margin against interest rate or earnings growth disappointments."
+  },
   "monteCarlo": {
-    "iterationsCount": 10000,
-    "meanProbabilityPct": 43.4,
-    "medianProbabilityPct": 42.4,
-    "stdDevPct": 21.7,
+    "iterationsCount": 25000,
+    "meanProbabilityPct": 60.8,
+    "medianProbabilityPct": 64.7,
+    "stdDevPct": 21.8,
     "ci90Pct": [
-      15.5,
-      73.6
+      29.8,
+      87.6
     ],
     "ci95Pct": [
-      13.2,
-      77.3
+      26.2,
+      89.2
     ],
-    "valueAtRisk95Pct": 77.3,
-    "conditionalValueAtRisk95Pct": 79.9,
-    "skewness": 0.12,
+    "valueAtRisk95Pct": 89.2,
+    "conditionalValueAtRisk95Pct": 90,
+    "valueAtRisk99Pct": 90.6,
+    "conditionalValueAtRisk99Pct": 91,
+    "skewness": -0.28,
     "kurtosis": 1.68,
     "histogram": [
       {
         "range": "0%–10%",
-        "count": 99,
-        "percentage": 1
+        "count": 0,
+        "percentage": 0
       },
       {
         "range": "10%–20%",
-        "count": 1868,
-        "percentage": 18.7
+        "count": 173,
+        "percentage": 0.7
       },
       {
         "range": "20%–30%",
-        "count": 1530,
-        "percentage": 15.3
+        "count": 2362,
+        "percentage": 9.4
       },
       {
         "range": "30%–40%",
-        "count": 1215,
-        "percentage": 12.2
+        "count": 4088,
+        "percentage": 16.4
       },
       {
         "range": "40%–50%",
-        "count": 1215,
-        "percentage": 12.2
+        "count": 1844,
+        "percentage": 7.4
       },
       {
         "range": "50%–60%",
-        "count": 1174,
-        "percentage": 11.7
+        "count": 2562,
+        "percentage": 10.2
       },
       {
         "range": "60%–70%",
-        "count": 1366,
-        "percentage": 13.7
+        "count": 3218,
+        "percentage": 12.9
       },
       {
         "range": "70%–80%",
-        "count": 1325,
-        "percentage": 13.3
+        "count": 4009,
+        "percentage": 16
       },
       {
         "range": "80%–90%",
-        "count": 208,
-        "percentage": 2.1
+        "count": 6137,
+        "percentage": 24.5
       },
       {
         "range": "90%–100%",
-        "count": 0,
-        "percentage": 0
+        "count": 607,
+        "percentage": 2.4
       }
     ],
-    "executionTimeMs": 112
+    "executionTimeMs": 366
   }
 }

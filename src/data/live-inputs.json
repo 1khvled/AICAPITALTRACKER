@@ -42,29 +42,47 @@
       "valuationUsd": 13800000000,
       "runRateRevenueUsd": 900000000,
       "note": "Accel-led funding round and government contract disclosures"
+    },
+    {
+      "company": "Cohere",
+      "valuationUsd": 5500000000,
+      "runRateRevenueUsd": 35000000,
+      "note": "Series D funding round ($5.5B valuation, $35M annualized revenue run-rate)"
+    },
+    {
+      "company": "Perplexity AI",
+      "valuationUsd": 9000000000,
+      "runRateRevenueUsd": 50000000,
+      "note": "Institutional funding round ($9.0B valuation, $50M annualized revenue run-rate)"
+    },
+    {
+      "company": "Safe Superintelligence (SSI)",
+      "valuationUsd": 5000000000,
+      "runRateRevenueUsd": 0,
+      "note": "Seed / Series A round ($5.0B valuation, $0 revenue pre-product pure research lab)"
     }
   ],
   "ledger": {
-    "totalDisclosedUsd": 2810757802026,
+    "totalDisclosedUsd": 2858307802026,
     "byYear": {
       "2023": 26345000000,
       "2024": 295235000000,
-      "2025": 1719997500000,
-      "2026": 769180302026
+      "2025": 1732497500000,
+      "2026": 804230302026
     },
-    "debtShare": 0.07,
+    "debtShare": 0.08,
     "computeContractShare": 0.28,
-    "top10Share": 0.652,
-    "circularShare": 0.028,
-    "announcedShare": 0.132,
-    "megaCountLast12m": 46,
+    "top10Share": 0.641,
+    "circularShare": 0.027,
+    "announcedShare": 0.124,
+    "megaCountLast12m": 48,
     "daysSinceLastMega": 14,
-    "count": 159
+    "count": 169
   },
   "crowd": {
-    "yesProbability": 0.103,
-    "volumeUsd": 9143296.302779006,
-    "bubble2026Probability": 0.103,
+    "yesProbability": 0.097,
+    "volumeUsd": 9148934.920692004,
+    "bubble2026Probability": 0.097,
     "bubble2027Probability": 0.165,
     "activeContractsCount": 16,
     "markets": [
@@ -83,9 +101,9 @@
         "question": "AI bubble burst in 2026?",
         "slug": "ai-industry-downturn-by-december-31-2026-857",
         "eventSlug": "ai-bubble-burst-by",
-        "yesProbabilityPct": 10.3,
-        "noProbabilityPct": 89.7,
-        "volumeUsd": 2464996,
+        "yesProbabilityPct": 9.7,
+        "noProbabilityPct": 90.3,
+        "volumeUsd": 2470595,
         "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
       },
       {
@@ -205,7 +223,7 @@
         "eventSlug": "openai-1t-ipo-before-2027",
         "yesProbabilityPct": 2.3,
         "noProbabilityPct": 97.7,
-        "volumeUsd": 317023,
+        "volumeUsd": 317063,
         "referralUrl": "https://polymarket.com/event/openai-1t-ipo-before-2027?r=AIbubble"
       },
       {
@@ -231,7 +249,7 @@
     ],
     "referralCode": "AIbubble",
     "referralUrl": "https://polymarket.com/?r=AIbubble",
-    "note": "Live Polymarket sync across 6 active AI prediction events (Volume: $9.14M)"
+    "note": "Live Polymarket sync across 6 active AI prediction events (Volume: $9.15M)"
   },
   "adoption": {
     "topProductUsers": 350000000,
@@ -264,12 +282,15 @@
     "note": "SEC 10-Q Capex vs OCF synthesis & private debt facilities"
   },
   "meta": {
-    "last_synced_at": "2026-10-18T21:51:28.416Z",
+    "last_synced_at": "2026-10-18T22:30:38.855Z",
     "sync_mode": "github_actions_cron_24h",
     "sources": [
+      "Federal Reserve Economic Data (FRED) St. Louis API (DGS10, DGS2, BAMLH0A0HYM2, FEDFUNDS)",
+      "Finnhub Institutional Financial API (Real-Time Equities & SEC EDGAR Filings)",
+      "Alpha Vantage Treasury & Market Curve API",
       "OpenRouter Public Models Pricing API",
       "Polymarket Gamma Events API",
-      "Yahoo Finance Institutional Quotes (11 Tech & 4 Macro Tickers)",
+      "Yahoo Finance Institutional Quotes (21 Tech Tickers & Macro Indicators)",
       "SEC EDGAR Submissions CIK 0001341439",
       "AI Capital Tracker Verified Primary Ledger (deals.json)"
     ]

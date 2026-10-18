@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-18T21:51:28.416Z",
+  "timestamp": "2026-10-18T22:30:38.854Z",
   "stocks": [
     {
       "ticker": "NVDA",
@@ -121,6 +121,116 @@
       "drawdownFromAthPct": -12.6,
       "role": "Enterprise AIP & Defense AI Contract Bellwether",
       "marketCapDisplay": "$415B"
+    },
+    {
+      "ticker": "AMD",
+      "name": "Advanced Micro Devices",
+      "priceUsd": 528.75,
+      "change24hPct": -13,
+      "category": "Semiconductor",
+      "athUsd": 658.52,
+      "drawdownFromAthPct": -19.7,
+      "role": "MI300X/MI325X AI GPU Competitor & ROCm",
+      "marketCapDisplay": "$253B"
+    },
+    {
+      "ticker": "INTC",
+      "name": "Intel Corporation",
+      "priceUsd": 89.85,
+      "change24hPct": -14.2,
+      "category": "Semiconductor",
+      "athUsd": 142.35,
+      "drawdownFromAthPct": -36.9,
+      "role": "Gaudi AI Accelerators & Datacenter Foundry",
+      "marketCapDisplay": "$96.2B"
+    },
+    {
+      "ticker": "ASML",
+      "name": "ASML Holding",
+      "priceUsd": 1641.52,
+      "change24hPct": -7.8,
+      "category": "Semiconductor",
+      "athUsd": 1999.96,
+      "drawdownFromAthPct": -17.9,
+      "role": "EUV Lithography Monopoly for AI Silicon",
+      "marketCapDisplay": "$288B"
+    },
+    {
+      "ticker": "QCOM",
+      "name": "Qualcomm Inc.",
+      "priceUsd": 172.11,
+      "change24hPct": -1.9,
+      "category": "Semiconductor",
+      "athUsd": 259.92,
+      "drawdownFromAthPct": -33.8,
+      "role": "Snapdragon NPU & Edge AI Inference Silicon",
+      "marketCapDisplay": "$188B"
+    },
+    {
+      "ticker": "VST",
+      "name": "Vistra Corp.",
+      "priceUsd": 152.02,
+      "change24hPct": -5.9,
+      "category": "Power & Infrastructure",
+      "athUsd": 205.5,
+      "drawdownFromAthPct": -26,
+      "role": "Nuclear & Datacenter Power IPP Provider",
+      "marketCapDisplay": "$44.8B"
+    },
+    {
+      "ticker": "GEV",
+      "name": "GE Vernova",
+      "priceUsd": 921.2,
+      "change24hPct": -8.3,
+      "category": "Power & Infrastructure",
+      "athUsd": 1195.94,
+      "drawdownFromAthPct": -23,
+      "role": "Electrical Grid Transformers & Gas Turbines",
+      "marketCapDisplay": "$75.4B"
+    },
+    {
+      "ticker": "DELL",
+      "name": "Dell Technologies",
+      "priceUsd": 451.71,
+      "change24hPct": -22.9,
+      "category": "Power & Infrastructure",
+      "athUsd": 595.51,
+      "drawdownFromAthPct": -24.1,
+      "role": "PowerEdge AI Server Racks & Liquid Cooling",
+      "marketCapDisplay": "$86.2B"
+    },
+    {
+      "ticker": "CRWD",
+      "name": "CrowdStrike Holdings",
+      "priceUsd": 227.39,
+      "change24hPct": -17.3,
+      "category": "Frontier Lab Partner",
+      "athUsd": 398.33,
+      "drawdownFromAthPct": -42.9,
+      "role": "Enterprise AI Cybersecurity & Charlotte AI",
+      "marketCapDisplay": "$77.5B"
+    },
+    {
+      "ticker": "ANET",
+      "name": "Arista Networks",
+      "priceUsd": 176.98,
+      "change24hPct": -18.3,
+      "category": "Power & Infrastructure",
+      "athUsd": 422,
+      "drawdownFromAthPct": -58.1,
+      "role": "AI Cluster 800G/1.6T Ethernet Switching",
+      "marketCapDisplay": "$121B"
+    },
+    {
+      "ticker": "SNPS",
+      "name": "Synopsys Inc.",
+      "priceUsd": 454.63,
+      "change24hPct": -10.9,
+      "category": "Semiconductor",
+      "athUsd": 629.38,
+      "drawdownFromAthPct": -27.8,
+      "role": "EDA Silicon Design IP & AI Chip Verification",
+      "marketCapDisplay": "$78.6B"
     }
   ],
   "macro": [
@@ -193,6 +303,36 @@
       "isRiskPositive": true,
       "category": "Credit & Debt",
       "description": "Equity market implied volatility and systemic tail-risk sentiment"
+    },
+    {
+      "symbol": "BAA-SPREAD",
+      "name": "Moody's Baa Corporate Spread",
+      "valueDisplay": "182 bps",
+      "changeDisplay": "+6 bps",
+      "changePct": 3.4,
+      "isRiskPositive": true,
+      "category": "Credit & Debt",
+      "description": "Moody's Baa corporate bond spread over Treasuries measuring investment-grade credit risk"
+    },
+    {
+      "symbol": "GPU-RENT",
+      "name": "H100 GPU Spot Rental Rate",
+      "valueDisplay": "$2.15/GPU-h",
+      "changeDisplay": "-8.5% MoM",
+      "changePct": -8.5,
+      "isRiskPositive": false,
+      "category": "Commodities & Compute",
+      "description": "H100 SXM5 80GB hourly cloud spot rental rate tracking AI compute supply-demand dynamics"
+    },
+    {
+      "symbol": "COPPER-GOLD",
+      "name": "Copper / Gold Ratio",
+      "valueDisplay": "0.198",
+      "changeDisplay": "-2.1%",
+      "changePct": -2.1,
+      "isRiskPositive": false,
+      "category": "Commodities & Compute",
+      "description": "Doctor Copper to Gold ratio acting as macro industrial demand and economic growth proxy"
     }
   ]
 }

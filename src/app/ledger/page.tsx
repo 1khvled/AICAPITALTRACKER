@@ -680,7 +680,7 @@ export default function LedgerPage() {
           </div>
           <div className="text-xs sm:text-sm font-medium text-slate-600 dark:text-zinc-400 mt-1.5 flex items-center space-x-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>159 primary verified transactions</span>
+            <span>{deals.length} primary verified transactions</span>
           </div>
         </div>
 
@@ -1359,7 +1359,7 @@ export default function LedgerPage() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 text-sm font-medium shadow-sm">
           <div className="flex items-center space-x-2 text-slate-600 dark:text-zinc-400">
             <span className="font-semibold text-xs sm:text-sm">Rows per page:</span>
-            {[25, 50, 100, 159].map((size) => (
+            {[25, 50, 100, deals.length].map((size) => (
               <button
                 key={size}
                 onClick={() => {
@@ -1372,7 +1372,7 @@ export default function LedgerPage() {
                     : "hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300"
                 }`}
               >
-                {size === 159 ? "All" : size}
+                {size === deals.length ? "All" : size}
               </button>
             ))}
           </div>

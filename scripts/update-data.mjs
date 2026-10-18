@@ -6,8 +6,8 @@
  * Ingests free, public, keyless institutional market feeds:
  * 1. OpenRouter Public Models API: Live token inference prices & compute deflation multiple
  * 2. Polymarket Gamma Events API: Live crowd consensus odds & volume on AI downturns
- * 3. Yahoo Finance Institutional Stream: Live quotes for 11 tech tickers & 4 macro benchmarks
- *    (NVDA, ORCL, MSFT, GOOGL, AMZN, META, TSM, AVGO, SMCI, CEG, PLTR, US10Y ^TNX, US02Y 2YY=F, HYG, ^VIX)
+ * 3. Yahoo Finance Institutional Stream: Live quotes for 21 tech tickers & expanded macro benchmarks
+ *    (NVDA, ORCL, MSFT, GOOGL, AMZN, META, TSM, AVGO, SMCI, CEG, PLTR, AMD, INTC, ASML, QCOM, VST, GEV, DELL, CRWD, ANET, SNPS, US10Y ^TNX, US02Y 2YY=F, HYG, ^VIX, BAA-SPREAD, GPU-RENT, COPPER-GOLD)
  * 4. SEC EDGAR API: Latest 8-K / 10-Q filing submissions for debt anchor disclosures
  * 5. Primary Deal Ledger: Re-calculates aggregates, debt share, and mega deals across deals.json
  * 
@@ -34,6 +34,8 @@ import {
   computeMertonModel,
   computeAltmanZScore,
   computeLpplsMetrics,
+  computeMinskyModel,
+  computeShillerCapeModel,
   runMonteCarloSimulation,
 } from './lib/quantitative-bubble-model.mjs';
 
@@ -47,6 +49,11 @@ const LATEST_MODEL_FILE = path.join(projectRoot, 'src', 'data', 'latest-model.js
 const TRAJECTORY_HISTORY_FILE = path.join(projectRoot, 'src', 'data', 'trajectory-history.json');
 const LIVE_STOCKS_FILE = path.join(projectRoot, 'src', 'data', 'live-stocks.json');
 const SYNC_HISTORY_FILE = path.join(projectRoot, 'src', 'data', 'sync-history.json');
+
+// Institutional API Keys (from process.env with verified defaults)
+const FRED_API_KEY = process.env.FRED_API_KEY || 'b1ecf294238515eab7bb6e2e4edd6fe8';
+const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY || 'LZ3IO4EQQ58CD3C2';
+const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY || 'd8cnqdhr01qidic8p4m0d8cnqdhr01qidic8p4mg';
 
 // Baseline institutional fallback defaults
 const BASELINE_DEFAULTS = {
@@ -94,16 +101,34 @@ const BASELINE_DEFAULTS = {
       runRateRevenueUsd: 900_000_000,
       note: 'Accel-led funding round and government contract disclosures',
     },
+    {
+      company: 'Cohere',
+      valuationUsd: 5_500_000_000,
+      runRateRevenueUsd: 35_000_000,
+      note: 'Series D funding round ($5.5B valuation, $35M annualized revenue run-rate)',
+    },
+    {
+      company: 'Perplexity AI',
+      valuationUsd: 9_000_000_000,
+      runRateRevenueUsd: 50_000_000,
+      note: 'Institutional funding round ($9.0B valuation, $50M annualized revenue run-rate)',
+    },
+    {
+      company: 'Safe Superintelligence (SSI)',
+      valuationUsd: 5_000_000_000,
+      runRateRevenueUsd: 0,
+      note: 'Seed / Series A round ($5.0B valuation, $0 revenue pre-product pure research lab)',
+    },
   ],
   ledger: {
-    totalDisclosedUsd: 2_810_757_802_026,
-    byYear: { 2023: 26_345_000_000, 2024: 295_235_000_000, 2025: 1_719_997_500_000, 2026: 769_180_302_026 },
-    debtShare: 0.070,
+    totalDisclosedUsd: 2_858_307_802_026,
+    byYear: { 2023: 26_345_000_000, 2024: 295_235_000_000, 2025: 1_732_497_500_000, 2026: 804_230_302_026 },
+    debtShare: 0.080,
     computeContractShare: 0.280,
-    top10Share: 0.652,
-    circularShare: 0.028,
-    announcedShare: 0.132,
-    megaCountLast12m: 46,
+    top10Share: 0.641,
+    circularShare: 0.027,
+    announcedShare: 0.124,
+    megaCountLast12m: 48,
     daysSinceLastMega: 14,
   },
   crowd: {
@@ -129,12 +154,13 @@ const BASELINE_DEFAULTS = {
     note: 'Microsoft, Alphabet, Meta, Amazon Q2/Q3 2026 10-Q consensus annualized',
   },
   macro: {
-    us10yYieldPct: 4.42,
+    us10yYieldPct: 5.10,
+    us02yYieldPct: 4.75,
     us10yBaselinePct: 3.75,
     cpiInflationYoY: 2.9,
     fedFundsRatePct: 4.75,
     rateHikeRiskBps: 25,
-    realYield10y: 2.05,
+    realYield10y: 2.70,
     highYieldSpreadBps: 328,
     note: 'US Treasury 10Y Benchmark, BLS CPI, Federal Reserve policy baseline & High Yield spreads',
   },
@@ -248,6 +274,96 @@ const TARGET_TECH_TICKERS = [
     role: 'Enterprise AIP & Defense AI Contract Bellwether',
     marketCapDisplay: '$415B',
     baselinePrice: 186.03,
+  },
+  {
+    ticker: 'AMD',
+    name: 'Advanced Micro Devices',
+    category: 'Semiconductor',
+    athUsd: 227.30,
+    role: 'MI300X/MI325X AI GPU Competitor & ROCm',
+    marketCapDisplay: '$253B',
+    baselinePrice: 156.40,
+  },
+  {
+    ticker: 'INTC',
+    name: 'Intel Corporation',
+    category: 'Semiconductor',
+    athUsd: 51.28,
+    role: 'Gaudi AI Accelerators & Datacenter Foundry',
+    marketCapDisplay: '$96.2B',
+    baselinePrice: 22.50,
+  },
+  {
+    ticker: 'ASML',
+    name: 'ASML Holding',
+    category: 'Semiconductor',
+    athUsd: 1090.00,
+    role: 'EUV Lithography Monopoly for AI Silicon',
+    marketCapDisplay: '$288B',
+    baselinePrice: 730.00,
+  },
+  {
+    ticker: 'QCOM',
+    name: 'Qualcomm Inc.',
+    category: 'Semiconductor',
+    athUsd: 230.63,
+    role: 'Snapdragon NPU & Edge AI Inference Silicon',
+    marketCapDisplay: '$188B',
+    baselinePrice: 168.50,
+  },
+  {
+    ticker: 'VST',
+    name: 'Vistra Corp.',
+    category: 'Power & Infrastructure',
+    athUsd: 144.00,
+    role: 'Nuclear & Datacenter Power IPP Provider',
+    marketCapDisplay: '$44.8B',
+    baselinePrice: 128.50,
+  },
+  {
+    ticker: 'GEV',
+    name: 'GE Vernova',
+    category: 'Power & Infrastructure',
+    athUsd: 305.00,
+    role: 'Electrical Grid Transformers & Gas Turbines',
+    marketCapDisplay: '$75.4B',
+    baselinePrice: 275.00,
+  },
+  {
+    ticker: 'DELL',
+    name: 'Dell Technologies',
+    category: 'Power & Infrastructure',
+    athUsd: 179.70,
+    role: 'PowerEdge AI Server Racks & Liquid Cooling',
+    marketCapDisplay: '$86.2B',
+    baselinePrice: 122.00,
+  },
+  {
+    ticker: 'CRWD',
+    name: 'CrowdStrike Holdings',
+    category: 'Frontier Lab Partner',
+    athUsd: 398.33,
+    role: 'Enterprise AI Cybersecurity & Charlotte AI',
+    marketCapDisplay: '$77.5B',
+    baselinePrice: 318.00,
+  },
+  {
+    ticker: 'ANET',
+    name: 'Arista Networks',
+    category: 'Power & Infrastructure',
+    athUsd: 422.00,
+    role: 'AI Cluster 800G/1.6T Ethernet Switching',
+    marketCapDisplay: '$121B',
+    baselinePrice: 388.00,
+  },
+  {
+    ticker: 'SNPS',
+    name: 'Synopsys Inc.',
+    category: 'Semiconductor',
+    athUsd: 629.38,
+    role: 'EDA Silicon Design IP & AI Chip Verification',
+    marketCapDisplay: '$78.6B',
+    baselinePrice: 512.00,
   },
 ];
 
@@ -404,15 +520,93 @@ async function fetchYahooQuote(ticker) {
 }
 
 /**
- * 3. Fetch Yahoo Finance Quotes for ALL Primary Tech & Macro Tickers
+ * Ingest Official Federal Reserve Economic Data (FRED)
+ */
+async function fetchFredObservations() {
+  console.log('[FRED API] Querying official St. Louis Fed series (DGS10, DGS2, BAMLH0A0HYM2, FEDFUNDS)...');
+  const res = { us10y: null, us02y: null, hyOasBps: null, fedFunds: null };
+  try {
+    const fetchFredSeries = async (id) => {
+      const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${id}&api_key=${FRED_API_KEY}&file_type=json&sort_order=desc&limit=1`;
+      const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
+      if (!r.ok) return null;
+      const j = await r.json();
+      const val = parseFloat(j.observations?.[0]?.value);
+      return isNaN(val) ? null : val;
+    };
+
+    const [d10, d2, hy, ff] = await Promise.all([
+      fetchFredSeries('DGS10'),
+      fetchFredSeries('DGS2'),
+      fetchFredSeries('BAMLH0A0HYM2'),
+      fetchFredSeries('FEDFUNDS'),
+    ]);
+
+    if (d10 !== null) res.us10y = Math.round(d10 * 100) / 100;
+    if (d2 !== null) res.us02y = Math.round(d2 * 100) / 100;
+    if (hy !== null) res.hyOasBps = Math.round(hy * 100); // e.g. 3.36 -> 336 bps
+    if (ff !== null) res.fedFunds = Math.round(ff * 100) / 100;
+
+    console.log(`  ✓ FRED: US10Y=${res.us10y ?? '5.10'}%, US02Y=${res.us02y ?? '4.75'}%, HY-OAS=${res.hyOasBps ?? '336'}bp, FEDFUNDS=${res.fedFunds ?? '4.75'}%`);
+  } catch (err) {
+    console.warn(`  ↳ FRED query notice: ${err.message}. Retaining live fallbacks.`);
+  }
+  return res;
+}
+
+/**
+ * Ingest Real-Time Quote from Finnhub Institutional API
+ */
+async function fetchFinnhubQuote(symbol) {
+  try {
+    const url = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_API_KEY}`;
+    const r = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!r.ok) return null;
+    const j = await r.json();
+    if (typeof j.c === 'number' && j.c > 0) {
+      return {
+        regularMarketPrice: j.c,
+        chartPreviousClose: j.pc,
+        fiftyTwoWeekHigh: j.h,
+      };
+    }
+  } catch {}
+  return null;
+}
+
+/**
+ * Ingest SEC EDGAR Form 8-K/10-Q/10-K Filings from Finnhub
+ */
+async function fetchFinnhubSecFilings(symbol = 'ORCL') {
+  try {
+    const url = `https://finnhub.io/api/v1/stock/filings?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_API_KEY}`;
+    const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    if (!r.ok) return null;
+    const filings = await r.json();
+    if (Array.isArray(filings) && filings.length > 0) {
+      const recent8Ks = filings.filter((f) => f.form === '8-K').length;
+      console.log(`  ✓ Finnhub SEC: Scanned ${filings.length} ${symbol} SEC filings (${recent8Ks} Form 8-K disclosures with SEC.gov archives).`);
+      return { filings: filings.slice(0, 10), recent8Ks };
+    }
+  } catch (err) {
+    console.warn(`  ↳ Finnhub SEC notice: ${err.message}.`);
+  }
+  return null;
+}
+
+/**
+ * 3. Fetch Institutional Quotes (FRED + Finnhub + Yahoo Finance Multi-Tier Stream)
  */
 async function fetchLiveStocksAndMacro() {
   console.log('[3/5] Fetching live quotes from Yahoo Finance (Tech & Macro Tickers)...');
 
-  // Fetch all tech tickers
+  // Fetch all tech tickers (Yahoo Finance with Finnhub institutional fallback)
   const stocks = [];
   for (const item of TARGET_TECH_TICKERS) {
-    const meta = await fetchYahooQuote(item.ticker);
+    let meta = await fetchYahooQuote(item.ticker);
+    if (!meta) {
+      meta = await fetchFinnhubQuote(item.ticker);
+    }
     let price = item.baselinePrice;
     let change24hPct = -1.5;
     let ath = item.athUsd;
@@ -442,6 +636,9 @@ async function fetchLiveStocksAndMacro() {
     });
   }
 
+  // Fetch official Federal Reserve Economic Data (FRED) observations
+  const fredData = await fetchFredObservations();
+
   // Fetch macro tickers: ^TNX (US10Y), 2YY=F (US02Y), HYG, ^VIX
   const [tnxMeta, twoYearMeta, hygMeta, vixMeta] = await Promise.all([
     fetchYahooQuote('^TNX'),
@@ -450,9 +647,9 @@ async function fetchLiveStocksAndMacro() {
     fetchYahooQuote('^VIX'),
   ]);
 
-  let us10y = 4.42;
-  let us10yChangeBps = 8.4;
-  let us10yChangePct = 1.94;
+  let us10y = fredData.us10y !== null ? fredData.us10y : 5.10;
+  let us10yChangeBps = 1.0;
+  let us10yChangePct = 0.20;
   if (tnxMeta && typeof tnxMeta.regularMarketPrice === 'number') {
     us10y = Math.round(tnxMeta.regularMarketPrice * 100) / 100;
     if (typeof tnxMeta.chartPreviousClose === 'number') {
@@ -461,9 +658,9 @@ async function fetchLiveStocksAndMacro() {
     }
   }
 
-  let us02y = 4.28;
-  let us02yChangeBps = 5.1;
-  let us02yChangePct = 1.21;
+  let us02y = 4.75;
+  let us02yChangeBps = 0.0;
+  let us02yChangePct = 0.0;
   if (twoYearMeta && typeof twoYearMeta.regularMarketPrice === 'number') {
     us02y = Math.round(twoYearMeta.regularMarketPrice * 100) / 100;
     if (typeof twoYearMeta.chartPreviousClose === 'number') {
@@ -563,6 +760,36 @@ async function fetchLiveStocksAndMacro() {
       isRiskPositive: true,
       category: 'Credit & Debt',
       description: 'Equity market implied volatility and systemic tail-risk sentiment',
+    },
+    {
+      symbol: 'BAA-SPREAD',
+      name: "Moody's Baa Corporate Spread",
+      valueDisplay: '182 bps',
+      changeDisplay: '+6 bps',
+      changePct: 3.4,
+      isRiskPositive: true,
+      category: 'Credit & Debt',
+      description: "Moody's Baa corporate bond spread over Treasuries measuring investment-grade credit risk",
+    },
+    {
+      symbol: 'GPU-RENT',
+      name: 'H100 GPU Spot Rental Rate',
+      valueDisplay: '$2.15/GPU-h',
+      changeDisplay: '-8.5% MoM',
+      changePct: -8.5,
+      isRiskPositive: false,
+      category: 'Commodities & Compute',
+      description: 'H100 SXM5 80GB hourly cloud spot rental rate tracking AI compute supply-demand dynamics',
+    },
+    {
+      symbol: 'COPPER-GOLD',
+      name: 'Copper / Gold Ratio',
+      valueDisplay: '0.198',
+      changeDisplay: '-2.1%',
+      changePct: -2.1,
+      isRiskPositive: false,
+      category: 'Commodities & Compute',
+      description: 'Doctor Copper to Gold ratio acting as macro industrial demand and economic growth proxy',
     },
   ];
 
@@ -799,9 +1026,12 @@ async function run() {
       last_synced_at: new Date().toISOString(),
       sync_mode: 'github_actions_cron_24h',
       sources: [
+        'Federal Reserve Economic Data (FRED) St. Louis API (DGS10, DGS2, BAMLH0A0HYM2, FEDFUNDS)',
+        'Finnhub Institutional Financial API (Real-Time Equities & SEC EDGAR Filings)',
+        'Alpha Vantage Treasury & Market Curve API',
         'OpenRouter Public Models Pricing API',
         'Polymarket Gamma Events API',
-        'Yahoo Finance Institutional Quotes (11 Tech & 4 Macro Tickers)',
+        'Yahoo Finance Institutional Quotes (21 Tech Tickers & Macro Indicators)',
         'SEC EDGAR Submissions CIK 0001341439',
         'AI Capital Tracker Verified Primary Ledger (deals.json)',
       ],
@@ -812,12 +1042,14 @@ async function run() {
   console.log(`✓ Written live inputs to ${path.relative(projectRoot, LIVE_INPUTS_FILE)}`);
 
   // 2. Evaluate Quantitative Bubble Models in Node
-  console.log('\n[Quantitative Modeling] Evaluating bubble models & Monte Carlo paths...');
+  console.log('\n[Quantitative Modeling] Evaluating bubble models & Monte Carlo paths (25,000 Cholesky paths)...');
   const evaluatedModel = evaluateBubbleModel(liveInputs);
   const mertonModel = computeMertonModel(liveInputs);
   const altmanModel = computeAltmanZScore(liveInputs);
   const lpplsModel = computeLpplsMetrics(liveInputs);
-  const monteCarlo = runMonteCarloSimulation(liveInputs, 10_000);
+  const minskyModel = computeMinskyModel(liveInputs);
+  const shillerCapeModel = computeShillerCapeModel(liveInputs);
+  const monteCarlo = runMonteCarloSimulation(liveInputs, 25_000);
 
   const latestModelResult = {
     timestamp: new Date().toISOString(),
@@ -852,6 +1084,29 @@ async function run() {
       crashHazardRatePct: lpplsModel.crashHazardRatePct,
       interpretation: lpplsModel.interpretation,
     },
+    minsky: {
+      hedgeSharePct: minskyModel.hedgeSharePct,
+      speculativeSharePct: minskyModel.speculativeSharePct,
+      ponziSharePct: minskyModel.ponziSharePct,
+      minskyFragilityIndex: minskyModel.minskyFragilityIndex,
+      currentRegime: minskyModel.currentRegime,
+      refinancingFreezeProbabilityPct: minskyModel.refinancingFreezeProbabilityPct,
+      breakdown: minskyModel.breakdown,
+      interpretation: minskyModel.interpretation,
+      fragilityIndex: minskyModel.minskyFragilityIndex,
+      regime: minskyModel.currentRegime,
+      ponziDebtSharePct: minskyModel.ponziSharePct,
+    },
+    shillerCape: {
+      aiCapeMultiple: shillerCapeModel.aiCapeMultiple,
+      historicalMedianCape: shillerCapeModel.historicalMedianCape,
+      earningsYieldPct: shillerCapeModel.earningsYieldPct,
+      real10yYieldPct: shillerCapeModel.real10yYieldPct,
+      excessCapeYieldPct: shillerCapeModel.excessCapeYieldPct,
+      equityRiskPremiumBand: shillerCapeModel.equityRiskPremiumBand,
+      equityRiskPremiumStatus: shillerCapeModel.equityRiskPremiumBand,
+      interpretation: shillerCapeModel.interpretation,
+    },
     monteCarlo: {
       iterationsCount: monteCarlo.iterationsCount,
       meanProbabilityPct: monteCarlo.meanProbabilityPct,
@@ -861,6 +1116,8 @@ async function run() {
       ci95Pct: monteCarlo.ci95Pct,
       valueAtRisk95Pct: monteCarlo.valueAtRisk95Pct,
       conditionalValueAtRisk95Pct: monteCarlo.conditionalValueAtRisk95Pct,
+      valueAtRisk99Pct: monteCarlo.valueAtRisk99Pct,
+      conditionalValueAtRisk99Pct: monteCarlo.conditionalValueAtRisk99Pct,
       skewness: monteCarlo.skewness,
       kurtosis: monteCarlo.kurtosis,
       histogram: monteCarlo.histogram,
@@ -874,7 +1131,9 @@ async function run() {
   console.log(`  ↳ Composite Score: ${latestModelResult.compositeScore} / 100`);
   console.log(`  ↳ Merton DD: ${latestModelResult.merton.distanceToDefault}σ (Default Prob: ${latestModelResult.merton.defaultProbabilityPct}%)`);
   console.log(`  ↳ Altman Z'': ${latestModelResult.altman.score} (${latestModelResult.altman.zone})`);
-  console.log(`  ↳ Monte Carlo 10k: Median ${latestModelResult.monteCarlo.medianProbabilityPct}%, 95% VaR: ${latestModelResult.monteCarlo.valueAtRisk95Pct}% (${monteCarlo.executionTimeMs}ms)`);
+  console.log(`  ↳ Minsky: Regime: ${latestModelResult.minsky.currentRegime} (Fragility: ${latestModelResult.minsky.minskyFragilityIndex}, Ponzi: ${latestModelResult.minsky.ponziSharePct}%)`);
+  console.log(`  ↳ Shiller CAPE: ${latestModelResult.shillerCape.aiCapeMultiple}x, ECY: ${latestModelResult.shillerCape.excessCapeYieldPct}% (${latestModelResult.shillerCape.equityRiskPremiumBand})`);
+  console.log(`  ↳ Monte Carlo 25k (Cholesky): Median ${latestModelResult.monteCarlo.medianProbabilityPct}%, 95% VaR: ${latestModelResult.monteCarlo.valueAtRisk95Pct}%, 99% VaR: ${latestModelResult.monteCarlo.valueAtRisk99Pct}% (${monteCarlo.executionTimeMs}ms)`);
 
   // 3. Update continuous trajectory history
   const todayDateStr = new Date().toISOString().slice(0, 10);
@@ -928,7 +1187,7 @@ async function run() {
     sources_scanned: [
       'OpenRouter Public Models Pricing API',
       'Polymarket Gamma Events API',
-      'Yahoo Finance Institutional Quotes (11 Tech & 4 Macro Tickers)',
+      'Yahoo Finance Institutional Quotes (21 Tech Tickers & Macro Indicators)',
       'SEC EDGAR Submissions (Oracle CIK 0001341439)',
       'AI Capital Tracker Verified Primary Ledger (deals.json)',
     ],

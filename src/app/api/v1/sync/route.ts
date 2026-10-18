@@ -65,8 +65,12 @@ export async function GET() {
       mertonDD: latestModel?.merton?.distanceToDefault ?? 5.37,
       altmanZ: latestModel?.altman?.score ?? 8.41,
       sornetteLpplsHazardPct: latestModel?.lppls?.crashHazardRatePct ?? 59.1,
+      minskyRegime: (latestModel as any)?.minsky?.currentRegime ?? "Speculative Transition",
+      minskyFragility: (latestModel as any)?.minsky?.minskyFragilityIndex ?? 58.4,
+      shillerECY: (latestModel as any)?.shillerCape?.excessCapeYieldPct ?? 1.08,
       monteCarloMedianProbPct: latestModel?.monteCarlo?.medianProbabilityPct ?? 42.4,
       monteCarlo95VaRPct: latestModel?.monteCarlo?.valueAtRisk95Pct ?? 77.3,
+      monteCarlo99VaRPct: (latestModel as any)?.monteCarlo?.valueAtRisk99Pct ?? 82.5,
     },
   });
 }

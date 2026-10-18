@@ -60,7 +60,7 @@ const ENDPOINTS: EndpointDoc[] = [
         coverage: 1.0,
         horizonMonths: 12,
         macroIndicators: {
-          us10yYieldPct: 4.42,
+          us10yYieldPct: 5.10,
           cpiInflationYoY: 2.9,
           fedFundsRatePct: 4.75,
           annualDebtVelocityUsd: 85000000000,
