@@ -47,6 +47,13 @@ export function AdScript({
       setArmed(true);
       return;
     }
+    /**
+     * The gate span is `display: contents`, so it generates no box — and an
+     * element with no box reports no intersection, which would mean the
+     * script NEVER loads. Observe the slot the gate lives in instead: that is
+     * the box the reader actually scrolls past.
+     */
+    const target = node.parentElement ?? node;
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
@@ -57,7 +64,7 @@ export function AdScript({
       // Start loading just before the slot scrolls into view.
       { rootMargin: "400px 0px" }
     );
-    observer.observe(node);
+    observer.observe(target);
     return () => observer.disconnect();
   }, []);
 
