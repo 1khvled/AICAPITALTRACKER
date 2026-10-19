@@ -14,9 +14,9 @@ jobs:
     name: Fetch Live Feeds, Quantitative Modeling & Rebuild
     runs-on: ubuntu-latest
     env:
-      FRED_API_KEY: ${{ secrets.FRED_API_KEY || 'b1ecf294238515eab7bb6e2e4edd6fe8' }}
-      ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY || 'LZ3IO4EQQ58CD3C2' }}
-      FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY || 'd8cnqdhr01qidic8p4m0d8cnqdhr01qidic8p4mg' }}
+      FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+      ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
+      FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
 
     steps:
       - name: Checkout repository

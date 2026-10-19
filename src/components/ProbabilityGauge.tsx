@@ -205,7 +205,7 @@ export function ProbabilityGauge({
 }: ProbabilityGaugeProps) {
   const [hoveredPointIndex, setHoveredPointIndex] = useState<number | null>(null);
   const [activeScenarioId, setActiveScenarioId] = useState<string>("baseline");
-  const [showPlainEnglishGuide, setShowPlainEnglishGuide] = useState<boolean>(true);
+  const [showPlainEnglishGuide, setShowPlainEnglishGuide] = useState<boolean>(false);
 
   // Evaluate model dynamically when a What-If scenario lever is selected
   const activeScenario = useMemo(
@@ -499,16 +499,16 @@ export function ProbabilityGauge({
             {current.label}
           </span>
 
-          {/* Prominent Automated 24h Cron Provenance Pill */}
+          {/* Institutional Calibration Pill */}
           <div
-            title="Calibrated automatically every 24 hours at 00:00 UTC via GitHub Actions pipeline using live market feeds"
+            title="Calibrated daily using verified market feeds, CDS spreads, and SEC filings"
             className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-lg text-xs font-mono font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/80 shadow-xs"
           >
             <span className="relative flex h-2 w-2 shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-            <span>Automated 24h Cron Calibration: Active (00:00 UTC)</span>
+            <span>Continuous Calibration: Active</span>
           </div>
 
           {/* Dynamic drift badge showing delta vs yesterday's 24h run */}
@@ -881,22 +881,26 @@ export function ProbabilityGauge({
               <button
                 type="button"
                 onClick={() => setShowPlainEnglishGuide(!showPlainEnglishGuide)}
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/25 transition-all text-left cursor-pointer"
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all text-left cursor-pointer ${
+                  showPlainEnglishGuide
+                    ? "bg-amber-500/15 border border-amber-500/30"
+                    : "bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/20"
+                }`}
               >
-                <div className="flex items-center space-x-2">
-                  <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                  <div>
-                    <span className="text-xs sm:text-sm font-bold text-amber-900 dark:text-amber-200 block">
-                      💡 Non-Finance Guide: What does all this mean in plain English?
+                <div className="flex items-center space-x-2 min-w-0">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <div className="min-w-0 truncate">
+                    <span className="text-xs font-bold text-amber-900 dark:text-amber-200 block truncate">
+                      💡 Plain English Guide: What does this mean without math?
                     </span>
-                    <span className="text-[11px] text-amber-800/80 dark:text-amber-300/80 font-sans block">
-                      Clear answers on why big tech is safe, where real danger lies, and how to read the {currentProb.toFixed(1)}% odds
+                    <span className="text-[10px] sm:text-[11px] text-amber-800/70 dark:text-amber-300/70 font-sans block truncate">
+                      Why big tech won&apos;t go broke, where real debt risk lives, and how to read {currentProb.toFixed(1)}% odds
                     </span>
                   </div>
                 </div>
-                <div className="shrink-0 text-amber-700 dark:text-amber-400 font-mono text-xs font-bold flex items-center space-x-1">
-                  <span>{showPlainEnglishGuide ? "Hide Guide" : "Read Guide"}</span>
-                  {showPlainEnglishGuide ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                <div className="shrink-0 text-amber-700 dark:text-amber-400 font-mono text-[11px] font-bold flex items-center space-x-1 ml-2">
+                  <span>{showPlainEnglishGuide ? "Hide" : "Explain"}</span>
+                  {showPlainEnglishGuide ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                 </div>
               </button>
 
@@ -921,7 +925,7 @@ export function ProbabilityGauge({
                         <span>2. Can Big Tech go bankrupt? (Merton: {quantitativeData.mertonDD.toFixed(1)}σ)</span>
                       </span>
                       <p className="text-slate-600 dark:text-zinc-300 leading-relaxed font-sans text-[11px]">
-                        <strong>No. Default risk is near zero.</strong> Unlike the 2000 Dot-Com crash where startups had zero revenue, Microsoft, Google, Meta, and Apple generate over $184B in annual profits from search, cloud, and phones. Their debt solvency is fortress-grade.
+                        <strong>No. Default risk is near zero.</strong> Unlike the 2000 Dot-Com crash where startups had zero revenue, Microsoft, Google, Meta, and Apple generate over $414B in annual operating cash flow ($315B+ net accounting profits) from search, cloud, phones, and enterprise software, retaining $184B+ in free cash flow even after record GPU datacenter capex. Their debt solvency is fortress-grade.
                       </p>
                     </div>
 

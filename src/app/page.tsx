@@ -1,10 +1,6 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import rawDeals from "@/data/deals.json";
-import liveInputsData from "@/data/live-inputs.json";
-import syncHistoryData from "@/data/sync-history.json";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import { ProbabilityGauge } from "@/components/ProbabilityGauge";
 import { AdSlot } from "@/components/AdSlot";
@@ -19,35 +15,12 @@ import {
   TrendingUp,
   FileSpreadsheet,
   Newspaper,
-  Activity,
   ArrowUpRight,
   ExternalLink,
-  Zap,
-  Clock,
   Sparkles,
 } from "lucide-react";
 
 export default function HomePage() {
-  const [mounted, setMounted] = useState(false);
-  const [countdown, setCountdown] = useState<string>("02h 21m 45s");
-
-  useEffect(() => {
-    setMounted(true);
-    function updateCountdown() {
-      const now = new Date();
-      const nextUtc = new Date(now);
-      nextUtc.setUTCHours(24, 0, 0, 0);
-      const diffMs = Math.max(0, nextUtc.getTime() - now.getTime());
-      const hours = Math.floor(diffMs / (1000 * 60 * 60));
-      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-      setCountdown(`${String(hours).padStart(2, "0")}h ${String(minutes).padStart(2, "0")}m ${String(seconds).padStart(2, "0")}s`);
-    }
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   const result = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
 
   const totalDeals = rawDeals.length;
@@ -67,104 +40,10 @@ export default function HomePage() {
     ? (DEFAULT_MODEL_INPUTS.aiDebt.totalTrackedDebtUsd / 1e9).toFixed(1)
     : "196.8";
 
-  // Telemetry metadata
-  const latestSync = (syncHistoryData && syncHistoryData.length > 0) ? syncHistoryData[0] : null;
-  const lastSyncIso = liveInputsData?.meta?.last_synced_at || latestSync?.timestamp || "2026-10-18T21:38:15.716Z";
-  const lastCalibratedDate = new Date(lastSyncIso);
-  const lastCalibratedFormatted = !isNaN(lastCalibratedDate.getTime())
-    ? `${lastCalibratedDate.toISOString().slice(0, 10)} ${String(lastCalibratedDate.getUTCHours()).padStart(2, "0")}:${String(lastCalibratedDate.getUTCMinutes()).padStart(2, "0")} UTC`
-    : "2026-10-18 21:38 UTC";
-
-  const tokenDeclineMultiple = liveInputsData?.adoption?.apiPriceDeclineMultiple ?? 25;
-  const polymarketOdds = liveInputsData?.crowd?.yesProbability ?? 0.103;
-  const polymarketOddsFormatted = `${(polymarketOdds * 100).toFixed(1)}%`;
-
   return (
     <div className="space-y-8 sm:space-y-10">
       {/* ── 1. TOP LEADERBOARD AD ────────────────────────────────────────────── */}
       <AdSlot format="leaderboard" />
-
-      {/* ── AUTONOMOUS 24H MODELING PIPELINE STATUS BAR ────────────────────────── */}
-      <section aria-label="Autonomous 24h Modeling Pipeline Telemetry" className="w-full">
-        <div className="rounded-2xl bg-slate-950 dark:bg-[#0c0c0e] border border-emerald-500/30 dark:border-emerald-500/25 p-3.5 sm:p-4 text-white shadow-md relative overflow-hidden">
-          {/* Subtle glow accent */}
-          <div className="absolute top-0 left-0 w-72 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
-            {/* Left: Green Glowing Live Indicator & Schedule */}
-            <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="relative flex h-2.5 w-2.5 shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-[0_0_8px_#10b981]" />
-                </span>
-                <span className="font-mono text-xs sm:text-sm font-black tracking-wider text-emerald-400 uppercase">
-                  AUTONOMOUS 24H MODELING PIPELINE ACTIVE
-                </span>
-                <span className="text-zinc-600 hidden sm:inline">•</span>
-                <span className="text-[11px] font-mono text-zinc-400">
-                  GitHub Actions (00:00 UTC)
-                </span>
-              </div>
-
-              {/* Timestamp & Countdown */}
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs font-mono text-zinc-400">
-                <span>
-                  Last automated cron calibration:{" "}
-                  <strong className="text-zinc-200">{lastCalibratedFormatted}</strong>
-                </span>
-                <span className="text-zinc-600 hidden sm:inline">·</span>
-                <span>
-                  Next run in:{" "}
-                  <strong className="text-emerald-400 font-bold tabular-nums">
-                    {mounted ? countdown : "02h 21m 45s"}
-                  </strong>{" "}
-                  <span className="text-[11px] text-zinc-500">(00:00 UTC)</span>
-                </span>
-              </div>
-            </div>
-
-            {/* Right: Data Telemetry Badges */}
-            <div className="flex flex-wrap items-center gap-2 shrink-0 pt-1 xl:pt-0">
-              <div
-                title="OpenRouter Public Models Pricing API: Live token inference prices tracking pricing deflation vs GPT-4 2023 baseline"
-                className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-900/90 border border-zinc-800 text-xs font-mono transition-colors hover:border-emerald-500/40 cursor-help"
-              >
-                <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span className="text-zinc-400 font-medium">OpenRouter Deflation:</span>
-                <span className="text-emerald-400 font-bold">{tokenDeclineMultiple}×</span>
-              </div>
-
-              <div
-                title="Polymarket Gamma Events API: Live crowd consensus odds across AI bubble prediction contracts"
-                className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-900/90 border border-zinc-800 text-xs font-mono transition-colors hover:border-blue-500/40 cursor-help"
-              >
-                <TrendingUp className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                <span className="text-zinc-400 font-medium">Polymarket Consensus:</span>
-                <span className="text-blue-300 font-bold">{polymarketOddsFormatted}</span>
-              </div>
-
-              <div
-                title="Yahoo Finance Market Stream: Oracle (ORCL) 5Y USD Credit Default Swaps pricing datacenter credit spreads"
-                className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-900/90 border border-zinc-800 text-xs font-mono transition-colors hover:border-rose-500/40 cursor-help"
-              >
-                <Activity className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-                <span className="text-zinc-400 font-medium">Yahoo Credit Spreads:</span>
-                <span className="text-rose-300 font-bold">{orclCds} bp</span>
-              </div>
-
-              <div
-                title="SEC EDGAR Submissions API: Primary filings verified for debt commitments and material event disclosures (CIK 0001341439)"
-                className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-900/90 border border-zinc-800 text-xs font-mono transition-colors hover:border-emerald-500/40 cursor-help"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span className="text-zinc-400 font-medium">SEC EDGAR Form 8-K:</span>
-                <span className="text-emerald-400 font-bold">Verified</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ── 2. HERO HEADER & QUICK NAVIGATION ─────────────────────────────────── */}
       <div className="space-y-4 pb-6 border-b border-slate-200 dark:border-zinc-800">
@@ -256,42 +135,45 @@ export default function HomePage() {
           </Link>
         </div>
 
-        {/* ── 2.5 PLAIN ENGLISH 60-SECOND CRASH COURSE ── */}
-        <div className="pt-2">
-          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/25 space-y-3">
-            <div className="flex items-center space-x-2">
-              <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
-              <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-                🎓 New here? The 60-Second Plain English Guide (No Finance Degree Required)
-              </h2>
+        {/* ── 2.5 PLAIN ENGLISH 60-SECOND CRASH COURSE (Collapsed by default) ── */}
+        <div className="pt-1">
+          <details className="group border border-amber-500/20 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 transition-colors">
+            <summary className="p-2.5 sm:px-3.5 cursor-pointer flex items-center justify-between text-xs font-bold text-amber-900 dark:text-amber-200 select-none list-none [&::-webkit-details-marker]:hidden">
+              <div className="flex items-center space-x-2">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span>🎓 New here? 60-Second Plain English Guide (No Finance Degree Required)</span>
+              </div>
+              <span className="font-mono text-[11px] text-amber-600 dark:text-amber-400 group-open:rotate-180 transition-transform">▾</span>
+            </summary>
+            <div className="p-3.5 sm:p-4 border-t border-amber-500/15">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <div className="p-3 rounded-xl bg-white/90 dark:bg-[#121214]/90 border border-slate-200/80 dark:border-zinc-800 space-y-1">
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center space-x-1.5">
+                    <span>🛡️ 1. Big Tech is not going broke</span>
+                  </span>
+                  <p className="text-slate-600 dark:text-zinc-300 font-sans leading-relaxed text-[11px]">
+                    Microsoft, Google, Apple, and Meta generate over <strong>$414 billion</strong> in operating cash flow every year ($315B+ net accounting profits). Unlike the 2000 Dot-Com crash, Big Tech has fortress balance sheets with plenty of real cash to survive.
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-white/90 dark:bg-[#121214]/90 border border-slate-200/80 dark:border-zinc-800 space-y-1">
+                  <span className="font-bold text-rose-600 dark:text-rose-400 flex items-center space-x-1.5">
+                    <span>⚠️ 2. The risk is borrowed loans &amp; hype</span>
+                  </span>
+                  <p className="text-slate-600 dark:text-zinc-300 font-sans leading-relaxed text-[11px]">
+                    Over <strong>$196 billion</strong> of new AI data centers are built on borrowed debt. If outside businesses don&apos;t spend huge money on AI tools, that debt becomes hard to pay back.
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-white/90 dark:bg-[#121214]/90 border border-slate-200/80 dark:border-zinc-800 space-y-1">
+                  <span className="font-bold text-blue-600 dark:text-blue-400 flex items-center space-x-1.5">
+                    <span>📉 3. AI is getting 25× cheaper to run</span>
+                  </span>
+                  <p className="text-slate-600 dark:text-zinc-300 font-sans leading-relaxed text-[11px]">
+                    The silver lining: AI computing costs are crashing fast. When AI is cheap like tap water, normal businesses can afford it, creating real profits that prevent a crash.
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-              <div className="p-3 rounded-xl bg-white/90 dark:bg-[#121214]/90 border border-slate-200/80 dark:border-zinc-800 space-y-1">
-                <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center space-x-1.5">
-                  <span>🛡️ 1. Big Tech is not going broke</span>
-                </span>
-                <p className="text-slate-600 dark:text-zinc-300 font-sans leading-relaxed text-[11px]">
-                  Microsoft, Google, Apple, and Meta make over <strong>$184 billion</strong> in cash profits every year. Unlike the 2000 Dot-Com crash, they have plenty of money to survive.
-                </p>
-              </div>
-              <div className="p-3 rounded-xl bg-white/90 dark:bg-[#121214]/90 border border-slate-200/80 dark:border-zinc-800 space-y-1">
-                <span className="font-bold text-rose-600 dark:text-rose-400 flex items-center space-x-1.5">
-                  <span>⚠️ 2. The risk is borrowed loans &amp; hype</span>
-                </span>
-                <p className="text-slate-600 dark:text-zinc-300 font-sans leading-relaxed text-[11px]">
-                  Over <strong>$196 billion</strong> of new AI data centers are built on borrowed debt. If outside businesses don&apos;t spend huge money on AI tools, that debt becomes hard to pay back.
-                </p>
-              </div>
-              <div className="p-3 rounded-xl bg-white/90 dark:bg-[#121214]/90 border border-slate-200/80 dark:border-zinc-800 space-y-1">
-                <span className="font-bold text-blue-600 dark:text-blue-400 flex items-center space-x-1.5">
-                  <span>📉 3. AI is getting 25× cheaper to run</span>
-                </span>
-                <p className="text-slate-600 dark:text-zinc-300 font-sans leading-relaxed text-[11px]">
-                  The silver lining: AI computing costs are crashing fast. When AI is cheap like tap water, normal businesses can afford it, creating real profits that prevent a crash.
-                </p>
-              </div>
-            </div>
-          </div>
+          </details>
         </div>
       </div>
 
@@ -333,12 +215,19 @@ export default function HomePage() {
               <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
                 Oracle CDS at {orclCds} bp
               </h3>
-              <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-900/50 text-[11px] font-sans text-rose-900 dark:text-rose-200 leading-relaxed">
-                <strong>In plain English:</strong> The insurance price against an AI datacenter loan default jumped {orclStressPct}%. Bond investors are quietly charging higher safety premiums.
-              </div>
               <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-sans">
                 Oracle senior notes serve as AI&apos;s primary credit proxy. 5-year CDS default insurance trades at {orclCds}bp, pricing refinancing risk across GPU datacenter loans.
               </p>
+              <details className="group">
+                <summary className="list-none [&::-webkit-details-marker]:hidden cursor-pointer inline-flex items-center space-x-1 font-mono text-[11px] font-bold text-rose-600/80 hover:text-rose-600 dark:text-rose-400/80 dark:hover:text-rose-400 transition-colors py-0.5">
+                  <Sparkles className="w-3 h-3 text-rose-500 shrink-0" />
+                  <span>💡 Plain English</span>
+                  <span className="text-[10px] group-open:rotate-180 transition-transform">▾</span>
+                </summary>
+                <div className="mt-1.5 p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-900/50 text-[11px] font-sans text-rose-900 dark:text-rose-200 leading-relaxed">
+                  <strong>In plain English:</strong> The insurance price against an AI datacenter loan default jumped {orclStressPct}%. Bond investors are quietly charging higher safety premiums.
+                </div>
+              </details>
             </div>
             <Link
               href="/companies"
@@ -362,12 +251,19 @@ export default function HomePage() {
               <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
                 Median Lab P/S: 34.8×
               </h3>
-              <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/50 text-[11px] font-sans text-amber-900 dark:text-amber-200 leading-relaxed">
-                <strong>In plain English:</strong> Investors are paying $35 today for every single $1 of startup sales. Startups must grow at superhuman speed for decades to justify this.
-              </div>
               <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-sans">
                 OpenAI ($157B at 42.4×), Anthropic ($65B at 14.1× with $57B in debt facilities), and Mistral trade at multiples exceeding historical tech bubbles.
               </p>
+              <details className="group">
+                <summary className="list-none [&::-webkit-details-marker]:hidden cursor-pointer inline-flex items-center space-x-1 font-mono text-[11px] font-bold text-amber-600/80 hover:text-amber-600 dark:text-amber-400/80 dark:hover:text-amber-400 transition-colors py-0.5">
+                  <Sparkles className="w-3 h-3 text-amber-500 shrink-0" />
+                  <span>💡 Plain English</span>
+                  <span className="text-[10px] group-open:rotate-180 transition-transform">▾</span>
+                </summary>
+                <div className="mt-1.5 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/50 text-[11px] font-sans text-amber-900 dark:text-amber-200 leading-relaxed">
+                  <strong>In plain English:</strong> Investors are paying $35 today for every single $1 of startup sales. Startups must grow at superhuman speed for decades to justify this.
+                </div>
+              </details>
             </div>
             <Link
               href="/companies"
@@ -391,12 +287,19 @@ export default function HomePage() {
               <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
                 US10Y: {us10y.toFixed(2)}% • CPI: {cpi.toFixed(1)}%
               </h3>
-              <div className="p-2.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-900/50 text-[11px] font-sans text-indigo-900 dark:text-indigo-200 leading-relaxed">
-                <strong>In plain English:</strong> Safe US government bonds pay {us10y.toFixed(2)}% guaranteed interest, making risky, speculative AI investments harder to justify.
-              </div>
               <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-sans">
                 10-Year Treasury yields at {us10y.toFixed(2)}% elevate capital hurdle rates, making future profits worth far less in today&apos;s money.
               </p>
+              <details className="group">
+                <summary className="list-none [&::-webkit-details-marker]:hidden cursor-pointer inline-flex items-center space-x-1 font-mono text-[11px] font-bold text-indigo-600/80 hover:text-indigo-600 dark:text-indigo-400/80 dark:hover:text-indigo-400 transition-colors py-0.5">
+                  <Sparkles className="w-3 h-3 text-indigo-500 shrink-0" />
+                  <span>💡 Plain English</span>
+                  <span className="text-[10px] group-open:rotate-180 transition-transform">▾</span>
+                </summary>
+                <div className="mt-1.5 p-2.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-900/50 text-[11px] font-sans text-indigo-900 dark:text-indigo-200 leading-relaxed">
+                  <strong>In plain English:</strong> Safe US government bonds pay {us10y.toFixed(2)}% guaranteed interest, making risky, speculative AI investments harder to justify.
+                </div>
+              </details>
             </div>
             <Link
               href="/sandbox"
@@ -420,12 +323,19 @@ export default function HomePage() {
               <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
                 ${annualDebtB}B/yr Debt Pace
               </h3>
-              <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-900/50 text-[11px] font-sans text-rose-900 dark:text-rose-200 leading-relaxed">
-                <strong>In plain English:</strong> Tech giants are borrowing over ${annualDebtB}B every year for data centers. Borrowed debt must be repaid with interest no matter what happens.
-              </div>
               <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-sans">
                 ${totalDebtB}B verified AI debt tracked across 20 facilities (Anthropic, CoreWeave, Vantage, Oracle). Capex consumes 54.8% of operating cash flow.
               </p>
+              <details className="group">
+                <summary className="list-none [&::-webkit-details-marker]:hidden cursor-pointer inline-flex items-center space-x-1 font-mono text-[11px] font-bold text-rose-600/80 hover:text-rose-600 dark:text-rose-400/80 dark:hover:text-rose-400 transition-colors py-0.5">
+                  <Sparkles className="w-3 h-3 text-rose-500 shrink-0" />
+                  <span>💡 Plain English</span>
+                  <span className="text-[10px] group-open:rotate-180 transition-transform">▾</span>
+                </summary>
+                <div className="mt-1.5 p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-900/50 text-[11px] font-sans text-rose-900 dark:text-rose-200 leading-relaxed">
+                  <strong>In plain English:</strong> Tech giants are borrowing over ${annualDebtB}B every year for data centers. Borrowed debt must be repaid with interest no matter what happens.
+                </div>
+              </details>
             </div>
             <Link
               href="/ledger"

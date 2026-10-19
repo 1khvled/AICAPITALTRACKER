@@ -50,10 +50,29 @@ const TRAJECTORY_HISTORY_FILE = path.join(projectRoot, 'src', 'data', 'trajector
 const LIVE_STOCKS_FILE = path.join(projectRoot, 'src', 'data', 'live-stocks.json');
 const SYNC_HISTORY_FILE = path.join(projectRoot, 'src', 'data', 'sync-history.json');
 
-// Institutional API Keys (from process.env with verified defaults)
-const FRED_API_KEY = process.env.FRED_API_KEY || 'b1ecf294238515eab7bb6e2e4edd6fe8';
-const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY || 'LZ3IO4EQQ58CD3C2';
-const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY || 'd8cnqdhr01qidic8p4m0d8cnqdhr01qidic8p4mg';
+// Securely load local environment variables from .env.local if present (gitignored, zero secrets in source)
+try {
+  const envLocalPath = path.join(projectRoot, '.env.local');
+  if (fs.existsSync(envLocalPath)) {
+    const envContent = fs.readFileSync(envLocalPath, 'utf8');
+    for (const line of envContent.split('\n')) {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith('#')) {
+        const [k, ...v] = trimmed.split('=');
+        if (k && v.length > 0 && !process.env[k.trim()]) {
+          process.env[k.trim()] = v.join('=').trim();
+        }
+      }
+    }
+  }
+} catch {
+  // Silent fallback if .env.local is absent
+}
+
+// Institutional API Keys (strictly from process.env or .env.local)
+const FRED_API_KEY = process.env.FRED_API_KEY || '';
+const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY || '';
+const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY || '';
 
 // Baseline institutional fallback defaults
 const BASELINE_DEFAULTS = {

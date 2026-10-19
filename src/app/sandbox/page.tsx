@@ -226,16 +226,19 @@ export default function SandboxPage() {
           </div>
         </div>
 
-        {/* Plain English Guide for Sandbox */}
-        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1.5 text-xs">
-          <div className="flex items-center space-x-1.5 font-bold text-amber-800 dark:text-amber-400">
-            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
-            <span>💡 How this sandbox works: Try tweaking reality</span>
-          </div>
-          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+        {/* Plain English Guide for Sandbox (Collapsed by default) */}
+        <details className="group border border-amber-500/20 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 transition-colors">
+          <summary className="p-2.5 sm:px-3.5 cursor-pointer flex items-center justify-between text-xs font-bold text-amber-900 dark:text-amber-200 select-none list-none [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center space-x-2">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span>💡 How this sandbox works: Try tweaking reality (No Finance Degree Required)</span>
+            </div>
+            <span className="font-mono text-[11px] text-amber-600 dark:text-amber-400 group-open:rotate-180 transition-transform">▾</span>
+          </summary>
+          <div className="px-3.5 pb-3 pt-1 text-xs text-slate-600 dark:text-zinc-300 font-sans leading-relaxed border-t border-amber-500/15">
             Every slider below represents a real-world financial lever. For example, drag <strong>US 10-Year Treasury Yield</strong> higher to see what happens if inflation forces the Fed to hike rates, or drag <strong>Token Price Deflation</strong> higher to simulate AI getting even cheaper and spreading to more businesses!
-          </p>
-        </div>
+          </div>
+        </details>
       </div>
 
       {/* ── LIVE 24H AUTOMATED SNAPSHOT REFERENCE CARD ─────────────────────── */}

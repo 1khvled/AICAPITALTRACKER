@@ -162,43 +162,55 @@ export default function MethodologyPage() {
         </div>
       </div>
 
-      {/* ── PLAIN ENGLISH TL;DR BANNER FOR NON-FINANCE USERS ── */}
-      <section aria-label="Plain English TL;DR" className="p-6 sm:p-7 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 space-y-4">
-        <div className="flex items-center space-x-2.5 text-amber-700 dark:text-amber-400 font-bold">
-          <Sparkles className="w-5 h-5 text-amber-500 shrink-0" />
-          <h2 className="text-base sm:text-xl font-extrabold text-slate-900 dark:text-white">
-            Not a Math or Finance Person? Here is the Entire Model in Plain English
-          </h2>
-        </div>
-        <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 font-sans leading-relaxed">
-          Financial research papers love using Greek letters, calculus, and intimidating equations. But at its core, this entire tracking platform asks three simple real-world questions that anyone can understand:
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-sans">
-          <div className="p-4 rounded-xl bg-white/95 dark:bg-[#121214]/95 border border-slate-200/80 dark:border-zinc-800 space-y-1.5 shadow-xs">
-            <span className="font-bold text-slate-900 dark:text-white text-sm flex items-center space-x-1.5">
-              <span>💳 1. Who is paying for the party?</span>
-            </span>
-            <p className="text-slate-600 dark:text-zinc-300 leading-relaxed text-[11px]">
-              Spending cash profits from a real business is safe. But borrowing <strong>$196 billion</strong> on corporate loans and bonds (like Oracle, Vantage, and CoreWeave) means heavy interest bills must be paid every single month — even if AI revenues dry up.
+      {/* ── PLAIN ENGLISH TL;DR BANNER FOR NON-FINANCE USERS (Collapsed by default) ── */}
+      <section aria-label="Plain English TL;DR">
+        <details className="group border border-amber-500/25 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent transition-colors shadow-xs">
+          <summary className="p-4 sm:p-5 cursor-pointer flex items-center justify-between select-none list-none [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center space-x-2.5 text-amber-700 dark:text-amber-400 font-bold">
+              <Sparkles className="w-5 h-5 text-amber-500 shrink-0" />
+              <div>
+                <h2 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                  💡 Not a Math or Finance Person? Read the Entire Model in Plain English
+                </h2>
+                <span className="text-[11px] text-amber-800/80 dark:text-amber-300/80 font-sans block mt-0.5">
+                  The 3 simple real-world questions that explain how this model calculates bubble risk
+                </span>
+              </div>
+            </div>
+            <span className="font-mono text-xs font-bold text-amber-700 dark:text-amber-400 group-open:rotate-180 transition-transform shrink-0 ml-2">▾</span>
+          </summary>
+          <div className="p-5 sm:p-6 border-t border-amber-500/20 space-y-4">
+            <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 font-sans leading-relaxed">
+              Financial research papers love using Greek letters, calculus, and intimidating equations. But at its core, this entire tracking platform asks three simple real-world questions that anyone can understand:
             </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-sans">
+              <div className="p-4 rounded-xl bg-white/95 dark:bg-[#121214]/95 border border-slate-200/80 dark:border-zinc-800 space-y-1.5 shadow-xs">
+                <span className="font-bold text-slate-900 dark:text-white text-sm flex items-center space-x-1.5">
+                  <span>💳 1. Who is paying for the party?</span>
+                </span>
+                <p className="text-slate-600 dark:text-zinc-300 leading-relaxed text-[11px]">
+                  Spending cash profits from a real business is safe. But borrowing <strong>$196 billion</strong> on corporate loans and bonds (like Oracle, Vantage, and CoreWeave) means heavy interest bills must be paid every single month — even if AI revenues dry up.
+                </p>
+              </div>
+              <div className="p-4 rounded-xl bg-white/95 dark:bg-[#121214]/95 border border-slate-200/80 dark:border-zinc-800 space-y-1.5 shadow-xs">
+                <span className="font-bold text-slate-900 dark:text-white text-sm flex items-center space-x-1.5">
+                  <span>🚀 2. Are expectations realistic?</span>
+                </span>
+                <p className="text-slate-600 dark:text-zinc-300 leading-relaxed text-[11px]">
+                  Investors are paying <strong>$35 today for every single $1</strong> of startup sales. When stock prices require 20 years of flawless superhuman growth just to break even, even small revenue disappointments cause painful crashes.
+                </p>
+              </div>
+              <div className="p-4 rounded-xl bg-white/95 dark:bg-[#121214]/95 border border-slate-200/80 dark:border-zinc-800 space-y-1.5 shadow-xs">
+                <span className="font-bold text-slate-900 dark:text-white text-sm flex items-center space-x-1.5">
+                  <span>⚡ 3. Is AI getting cheaper and useful?</span>
+                </span>
+                <p className="text-slate-600 dark:text-zinc-300 leading-relaxed text-[11px]">
+                  The great equalizer: AI models are <strong>25× to 40× cheaper</strong> to run than two years ago. When AI costs pennies instead of dollars, normal businesses can afford it, creating real profits that prevent a crash.
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="p-4 rounded-xl bg-white/95 dark:bg-[#121214]/95 border border-slate-200/80 dark:border-zinc-800 space-y-1.5 shadow-xs">
-            <span className="font-bold text-slate-900 dark:text-white text-sm flex items-center space-x-1.5">
-              <span>🚀 2. Are expectations realistic?</span>
-            </span>
-            <p className="text-slate-600 dark:text-zinc-300 leading-relaxed text-[11px]">
-              Investors are paying <strong>$35 today for every single $1</strong> of startup sales. When stock prices require 20 years of flawless superhuman growth just to break even, even small revenue disappointments cause painful crashes.
-            </p>
-          </div>
-          <div className="p-4 rounded-xl bg-white/95 dark:bg-[#121214]/95 border border-slate-200/80 dark:border-zinc-800 space-y-1.5 shadow-xs">
-            <span className="font-bold text-slate-900 dark:text-white text-sm flex items-center space-x-1.5">
-              <span>⚡ 3. Is AI getting cheaper and useful?</span>
-            </span>
-            <p className="text-slate-600 dark:text-zinc-300 leading-relaxed text-[11px]">
-              The great equalizer: AI models are <strong>25× to 40× cheaper</strong> to run than two years ago. When AI costs pennies instead of dollars, normal businesses can afford it, creating real profits that prevent a crash.
-            </p>
-          </div>
-        </div>
+        </details>
       </section>
 
       {/* SECTION 1: THE CORE SCIENTIFIC THESIS */}
@@ -254,16 +266,19 @@ export default function MethodologyPage() {
           </div>
         </div>
 
-        {/* Plain English Translation for Section 1 */}
-        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1.5 text-xs">
-          <div className="flex items-center space-x-1.5 font-bold text-amber-800 dark:text-amber-400">
-            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
-            <span>💡 In Plain English: Why we don&apos;t listen to Twitter or TV pundits</span>
-          </div>
-          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+        {/* Plain English Translation for Section 1 (Collapsed by default) */}
+        <details className="group border border-amber-500/20 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 transition-colors">
+          <summary className="p-2.5 sm:px-3.5 cursor-pointer flex items-center justify-between text-xs font-bold text-amber-900 dark:text-amber-200 select-none list-none [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center space-x-2">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span>💡 In Plain English: Why we don&apos;t listen to Twitter or TV pundits</span>
+            </div>
+            <span className="font-mono text-[11px] text-amber-600 dark:text-amber-400 group-open:rotate-180 transition-transform">▾</span>
+          </summary>
+          <div className="px-3.5 pb-3 pt-1 text-xs text-slate-600 dark:text-zinc-300 font-sans leading-relaxed border-t border-amber-500/15">
             Most market forecasts are just talking heads guessing on TV or billionaires hyping their own investments. We do something completely different: we only count official receipts filed with government regulators (SEC), real loan agreements signed by banks, and live market prices. If a deal isn&apos;t verified on paper, we ignore it.
-          </p>
-        </div>
+          </div>
+        </details>
       </section>
 
       {/* SECTION 2: MATHEMATICAL SIGMOID CALIBRATION */}
@@ -323,16 +338,19 @@ export default function MethodologyPage() {
           </div>
         </div>
 
-        {/* Plain English Translation for Equation 1 */}
-        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1.5 text-xs">
-          <div className="flex items-center space-x-1.5 font-bold text-amber-800 dark:text-amber-400">
-            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
-            <span>💡 In Plain English: What does this S-shaped curve actually mean?</span>
-          </div>
-          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+        {/* Plain English Translation for Equation 1 (Collapsed by default) */}
+        <details className="group border border-amber-500/20 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 transition-colors">
+          <summary className="p-2.5 sm:px-3.5 cursor-pointer flex items-center justify-between text-xs font-bold text-amber-900 dark:text-amber-200 select-none list-none [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center space-x-2">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span>💡 In Plain English: What does this S-shaped curve actually mean?</span>
+            </div>
+            <span className="font-mono text-[11px] text-amber-600 dark:text-amber-400 group-open:rotate-180 transition-transform">▾</span>
+          </summary>
+          <div className="px-3.5 pb-3 pt-1 text-xs text-slate-600 dark:text-zinc-300 font-sans leading-relaxed border-t border-amber-500/15">
             Think of a camel&apos;s back. Piling light straw onto a strong camel doesn&apos;t bother it at all. But once the weight gets near the limit, that one final straw snaps its spine! Financial risk works the exact same way. Small stress is easily absorbed by big tech&apos;s cash, but once debt piles past the danger zone, risk spikes suddenly.
-          </p>
-        </div>
+          </div>
+        </details>
 
         {/* Financial Fragility Index & Confidence Interval Formulations */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
@@ -499,16 +517,19 @@ export default function MethodologyPage() {
           </p>
         </div>
 
-        {/* Plain English Translation for Section 4 */}
-        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/25 space-y-1.5 text-xs">
-          <div className="flex items-center space-x-1.5 font-bold text-rose-800 dark:text-rose-400">
-            <Sparkles className="w-4 h-4 text-rose-500 shrink-0" />
-            <span>💡 In Plain English: Why problems multiply like falling dominoes</span>
-          </div>
-          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+        {/* Plain English Translation for Section 4 (Collapsed by default) */}
+        <details className="group border border-rose-500/20 rounded-xl bg-rose-500/5 hover:bg-rose-500/10 transition-colors">
+          <summary className="p-2.5 sm:px-3.5 cursor-pointer flex items-center justify-between text-xs font-bold text-rose-900 dark:text-rose-200 select-none list-none [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center space-x-2">
+              <Sparkles className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+              <span>💡 In Plain English: Why problems multiply like falling dominoes</span>
+            </div>
+            <span className="font-mono text-[11px] text-rose-600 dark:text-rose-400 group-open:rotate-180 transition-transform">▾</span>
+          </summary>
+          <div className="px-3.5 pb-3 pt-1 text-xs text-slate-600 dark:text-zinc-300 font-sans leading-relaxed border-t border-rose-500/15">
             Problems love company. High debt alone is fine if interest rates are zero. High interest rates alone are fine if companies don&apos;t owe any debt. But when high debt, high interest rates, and slower sales hit at the exact same moment, they trigger a chain reaction. That&apos;s why our formula multiplies risk when multiple alarms ring together.
-          </p>
-        </div>
+          </div>
+        </details>
       </section>
 
       {/* SECTION 5: DEGRADATION HONESTY PROTOCOL */}
@@ -558,16 +579,19 @@ export default function MethodologyPage() {
           </div>
         </div>
 
-        {/* Plain English Translation for Section 5 */}
-        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25 space-y-1.5 text-xs">
-          <div className="flex items-center space-x-1.5 font-bold text-emerald-800 dark:text-emerald-400">
-            <Sparkles className="w-4 h-4 text-emerald-500 shrink-0" />
-            <span>💡 In Plain English: We never guess or fabricate phantom numbers</span>
-          </div>
-          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+        {/* Plain English Translation for Section 5 (Collapsed by default) */}
+        <details className="group border border-emerald-500/20 rounded-xl bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors">
+          <summary className="p-2.5 sm:px-3.5 cursor-pointer flex items-center justify-between text-xs font-bold text-emerald-900 dark:text-emerald-200 select-none list-none [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center space-x-2">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              <span>💡 In Plain English: We never guess or fabricate phantom numbers</span>
+            </div>
+            <span className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 group-open:rotate-180 transition-transform">▾</span>
+          </summary>
+          <div className="px-3.5 pb-3 pt-1 text-xs text-slate-600 dark:text-zinc-300 font-sans leading-relaxed border-t border-emerald-500/15">
             If a private AI startup refuses to tell the public how much money it actually makes, we don&apos;t make up a number to make our chart look pretty. We simply reduce our confidence score and tell you honestly that data is missing.
-          </p>
-        </div>
+          </div>
+        </details>
       </section>
 
       {/* SECTION 6: HISTORICAL BACKTESTS */}
@@ -585,16 +609,19 @@ export default function MethodologyPage() {
           </p>
         </div>
 
-        {/* Plain English Translation for Section 6 */}
-        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1.5 text-xs">
-          <div className="flex items-center space-x-1.5 font-bold text-amber-800 dark:text-amber-400">
-            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
-            <span>💡 In Plain English: How would this model have done in past market crashes?</span>
-          </div>
-          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+        {/* Plain English Translation for Section 6 (Collapsed by default) */}
+        <details className="group border border-amber-500/20 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 transition-colors">
+          <summary className="p-2.5 sm:px-3.5 cursor-pointer flex items-center justify-between text-xs font-bold text-amber-900 dark:text-amber-200 select-none list-none [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center space-x-2">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span>💡 In Plain English: How would this model have done in past market crashes?</span>
+            </div>
+            <span className="font-mono text-[11px] text-amber-600 dark:text-amber-400 group-open:rotate-180 transition-transform">▾</span>
+          </summary>
+          <div className="px-3.5 pb-3 pt-1 text-xs text-slate-600 dark:text-zinc-300 font-sans leading-relaxed border-t border-amber-500/15">
             We tested our mathematical formulas on the historical data from the 1929 Great Crash, the 2000 Dot-Com bust, and the 2008 Lehman collapse. In every single historic crisis, our model sounded an intense alarm (85%+ probability) months before the crash actually arrived.
-          </p>
-        </div>
+          </div>
+        </details>
 
         {/* Brier Score & AUC-ROC Calibration Summary Bar */}
         <div className="flex flex-wrap items-center gap-3 p-4 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-xs font-mono">
@@ -675,16 +702,19 @@ export default function MethodologyPage() {
           </p>
         </div>
 
-        {/* Plain English Translation for Section 7 */}
-        <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/25 space-y-1.5 text-xs">
-          <div className="flex items-center space-x-1.5 font-bold text-indigo-800 dark:text-indigo-400">
-            <Sparkles className="w-4 h-4 text-indigo-500 shrink-0" />
-            <span>💡 In Plain English: The 3 Classic Doctor Checkups for Companies</span>
-          </div>
-          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+        {/* Plain English Translation for Section 7 (Collapsed by default) */}
+        <details className="group border border-indigo-500/20 rounded-xl bg-indigo-500/5 hover:bg-indigo-500/10 transition-colors">
+          <summary className="p-2.5 sm:px-3.5 cursor-pointer flex items-center justify-between text-xs font-bold text-indigo-900 dark:text-indigo-200 select-none list-none [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center space-x-2">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+              <span>💡 In Plain English: The 3 Classic Doctor Checkups for Companies</span>
+            </div>
+            <span className="font-mono text-[11px] text-indigo-600 dark:text-indigo-400 group-open:rotate-180 transition-transform">▾</span>
+          </summary>
+          <div className="px-3.5 pb-3 pt-1 text-xs text-slate-600 dark:text-zinc-300 font-sans leading-relaxed border-t border-indigo-500/15">
             Think of this section as taking big tech to three different world-class doctors. Doctor 1 (Merton) checks if they have enough cash to pay their debts (Grade: A+, zero default risk). Doctor 2 (Altman) checks for any signs of company bankruptcy (Grade: Healthy Safe Zone). Doctor 3 (LPPLS) checks if startup prices are growing too fast like an overheated rocket.
-          </p>
-        </div>
+          </div>
+        </details>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {/* 1. Merton Structural Credit Model */}
@@ -919,16 +949,19 @@ export default function MethodologyPage() {
           </p>
         </div>
 
-        {/* Plain English Translation for Section 8 */}
-        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25 space-y-1.5 text-xs">
-          <div className="flex items-center space-x-1.5 font-bold text-emerald-800 dark:text-emerald-400">
-            <Sparkles className="w-4 h-4 text-emerald-500 shrink-0" />
-            <span>💡 In Plain English: Robots updating the numbers while you sleep</span>
-          </div>
-          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+        {/* Plain English Translation for Section 8 (Collapsed by default) */}
+        <details className="group border border-emerald-500/20 rounded-xl bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors">
+          <summary className="p-2.5 sm:px-3.5 cursor-pointer flex items-center justify-between text-xs font-bold text-emerald-900 dark:text-emerald-200 select-none list-none [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center space-x-2">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              <span>💡 In Plain English: Robots updating the numbers while you sleep</span>
+            </div>
+            <span className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 group-open:rotate-180 transition-transform">▾</span>
+          </summary>
+          <div className="px-3.5 pb-3 pt-1 text-xs text-slate-600 dark:text-zinc-300 font-sans leading-relaxed border-t border-emerald-500/15">
             Every night at midnight UTC, automated code runs in the cloud. It scans real bond yields, checks government databases for new debt filings, and recalculates our risk models. No human sits there fudging the numbers to fit an opinion.
-          </p>
-        </div>
+          </div>
+        </details>
 
         {/* Workflow Specs Banner */}
         <div className="p-5 rounded-2xl bg-slate-900 dark:bg-[#09090b] border border-emerald-500/30 text-white space-y-3 shadow-md">
@@ -1446,16 +1479,19 @@ export default function MethodologyPage() {
           </p>
         </div>
 
-        {/* Plain English Translation for Section 9 */}
-        <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/25 space-y-1.5 text-xs">
-          <div className="flex items-center space-x-1.5 font-bold text-purple-800 dark:text-purple-400">
-            <Sparkles className="w-4 h-4 text-purple-500 shrink-0" />
-            <span>💡 In Plain English: The Three Kinds of Borrowers at the AI Party</span>
-          </div>
-          <p className="font-sans leading-relaxed text-slate-600 dark:text-zinc-300">
+        {/* Plain English Translation for Section 9 (Collapsed by default) */}
+        <details className="group border border-purple-500/20 rounded-xl bg-purple-500/5 hover:bg-purple-500/10 transition-colors">
+          <summary className="p-2.5 sm:px-3.5 cursor-pointer flex items-center justify-between text-xs font-bold text-purple-900 dark:text-purple-200 select-none list-none [&::-webkit-details-marker]:hidden">
+            <div className="flex items-center space-x-2">
+              <Sparkles className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+              <span>💡 In Plain English: The Three Kinds of Borrowers at the AI Party</span>
+            </div>
+            <span className="font-mono text-[11px] text-purple-600 dark:text-purple-400 group-open:rotate-180 transition-transform">▾</span>
+          </summary>
+          <div className="px-3.5 pb-3 pt-1 text-xs text-slate-600 dark:text-zinc-300 font-sans leading-relaxed border-t border-purple-500/15">
             Economist Hyman Minsky had a famous rule about how financial bubbles form. When a party starts, people borrow safely (<strong>Hedge borrowers</strong>: Microsoft and Google paying for chips out of real profits). Then people borrow more and hope to roll over their loans later (<strong>Speculative borrowers</strong>: datacenter developers). Finally, people borrow money with zero profits, praying that the price of their stock just keeps going up forever (<strong>Ponzi units</strong>: pre-revenue startups). Right now, 60% of AI is funded by real cash, meaning the foundation is still holding strong.
-          </p>
-        </div>
+          </div>
+        </details>
 
         {/* ── SUBSECTION A: HYMAN MINSKY FINANCIAL INSTABILITY HYPOTHESIS ── */}
         <div className="space-y-5">
@@ -1497,7 +1533,7 @@ export default function MethodologyPage() {
                   <code>{"CF_t > P_t + I_t \\quad (\\forall t)"}</code>
                 </div>
                 <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
-                  Established hyperscalers (Microsoft, Alphabet, Meta, Amazon) with massive non-AI enterprise SaaS and advertising cash reserves ($184B annualized FCF vs $210B capex). 
+                  Established hyperscalers (Microsoft, Alphabet, Meta, Amazon) with massive non-AI enterprise SaaS and advertising cash reserves ($414B+ operating cash flow, generating $184B annualized net free cash flow even against $210B capex). 
                   Operating cash flows service coupon obligations and principal amortization without market dependency.
                 </p>
               </div>

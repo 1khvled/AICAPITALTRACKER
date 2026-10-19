@@ -85,6 +85,7 @@ interface FactorCardProps {
 
 export function FactorCard({ factor, explain, formula }: FactorCardProps) {
   const [showMethodology, setShowMethodology] = useState(false);
+  const [showPlainEnglish, setShowPlainEnglish] = useState(false);
   const isDamper = factor.kind === "damper";
   const intensity = Math.round(factor.reading.score * 100);
 
@@ -206,9 +207,9 @@ export function FactorCard({ factor, explain, formula }: FactorCardProps) {
           </div>
         </div>
 
-        {/* Plain English Translation for Non-Finance Users */}
-        {PLAIN_ENGLISH_EXPLANATIONS[factor.id] && (
-          <div className="p-3.5 bg-amber-500/5 dark:bg-amber-500/10 rounded-xl border border-amber-500/20 space-y-2">
+        {/* Toggleable Plain English Translation (Hidden by default, user-expanded) */}
+        {showPlainEnglish && PLAIN_ENGLISH_EXPLANATIONS[factor.id] && (
+          <div className="p-3.5 bg-amber-500/5 dark:bg-amber-500/10 rounded-xl border border-amber-500/20 space-y-2 animate-in fade-in duration-200">
             <div className="flex items-center space-x-1.5 text-xs font-bold text-amber-800 dark:text-amber-400">
               <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
               <span>In Plain English: {PLAIN_ENGLISH_EXPLANATIONS[factor.id].summary}</span>
@@ -223,12 +224,9 @@ export function FactorCard({ factor, explain, formula }: FactorCardProps) {
         )}
 
         {/* Analytical Explanation */}
-        <div className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-sans space-y-1">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
-            Technical Analysis:
-          </span>
-          <p>{explain}</p>
-        </div>
+        <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
+          {explain}
+        </p>
 
         {/* Expandable Methodology & Data Sources Section */}
         {showMethodology && (
@@ -261,19 +259,40 @@ export function FactorCard({ factor, explain, formula }: FactorCardProps) {
         )}
       </div>
 
-      {/* Footer Toggle for Methodology */}
-      <div className="pt-3 mt-4 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between text-xs">
-        <span className="font-mono text-slate-500 dark:text-zinc-400 font-medium flex items-center space-x-1">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-          <span>Verified Receipt</span>
-        </span>
+      {/* Footer Toggles for Plain English and Methodology */}
+      <div className="pt-3 mt-4 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between text-xs gap-2">
+        {PLAIN_ENGLISH_EXPLANATIONS[factor.id] ? (
+          <button
+            type="button"
+            onClick={() => setShowPlainEnglish(!showPlainEnglish)}
+            className={`flex items-center space-x-1 font-mono text-[11px] font-bold px-2 py-1 rounded-lg transition-all cursor-pointer ${
+              showPlainEnglish
+                ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                : "text-slate-500 dark:text-zinc-400 hover:text-amber-600 dark:hover:text-amber-300 hover:bg-slate-100 dark:hover:bg-zinc-800"
+            }`}
+          >
+            <Sparkles className="w-3 h-3 text-amber-500" />
+            <span>{showPlainEnglish ? "Hide Plain English" : "💡 Plain English"}</span>
+          </button>
+        ) : (
+          <span className="font-mono text-slate-500 dark:text-zinc-400 font-medium flex items-center space-x-1 text-[11px]">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Verified</span>
+          </span>
+        )}
+
         <button
+          type="button"
           onClick={() => setShowMethodology(!showMethodology)}
-          className="text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white flex items-center space-x-1 font-mono font-bold transition-colors py-1 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800"
+          className={`flex items-center space-x-1 font-mono text-[11px] font-bold transition-colors py-1 px-2 rounded-lg cursor-pointer ${
+            showMethodology
+              ? "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
+              : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800"
+          }`}
           aria-expanded={showMethodology}
         >
-          <span>{showMethodology ? "Hide Methodology" : "Methodology & Math"}</span>
-          {showMethodology ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          <span>{showMethodology ? "Hide Math" : "Math & Sources"}</span>
+          {showMethodology ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </button>
       </div>
     </div>

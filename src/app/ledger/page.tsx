@@ -575,16 +575,23 @@ export default function LedgerPage() {
             A complete, searchable record of every verified investment, loan, datacenter lease, and chip commitment in AI history. Sourced from audited SEC filings and bank documents.
           </p>
 
-          {/* Plain English Category Guide */}
-          <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs font-sans text-slate-700 dark:text-zinc-300">
-            <span className="font-bold text-amber-800 dark:text-amber-400 flex items-center space-x-1">
-              <Sparkles className="w-3.5 h-3.5 shrink-0" />
-              <span>Quick Guide:</span>
-            </span>
-            <span><strong>Borrowed Debt:</strong> Loans that must be repaid with interest.</span>
-            <span><strong>Equity Rounds:</strong> Selling startup shares for cash.</span>
-            <span><strong>Compute Contracts:</strong> Multi-year promises to buy cloud chips.</span>
-            <span><strong>Power &amp; Land:</strong> Nuclear plants and electricity grid deals.</span>
+          {/* Plain English Category Guide (Collapsed by default) */}
+          <div className="mt-3">
+            <details className="group border border-amber-500/20 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 transition-colors">
+              <summary className="p-2 sm:px-3 cursor-pointer flex items-center justify-between text-xs font-bold text-amber-900 dark:text-amber-200 select-none list-none [&::-webkit-details-marker]:hidden">
+                <div className="flex items-center space-x-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span>💡 Deal Categories Explained: Debt vs Equity vs Compute (No Finance Degree Required)</span>
+                </div>
+                <span className="font-mono text-[11px] text-amber-600 dark:text-amber-400 group-open:rotate-180 transition-transform">▾</span>
+              </summary>
+              <div className="p-3 border-t border-amber-500/15 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-sans text-slate-700 dark:text-zinc-300">
+                <span><strong>Borrowed Debt:</strong> Loans and bonds that must be repaid with monthly interest.</span>
+                <span><strong>Equity Rounds:</strong> Selling startup shares for venture cash.</span>
+                <span><strong>Compute Contracts:</strong> Multi-year promises to buy cloud GPU chips.</span>
+                <span><strong>Power &amp; Land:</strong> Nuclear plants and electricity grid interconnect agreements.</span>
+              </div>
+            </details>
           </div>
         </div>
 
