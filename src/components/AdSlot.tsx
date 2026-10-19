@@ -180,9 +180,61 @@ export function AdSlot({
   // child document so its document.write can never touch the host page.
   if (ad.isolateInIframe && ad.size && ad.zoneKey) {
     const { width, height } = ad.size;
+    const mobile = ad.mobile;
+
+    /**
+     * 2026-10-19: a fixed-size creative wider than a phone cannot be shown
+     * without being cropped, and half an ad is worse than no ad. With a
+     * phone-sized twin configured (`..._<PLACEMENT>_MOBILE`) the twin is served
+     * below `md` and the desktop creative steps out; without one, the whole
+     * slot steps out below `md` instead of showing a cropped banner.
+     */
+    const tooWideForPhone = width > 320;
+    const hideBelowMd = !mobile && tooWideForPhone;
+
+    const creative = (variant: {
+      scriptSrc: string;
+      zoneKey: string;
+      size: { width: number; height: number };
+    }) => (
+      <iframe
+        title="Advertisement"
+        srcDoc={buildAtOptionsDoc({
+          scriptSrc: variant.scriptSrc,
+          zoneKey: variant.zoneKey,
+          width: variant.size.width,
+          height: variant.size.height,
+        })}
+        width={variant.size.width}
+        height={variant.size.height}
+        style={{
+          width: variant.size.width,
+          height: variant.size.height,
+          border: "0",
+          display: "block",
+          margin: 0,
+        }}
+        scrolling="no"
+        frameBorder={0}
+        marginWidth={0}
+        marginHeight={0}
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms"
+      />
+    );
+
     return (
       <aside
-        className={wrapperClass}
+        className={[wrapperClass, "ad-slot--sized", hideBelowMd ? "hidden md:block" : null]
+          .filter(Boolean)
+          .join(" ")}
+        style={
+          {
+            "--ad-unit-h": `${height}px`,
+            ...(mobile ? { "--ad-unit-h-mobile": `${mobile.size.height}px` } : {}),
+          } as React.CSSProperties
+        }
         aria-label={ad.label}
         role="complementary"
         data-placement={ad.placementId}
@@ -192,33 +244,20 @@ export function AdSlot({
         <span className="ad-label" aria-hidden="true">
           Advertisement
         </span>
-        <div id={ad.containerId} className="ad-slot__frame">
-          {/* The sandbox FORBIDS `allow-top-navigation`: a creative can open
-              its own tab on a click, but it can never redirect this page.
-              `allow-same-origin` + `allow-scripts` keep normal fill working;
-              `allow-forms` and popups cover ad destinations that submit or
-              open in new tabs. Autoplay stays off (not granted), so nothing
-              ever makes noise on load. */}
-          <iframe
-            title="Advertisement"
-            srcDoc={buildAtOptionsDoc({
-              scriptSrc: ad.scriptSrc,
-              zoneKey: ad.zoneKey,
-              width,
-              height,
-            })}
-            width={width}
-            height={height}
-            style={{ width, height, border: "0", display: "block", margin: 0 }}
-            scrolling="no"
-            frameBorder={0}
-            marginWidth={0}
-            marginHeight={0}
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms"
-          />
-        </div>
+        {mobile ? (
+          <>
+            <div id={ad.containerId} className="ad-slot__frame hidden md:flex">
+              {creative({ scriptSrc: ad.scriptSrc, zoneKey: ad.zoneKey, size: ad.size })}
+            </div>
+            <div className="ad-slot__frame md:hidden">
+              {creative({ scriptSrc: mobile.scriptSrc, zoneKey: mobile.zoneKey, size: mobile.size })}
+            </div>
+          </>
+        ) : (
+          <div id={ad.containerId} className="ad-slot__frame">
+            {creative({ scriptSrc: ad.scriptSrc, zoneKey: ad.zoneKey, size: ad.size })}
+          </div>
+        )}
       </aside>
     );
   }

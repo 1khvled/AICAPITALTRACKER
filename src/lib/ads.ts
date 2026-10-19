@@ -133,10 +133,48 @@ export interface AdFormat {
 }
 
 export const AD_FORMATS: Record<AdFormatId, AdFormat> = {
-  banner: { id: "banner", label: "Leaderboard banner", unit: "728x90", responsive: true },
-  mobile: { id: "mobile", label: "Mobile banner", unit: "320x50", responsive: true },
-  billboard: { id: "billboard", label: "Billboard", unit: "970x250", responsive: true },
-  mpu: { id: "mpu", label: "Medium rectangle", unit: "300x250", responsive: true },
+  /**
+   * Adsterra's classic banners are FIXED-SIZE creatives: the unit's geometry
+   * comes from the snippet itself (`atOptions.width/height`), not from the
+   * page. A `/22/` zone therefore has to be pinned to the unit's real size or
+   * the creative is squeezed into the wrong box.
+   *
+   * `responsive` therefore means "this format has a phone-sized collapse" —
+   * the banner format collapses to the 320x50 mobile unit below 768px (or to
+   * a configured phone twin), not "the creative resizes itself".
+   */
+  banner: {
+    id: "banner",
+    label: "Leaderboard banner",
+    unit: "728x90",
+    responsive: true,
+    width: 728,
+    height: 90,
+  },
+  mobile: {
+    id: "mobile",
+    label: "Mobile banner",
+    unit: "320x50",
+    responsive: true,
+    width: 320,
+    height: 50,
+  },
+  billboard: {
+    id: "billboard",
+    label: "Billboard",
+    unit: "970x250",
+    responsive: true,
+    width: 970,
+    height: 250,
+  },
+  mpu: {
+    id: "mpu",
+    label: "Medium rectangle",
+    unit: "300x250",
+    responsive: true,
+    width: 300,
+    height: 250,
+  },
   /* 160x600 skyscraper. Fixed unit, so the geometry is pinned exactly — it is
      the fallback creative for the `/22/` atOptions shape (see detectAdZoneShape). */
   banner160: {
@@ -814,6 +852,16 @@ export interface AdSlotConfig {
   isolateInIframe: boolean;
   /** Pinned creative geometry for the isolation iframe. Null when fluid. */
   size: { width: number; height: number } | null;
+  /**
+   * Phone-sized twin of a fixed-size `/22/` creative, when one is configured
+   * (`..._<PLACEMENT>_MOBILE`). Rendered below the `md` breakpoint; the desktop
+   * creative is hidden there so a wide banner is never cropped on a phone.
+   */
+  mobile: {
+    scriptSrc: string;
+    zoneKey: string;
+    size: { width: number; height: number };
+  } | null;
 }
 
 /** True for ids present in the registry. */
@@ -864,6 +912,25 @@ export function resolveAdPlacement(
           adFormatSize(format) ?? { width: 300, height: 250 }
         : null;
 
+    // A phone-sized twin for a fixed-size banner (see mobileEnvKey). Only a
+    // `/22/` zone can have one — a native unit is already fluid.
+    let mobile: AdSlotConfig["mobile"] = null;
+    if (shape.pattern === "at-options-iframe") {
+      const mobileSrc = normalizeScriptUrl(mobileEnvKey(placementId, "MOBILE"));
+      if (mobileSrc) {
+        const mobileShape = detectAdZoneShape(mobileSrc);
+        if (mobileShape.pattern === "at-options-iframe" && mobileShape.zoneKey) {
+          mobile = {
+            scriptSrc: mobileSrc,
+            zoneKey: mobileShape.zoneKey,
+            size:
+              parseSizeOverride(mobileEnvKey(placementId, "MOBILE_SIZE")) ??
+              adFormatSize("mobile") ?? { width: 320, height: 50 },
+          };
+        }
+      }
+    }
+
     return {
       placementId: placement.placementId,
       format,
@@ -876,6 +943,7 @@ export function resolveAdPlacement(
       zoneKey: shape.zoneKey,
       isolateInIframe: shape.pattern === "at-options-iframe",
       size,
+      mobile,
     };
   } catch {
     // Defensive: ad plumbing must never take a page down.
@@ -897,6 +965,29 @@ export function getAdFormat(formatId: string): AdFormat | null {
 /** Env var name for a placement — handy for docs and debugging. */
 export function envKeyFor(placementId: PlacementId): string {
   return `NEXT_PUBLIC_ADSTERRA_${placementId.toUpperCase().replace(/-/g, "_")}`;
+}
+
+/**
+ * Optional PHONE-SIZED twin for a fixed-size `/22/` placement:
+ * `..._<PLACEMENT>_MOBILE` (a second zone URL) and `..._<PLACEMENT>_MOBILE_SIZE`.
+ *
+ * Adsterra's classic banners are FIXED-SIZE creatives. A 728x90 unit on a 375px
+ * phone is cropped to its left third — a broken ad, which is exactly what the
+ * non-intrusive policy forbids. So a placement may be given a second, phone-
+ * sized unit: below the `md` breakpoint the slot serves that one, above it the
+ * desktop unit. The reserved box follows the unit actually on screen, so
+ * nothing shifts (zero CLS).
+ *
+ * The names are derived from the placement id rather than spelled out 39 times,
+ * so a new placement gets the pair for free.
+ */
+export function mobileEnvKey(
+  placementId: PlacementId,
+  suffix: "MOBILE" | "MOBILE_SIZE",
+): string | undefined {
+  return process.env[
+    `NEXT_PUBLIC_ADSTERRA_${placementId.toUpperCase().replace(/-/g, "_")}_${suffix}`
+  ];
 }
 
 /**

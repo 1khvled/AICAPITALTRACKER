@@ -772,6 +772,20 @@ html.dark .chip-caution {
 .has-social-bar {
   padding-bottom: 50px;
 }
+
+/* A `/22/` creative is a FIXED-SIZE box, so the reserved height has to follow
+   the unit that is actually on screen: `--ad-unit-h` on wide screens, and the
+   phone-sized twin's height (`--ad-unit-h-mobile`) below the same breakpoint
+   the banner format collapses at (767px). Without this the reserved box and
+   the creative disagree and the slot shifts when the ad arrives. */
+.ad-slot--sized {
+  --ad-min-h: var(--ad-unit-h, 90px);
+}
+@media (max-width: 767px) {
+  .ad-slot--sized {
+    --ad-min-h: var(--ad-unit-h-mobile, var(--ad-unit-h, 90px));
+  }
+}
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
