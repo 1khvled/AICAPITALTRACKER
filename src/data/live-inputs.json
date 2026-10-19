@@ -9,15 +9,15 @@
   "valuations": [
     {
       "company": "OpenAI",
-      "valuationUsd": 300000000000,
-      "runRateRevenueUsd": 20000000000,
-      "note": "Oct 2026 institutional benchmark & restructuring ($300B valuation, $20.0B annualized run-rate ARR reported by Reuters & FT)"
+      "valuationUsd": 950000000000,
+      "runRateRevenueUsd": 50000000000,
+      "note": "Oct 2026 funding benchmark ($852B closed post-money, targeting $1.0T–$1.4T, $50.0B annualized run-rate ARR reported by Newcomer & Financial Press)"
     },
     {
       "company": "Anthropic",
-      "valuationUsd": 150000000000,
-      "runRateRevenueUsd": 11500000000,
-      "note": "Oct 2026 pre-IPO benchmark ($150B valuation, $11.5B ARR, $57B Broadcom convert & syndicate debt/credit facilities)"
+      "valuationUsd": 2000000000000,
+      "runRateRevenueUsd": 47000000000,
+      "note": "Oct 2026 pre-IPO banker valuation target ($2.0T debut target / $965B Series H post-money, $47.0B annualized ARR propelled by Claude Code, $57B Broadcom convert & syndicate debt/credit facilities)"
     },
     {
       "company": "Databricks",
@@ -282,7 +282,7 @@
     "note": "SEC 10-Q Capex vs OCF synthesis & private debt facilities"
   },
   "meta": {
-    "last_synced_at": "2026-10-19T00:25:31.881Z",
+    "last_synced_at": "2026-10-19T00:33:23.931Z",
     "sync_mode": "github_actions_cron_24h",
     "sources": [
       "Federal Reserve Economic Data (FRED) St. Louis API (DGS10, DGS2, BAMLH0A0HYM2, FEDFUNDS)",

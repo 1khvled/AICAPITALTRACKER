@@ -199,15 +199,15 @@ const BASELINE_FALLBACK: BubbleModelInputs = {
   valuations: [
     {
       company: 'OpenAI',
-      valuationUsd: 300_000_000_000,
-      runRateRevenueUsd: 20_000_000_000,
-      note: 'Oct 2026 institutional benchmark & restructuring ($300B valuation, $20.0B annualized run-rate ARR reported by Reuters & FT)',
+      valuationUsd: 950_000_000_000,
+      runRateRevenueUsd: 50_000_000_000,
+      note: 'Oct 2026 funding benchmark ($852B closed post-money, targeting $1.0T–$1.4T, $50.0B annualized run-rate ARR reported by Newcomer & Financial Press)',
     },
     {
       company: 'Anthropic',
-      valuationUsd: 150_000_000_000,
-      runRateRevenueUsd: 11_500_000_000,
-      note: 'Oct 2026 pre-IPO benchmark ($150B valuation, $11.5B ARR, $57B Broadcom convert & syndicate debt/credit facilities)',
+      valuationUsd: 2_000_000_000_000,
+      runRateRevenueUsd: 47_000_000_000,
+      note: 'Oct 2026 pre-IPO banker valuation target ($2.0T debut target / $965B Series H post-money, $47.0B annualized ARR propelled by Claude Code, $57B Broadcom convert & syndicate debt/credit facilities)',
     },
     {
       company: 'Databricks',

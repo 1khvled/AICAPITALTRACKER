@@ -85,14 +85,14 @@ const COMPANIES: CompanyProfile[] = [
         notes: "Secured credit facility backstopping $518B in cumulative long-term cloud datacenter commitments."
       }
     ],
-    valuationUsd: 150_000_000_000,
-    runRateRevenueUsd: 11_500_000_000,
-    psMultiple: 13.0,
+    valuationUsd: 2_000_000_000_000,
+    runRateRevenueUsd: 47_000_000_000,
+    psMultiple: 42.5,
     circularityConnections: ["Broadcom", "Amazon AWS", "Google", "Morgan Stanley", "Blackstone"],
     circularRiskLevel: "Severe (Circular)",
     circularitySummary: "Amazon and Google invested $8B+ equity into Anthropic while Anthropic contracted $100B+ multi-year compute on AWS Trainium and Google TPUs. Broadcom underwrites $42B convertible debt tied to custom silicon.",
     riskTier: "Critical",
-    exposureSummary: "$57.0B verified debt across 2 major facilities: $42B convertible note facility from Broadcom and $15B multi-bank revolver against $518B in future cloud liabilities. ARR scaled to $11.5B (13.0× P/S multiple).",
+    exposureSummary: "$57.0B verified debt across 2 major facilities: $42B convertible note facility from Broadcom and $15B multi-bank revolver against $518B in future cloud liabilities. Pre-IPO valuation target reaches $2.0T (following $965B Series H) on $47.0B ARR (42.5× multiple).",
     polymarketOdds: {
       marketName: "Anthropic Acquired Before 2027",
       oddsDisplay: "2.6¢ (2.6%)",
@@ -118,14 +118,14 @@ const COMPANIES: CompanyProfile[] = [
         notes: "Unsecured revolving credit line with zero immediate drawn balance, contingent on corporate restructuring."
       }
     ],
-    valuationUsd: 300_000_000_000,
-    runRateRevenueUsd: 20_000_000_000,
-    psMultiple: 15.0,
+    valuationUsd: 950_000_000_000,
+    runRateRevenueUsd: 50_000_000_000,
+    psMultiple: 19.0,
     circularityConnections: ["Microsoft", "Oracle", "NVIDIA", "SoftBank", "Crusoe Energy"],
     circularRiskLevel: "High (Circular)",
     circularitySummary: "Microsoft's $13B+ equity/credits are spent on Azure compute; Oracle and Crusoe issue debt to construct gigawatt campuses exclusively leased by OpenAI.",
     riskTier: "High",
-    exposureSummary: "$4.0B bank revolver at 15.0× P/S revenue multiple on $20.0B ARR. Anchor tenant driving $500B Stargate initiative with multi-year non-cancellable compute obligations.",
+    exposureSummary: "$4.0B bank revolver at 19.0× P/S revenue multiple on $50.0B ARR ($852B post-money valuation, targeting $1.0T–$1.4T). Anchor tenant driving $500B Stargate initiative with multi-year non-cancellable compute obligations.",
     polymarketOdds: {
       marketName: "OpenAI IPO by Dec 2026",
       oddsDisplay: "4.3¢ (4.3%)",

@@ -621,7 +621,7 @@ const CAPITAL_SEGMENTS: CapitalSegment[] = [
     color: "#334155",
     riskTier: "Medium",
     description: "Direct equity rounds in frontier foundation model builders.",
-    topDeals: "OpenAI Restructuring ($300B benchmark), Anthropic Pre-IPO ($150B), Databricks ($190B)",
+    topDeals: "Anthropic Pre-IPO ($2.0T target), OpenAI ($950B / $1.4T target), Databricks ($190B)",
   },
   {
     id: "ma",
@@ -856,23 +856,32 @@ interface LabPoint {
 
 const LAB_DATA: LabPoint[] = [
   {
+    name: "Anthropic",
+    valuationB: 2000.0,
+    revenueB: 47.0,
+    multiple: 42.5,
+    round: "Oct 2026 Pre-IPO $2.0T Debut Target",
+    notes: "$2.0T debut target ($965B Series H post-money) on $47.0B ARR (Claude Code >$2.5B). Carries $57B Broadcom & syndicate debt.",
+    isDebtExposed: true,
+    color: "#3b82f6",
+  },
+  {
     name: "OpenAI",
-    valuationB: 300.0,
-    revenueB: 20.0,
-    multiple: 15.0,
-    round: "Oct 2026 Institutional Benchmark",
-    notes: "$300B benchmark valuation on $20.0B ARR. Flagship LLM anchor tenant.",
+    valuationB: 950.0,
+    revenueB: 50.0,
+    multiple: 19.0,
+    round: "Oct 2026 $852B Benchmark / $1.4T Round",
+    notes: "$852B post-money valuation (targeting $1.0T–$1.4T) on $50.0B ARR. Flagship LLM anchor tenant.",
     color: "#10b981",
   },
   {
-    name: "Anthropic",
-    valuationB: 150.0,
-    revenueB: 11.5,
-    multiple: 13.0,
-    round: "Oct 2026 S-1 Pre-IPO Benchmark",
-    notes: "$150B valuation on $11.5B ARR. Carries $57B Broadcom & syndicate debt facilities.",
-    isDebtExposed: true,
-    color: "#3b82f6",
+    name: "Databricks",
+    valuationB: 190.0,
+    revenueB: 7.00,
+    multiple: 27.1,
+    round: "Coatue Strategic AI Round",
+    notes: "Largest private data & AI infrastructure provider with $7.0B revenue.",
+    color: "#8b5cf6",
   },
   {
     name: "xAI Colossus",
@@ -883,15 +892,6 @@ const LAB_DATA: LabPoint[] = [
     notes: "Memphis 100k H100 cluster expansion. 27.8× multiple on $1.8B ARR.",
     isExtreme: false,
     color: "#f59e0b",
-  },
-  {
-    name: "Databricks",
-    valuationB: 190.0,
-    revenueB: 7.00,
-    multiple: 27.1,
-    round: "Coatue Strategic AI Round",
-    notes: "Largest private data & AI infrastructure provider with $7.0B revenue.",
-    color: "#8b5cf6",
   },
   {
     name: "Scale AI",
@@ -925,10 +925,10 @@ const LAB_DATA: LabPoint[] = [
   {
     name: "Cohere",
     valuationB: 5.5,
-    revenueB: 0.06,
-    multiple: 91.7,
-    round: "Cisco & Nvidia Strategic Round",
-    notes: "Enterprise targeted frontier LLMs with $60M ARR and 91.7× multiple.",
+    revenueB: 0.12,
+    multiple: 45.8,
+    round: "Enterprise Multi-Cloud Series D",
+    notes: "Enterprise targeted frontier LLMs with $120M ARR and 45.8× multiple.",
     isExtreme: true,
     color: "#f59e0b",
   },
@@ -949,16 +949,16 @@ export function LabMultiplesChart() {
   const plotHeight = height - padding.top - padding.bottom;
 
   // Domain extents
-  // Revenue ($B): from 0.04 to 10
+  // Revenue ($B): from 0.04 to 60
   const revMinLog = 0.04;
-  const revMaxLog = 10.0;
+  const revMaxLog = 100.0;
   const valMinLog = 2.0;
-  const valMaxLog = 250.0;
+  const valMaxLog = 3000.0;
 
   const revMinLin = 0;
-  const revMaxLin = 8.0;
+  const revMaxLin = 60.0;
   const valMinLin = 0;
-  const valMaxLin = 210.0;
+  const valMaxLin = 2200.0;
 
   // Coordinate projection functions
   const toX = useCallback(
@@ -1055,7 +1055,7 @@ export function LabMultiplesChart() {
             </button>
           </div>
           <span className="text-xs font-mono font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-zinc-800 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700">
-            Median: 34.8×
+            Median: 31.4×
           </span>
         </div>
       </div>
@@ -1070,7 +1070,7 @@ export function LabMultiplesChart() {
           </defs>
 
           {/* Gridlines for Y Axis (Valuation $B) */}
-          {(scaleMode === "log" ? [2, 5, 10, 25, 50, 100, 200] : [0, 50, 100, 150, 200]).map(
+          {(scaleMode === "log" ? [5, 20, 100, 500, 1000, 2000] : [0, 500, 1000, 1500, 2000]).map(
             (val) => {
               const y = toY(val);
               return (
@@ -1092,7 +1092,7 @@ export function LabMultiplesChart() {
                     fill="#71717a"
                     fontFamily="monospace"
                   >
-                    ${val}B
+                    {val >= 1000 ? `$${(val / 1000).toFixed(val % 1000 === 0 ? 0 : 1)}T` : `$${val}B`}
                   </text>
                 </g>
               );
@@ -1100,7 +1100,7 @@ export function LabMultiplesChart() {
           )}
 
           {/* Gridlines for X Axis (Revenue) */}
-          {(scaleMode === "log" ? [0.05, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0] : [0, 2, 4, 6, 8]).map(
+          {(scaleMode === "log" ? [0.05, 0.2, 1.0, 5.0, 20.0, 50.0] : [0, 10, 20, 30, 40, 50, 60]).map(
             (rev) => {
               const x = toX(rev);
               const label = rev < 1 ? `$${Math.round(rev * 1000)}M` : `$${rev}B`;

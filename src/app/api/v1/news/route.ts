@@ -59,14 +59,14 @@ const FALLBACK_NEWS: NewsItem[] = [
   },
   {
     id: "news-5",
-    title: "OpenAI Restructures Toward For-Profit Benefit Corp at $300B Benchmark on $20.0B ARR Run-Rate",
-    publisher: "Reuters & Financial Times",
-    link: "https://www.reuters.com/technology/openai-restructuring-for-profit-benchmark-2026",
+    title: "Anthropic Eyes Historic $2.0 Trillion IPO Target as OpenAI Nears $1.0 Trillion Private Benchmark",
+    publisher: "Dealroom & Newcomer",
+    link: "https://finance.yahoo.com/news/anthropic-openai-multi-trillion-valuations-2026.html",
     publishedAt: new Date(Date.now() - 180 * 60 * 1000).toISOString(),
     timeAgo: "3h ago",
     category: "Frontier Labs",
     impact: "High Impact",
-    summary: "OpenAI moves to eliminate nonprofit board control within a formal public benefit corporation structure, backing a $300B benchmark valuation on $20.0B annualized revenues.",
+    summary: "Investment banks float a $1.8T to $2.0T valuation for Anthropic's public debut following its $965B Series H and $47B ARR, while OpenAI approaches a $1.0T milestone on $50B annualized run-rates.",
   },
   {
     id: "news-6",

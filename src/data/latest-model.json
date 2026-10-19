@@ -1,13 +1,13 @@
 {
-  "timestamp": "2026-10-19T00:25:32.164Z",
+  "timestamp": "2026-10-19T00:33:24.212Z",
   "model_version": "2.5.0",
-  "burstProbability": 36.5,
-  "compositeScore": 50,
+  "burstProbability": 38.2,
+  "compositeScore": 50.7,
   "band": "guarded",
   "coverage": 1.1,
   "confidenceInterval": [
-    31.8,
-    41.6
+    33.4,
+    43.3
   ],
   "fragilityIndex": 52,
   "systemicContagionPoints": 4.6,
@@ -34,10 +34,10 @@
       "label": "Private valuation stretch",
       "kind": "risk",
       "weightPct": 16,
-      "earnedPoints": 6,
+      "earnedPoints": 6.6,
       "reading": {
-        "score": 0.3742368742368743,
-        "reading": "Median price/sales across commercial frontier labs: 27.5×",
+        "score": 0.4154456654456654,
+        "reading": "Median price/sales across commercial frontier labs: 29.6×",
         "coverage": 1
       }
     },
@@ -165,79 +165,79 @@
     "ponziDebtSharePct": 12.9
   },
   "shillerCape": {
-    "aiCapeMultiple": 30.3,
+    "aiCapeMultiple": 32.7,
     "historicalMedianCape": 17.2,
-    "earningsYieldPct": 3.3,
+    "earningsYieldPct": 3.06,
     "real10yYieldPct": 2.7,
-    "excessCapeYieldPct": 0.6,
+    "excessCapeYieldPct": 0.36,
     "equityRiskPremiumBand": "Compressed (<1.5%)",
     "equityRiskPremiumStatus": "Compressed (<1.5%)",
-    "interpretation": "Excess CAPE Yield of +0.60% is in the Compressed band (<1.5%), indicating that AI and mega-cap tech equities offer a wafer-thin risk premium over real Treasuries (2.70%). Tech valuation multiples (CAPE 30.3x vs historical median 17.2x) leave negligible safety margin against interest rate or earnings growth disappointments."
+    "interpretation": "Excess CAPE Yield of +0.36% is in the Compressed band (<1.5%), indicating that AI and mega-cap tech equities offer a wafer-thin risk premium over real Treasuries (2.70%). Tech valuation multiples (CAPE 32.7x vs historical median 17.2x) leave negligible safety margin against interest rate or earnings growth disappointments."
   },
   "monteCarlo": {
     "iterationsCount": 25000,
-    "meanProbabilityPct": 40.1,
-    "medianProbabilityPct": 38.7,
-    "stdDevPct": 21,
+    "meanProbabilityPct": 41.5,
+    "medianProbabilityPct": 40.4,
+    "stdDevPct": 21.2,
     "ci90Pct": [
-      13.5,
-      69.4
+      14.5,
+      70.8
     ],
     "ci95Pct": [
-      11.6,
-      72.2
+      12.4,
+      73.6
     ],
-    "valueAtRisk95Pct": 72.2,
-    "conditionalValueAtRisk95Pct": 74.8,
-    "valueAtRisk99Pct": 76.5,
-    "conditionalValueAtRisk99Pct": 77.9,
-    "skewness": 0.14,
+    "valueAtRisk95Pct": 73.6,
+    "conditionalValueAtRisk95Pct": 76.2,
+    "valueAtRisk99Pct": 77.9,
+    "conditionalValueAtRisk99Pct": 79.4,
+    "skewness": 0.11,
     "kurtosis": 1.64,
     "histogram": [
       {
         "range": "0%–10%",
-        "count": 547,
-        "percentage": 2.2
+        "count": 351,
+        "percentage": 1.4
       },
       {
         "range": "10%–20%",
-        "count": 6026,
-        "percentage": 24.1
+        "count": 5537,
+        "percentage": 22.1
       },
       {
         "range": "20%–30%",
-        "count": 3103,
-        "percentage": 12.4
+        "count": 3325,
+        "percentage": 13.3
       },
       {
         "range": "30%–40%",
-        "count": 3204,
-        "percentage": 12.8
+        "count": 3148,
+        "percentage": 12.6
       },
       {
         "range": "40%–50%",
-        "count": 2988,
-        "percentage": 12
+        "count": 3024,
+        "percentage": 12.1
       },
       {
         "range": "50%–60%",
-        "count": 2909,
-        "percentage": 11.6
+        "count": 2921,
+        "percentage": 11.7
       },
       {
         "range": "60%–70%",
-        "count": 4009,
-        "percentage": 16
+        "count": 3821,
+        "percentage": 15.3
       },
       {
         "range": "70%–80%",
-        "count": 2196,
-        "percentage": 8.8
+        "count": 2804,
+        "percentage": 11.2
       },
       {
         "range": "80%–90%",
-        "count": 18,
-        "percentage": 0.1
+        "count": 69,
+        "percentage": 0.3
       },
       {
         "range": "90%–100%",
@@ -245,6 +245,6 @@
         "percentage": 0
       }
     ],
-    "executionTimeMs": 281
+    "executionTimeMs": 279
   }
 }
