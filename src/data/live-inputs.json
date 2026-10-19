@@ -80,9 +80,9 @@
     "count": 169
   },
   "crowd": {
-    "yesProbability": 0.079,
-    "volumeUsd": 9149712.920692006,
-    "bubble2026Probability": 0.079,
+    "yesProbability": 0.0785,
+    "volumeUsd": 9149712.920692004,
+    "bubble2026Probability": 0.0785,
     "bubble2027Probability": 0.165,
     "activeContractsCount": 16,
     "markets": [
@@ -102,7 +102,7 @@
         "slug": "ai-industry-downturn-by-december-31-2026-857",
         "eventSlug": "ai-bubble-burst-by",
         "yesProbabilityPct": 7.9,
-        "noProbabilityPct": 92.1,
+        "noProbabilityPct": 92.2,
         "volumeUsd": 2471373,
         "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
       },
@@ -221,7 +221,7 @@
         "question": "OpenAI $1t+ IPO before 2027?",
         "slug": "openai-1t-ipo-before-2027",
         "eventSlug": "openai-1t-ipo-before-2027",
-        "yesProbabilityPct": 2.3,
+        "yesProbabilityPct": 2.4,
         "noProbabilityPct": 97.7,
         "volumeUsd": 317063,
         "referralUrl": "https://polymarket.com/event/openai-1t-ipo-before-2027?r=AIbubble"
@@ -282,7 +282,7 @@
     "note": "SEC 10-Q Capex vs OCF synthesis & private debt facilities"
   },
   "meta": {
-    "last_synced_at": "2026-10-19T00:50:03.831Z",
+    "last_synced_at": "2026-10-19T00:57:29.311Z",
     "sync_mode": "github_actions_cron_24h",
     "sources": [
       "Federal Reserve Economic Data (FRED) St. Louis API (DGS10, DGS2, BAMLH0A0HYM2, FEDFUNDS)",

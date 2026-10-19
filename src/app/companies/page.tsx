@@ -507,14 +507,14 @@ const COMPANIES: CompanyProfile[] = [
         notes: "Convertible debt funding datacenter buildout in Finland and France."
       }
     ],
-    valuationUsd: 6_200_000_000,
-    runRateRevenueUsd: 350_000_000,
-    psMultiple: 17.7,
+    valuationUsd: 35_500_000_000,
+    runRateRevenueUsd: 950_000_000,
+    psMultiple: 37.4,
     circularityConnections: ["Microsoft", "NVIDIA", "Accolade"],
     circularRiskLevel: "High (Circular)",
     circularitySummary: "Secured $17.4B compute agreement with Microsoft through 2030, transforming contract backstop into collateral for infrastructure financing.",
     riskTier: "High",
-    exposureSummary: "$1.0B convertible notes with $17.4B long-term Microsoft compute off-take contract.",
+    exposureSummary: "Publicly traded on Nasdaq (NBIS) at ~$35.5B market cap ($165.47/share). $1.0B convertible notes backed by $17.4B long-term Microsoft compute off-take contract.",
   },
 
   // 14. CRUSOE ENERGY
@@ -542,20 +542,20 @@ const COMPANIES: CompanyProfile[] = [
         notes: "Credit facility collateralized by NVIDIA GPU servers."
       }
     ],
-    valuationUsd: 3_500_000_000,
-    runRateRevenueUsd: 450_000_000,
-    psMultiple: 7.7,
+    valuationUsd: 30_900_000_000,
+    runRateRevenueUsd: 1_200_000_000,
+    psMultiple: 25.8,
     circularityConnections: ["Blue Owl Capital", "Lancium", "OpenAI"],
     circularRiskLevel: "High (Circular)",
     circularitySummary: "Constructing $3.4B datacenter backed by OpenAI tenant contract; relies on continuous private credit refinancing.",
     riskTier: "High",
-    exposureSummary: "$3.6B in project debt and credit facilities backing 200MW datacenter campus for OpenAI.",
+    exposureSummary: "Closed $3.9B Series F at $30.9B valuation co-led by Mubadala, Valor Equity, and NVIDIA. $3.6B in project debt and credit facilities backing multi-gigawatt datacenter campuses for OpenAI.",
   },
 
   // 15. LAMBDA LABS
   {
     name: "Lambda Labs",
-    ticker: "Private",
+    ticker: "Private (Pre-IPO)",
     sector: "GPU Neoclouds",
     role: "GPU Cloud & Compute Clustering",
     disclosedDealsCount: 4,
@@ -570,20 +570,20 @@ const COMPANIES: CompanyProfile[] = [
         notes: "Asset-backed credit facility collateralized by NVIDIA H100 hardware inventory."
       }
     ],
-    valuationUsd: 1_500_000_000,
-    runRateRevenueUsd: 250_000_000,
-    psMultiple: 6.0,
+    valuationUsd: 14_500_000_000,
+    runRateRevenueUsd: 1_400_000_000,
+    psMultiple: 10.4,
     circularityConnections: ["NVIDIA", "Macquarie", "Braidwell"],
     circularRiskLevel: "Elevated",
     circularitySummary: "Financed hardware purchases through asset-backed loans collateralized by fast-depreciating chips.",
     riskTier: "Elevated",
-    exposureSummary: "$500M GPU-collateralized loan facility plus $320M Series C equity funding.",
+    exposureSummary: "Pre-IPO round at $14.5B valuation led by Blackstone and Coatue on $1.4B ARR. $500M+ in GPU asset-backed credit facilities collateralized by NVIDIA GPU clusters.",
   },
 
   // 16. NORTHERN DATA
   {
-    name: "Northern Data",
-    ticker: "NB2.DE",
+    name: "Northern Data / Rumble",
+    ticker: "RUM (Nasdaq)",
     sector: "GPU Neoclouds",
     role: "HPC Cloud & Crypto Pivot",
     disclosedDealsCount: 3,
@@ -598,10 +598,10 @@ const COMPANIES: CompanyProfile[] = [
         notes: "Debt financing facility from stablecoin issuer Tether funding procurement of 20,000+ GPUs."
       }
     ],
-    valuationUsd: 1_400_000_000,
-    runRateRevenueUsd: 180_000_000,
-    psMultiple: 7.7,
-    circularityConnections: ["Tether", "Taiga Cloud"],
+    valuationUsd: 5_800_000_000,
+    runRateRevenueUsd: 380_000_000,
+    psMultiple: 15.3,
+    circularityConnections: ["Tether", "Taiga Cloud", "Rumble"],
     circularRiskLevel: "Severe (Circular)",
     circularitySummary: "Direct debt financing from stablecoin operator Tether; high leverage relative to operating cash flows.",
     riskTier: "Critical",

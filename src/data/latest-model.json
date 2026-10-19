@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-19T00:50:04.131Z",
+  "timestamp": "2026-10-19T00:57:29.621Z",
   "model_version": "2.5.0",
   "burstProbability": 48.2,
   "compositeScore": 54.4,
@@ -96,8 +96,8 @@
       "weightPct": 9,
       "earnedPoints": 0.7,
       "reading": {
-        "score": 0.079,
-        "reading": "Polymarket crowd: 7.9% YES ($9.15M volume)",
+        "score": 0.0785,
+        "reading": "Polymarket crowd: 7.8% YES ($9.15M volume)",
         "coverage": 1
       }
     },
@@ -181,7 +181,7 @@
     "stdDevPct": 21.8,
     "ci90Pct": [
       19.9,
-      78
+      77.9
     ],
     "ci95Pct": [
       16.9,
@@ -201,7 +201,7 @@
       },
       {
         "range": "10%–20%",
-        "count": 2483,
+        "count": 2485,
         "percentage": 9.9
       },
       {
@@ -211,32 +211,32 @@
       },
       {
         "range": "30%–40%",
-        "count": 2728,
+        "count": 2730,
         "percentage": 10.9
       },
       {
         "range": "40%–50%",
-        "count": 2902,
+        "count": 2903,
         "percentage": 11.6
       },
       {
         "range": "50%–60%",
-        "count": 3053,
+        "count": 3051,
         "percentage": 12.2
       },
       {
         "range": "60%–70%",
-        "count": 3275,
+        "count": 3276,
         "percentage": 13.1
       },
       {
         "range": "70%–80%",
-        "count": 4908,
-        "percentage": 19.6
+        "count": 4913,
+        "percentage": 19.7
       },
       {
         "range": "80%–90%",
-        "count": 1335,
+        "count": 1326,
         "percentage": 5.3
       },
       {
@@ -245,6 +245,6 @@
         "percentage": 0
       }
     ],
-    "executionTimeMs": 298
+    "executionTimeMs": 307
   }
 }
