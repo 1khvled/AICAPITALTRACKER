@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-19T00:42:47.712Z",
+  "timestamp": "2026-10-19T00:50:03.830Z",
   "stocks": [
     {
       "ticker": "NVDA",
@@ -66,6 +66,28 @@
       "drawdownFromAthPct": -9,
       "role": "Llama Open Weights & 600k H100 Cluster Buyer",
       "marketCapDisplay": "$1.79T"
+    },
+    {
+      "ticker": "SPCX",
+      "name": "SpaceX",
+      "priceUsd": 146.03,
+      "change24hPct": -10.2,
+      "category": "Hyperscaler",
+      "athUsd": 225.64,
+      "drawdownFromAthPct": -35.3,
+      "role": "AI Supercomputing, Starlink & xAI Colossus Parent",
+      "marketCapDisplay": "$2.05T"
+    },
+    {
+      "ticker": "CRWV",
+      "name": "CoreWeave Inc.",
+      "priceUsd": 61.39,
+      "change24hPct": -25.2,
+      "category": "Power & Infrastructure",
+      "athUsd": 141.79,
+      "drawdownFromAthPct": -56.7,
+      "role": "Specialized GPU Neocloud & NVIDIA Blackwell Partner",
+      "marketCapDisplay": "$35B"
     },
     {
       "ticker": "TSM",

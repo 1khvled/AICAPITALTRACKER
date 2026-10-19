@@ -216,10 +216,10 @@ const BASELINE_FALLBACK: BubbleModelInputs = {
       note: 'Coatue-led strategic round Aug 2026 ($190B valuation, $7B revenue run-rate reported)',
     },
     {
-      company: 'xAI',
+      company: 'SpaceX / xAI',
       valuationUsd: 250_000_000_000,
       runRateRevenueUsd: 500_000_000,
-      note: 'Series E round ($230B) & SpaceX merger valuation ($250B) deploying 100k+ Colossus GPU supercluster ($500M ARR)',
+      note: 'Consolidated inside SpaceX (Nasdaq: SPCX, $2.05T live public market cap following June 2026 IPO); xAI Colossus supercluster asset valued at $250B on $500M ARR',
     },
     {
       company: 'Mistral AI',

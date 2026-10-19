@@ -26,10 +26,10 @@
       "note": "Coatue-led strategic round Aug 2026 ($190B valuation, $7B revenue run-rate reported)"
     },
     {
-      "company": "xAI",
+      "company": "SpaceX / xAI",
       "valuationUsd": 250000000000,
       "runRateRevenueUsd": 500000000,
-      "note": "Series E round ($230B) & SpaceX merger valuation ($250B) deploying 100k+ Colossus GPU supercluster ($500M ARR)"
+      "note": "Consolidated inside SpaceX (Nasdaq: SPCX, $2.05T live public market cap following June 2026 IPO); xAI Colossus supercluster asset valued at $250B on $500M ARR"
     },
     {
       "company": "Mistral AI",
@@ -81,7 +81,7 @@
   },
   "crowd": {
     "yesProbability": 0.079,
-    "volumeUsd": 9149712.920692004,
+    "volumeUsd": 9149712.920692006,
     "bubble2026Probability": 0.079,
     "bubble2027Probability": 0.165,
     "activeContractsCount": 16,
@@ -282,7 +282,7 @@
     "note": "SEC 10-Q Capex vs OCF synthesis & private debt facilities"
   },
   "meta": {
-    "last_synced_at": "2026-10-19T00:42:47.713Z",
+    "last_synced_at": "2026-10-19T00:50:03.831Z",
     "sync_mode": "github_actions_cron_24h",
     "sources": [
       "Federal Reserve Economic Data (FRED) St. Louis API (DGS10, DGS2, BAMLH0A0HYM2, FEDFUNDS)",

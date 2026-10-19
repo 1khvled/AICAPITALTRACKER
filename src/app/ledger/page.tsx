@@ -279,6 +279,7 @@ export default function LedgerPage() {
     { label: "Oracle Cloud", query: "Oracle" },
     { label: "CoreWeave Debt", query: "CoreWeave" },
     { label: "Blackstone / QTS", query: "Blackstone" },
+    { label: "SpaceX (SPCX $2T)", query: "SpaceX" },
     { label: "Nuclear Power", query: "Nuclear" },
   ];
 

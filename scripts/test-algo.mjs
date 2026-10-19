@@ -67,7 +67,7 @@ const BASELINE_INPUTS = {
     { company: 'OpenAI', valuationUsd: 950_000_000_000, runRateRevenueUsd: 50_000_000_000 },
     { company: 'Anthropic', valuationUsd: 2_000_000_000_000, runRateRevenueUsd: 47_000_000_000 },
     { company: 'Databricks', valuationUsd: 190_000_000_000, runRateRevenueUsd: 7_000_000_000 },
-    { company: 'xAI', valuationUsd: 250_000_000_000, runRateRevenueUsd: 500_000_000 },
+    { company: 'SpaceX / xAI', valuationUsd: 250_000_000_000, runRateRevenueUsd: 500_000_000 },
     { company: 'Mistral AI', valuationUsd: 24_000_000_000, runRateRevenueUsd: 450_000_000 },
     { company: 'Scale AI', valuationUsd: 29_000_000_000, runRateRevenueUsd: 1_100_000_000 },
     { company: 'Cohere', valuationUsd: 7_000_000_000, runRateRevenueUsd: 250_000_000 },

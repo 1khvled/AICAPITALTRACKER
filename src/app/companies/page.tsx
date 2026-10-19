@@ -416,14 +416,14 @@ const COMPANIES: CompanyProfile[] = [
     exposureSummary: "$30B in senior notes for AI capex; guides $40B+ annual infrastructure capex with zero direct enterprise subscription revenue.",
   },
 
-  // 11. xAI
+  // 11. SPACEX / xAI
   {
-    name: "xAI",
-    ticker: "Merged with SpaceX ($250B)",
+    name: "SpaceX / xAI",
+    ticker: "SPCX (Nasdaq)",
     sector: "Frontier Labs",
-    role: "Frontier Model & Colossus Supercluster",
-    disclosedDealsCount: 6,
-    totalVolumeUsd: 56_000_000_000,
+    role: "AI Supercomputing, Starlink & Colossus Megacluster",
+    disclosedDealsCount: 7,
+    totalVolumeUsd: 110_000_000_000,
     debtInvolvedUsd: 17_500_000_000,
     debtTranches: [
       {
@@ -441,14 +441,19 @@ const COMPANIES: CompanyProfile[] = [
         notes: "Secured credit line underwriting Memphis supercluster infrastructure."
       }
     ],
-    valuationUsd: 250_000_000_000,
-    runRateRevenueUsd: 500_000_000,
-    psMultiple: 500.0,
+    valuationUsd: 2_050_000_000_000,
+    runRateRevenueUsd: 18_000_000_000,
+    psMultiple: 113.8,
     circularityConnections: ["NVIDIA", "Valor Equity", "Tesla", "Oracle", "Apollo"],
     circularRiskLevel: "Severe (Circular)",
-    circularitySummary: "Highest debt-to-revenue ratio among frontier labs (35× debt/revenue). SPV debt relies directly on GPU hardware maintaining secondary liquidation value.",
+    circularitySummary: "Consolidates xAI ($250B asset value on $500M model ARR) within SpaceX. SPV debt relies directly on GPU hardware maintaining secondary liquidation value.",
     riskTier: "Critical",
-    exposureSummary: "$17.5B total debt obligations ($12.5B SPV debt + $5B secured bank loan) against $500M annualized revenue. Closed $20B Series E at $230B, merged into SpaceX at $250B valuation inside $1.25T combined entity.",
+    exposureSummary: "Publicly traded on Nasdaq (SPCX) at ~$2.05T market cap ($145.50/share) following its June 2026 IPO. Operates the 100k+ GPU Colossus superclusters. Carries $17.5B in debt obligations ($12.5B GPU-collateralized SPV debt + $5B bank revolver).",
+    polymarketOdds: {
+      marketName: "SpaceX (SPCX) Market Cap Above $2.2T by Year-End",
+      oddsDisplay: "52.0¢ (52.0%)",
+      url: "https://polymarket.com/?r=AIbubble"
+    }
   },
 
   // 12. NVIDIA
