@@ -186,7 +186,7 @@ const BASELINE_DEFAULTS = {
   },
   aiDebt: {
     annualDebtIssuanceUsd: 85_000_000_000,
-    totalTrackedDebtUsd: 196_822_500_000,
+    totalTrackedDebtUsd: 228_072_500_000,
     capexToOcfRatio: 0.548,
     gpuDepreciationDragUsd: 38_500_000_000,
     capexToRevenueMultiple: 8.75,
@@ -995,6 +995,7 @@ function computeLedgerAggregates() {
   return {
     totalDisclosedUsd,
     byYear,
+    debtTotal,
     debtShare: Math.round(debtShare * 1000) / 1000,
     computeContractShare: Math.round(computeContractShare * 1000) / 1000,
     top10Share: Math.round(top10Share * 1000) / 1000,
@@ -1136,6 +1137,10 @@ async function run() {
       ...BASELINE_DEFAULTS.adoption,
       apiPriceDeclineMultiple: tokenMultiple,
     },
+    aiDebt: {
+      ...BASELINE_DEFAULTS.aiDebt,
+      totalTrackedDebtUsd: ledgerAggregate.debtTotal || 228_072_500_000,
+    },
     macro: liveMacroInputs,
     meta: {
       last_synced_at: new Date().toISOString(),
@@ -1146,7 +1151,7 @@ async function run() {
         'Alpha Vantage Treasury & Market Curve API',
         'OpenRouter Public Models Pricing API',
         'Polymarket Gamma Events API',
-        'Yahoo Finance Institutional Quotes (21 Tech Tickers & Macro Indicators)',
+        'Yahoo Finance Institutional Quotes (25 Tech Tickers & Macro Indicators)',
         'SEC EDGAR Submissions CIK 0001341439',
         'AI Capital Tracker Verified Primary Ledger (deals.json)',
       ],

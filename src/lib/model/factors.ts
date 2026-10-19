@@ -111,7 +111,7 @@ const valuationStretch: ModelFactor = {
 // Equity froth burns paper. Borrowing burns real creditors — the 1929/2008
 // ── 3 · DEBT RELIANCE & ISSUANCE VELOCITY ─────────────────────────────────
 // Equity froth burns paper. Borrowing burns real creditors — the 1929/2008
-// channel. Debt+converts share of everything tracked ($196.8B across 20 deals)
+// channel. Debt+converts share of everything tracked ($228.1B across 25 deals)
 // plus annual issuance pace ($85B/yr) and cash debt-service interest load.
 const debtReliance: ModelFactor = {
   id: 'debt_reliance',
@@ -119,14 +119,14 @@ const debtReliance: ModelFactor = {
   kind: 'risk',
   weightPct: 14,
   explain:
-    'Share of tracked AI money that is borrowed (bonds, converts, bank facilities), cumulative debt obligations ($196.8B), and the annualized issuance velocity of GPU-backed debt. Debt transforms valuation froth into systemic solvency risk.',
+    'Share of tracked AI money that is borrowed (bonds, converts, bank facilities), cumulative debt obligations ($228.1B), and the annualized issuance velocity of GPU-backed debt. Debt transforms valuation froth into systemic solvency risk.',
   formula:
     'score = 0.50·ramp(debtShare, 2.5%, 15%) + 0.35·ramp(annualDebtIssuance, $20B, $100B) + 0.15·ramp(totalTrackedDebt, $50B, $250B)',
   compute: (i) => {
     if (!i.ledger) return { score: 0.35, reading: 'Ledger aggregates unavailable', coverage: 0 };
     const s = i.ledger.debtShare;
     const annualDebt = i.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000;
-    const totalDebt = i.aiDebt?.totalTrackedDebtUsd ?? 196_822_500_000;
+    const totalDebt = i.aiDebt?.totalTrackedDebtUsd ?? 228_072_500_000;
     const debtScore = ramp(s, 0.025, 0.15);
     const issuanceScore = ramp(annualDebt, 20_000_000_000, 100_000_000_000);
     const volumeScore = ramp(totalDebt, 50_000_000_000, 250_000_000_000);

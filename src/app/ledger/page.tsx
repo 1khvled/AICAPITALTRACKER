@@ -835,14 +835,14 @@ export default function LedgerPage() {
           ))}
         </div>
 
-        {/* Primary Filter Chips Bar: Debt Only ($196B), Compute Capacity, Circular Financing, Megadeals, Years */}
+        {/* Primary Filter Chips Bar: Debt Only ($228B), Compute Capacity, Circular Financing, Megadeals, Years */}
         <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-zinc-800/80">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 mr-1 flex items-center space-x-1">
               <span>Filter Chips:</span>
             </span>
 
-            {/* Debt Only ($196B) */}
+            {/* Debt Only ($228B) */}
             <button
               onClick={() => {
                 setDebtOnly(!debtOnly);
@@ -855,7 +855,7 @@ export default function LedgerPage() {
               }`}
             >
               <span className={`w-2 h-2 rounded-full ${debtOnly ? "bg-rose-500 animate-pulse" : "bg-rose-400"}`}></span>
-              <span>Debt Only ($196B)</span>
+              <span>Debt Only ($228B)</span>
               <span className="text-xs opacity-75 font-mono">({deals.filter((d) => d.is_debt).length})</span>
             </button>
 

@@ -36,7 +36,7 @@ const PLAIN_ENGLISH_EXPLANATIONS: Record<
   debt_reliance: {
     summary: "Is this boom funded with cash in the bank or borrowed credit?",
     analogy:
-      "If you spend your own savings on an expensive new computer, you might feel poorer, but nobody comes to seize your home. But if you borrow $196 billion on credit, you must pay heavy interest every single month — even if your AI revenues slow down.",
+      "If you spend your own savings on an expensive new computer, you might feel poorer, but nobody comes to seize your home. But if you borrow $228 billion on credit, you must pay heavy interest every single month — even if your AI revenues slow down.",
     whyItMatters: "Debt transforms normal market downturns into systemic insolvencies.",
   },
   macro_rates: {

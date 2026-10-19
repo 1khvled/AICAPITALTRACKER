@@ -471,17 +471,17 @@ const COMPANIES: CompanyProfile[] = [
         amountUsd: 8_500_000_000,
         type: "Senior Notes",
         creditors: "Institutional Bond Holders",
-        notes: "Corporate notes fully covered by $35B+ net cash balance sheet and $60B+ operating cash flows."
+        notes: "Corporate notes fully covered by $65B+ net cash balance sheet and $110B+ operating cash flows."
       }
     ],
-    valuationUsd: 3_350_000_000_000,
-    runRateRevenueUsd: 120_000_000_000,
-    psMultiple: 27.9,
+    valuationUsd: 5_270_000_000_000,
+    runRateRevenueUsd: 185_000_000_000,
+    psMultiple: 28.5,
     circularityConnections: ["CoreWeave", "OpenAI", "xAI", "Mistral", "Supermicro", "Blackstone"],
     circularRiskLevel: "Severe (Circular)",
     circularitySummary: "Epicenter of circular financing: invests corporate venture equity directly into compute startups and labs who remit 80%+ of proceeds to purchase NVIDIA chips.",
     riskTier: "Elevated",
-    exposureSummary: "Primary beneficiary of $2.81T capex. Zero net balance-sheet debt, but structurally vulnerable if counterparty debt financing dries up.",
+    exposureSummary: "Primary beneficiary of $2.86T capex. Zero net balance-sheet debt, but structurally vulnerable if counterparty debt financing dries up.",
     polymarketOdds: {
       marketName: "AI Bubble Burst 2026",
       oddsDisplay: "7.6¢ (7.6%)",
@@ -859,7 +859,7 @@ export default function CompaniesPage() {
             </h1>
             <p className="text-sm text-slate-600 dark:text-zinc-300 font-sans mt-1 max-w-2xl leading-relaxed">
               Audited debt breakdowns, balance sheet leverage ratios, valuation multiples, and circular counterparty financing 
-              mapping across the foundational companies carrying the $2.81T AI superstructure.
+              mapping across the foundational companies carrying the $2.86T AI superstructure.
             </p>
           </div>
 

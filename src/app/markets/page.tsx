@@ -50,7 +50,7 @@ export default function MarketsPage() {
           <div className="flex items-center space-x-2 bg-slate-100 dark:bg-zinc-900/90 px-2.5 py-1 rounded-full border border-slate-200 dark:border-zinc-800 text-[11px]">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="font-semibold text-slate-700 dark:text-zinc-300">STREAMING:</span>
-            <span className="text-slate-500 dark:text-zinc-400 font-medium">11 Equities • 6 Macro Benchmarks</span>
+            <span className="text-slate-500 dark:text-zinc-400 font-medium">25 Equities • 7 Macro Benchmarks</span>
           </div>
         </div>
 
@@ -79,7 +79,7 @@ export default function MarketsPage() {
               className="flex items-center space-x-1.5 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-slate-900 text-white dark:bg-white dark:text-zinc-950 hover:bg-slate-800 dark:hover:bg-zinc-200 transition-colors shadow-sm"
             >
               <Database className="w-4 h-4" />
-              <span>$197B Debt Facilities</span>
+              <span>$228B+ Debt Facilities</span>
             </Link>
           </div>
         </div>

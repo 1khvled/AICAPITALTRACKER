@@ -112,9 +112,9 @@ export function evaluateBubbleModel(inputs, options = {}) {
 
   // Factor 3: Debt Reliance (weight: 14)
   {
-    const s = inputs.ledger?.debtShare ?? 0.07;
+    const s = inputs.ledger?.debtShare ?? 0.08;
     const annualDebt = inputs.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000;
-    const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 196_822_500_000;
+    const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 228_072_500_000;
     const debtScore = ramp(s, 0.025, 0.15);
     const issuanceScore = ramp(annualDebt, 20_000_000_000, 100_000_000_000);
     const volumeScore = ramp(totalDebt, 50_000_000_000, 250_000_000_000);
@@ -388,7 +388,7 @@ export function evaluateBubbleModel(inputs, options = {}) {
  * 2. Merton (1974) Structural Credit Risk Model
  */
 export function computeMertonModel(inputs = {}, customVolatility = null) {
-  const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 196_822_500_000;
+  const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 228_072_500_000;
   const assetValue = inputs.assetValueUsd ?? 1_420_000_000_000;
   const volatility = customVolatility ?? inputs.assetVolatility ?? 0.365;
   const r = (inputs.macro?.us10yYieldPct ?? 5.10) / 100;
@@ -489,7 +489,7 @@ export function computeLpplsMetrics(inputs = {}, customParams = null) {
  * - Ponzi Units: Cash flows < interest service; rely on rising asset prices, continuous VC equity rounds, or convertible debt to pay interest (e.g. pure frontier labs, pre-revenue GPU clouds)
  */
 export function computeMinskyModel(inputs = {}, customLevers = null) {
-  const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 196_822_500_000;
+  const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 228_072_500_000;
   const circularShare = inputs.ledger?.circularShare ?? 0.028;
   const debtShare = inputs.ledger?.debtShare ?? 0.070;
   const capexToOcf = inputs.aiDebt?.capexToOcfRatio ?? 0.548;
@@ -965,13 +965,13 @@ export const HISTORICAL_BACKTESTS = [
     brierScore: 0.0480, // Calibrated benchmark
     primaryMacroTriggers: [
       "Oracle 5Y CDS at 187 bp (+131% vs baseline)",
-      "$196.8B verified debt across 20 facilities ($85B/yr issuance pace)",
+      "$228.1B verified debt across 25 facilities ($85B/yr issuance pace)",
       "Hyperscaler capex consumes 54.8% of operating cash flow",
       "Offset by 40× token deflation and 350M active weekly ChatGPT/Claude users",
     ],
-    mertonDistanceToDefault: 2.84,
-    altmanZScore: 1.84,
-    debtExposureUsd: "$196.8B",
+    mertonDistanceToDefault: 5.37,
+    altmanZScore: 8.41,
+    debtExposureUsd: "$228.1B",
   },
 ];
 

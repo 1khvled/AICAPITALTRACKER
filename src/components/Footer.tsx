@@ -87,7 +87,7 @@ export function Footer() {
               </p>
             </div>
             <p className="text-slate-600 dark:text-zinc-400 text-xs sm:text-sm leading-relaxed font-sans">
-              An open quantitative instrument tracking $2.81T in AI infrastructure debt, private lab sales multiples, 
+              An open quantitative instrument tracking $2.86T in AI infrastructure financings, private lab sales multiples, 
               counterparty circularity, and credit stress. Sourced directly from audited SEC EDGAR disclosures, 
               indentures, and verified filings.
             </p>
@@ -111,8 +111,8 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/ledger" className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center justify-between group">
-                  <span>Deal Ledger (159 Deals)</span>
-                  <span className="text-xs font-mono text-slate-400 dark:text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity">$2.81T</span>
+                  <span>Deal Ledger (169 Deals)</span>
+                  <span className="text-xs font-mono text-slate-400 dark:text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity">$2.86T</span>
                 </Link>
               </li>
               <li>

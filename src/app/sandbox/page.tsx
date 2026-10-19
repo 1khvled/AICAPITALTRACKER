@@ -307,7 +307,7 @@ export default function SandboxPage() {
               {((DEFAULT_MODEL_INPUTS.ledger?.debtShare ?? 0.07) * 100).toFixed(1)}%
             </div>
             <span className="text-[10px] text-slate-500 dark:text-zinc-400 block truncate">
-              $196.8B / $2.81T
+              $228.1B / $2.86T
             </span>
           </div>
 
@@ -785,7 +785,7 @@ export default function SandboxPage() {
                 Structural Distance-to-Default
               </h3>
               <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
-                Evaluates corporate AI debt ($196.8B) against total guarantor asset value ($1.42T) under a 36.5% volatility environment.
+                Evaluates corporate AI debt ($228.1B) against total guarantor asset value ($1.42T) under a 36.5% volatility environment.
               </p>
               <div className="p-3 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-200/80 dark:border-zinc-800 font-mono text-xs space-y-1 text-slate-700 dark:text-zinc-300">
                 <div className="flex justify-between">

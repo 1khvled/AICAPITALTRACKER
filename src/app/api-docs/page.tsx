@@ -64,7 +64,7 @@ const ENDPOINTS: EndpointDoc[] = [
           cpiInflationYoY: 2.9,
           fedFundsRatePct: 4.75,
           annualDebtVelocityUsd: 85000000000,
-          totalTrackedDebtUsd: 196822500000
+          totalTrackedDebtUsd: 228072500000
         },
         topDriverIds: ["cds_stress", "debt_reliance", "valuation_stretch"],
         contributions: [
@@ -87,7 +87,7 @@ const ENDPOINTS: EndpointDoc[] = [
             label: "Debt reliance & issuance pace",
             weightPct: 14,
             earnedPoints: 9.9,
-            reading: { score: 0.71, reading: "Borrowed money = 7.0% ($196.8B verified across 20 facilities); Velocity: $85.0B/yr", coverage: 1 }
+            reading: { score: 0.71, reading: "Borrowed money = 8.0% ($228.1B verified across 25 facilities); Velocity: $85.0B/yr", coverage: 1 }
           }
         ],
         generatedAt: "2026-10-18T17:15:00.000Z"
@@ -99,7 +99,7 @@ const ENDPOINTS: EndpointDoc[] = [
     name: "Verified Deal Ledger",
     method: "GET",
     path: "/api/v1/deals",
-    badge: "$2.81T Superstructure",
+    badge: "$2.86T Superstructure",
     description: "Queries verified capital commitments and debt facilities from the AI capital ledger. Supports full-text search, category tagging, debt isolation, and pagination.",
     defaultQuery: "?limit=2&category=Borrowed",
     params: [
@@ -112,14 +112,14 @@ const ENDPOINTS: EndpointDoc[] = [
     ],
     sampleResponse: {
       success: true,
-      total: 159,
+      total: 169,
       page: 1,
       limit: 2,
-      totalPages: 80,
+      totalPages: 85,
       summary: {
-        totalDisclosedUsd: 2814500000000,
-        totalDebtUsd: 196822500000,
-        debtSharePct: 6.99
+        totalDisclosedUsd: 2858307802026,
+        totalDebtUsd: 228072500000,
+        debtSharePct: 7.98
       },
       deals: [
         {
@@ -308,34 +308,34 @@ const ENDPOINTS: EndpointDoc[] = [
             name: "Verified Primary Capital Ledger",
             endpoint: "src/data/deals.json",
             status: "ONLINE",
-            metric: "158 facilities ($2.81T volume, 7.0% debt share)",
+            metric: "169 facilities ($2.86T volume, 8.0% debt share)",
             target: "Deterministic balance sheet aggregates"
           }
         ],
         recalibrated_models: [
-          "Merton Structural Distance-to-Default (2.84σ, default prob: 2.25%)",
-          "Altman Z''-Score Tech Classifier (1.84 Grey Zone, distress risk: 36.8%)",
-          "Sornette LPPLS Bubble Singularity (38.2% hazard, critical window: Q4 2026 - Q2 2027)",
-          "10,000-Path Monte Carlo Gaussian Copula (VaR95 49.6%, Expected Shortfall 53.4%)"
+          "Merton Structural Distance-to-Default (5.37σ, default prob: 0%)",
+          "Altman Z''-Score Tech Classifier (8.41 Safe Zone)",
+          "Sornette LPPLS Bubble Singularity (59.1% hazard, critical window: Q4 2026 - Q2 2027)",
+          "25,000-Path Monte Carlo Cholesky Copula (VaR95 80.1%, VaR99 83.4%)"
         ],
         recent_sync_history: [
+          {
+            timestamp: "2026-10-19T00:57:21.595Z",
+            status: "SUCCESS",
+            token_decline_multiple: "24x",
+            polymarket_yes_prob: 0.078,
+            disclosed_volume_usd: 2858307802026,
+            debt_share_pct: "8.0%",
+            deals_count: 169
+          },
           {
             timestamp: "2026-10-18T21:38:15.717Z",
             status: "SUCCESS",
             token_decline_multiple: "25x",
             polymarket_yes_prob: 0.103,
-            disclosed_volume_usd: 2810757802026,
-            debt_share_pct: "7.0%",
-            deals_count: 158
-          },
-          {
-            timestamp: "2026-10-18T17:15:00.000Z",
-            status: "SUCCESS",
-            token_decline_multiple: "40x",
-            polymarket_yes_prob: 0.54,
-            disclosed_volume_usd: 2810757802026,
-            debt_share_pct: "7.0%",
-            deals_count: 159
+            disclosed_volume_usd: 2858307802026,
+            debt_share_pct: "8.0%",
+            deals_count: 169
           }
         ]
       }
@@ -475,7 +475,7 @@ print(data)`;
               AI Capital Tracker Public API Explorer
             </h1>
             <p className="text-sm text-slate-600 dark:text-zinc-300 font-sans mt-1 max-w-2xl leading-relaxed">
-              Programmatic REST access to the quantitative model engine, $2.81T deal ledger, factor formulas, and 
+              Programmatic REST access to the quantitative model engine, $2.86T deal ledger, factor formulas, and 
               live regulatory filings. Sourced directly from audited SEC filings.
             </p>
           </div>

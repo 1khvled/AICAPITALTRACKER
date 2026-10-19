@@ -62,7 +62,7 @@ export interface MertonModelResult {
  * Evaluates equity as a call option on total assets with strike price = face value of debt D.
  */
 export function computeMertonModel(inputs: BubbleModelInputs): MertonModelResult {
-  const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 196_822_500_000;
+  const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 228_072_500_000;
   // Estimated asset value: Public tech credit guarantors enterprise value + private lab valuations
   const assetValue = 1_420_000_000_000;
   const volatility = 0.365; // 36.5% asset volatility derived from NVDA/ORCL equity & CDS implied vol
@@ -120,7 +120,7 @@ export function computeAltmanZScore(
   const x1 = customComponents?.x1 ?? 0.118; // Working capital / Total assets
   const x2 = customComponents?.x2 ?? -0.142; // Retained earnings / Total assets (reflects frontier lab cumulative research losses)
   const x3 = customComponents?.x3 ?? 0.078; // Operating EBIT / Total assets
-  const x4 = customComponents?.x4 ?? 7.21; // Market value of equity / Total liabilities ($1.42T / $196.8B)
+  const x4 = customComponents?.x4 ?? 7.19; // Market value of equity / Total liabilities ($1.64T / $228.1B)
 
   const score = 6.56 * x1 + 3.26 * x2 + 6.72 * x3 + 1.05 * x4;
   const roundedScore = Math.round(score * 100) / 100;
@@ -204,7 +204,7 @@ export function computeMinskyModel(
     hedgeCushion?: number;
   }
 ): MinskyModelResult {
-  const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 196_822_500_000;
+  const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 228_072_500_000;
   const circularShare = inputs.ledger?.circularShare ?? 0.028;
   const debtShare = inputs.ledger?.debtShare ?? 0.070;
   const capexToOcf = inputs.aiDebt?.capexToOcfRatio ?? 0.548;
@@ -742,13 +742,13 @@ export const HISTORICAL_BACKTESTS: HistoricalBacktest[] = [
     brierScore: 0.0480, // Calibrated benchmark
     primaryMacroTriggers: [
       "Oracle 5Y CDS at 187 bp (+131% vs baseline)",
-      "$196.8B verified debt across 20 facilities ($85B/yr issuance pace)",
+      "$228.1B verified debt across 25 facilities ($85B/yr issuance pace)",
       "Hyperscaler capex consumes 54.8% of operating cash flow",
       "Offset by 40× token deflation and 350M active weekly ChatGPT/Claude users",
     ],
     mertonDistanceToDefault: 5.37,
     altmanZScore: 8.41,
-    debtExposureUsd: "$196.8B",
+    debtExposureUsd: "$228.1B",
   },
 ];
 

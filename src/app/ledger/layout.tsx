@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "159-Deal AI Capital Ledger ($2.81T Disclosed) — SEC Filings & Debt Facilities",
+  title: "169-Deal AI Capital Ledger ($2.86T Disclosed) — SEC Filings & Debt Facilities",
   description:
-    "Comprehensive institutional ledger of 159 verified AI infrastructure financings totaling $2.81T. Filter by debt facilities, GPU compute capacity, nuclear off-takes, and circular financing with full CSV/JSON export.",
+    "Comprehensive institutional ledger of 169 verified AI infrastructure financings totaling $2.86T. Filter by debt facilities, GPU compute capacity, nuclear off-takes, and circular financing with full CSV/JSON export.",
   keywords: [
     "AI deal ledger",
     "AI capital database",
@@ -18,9 +18,9 @@ export const metadata: Metadata = {
     canonical: "/ledger",
   },
   openGraph: {
-    title: "159-Deal AI Capital Ledger ($2.81T Disclosed) | AI Capital Tracker",
+    title: "169-Deal AI Capital Ledger ($2.86T Disclosed) | AI Capital Tracker",
     description:
-      "Audit all 159 tracked AI infrastructure deals. Filter by debt facilities, GPU compute contracts, nuclear off-takes, and circular money flows.",
+      "Audit all 169 tracked AI infrastructure deals. Filter by debt facilities, GPU compute contracts, nuclear off-takes, and circular money flows.",
     url: "/ledger",
     type: "website",
   },

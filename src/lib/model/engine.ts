@@ -301,7 +301,7 @@ const BASELINE_FALLBACK: BubbleModelInputs = {
   },
   aiDebt: {
     annualDebtIssuanceUsd: 85_000_000_000,
-    totalTrackedDebtUsd: 196_822_500_000,
+    totalTrackedDebtUsd: 228_072_500_000,
     capexToOcfRatio: 0.548,
     gpuDepreciationDragUsd: 38_500_000_000,
     capexToRevenueMultiple: 8.75,

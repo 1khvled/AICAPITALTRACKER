@@ -417,7 +417,7 @@ export function LedgerTimelineChart({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono">
           <span className="font-bold text-slate-700 dark:text-zinc-300 flex items-center space-x-1.5">
             <Filter className="w-3.5 h-3.5 text-indigo-500" />
-            <span>Category Flow Allocation ($2.81T Total)</span>
+            <span>Category Flow Allocation ($2.86T Total)</span>
           </span>
           <span className="text-slate-500 dark:text-zinc-400 text-[11px]">
             Click any category pill to filter the ledger

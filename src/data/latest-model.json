@@ -1,16 +1,16 @@
 {
-  "timestamp": "2026-10-19T00:57:29.621Z",
+  "timestamp": "2026-10-19T06:29:11.980Z",
   "model_version": "2.5.0",
-  "burstProbability": 48.2,
-  "compositeScore": 54.4,
+  "burstProbability": 49.9,
+  "compositeScore": 55,
   "band": "elevated",
   "coverage": 1.1,
   "confidenceInterval": [
-    42.4,
-    54
+    44.3,
+    55.6
   ],
-  "fragilityIndex": 52,
-  "systemicContagionPoints": 4.6,
+  "fragilityIndex": 53,
+  "systemicContagionPoints": 4.7,
   "topDriverIds": [
     "cds_stress",
     "debt_reliance",
@@ -46,10 +46,10 @@
       "label": "Debt reliance & issuance pace",
       "kind": "risk",
       "weightPct": 14,
-      "earnedPoints": 8.6,
+      "earnedPoints": 8.9,
       "reading": {
-        "score": 0.614491875,
-        "reading": "Borrowed money = 8.0% ($196.8B verified); Velocity: $85.0B/yr",
+        "score": 0.637929375,
+        "reading": "Borrowed money = 8.0% ($228.1B verified); Velocity: $85.0B/yr",
         "coverage": 1
       }
     },
@@ -94,10 +94,10 @@
       "label": "Crowd odds (prediction markets)",
       "kind": "risk",
       "weightPct": 9,
-      "earnedPoints": 0.7,
+      "earnedPoints": 0.9,
       "reading": {
-        "score": 0.0785,
-        "reading": "Polymarket crowd: 7.8% YES ($9.15M volume)",
+        "score": 0.1,
+        "reading": "Polymarket crowd: 10.0% YES ($9.17M volume)",
         "coverage": 1
       }
     },
@@ -127,11 +127,11 @@
     }
   ],
   "merton": {
-    "distanceToDefault": 5.37,
+    "distanceToDefault": 4.97,
     "defaultProbabilityPct": 0,
     "structuralSpreadBps": 0,
     "assetValueUsd": 1420000000000,
-    "totalDebtUsd": 196822500000,
+    "totalDebtUsd": 228072500000,
     "interpretation": "Asset value cushions debt comfortably (Distance-to-Default > 3.0σ)."
   },
   "altman": {
@@ -155,9 +155,9 @@
     "currentRegime": "Speculative Transition",
     "refinancingFreezeProbabilityPct": 14.1,
     "breakdown": {
-      "hedgeDebtUsd": 116518920000,
-      "speculativeDebtUsd": 54913477500,
-      "ponziDebtUsd": 25390102500
+      "hedgeDebtUsd": 135018920000,
+      "speculativeDebtUsd": 63632227500,
+      "ponziDebtUsd": 29421352500
     },
     "interpretation": "Speculative Transition: 27.9% of debt requires continuous market rollover, and 12.9% relies on equity subsidies. While hyperscalers remain Hedge units (59.2%), peripheral cloud providers and foundation labs face a 14.1% probability of refinancing freeze.",
     "fragilityIndex": 59.4,
@@ -176,68 +176,68 @@
   },
   "monteCarlo": {
     "iterationsCount": 25000,
-    "meanProbabilityPct": 49.3,
-    "medianProbabilityPct": 50.2,
-    "stdDevPct": 21.8,
+    "meanProbabilityPct": 50.7,
+    "medianProbabilityPct": 51.9,
+    "stdDevPct": 21.9,
     "ci90Pct": [
-      19.9,
-      77.9
+      20.8,
+      79.2
     ],
     "ci95Pct": [
-      16.9,
-      80.1
+      17.7,
+      81.3
     ],
-    "valueAtRisk95Pct": 80.1,
-    "conditionalValueAtRisk95Pct": 82.1,
-    "valueAtRisk99Pct": 83.4,
-    "conditionalValueAtRisk99Pct": 84.4,
-    "skewness": -0.06,
-    "kurtosis": 1.63,
+    "valueAtRisk95Pct": 81.3,
+    "conditionalValueAtRisk95Pct": 83.2,
+    "valueAtRisk99Pct": 84.4,
+    "conditionalValueAtRisk99Pct": 85.4,
+    "skewness": -0.09,
+    "kurtosis": 1.64,
     "histogram": [
       {
         "range": "0%–10%",
-        "count": 42,
-        "percentage": 0.2
+        "count": 28,
+        "percentage": 0.1
       },
       {
         "range": "10%–20%",
-        "count": 2485,
-        "percentage": 9.9
+        "count": 2082,
+        "percentage": 8.3
       },
       {
         "range": "20%–30%",
-        "count": 4274,
+        "count": 4270,
         "percentage": 17.1
       },
       {
         "range": "30%–40%",
-        "count": 2730,
-        "percentage": 10.9
+        "count": 2766,
+        "percentage": 11.1
       },
       {
         "range": "40%–50%",
-        "count": 2903,
-        "percentage": 11.6
+        "count": 2768,
+        "percentage": 11.1
       },
       {
         "range": "50%–60%",
-        "count": 3051,
+        "count": 3044,
         "percentage": 12.2
       },
       {
         "range": "60%–70%",
-        "count": 3276,
-        "percentage": 13.1
+        "count": 3260,
+        "percentage": 13
       },
       {
         "range": "70%–80%",
-        "count": 4913,
-        "percentage": 19.7
+        "count": 4767,
+        "percentage": 19.1
       },
       {
         "range": "80%–90%",
-        "count": 1326,
-        "percentage": 5.3
+        "count": 2015,
+        "percentage": 8.1
       },
       {
         "range": "90%–100%",
@@ -245,6 +245,6 @@
         "percentage": 0
       }
     ],
-    "executionTimeMs": 307
+    "executionTimeMs": 275
   }
 }

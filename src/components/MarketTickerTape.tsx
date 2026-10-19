@@ -132,7 +132,7 @@ export function MarketTickerTape() {
       id: "ai-debt-pace",
       label: "AI DEBT PACE",
       value: debtPace,
-      change: "$196.8B verified debt",
+      change: "$228.1B verified debt",
       isPositive: false,
       type: "risk",
       href: "/ledger",

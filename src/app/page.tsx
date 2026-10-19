@@ -38,7 +38,7 @@ export default function HomePage() {
     : "85.0";
   const totalDebtB = DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd
     ? (DEFAULT_MODEL_INPUTS.aiDebt.totalTrackedDebtUsd / 1e9).toFixed(1)
-    : "196.8";
+    : "228.1";
 
   return (
     <div className="space-y-8 sm:space-y-10">
@@ -152,7 +152,7 @@ export default function HomePage() {
                     <span>🛡️ 1. Big Tech is not going broke</span>
                   </span>
                   <p className="text-slate-600 dark:text-zinc-300 font-sans leading-relaxed text-[11px]">
-                    Microsoft, Google, Apple, and Meta generate over <strong>$414 billion</strong> in operating cash flow every year ($315B+ net accounting profits). Unlike the 2000 Dot-Com crash, Big Tech has fortress balance sheets with plenty of real cash to survive.
+                    Microsoft, Google, Meta, Apple, and Amazon generate over <strong>$668 billion</strong> in operating cash flow every year ($400B+ net accounting profits). Unlike the 2000 Dot-Com crash, Big Tech has fortress balance sheets with plenty of real cash to survive.
                   </p>
                 </div>
                 <div className="p-3 rounded-xl bg-white/90 dark:bg-[#121214]/90 border border-slate-200/80 dark:border-zinc-800 space-y-1">
@@ -160,7 +160,7 @@ export default function HomePage() {
                     <span>⚠️ 2. The risk is borrowed loans &amp; hype</span>
                   </span>
                   <p className="text-slate-600 dark:text-zinc-300 font-sans leading-relaxed text-[11px]">
-                    Over <strong>$196 billion</strong> of new AI data centers are built on borrowed debt. If outside businesses don&apos;t spend huge money on AI tools, that debt becomes hard to pay back.
+                    Over <strong>$228 billion</strong> of new AI data centers are built on borrowed debt. If outside businesses don&apos;t spend huge money on AI tools, that debt becomes hard to pay back.
                   </p>
                 </div>
                 <div className="p-3 rounded-xl bg-white/90 dark:bg-[#121214]/90 border border-slate-200/80 dark:border-zinc-800 space-y-1">
@@ -573,7 +573,7 @@ export default function HomePage() {
                 {totalDeals}-Deal Capital Ledger
               </h3>
               <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
-                Inspect every verified filing ($2.81T disclosed). Filter by $196.8B in debt, circular chip vendor financing, and export CSV/JSON.
+                Inspect every verified filing ($2.86T disclosed). Filter by $228.1B in debt, circular chip vendor financing, and export CSV/JSON.
               </p>
             </div>
             <div className="pt-2 text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 flex items-center space-x-1">

@@ -189,7 +189,7 @@ export default function MethodologyPage() {
                   <span>💳 1. Who is paying for the party?</span>
                 </span>
                 <p className="text-slate-600 dark:text-zinc-300 leading-relaxed text-[11px]">
-                  Spending cash profits from a real business is safe. But borrowing <strong>$196 billion</strong> on corporate loans and bonds (like Oracle, Vantage, and CoreWeave) means heavy interest bills must be paid every single month — even if AI revenues dry up.
+                  Spending cash profits from a real business is safe. But borrowing <strong>$228 billion</strong> on corporate loans and bonds (like Oracle, Vantage, and CoreWeave) means heavy interest bills must be paid every single month — even if AI revenues dry up.
                 </p>
               </div>
               <div className="p-4 rounded-xl bg-white/95 dark:bg-[#121214]/95 border border-slate-200/80 dark:border-zinc-800 space-y-1.5 shadow-xs">
@@ -737,7 +737,7 @@ export default function MethodologyPage() {
               </div>
               <ul className="text-xs font-mono space-y-1 text-slate-600 dark:text-zinc-400 pt-1">
                 <li>• Asset Value $V$: $4.85T (Consortium Market Equity + Debt)</li>
-                <li>• Total Tracked Debt $D$: $196.8B</li>
+                <li>• Total Tracked Debt $D$: $228.1B</li>
                 <li>• Asset Volatility $\sigma_V$: 32.0%</li>
                 <li>• Risk-Free Rate $r$: 5.10% (US10Y)</li>
                 <li>• Implied Default Prob: <strong className="text-emerald-600 dark:text-emerald-400">0.0% (Investment Grade)</strong></li>
@@ -1133,7 +1133,7 @@ export default function MethodologyPage() {
                 <div className="flex items-center justify-between text-xs font-mono">
                   <span className="font-bold text-indigo-600 dark:text-indigo-400 uppercase">Pipeline 05</span>
                   <span className="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold text-[10px]">
-                    158+ Facilities Tracked
+                    169+ Facilities Tracked
                   </span>
                 </div>
                 <h4 className="font-bold text-base text-slate-900 dark:text-white">
@@ -1141,16 +1141,16 @@ export default function MethodologyPage() {
                 </h4>
                 <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
                   Systematically aggregates transaction volumes, debt share %, compute capacity commitments, circular venture 
-                  arrangements, and mega-deal velocity ($10B+ financings). Automatically recalculates running totals across the $2.81T superstructure.
+                  arrangements, and mega-deal velocity ($10B+ financings). Automatically recalculates running totals across the $2.86T superstructure.
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 font-mono text-xs">
                   <div className="p-2 bg-white dark:bg-zinc-900 rounded border border-slate-200 dark:border-zinc-800">
                     <span className="text-[10px] text-slate-500 dark:text-zinc-400 block">Total Disclosed</span>
-                    <strong className="text-slate-900 dark:text-white">$2.81 Trillion</strong>
+                    <strong className="text-slate-900 dark:text-white">$2.86 Trillion</strong>
                   </div>
                   <div className="p-2 bg-white dark:bg-zinc-900 rounded border border-slate-200 dark:border-zinc-800">
                     <span className="text-[10px] text-slate-500 dark:text-zinc-400 block">Verified Debt Share</span>
-                    <strong className="text-amber-600 dark:text-amber-400">7.0% ($196.8B)</strong>
+                    <strong className="text-amber-600 dark:text-amber-400">8.0% ($228.1B)</strong>
                   </div>
                   <div className="p-2 bg-white dark:bg-zinc-900 rounded border border-slate-200 dark:border-zinc-800">
                     <span className="text-[10px] text-slate-500 dark:text-zinc-400 block">Compute Contracts</span>
@@ -1193,13 +1193,13 @@ export default function MethodologyPage() {
                 1. Merton (1974) Structural
               </span>
               <div className="font-mono text-sm font-bold text-slate-900 dark:text-white">
-                Distance: 2.84σ
+                Distance: 5.37σ
               </div>
               <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
-                Calculates default boundary where market equity call option expires out-of-the-money against $196.8B in committed debt.
+                Calculates default boundary where market equity call option expires out-of-the-money against $228.1B in committed debt.
               </p>
-              <div className="text-[11px] font-mono text-amber-600 dark:text-amber-400 pt-1">
-                Implied Default: 2.25%
+              <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 pt-1">
+                Implied Default: 0.0%
               </div>
             </div>
 
@@ -1288,7 +1288,7 @@ export default function MethodologyPage() {
                   <li>• Polymarket Crowd Odds</li>
                   <li>• Yahoo ORCL &amp; CDS Proxy</li>
                   <li>• SEC EDGAR 8-K/10-Q Scans</li>
-                  <li>• Primary Deal Ledger ($2.81T)</li>
+                  <li>• Primary Deal Ledger ($2.86T)</li>
                 </ul>
               </div>
 

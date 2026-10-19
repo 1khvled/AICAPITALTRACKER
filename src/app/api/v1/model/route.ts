@@ -52,7 +52,7 @@ export async function GET() {
           oracle_cds_5y_bps: DEFAULT_MODEL_INPUTS.cds?.currentBps,
           median_lab_ps_multiple: Math.round(medianPs * 10) / 10,
           debt_share_pct: Math.round((DEFAULT_MODEL_INPUTS.ledger?.debtShare || 0) * 1000) / 10,
-          total_tracked_debt_usd: DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 196_822_500_000,
+          total_tracked_debt_usd: DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 228_072_500_000,
           annual_debt_issuance_usd: DEFAULT_MODEL_INPUTS.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000,
           us10y_treasury_yield_pct: DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 5.10,
           cpi_inflation_yoy_pct: DEFAULT_MODEL_INPUTS.macro?.cpiInflationYoY ?? 2.9,

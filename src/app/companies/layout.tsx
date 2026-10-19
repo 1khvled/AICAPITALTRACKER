@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Corporate AI Debt Exposure & Counterparty Matrix | AI Capital Tracker",
     description:
-      "Audited debt breakdowns, leverage ratios, and circular financing mapping across the foundational companies carrying the $2.81T AI superstructure.",
+      "Audited debt breakdowns, leverage ratios, and circular financing mapping across the foundational companies carrying the $2.86T AI superstructure.",
     url: "/companies",
     type: "website",
   },

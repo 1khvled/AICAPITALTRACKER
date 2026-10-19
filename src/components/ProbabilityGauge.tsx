@@ -797,7 +797,7 @@ export function ProbabilityGauge({
 
             <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
               {current.desc} Driven by Oracle 5Y CDS widening to 187 bp (+131%), 2026 enterprise multiples, 
-              and $196.8B in verified debt &amp; credit commitments — offset by 40× token price deflation.
+              and $228.1B in verified debt &amp; credit commitments — offset by 40× token price deflation.
             </p>
 
             {/* Provenance Badges */}
@@ -1034,7 +1034,7 @@ export function ProbabilityGauge({
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-center text-xs font-mono">
         {/* 1. Merton DD */}
         <div
-          title={`Merton (1974) Distance-to-Default: ${quantitativeData.mertonDD.toFixed(2)}σ. Default prob: ${quantitativeData.mertonProb.toFixed(1)}%. In plain English: Can big tech pay its bills? Yes. Microsoft, Google, Apple, and Meta generate $414B+ operating cash flow and near-zero default risk.`}
+          title={`Merton (1974) Distance-to-Default: ${quantitativeData.mertonDD.toFixed(2)}σ. Default prob: ${quantitativeData.mertonProb.toFixed(1)}%. In plain English: Can big tech pay its bills? Yes. Microsoft, Google, Meta, Apple, and Amazon generate $668B+ operating cash flow and near-zero default risk.`}
           className="p-3 sm:p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between space-y-1.5 shadow-xs"
         >
           <span className="text-[11px] text-slate-500 dark:text-zinc-400 block font-sans font-medium">Big Tech Solvency</span>
@@ -1145,7 +1145,7 @@ export function ProbabilityGauge({
                   <span>3. So where is the real risk?</span>
                 </span>
                 <p className="text-slate-600 dark:text-zinc-300 leading-relaxed font-sans text-xs">
-                  Over $196 billion of new GPU data centers are funded on debt. AI startups trade at high multiples to their revenue. If businesses don&apos;t pay hundreds of billions for AI software, that borrowed money can&apos;t be easily refinanced, leading to a sharp freeze in AI spending.
+                  Over $228 billion of new GPU data centers are funded on debt. AI startups trade at high multiples to their revenue. If businesses don&apos;t pay hundreds of billions for AI software, that borrowed money can&apos;t be easily refinanced, leading to a sharp freeze in AI spending.
                 </p>
               </div>
 
@@ -1218,7 +1218,7 @@ export function ProbabilityGauge({
                 </span>
               </div>
               <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
-                Audited debt structure: Oracle CDS at 187bp, $196.8B debt facilities, and 54.8% capex-to-OCF coverage.
+                Audited debt structure: Oracle CDS at 187bp, $228.1B debt facilities, and 54.8% capex-to-OCF coverage.
               </p>
             </div>
             <div className="pt-2 border-t border-slate-200 dark:border-zinc-800/80 flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-zinc-400">
@@ -1277,7 +1277,7 @@ export function ProbabilityGauge({
                 </span>
               </div>
               <p className="text-xs text-slate-700 dark:text-zinc-300 font-sans leading-relaxed">
-                Our credit model prices risk <strong className="font-bold">{divergenceMultiplier}× higher</strong> than Polymarket retail crowds. Retail prices consumer hype; our model prices $196.8B in debt covenants and hardware depreciation.
+                Our credit model prices risk <strong className="font-bold">{divergenceMultiplier}× higher</strong> than Polymarket retail crowds. Retail prices consumer hype; our model prices $228.1B in debt covenants and hardware depreciation.
               </p>
             </div>
             <div className="pt-2 border-t border-amber-200 dark:border-amber-900/50 flex items-center justify-between text-[11px] font-mono text-amber-700 dark:text-amber-400">

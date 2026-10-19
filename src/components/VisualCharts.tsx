@@ -638,14 +638,14 @@ const CAPITAL_SEGMENTS: CapitalSegment[] = [
   {
     id: "debt",
     label: "Borrowed Debt & Converts",
-    share: 7.0,
-    amount: "$197B",
-    amountUsd: 196_822_500_000,
-    dealCount: 20,
+    share: 8.0,
+    amount: "$228B",
+    amountUsd: 228_072_500_000,
+    dealCount: 25,
     color: "#f43f5e",
     riskTier: "High",
     description: "Senior secured debt, GPU-collateralized loan facilities, and convertible notes.",
-    topDeals: "Anthropic Broadcom Debt ($57B), CoreWeave Blackstone ($7.5B), Oracle Bonds ($25B)",
+    topDeals: "Anthropic Broadcom Debt ($57B), CoreWeave Blackstone ($14B), Meta Bonds ($10.5B), Oracle Bonds ($25B)",
   },
   {
     id: "power_land",
@@ -679,7 +679,7 @@ export function CapitalCompositionChart() {
               CAPITAL ALLOCATION
             </span>
             <span className="text-xs font-mono text-slate-500 dark:text-zinc-400">
-              $2.81T across 159 Verified Deals
+              $2.86T across 169 Verified Deals
             </span>
           </div>
           <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-1">
@@ -690,7 +690,7 @@ export function CapitalCompositionChart() {
         <div className="flex items-center space-x-2 text-xs font-mono">
           <span className="text-slate-500 dark:text-zinc-400">Total Tracked:</span>
           <span className="font-bold text-emerald-600 dark:text-emerald-400 font-tabular text-sm">
-            $2,810.8 Billion
+            $2,858.3 Billion
           </span>
         </div>
       </div>
@@ -768,7 +768,7 @@ export function CapitalCompositionChart() {
       ) : (
         <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#09090b] border border-slate-100 dark:border-zinc-800/80 flex items-center justify-between text-xs font-mono text-slate-500 dark:text-zinc-400">
           <span>💡 Tip: Click or hover any category tile below to isolate its capital contribution</span>
-          <span className="text-rose-500 font-bold">$196.8B Debt (7.0%)</span>
+          <span className="text-rose-500 font-bold">$228.1B Debt (8.0%)</span>
         </div>
       )}
 
@@ -830,7 +830,7 @@ export function CapitalCompositionChart() {
             Institutional Capital Stack Interpretation:
           </span>
           <p className="text-slate-600 dark:text-zinc-300 font-sans leading-relaxed text-xs">
-            While equity absorption cushions $534B of froth, the emergence of $197B in leveraged debt facilities (Broadcom, Blackstone, CoreWeave) transforms what was once pure venture upside into senior credit solvency risk with rigid coupon obligations.
+            While equity absorption cushions $534B of froth, the emergence of $228B in leveraged debt facilities (Broadcom, Blackstone, CoreWeave) transforms what was once pure venture upside into senior credit solvency risk with rigid coupon obligations.
           </p>
         </div>
       </div>
@@ -1364,34 +1364,34 @@ export function AiRevenueGapChart() {
   const data = [
     {
       label: "Annual Hyperscaler AI Capex",
-      amount: 210,
-      display: "$210B",
+      amount: 485,
+      display: "$485B",
       note: "GPUs, datacenters, fiber, gigawatt substations",
       isStress: true,
       category: "Outlay",
     },
     {
       label: "Depreciation & Power Opex",
-      amount: 65,
-      display: "$65B",
+      amount: 140,
+      display: "$140B",
       note: "Annual power consumption & 3-year silicon wear",
       isStress: true,
       category: "Outlay",
     },
     {
       label: "End-User Software Revenue",
-      amount: 38,
-      display: "$38B",
-      note: "All verified LLM enterprise APIs & seat licenses",
+      amount: 165,
+      display: "$165B",
+      note: "All verified LLM enterprise APIs, seats & sovereign models",
       isRevenue: true,
       category: "Inflow",
     },
   ];
 
-  const totalOutlay = 210 + 65; // $275B
-  const revenue = 38;
-  const netDeficit = totalOutlay - revenue; // $237B
-  const burnRatio = (totalOutlay / revenue).toFixed(1); // 7.2x
+  const totalOutlay = 485 + 140; // $625B
+  const revenue = 165;
+  const netDeficit = totalOutlay - revenue; // $460B
+  const burnRatio = (totalOutlay / revenue).toFixed(1); // 3.8x
 
   return (
     <div className="p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] space-y-4 transition-all shadow-sm">
@@ -1401,18 +1401,18 @@ export function AiRevenueGapChart() {
             STRUCTURAL IMBALANCE
           </span>
           <h4 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mt-0.5">
-            The $237B Annual AI Revenue Gap
+            The $460B Annual AI Infrastructure vs Revenue Gap
           </h4>
         </div>
         <span className="text-xs font-mono font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-3 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900/60 font-tabular">
-          -$237B Net Deficit
+          -$460B Net Deficit
         </span>
       </div>
 
       {/* Spend Comparison Bars */}
       <div className="space-y-3 pt-1">
         {data.map((item) => {
-          const widthPct = (item.amount / 240) * 100;
+          const widthPct = (item.amount / 500) * 100;
           return (
             <div key={item.label} className="space-y-1.5">
               <div className="flex justify-between text-xs sm:text-sm font-mono">
@@ -1454,7 +1454,7 @@ export function AiRevenueGapChart() {
           </span>
         </div>
         <p className="text-slate-700 dark:text-zinc-300 font-sans leading-relaxed text-xs">
-          Hyperscalers (Microsoft, Meta, Google, AWS) are deploying $275B annually in silicon procurement, datacenters, and electrical power to service $38B of enterprise software revenue.
+          Hyperscalers (Microsoft, Meta, Google, Amazon) and neoclouds are deploying $485B+ in capex and $140B in power/depreciation to service $165B of enterprise software &amp; API revenues.
         </p>
       </div>
     </div>

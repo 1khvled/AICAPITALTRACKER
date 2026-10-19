@@ -70,6 +70,7 @@
       "2025": 1732497500000,
       "2026": 804230302026
     },
+    "debtTotal": 228072500000,
     "debtShare": 0.08,
     "computeContractShare": 0.28,
     "top10Share": 0.641,
@@ -80,10 +81,10 @@
     "count": 169
   },
   "crowd": {
-    "yesProbability": 0.0785,
-    "volumeUsd": 9149712.920692004,
-    "bubble2026Probability": 0.0785,
-    "bubble2027Probability": 0.165,
+    "yesProbability": 0.1,
+    "volumeUsd": 9166253.005098004,
+    "bubble2026Probability": 0.1,
+    "bubble2027Probability": 0.19,
     "activeContractsCount": 16,
     "markets": [
       {
@@ -101,9 +102,9 @@
         "question": "AI bubble burst in 2026?",
         "slug": "ai-industry-downturn-by-december-31-2026-857",
         "eventSlug": "ai-bubble-burst-by",
-        "yesProbabilityPct": 7.9,
-        "noProbabilityPct": 92.2,
-        "volumeUsd": 2471373,
+        "yesProbabilityPct": 10,
+        "noProbabilityPct": 90,
+        "volumeUsd": 2479938,
         "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
       },
       {
@@ -121,9 +122,9 @@
         "question": "AI bubble burst by June 30, 2027?",
         "slug": "ai-bubble-burst-by-june-30-2027",
         "eventSlug": "ai-bubble-burst-by",
-        "yesProbabilityPct": 16.5,
-        "noProbabilityPct": 83.5,
-        "volumeUsd": 28481,
+        "yesProbabilityPct": 19,
+        "noProbabilityPct": 81,
+        "volumeUsd": 34444,
         "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
       },
       {
@@ -201,9 +202,9 @@
         "question": "Will OpenAI IPO by June 30, 2027?",
         "slug": "will-openai-ipo-by-june-30-2027",
         "eventSlug": "openai-ipo-by",
-        "yesProbabilityPct": 34.5,
-        "noProbabilityPct": 65.5,
-        "volumeUsd": 4736,
+        "yesProbabilityPct": 33.5,
+        "noProbabilityPct": 66.5,
+        "volumeUsd": 5057,
         "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
       },
       {
@@ -213,7 +214,7 @@
         "eventSlug": "openai-announces-it-has-achieved-agi-before-2027",
         "yesProbabilityPct": 8.5,
         "noProbabilityPct": 91.5,
-        "volumeUsd": 331281,
+        "volumeUsd": 331372,
         "referralUrl": "https://polymarket.com/event/openai-announces-it-has-achieved-agi-before-2027?r=AIbubble"
       },
       {
@@ -232,7 +233,7 @@
         "slug": "anthropic-acquired-before-2027",
         "eventSlug": "anthropic-acquired-before-2027",
         "yesProbabilityPct": 2.4,
-        "noProbabilityPct": 97.6,
+        "noProbabilityPct": 97.7,
         "volumeUsd": 30586,
         "referralUrl": "https://polymarket.com/event/anthropic-acquired-before-2027?r=AIbubble"
       },
@@ -243,13 +244,13 @@
         "eventSlug": "us-recession-by-end-of-2026",
         "yesProbabilityPct": 6.5,
         "noProbabilityPct": 93.5,
-        "volumeUsd": 2322259,
+        "volumeUsd": 2323859,
         "referralUrl": "https://polymarket.com/event/us-recession-by-end-of-2026?r=AIbubble"
       }
     ],
     "referralCode": "AIbubble",
     "referralUrl": "https://polymarket.com/?r=AIbubble",
-    "note": "Live Polymarket sync across 6 active AI prediction events (Volume: $9.15M)"
+    "note": "Live Polymarket sync across 6 active AI prediction events (Volume: $9.17M)"
   },
   "adoption": {
     "topProductUsers": 350000000,
@@ -275,14 +276,14 @@
   },
   "aiDebt": {
     "annualDebtIssuanceUsd": 85000000000,
-    "totalTrackedDebtUsd": 196822500000,
+    "totalTrackedDebtUsd": 228072500000,
     "capexToOcfRatio": 0.548,
     "gpuDepreciationDragUsd": 38500000000,
     "capexToRevenueMultiple": 8.75,
     "note": "SEC 10-Q Capex vs OCF synthesis & private debt facilities"
   },
   "meta": {
-    "last_synced_at": "2026-10-19T00:57:29.311Z",
+    "last_synced_at": "2026-10-19T06:29:11.703Z",
     "sync_mode": "github_actions_cron_24h",
     "sources": [
       "Federal Reserve Economic Data (FRED) St. Louis API (DGS10, DGS2, BAMLH0A0HYM2, FEDFUNDS)",
@@ -290,7 +291,7 @@
       "Alpha Vantage Treasury & Market Curve API",
       "OpenRouter Public Models Pricing API",
       "Polymarket Gamma Events API",
-      "Yahoo Finance Institutional Quotes (21 Tech Tickers & Macro Indicators)",
+      "Yahoo Finance Institutional Quotes (25 Tech Tickers & Macro Indicators)",
       "SEC EDGAR Submissions CIK 0001341439",
       "AI Capital Tracker Verified Primary Ledger (deals.json)"
     ]

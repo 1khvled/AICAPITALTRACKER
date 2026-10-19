@@ -10,7 +10,7 @@ const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aicapitaltracker.co
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: "AI Capital Tracker — 12-Month Bubble Burst Probability & 159-Deal Ledger",
+    default: "AI Capital Tracker — 12-Month Bubble Burst Probability & 169-Deal Ledger",
     template: "%s | AI Capital Tracker",
   },
   description:
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "AI Capital Tracker — 12-Month Bubble Burst Probability & 159-Deal Ledger",
+    title: "AI Capital Tracker — 12-Month Bubble Burst Probability & 169-Deal Ledger",
     description:
       "A receipt-backed empirical model converting verified SEC filings, Oracle CDS spreads, lab revenues, and token economics into an empirical bubble burst probability.",
     url: baseUrl,
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AI Capital Tracker — 12-Month Bubble Burst Probability & 159-Deal Ledger",
+    title: "AI Capital Tracker — 12-Month Bubble Burst Probability & 169-Deal Ledger",
     description:
       "Empirical 12-month AI bubble burst probability model converting verified SEC filings and debt commitments into quantifiable financial risk.",
     creator: "@aicapitaltracker",
@@ -102,9 +102,9 @@ export default function RootLayout({
       {
         "@type": "Dataset",
         "@id": `${baseUrl}/#dataset`,
-        name: "AI Capital Allocation & Debt Ledger (159 Deals)",
+        name: "AI Capital Allocation & Debt Ledger (169 Deals)",
         description:
-          "Comprehensive database of 159 verified AI infrastructure financings totaling $2.81T, including convertible debt, cloud leases, GPU asset-backed credit facilities, and equity rounds.",
+          "Comprehensive database of 169 verified AI infrastructure financings totaling $2.86T, including convertible debt, cloud leases, GPU asset-backed credit facilities, and equity rounds.",
         url: `${baseUrl}/ledger`,
         creator: {
           "@type": "Organization",

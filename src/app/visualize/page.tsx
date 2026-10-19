@@ -138,7 +138,7 @@ export default function VisualizePage() {
               Visualizing the ${totalDisclosedT}T AI Infrastructure Superstructure
             </h1>
             <p className="text-sm sm:text-base text-slate-600 dark:text-zinc-300 font-sans leading-relaxed">
-              Institutional visual diagnostics tracking the $237B hyperscaler capex gap, private valuation multiples, 
+              Institutional visual diagnostics tracking the $460B hyperscaler capex gap, private valuation multiples, 
               credit default swap contagion, and non-linear bubble burst probability.
             </p>
           </div>
@@ -182,13 +182,13 @@ export default function VisualizePage() {
           <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-sm space-y-1">
             <div className="flex items-center justify-between text-[11px] font-mono text-rose-500 dark:text-rose-400">
               <span className="uppercase font-semibold">Annual Capex Gap</span>
-              <span className="font-bold">7.2× Outlay</span>
+              <span className="font-bold">3.8× Outlay</span>
             </div>
             <div className="text-xl sm:text-2xl font-black font-mono text-rose-600 dark:text-rose-400 font-tabular">
-              -$237B
+              -$460B
             </div>
             <div className="text-[11px] font-mono text-slate-500 dark:text-zinc-400 truncate">
-              $275B Outlay vs $38B Rev
+              $625B Outlay vs $165B Rev
             </div>
           </div>
 
@@ -302,7 +302,7 @@ export default function VisualizePage() {
                   How Portfolio Desks Read the Deal Universe Map
                 </h4>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed max-w-4xl">
-                  Analysts examine cluster density and counterparty concentration: the top 10 deals command <strong>66.5%</strong> of the total $2.81T volume. 
+                  Analysts examine cluster density and counterparty concentration: the top 10 deals command <strong>64.1%</strong> of the total $2.86T volume. 
                   When bubble pods group around vendor-financed take-or-pay capacity agreements (CoreWeave, Oracle, Crusoe), it signals circular capital loops 
                   where equity froth is converting into debt service obligations.
                 </p>
@@ -448,7 +448,7 @@ export default function VisualizePage() {
             <div className="flex items-center space-x-2">
               <PieChart className="w-5 h-5 text-blue-500" />
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-                Capital Composition: Debt vs Equity in the $2.81T Superstructure
+                Capital Composition: Debt vs Equity in the $2.86T Superstructure
               </h2>
             </div>
             <span className="text-xs font-mono text-slate-500 dark:text-zinc-400">
@@ -473,9 +473,9 @@ export default function VisualizePage() {
                   Senior Creditor Claims vs First-Loss Equity Cushions
                 </h4>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed max-w-4xl">
-                  Credit desks partition the $2.81T stack into two regimes: $534B in venture equity acts as loss-absorbing cushion, but the $197B in borrowed debt 
+                  Credit desks partition the $2.86T stack into two regimes: $534B in venture equity acts as loss-absorbing cushion, but the $228B in borrowed debt 
                   (Broadcom, Blackstone, CoreWeave) and $712B in take-or-pay compute leases carry rigid cash interest and delivery penalties. 
-                  When debt share crosses 7% during an era of 5% terminal rates, default cascades can be triggered even while models remain technically impressive.
+                  When debt share crosses 8% during an era of 5% terminal rates, default cascades can be triggered even while models remain technically impressive.
                 </p>
               </div>
             </div>
@@ -483,7 +483,7 @@ export default function VisualizePage() {
               href="/ledger?type=debt"
               className="shrink-0 flex items-center space-x-1 text-xs font-mono font-bold text-blue-700 dark:text-blue-400 hover:underline"
             >
-              <span>Inspect $197B Debt Facilities</span>
+              <span>Inspect $228B Debt Facilities</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -506,7 +506,7 @@ export default function VisualizePage() {
               </h2>
             </div>
             <span className="text-xs font-mono text-slate-500 dark:text-zinc-400">
-              -$237B Deficit • 187 bp Oracle CDS • -99.5% Inference Cost
+              -$460B Deficit • 187 bp Oracle CDS • -99.5% Inference Cost
             </span>
           </div>
 
@@ -527,7 +527,7 @@ export default function VisualizePage() {
                   Why Credit Default Swaps Precede Equity Deratings
                 </h4>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed max-w-4xl">
-                  With hyperscalers spending $7.20 on compute infrastructure for every $1.00 of end-user software ARR, the $237B net cash deficit is sustained 
+                  With hyperscalers and neoclouds deploying $625B on compute infrastructure and power against $165B of software ARR, the $460B annual cash deficit is sustained 
                   by Big Tech balance sheets. Bond investors re-price first: Oracle 5Y CDS widening +131% (from 81 bp to 187 bp) signals credit market skepticism. 
                   In both 2000 and 2008, credit widening preceded stock market contractions by 3 to 6 months. Conversely, token price collapse (-99.5%) 
                   acts as a critical economic damper that accelerates real-world utility.
