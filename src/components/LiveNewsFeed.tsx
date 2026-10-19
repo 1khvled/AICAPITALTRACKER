@@ -9,6 +9,7 @@ import {
   Search,
   X,
   ArrowUpRight,
+  ChevronDown,
 } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 
@@ -24,9 +25,18 @@ import { Reveal } from "@/components/Reveal";
  * headline, publisher, timestamp and link below now comes from the ingestion
  * snapshot, and every age stamp is computed from the item's own publishedAt
  * after mount (never from a module-scope clock).
+ *
+ * Interactivity added on 2026-10-19:
+ *   - the filter chips are the snapshot's OWN category values (read from the
+ *     data, not guessed) with a live count on each chip;
+ *   - a search box over headline and publisher;
+ *   - each dispatch expands to its full summary and its publication stamp;
+ *   - an explicit empty state and a "showing N of M" count.
+ *
+ * Nothing here invents text: the categories are the feed's, the publisher is
+ * the feed's, and the expanded panel renders only fields that exist on the
+ * item.
  */
-
-type TargetCategory = "All" | "Debt Issuance" | "GPU Capex" | "Lab Valuations" | "Fed & Rates";
 
 /**
  * Age stamp. `now` is null until the client has mounted, so the server render
@@ -48,13 +58,26 @@ function formatAge(publishedAt: string, now: number | null, fallback: string): s
   return `${Math.round(hours / 24)}d ago`;
 }
 
+/**
+ * The exact publication stamp from the item's own publishedAt. Only a
+ * reformatting of a field the feed already carries — nothing is derived.
+ */
+function formatPublished(publishedAt: string, fallback: string): string {
+  const ts = Date.parse(publishedAt);
+  if (Number.isNaN(ts)) return fallback;
+  const d = new Date(ts);
+  return `${d.toISOString().replace("T", " ").slice(0, 16)} UTC`;
+}
+
 export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
-  const [selectedCategory, setSelectedCategory] = useState<TargetCategory>("All");
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [now, setNow] = useState<number | null>(null);
   // null = use the server snapshot; a populated array = a manual reload.
   const [reloaded, setReloaded] = useState<NewsItem[] | null>(null);
+  // The dispatch whose details are open (one at a time keeps the page short).
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const news = reloaded ?? items;
 
@@ -82,119 +105,46 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
     }
   };
 
-  // Helper to map each news item to one of the 4 requested target categories
-  const mapToTargetCategory = (item: NewsItem): TargetCategory => {
-    const text = `${item.title} ${item.summary} ${item.category}`.toLowerCase();
-
-    // 1. Debt Issuance
-    if (
-      text.includes("debt") ||
-      text.includes("credit") ||
-      text.includes("cds") ||
-      text.includes("bond") ||
-      text.includes("facility") ||
-      text.includes("loan") ||
-      text.includes("convertible") ||
-      text.includes("10-q") ||
-      text.includes("filing")
-    ) {
-      return "Debt Issuance";
-    }
-
-    // 2. GPU Capex
-    if (
-      text.includes("gpu") ||
-      text.includes("capex") ||
-      text.includes("blackwell") ||
-      text.includes("h100") ||
-      text.includes("cluster") ||
-      text.includes("datacenter") ||
-      text.includes("data center") ||
-      text.includes("nuclear") ||
-      text.includes("power") ||
-      text.includes("constellation") ||
-      text.includes("supermicro") ||
-      text.includes("smci") ||
-      text.includes("tsmc")
-    ) {
-      return "GPU Capex";
-    }
-
-    // 3. Lab Valuations
-    if (
-      text.includes("valuation") ||
-      text.includes("openai") ||
-      text.includes("anthropic") ||
-      text.includes("s-1") ||
-      text.includes("ipo") ||
-      text.includes("multiple") ||
-      text.includes("run-rate") ||
-      text.includes("mistral") ||
-      text.includes("xai")
-    ) {
-      return "Lab Valuations";
-    }
-
-    // 4. Fed & Rates
-    if (
-      text.includes("fed") ||
-      text.includes("rates") ||
-      text.includes("inflation") ||
-      text.includes("cpi") ||
-      text.includes("treasury") ||
-      text.includes("yield") ||
-      text.includes("recession") ||
-      text.includes("macro") ||
-      text.includes("polymarket")
-    ) {
-      return "Fed & Rates";
-    }
-
-    return "Debt Issuance";
-  };
-
-  const categories: TargetCategory[] = [
-    "All",
-    "Debt Issuance",
-    "GPU Capex",
-    "Lab Valuations",
-    "Fed & Rates",
-  ];
-
-  // Filtering logic combining category and search query
-  const filteredNews = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-
-    return news.filter((item) => {
-      // Category filter
-      if (selectedCategory !== "All") {
-        const itemCat = mapToTargetCategory(item);
-        if (itemCat !== selectedCategory) return false;
+  /**
+   * The filter chips are the snapshot's own category values. They are read out
+   * of the data rather than hard-coded, so a new category in tomorrow's
+   * ingestion gets a chip with no code change — and no category is invented
+   * here either.
+   */
+  const categories = useMemo(() => {
+    const seen = new Set<string>();
+    news.forEach((item) => {
+      if (item && typeof item.category === "string" && item.category) {
+        seen.add(item.category);
       }
-
-      // Search query filter
-      if (q) {
-        const matchTitle = item.title.toLowerCase().includes(q);
-        const matchSummary = (item.summary || "").toLowerCase().includes(q);
-        const matchPublisher = item.publisher.toLowerCase().includes(q);
-        const matchCategory = item.category.toLowerCase().includes(q);
-        return matchTitle || matchSummary || matchPublisher || matchCategory;
-      }
-
-      return true;
     });
-  }, [news, selectedCategory, searchQuery]);
+    return Array.from(seen).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  }, [news]);
 
-  // Compute category counts for pills
+  // Live count per chip, counted over the whole snapshot.
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = { All: news.length };
-    categories.forEach((cat) => {
-      if (cat !== "All") {
-        counts[cat] = news.filter((item) => mapToTargetCategory(item) === cat).length;
+    news.forEach((item) => {
+      if (item && typeof item.category === "string") {
+        counts[item.category] = (counts[item.category] ?? 0) + 1;
       }
     });
     return counts;
   }, [news]);
+
+  // Filtering: category, then a headline / publisher search.
+  const filteredNews = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return news.filter((item) => {
+      if (selectedCategory !== "All" && item.category !== selectedCategory) {
+        return false;
+      }
+      if (!q) return true;
+      const title = (item.title || "").toLowerCase();
+      const publisher = (item.publisher || "").toLowerCase();
+      return title.indexOf(q) !== -1 || publisher.indexOf(q) !== -1;
+    });
+  }, [news, selectedCategory, searchQuery]);
 
   // Newest publication stamp in the snapshot (the "how fresh is this" label).
   const snapshotLabel = useMemo(() => {
@@ -209,31 +159,16 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
       : `${d.toISOString().replace("T", " ").slice(0, 16)} UTC`;
   }, [news]);
 
-  // Helper to render verified source badge with institutional styling
-  const renderSourceBadge = (publisher: string) => {
-    const pubLower = publisher.toLowerCase();
-
-    if (pubLower.includes("bloomberg")) {
-      return <span className="chip chip-caution">Bloomberg</span>;
-    }
-    if (pubLower.includes("reuters")) {
-      return <span className="chip chip-caution">Reuters</span>;
-    }
-    if (pubLower.includes("sec") || pubLower.includes("10-q") || pubLower.includes("edgar")) {
-      return <span className="chip">SEC Form 10-Q</span>;
-    }
-    if (pubLower.includes("journal") || pubLower.includes("wsj")) {
-      return <span className="chip">Wall Street Journal</span>;
-    }
-    if (pubLower.includes("ft") || pubLower.includes("financial times")) {
-      return <span className="chip chip-risk">Financial Times</span>;
-    }
-    if (pubLower.includes("polymarket") || pubLower.includes("coindesk")) {
-      return <span className="chip">Polymarket Wire</span>;
-    }
-
-    return <span className="chip">{publisher}</span>;
+  const resetFilters = () => {
+    setSearchQuery("");
+    setSelectedCategory("All");
   };
+
+  const chipClass = (active: boolean) =>
+    [
+      "chip min-h-11 shrink-0 items-center whitespace-nowrap px-3 transition-colors duration-150",
+      active ? "chip-on" : "hover:border-rule-strong hover:bg-surface-2",
+    ].join(" ");
 
   return (
     <div className="card card-flush overflow-hidden shadow-card transition-shadow duration-200 hover:shadow-raised">
@@ -270,59 +205,63 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
             </p>
           </div>
 
-          {/* Search */}
+          {/* Search — headline and publisher */}
           <div className="relative w-full lg:w-80">
             <Search
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-subtle"
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint"
               aria-hidden="true"
             />
+            <label htmlFor="news-search" className="sr-only">
+              Search wire dispatches by headline or publisher
+            </label>
             <input
-              type="text"
-              aria-label="Search wire dispatches"
+              id="news-search"
+              type="search"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search headlines, issuers (ORCL, Anthropic)..."
-              className="min-h-11 w-full rounded-lg border border-rule bg-surface py-2 pl-9 pr-9 text-sm text-ink placeholder:text-ink-faint"
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search headlines or publishers"
+              autoComplete="off"
+              className="min-h-11 w-full rounded-md border border-rule-strong bg-canvas pl-9 pr-11 text-[15px] text-ink placeholder:text-ink-faint"
             />
-            {searchQuery && (
+            {searchQuery ? (
               <button
+                type="button"
                 onClick={() => setSearchQuery("")}
-                aria-label="Clear search"
-                className="absolute right-1 top-1/2 flex h-11 w-8 -translate-y-1/2 items-center justify-center text-ink-subtle hover:text-ink"
+                className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-ink-subtle transition-colors duration-150 hover:bg-surface-2 hover:text-ink"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
+                <span className="sr-only">Clear the wire search</span>
               </button>
-            )}
+            ) : null}
           </div>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1 scrollbar-none">
-            {categories.map((cat) => {
-              const isSelected = selectedCategory === cat;
-              const count = categoryCounts[cat] || 0;
-
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  aria-pressed={isSelected}
-                  className={`flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${
-                    isSelected
-                      ? "border-ink bg-ink text-canvas"
-                      : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"
-                  }`}
-                >
-                  <span>{cat}</span>
-                  <span className={`num text-[14px] ${isSelected ? "text-canvas" : "text-ink-subtle"}`}>
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
+            <button
+              type="button"
+              onClick={() => setSelectedCategory("All")}
+              aria-pressed={selectedCategory === "All"}
+              className={chipClass(selectedCategory === "All")}
+            >
+              <span>All</span>
+              <span className="num opacity-70">{categoryCounts.All ?? 0}</span>
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}
+                aria-pressed={selectedCategory === cat}
+                className={chipClass(selectedCategory === cat)}
+              >
+                <span>{cat}</span>
+                <span className="num opacity-70">{categoryCounts[cat] ?? 0}</span>
+              </button>
+            ))}
           </div>
 
-          <p className="text-[14px] text-ink-subtle">
+          <p className="text-[14px] text-ink-subtle" aria-live="polite">
             Showing <span className="num font-semibold text-ink">{filteredNews.length}</span> of{" "}
             <span className="num font-semibold text-ink">{news.length}</span> dispatches
             {snapshotLabel ? (
@@ -338,65 +277,138 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
       {/* Dispatches */}
       <div className="px-4 py-4 sm:px-5">
         {filteredNews.length === 0 ? (
-          <div className="panel space-y-3 p-8 text-center">
-            <Newspaper className="mx-auto h-8 w-8 text-ink-faint" aria-hidden="true" />
-            <h4 className="text-sm font-bold text-ink">No matching wire dispatches</h4>
-            <p className="text-[14px] text-ink-muted">
-              No headlines match &ldquo;{searchQuery}&rdquo; in category &ldquo;{selectedCategory}&rdquo;.
+          <div className="panel flex min-h-[12rem] flex-col items-center justify-center gap-3 p-8 text-center">
+            <Newspaper className="mx-auto h-7 w-7 text-ink-faint" aria-hidden="true" />
+            <p className="text-[15px] font-bold text-ink">No stories match your filters.</p>
+            <p className="max-w-reading text-[14px] text-ink-muted">
+              {searchQuery.trim() && selectedCategory !== "All" ? (
+                <>
+                  Nothing in <span>“{selectedCategory}”</span> matches{" "}
+                  <span className="num">“{searchQuery.trim()}”</span>.
+                </>
+              ) : searchQuery.trim() ? (
+                <>
+                  No story matches <span className="num">“{searchQuery.trim()}”</span>.
+                </>
+              ) : selectedCategory !== "All" ? (
+                <>
+                  No dispatch in <span>“{selectedCategory}”</span> in this snapshot.
+                </>
+              ) : (
+                <>This snapshot has no dispatches.</>
+              )}{" "}
+              Clear the filter to see all {news.length} dispatches.
             </p>
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedCategory("All");
-              }}
-              className="btn btn-ghost min-h-11"
-            >
-              Reset all search filters
+            <button onClick={resetFilters} className="btn min-h-11">
+              <X className="h-4 w-4" aria-hidden="true" />
+              Clear the filter
             </button>
           </div>
         ) : (
           <ol className="divide-y divide-rule border-y border-rule">
             {filteredNews.map((item, index) => {
-              const targetCat = mapToTargetCategory(item);
               const isHighImpact = item.impact === "High Impact";
+              const expanded = expandedId === item.id;
+              const detailsId = `news-details-${item.id}`;
+              const titleId = `news-title-${item.id}`;
 
               return (
-                <Reveal as="li" key={item.id} className="py-4" delay={Math.min(index, 6) * 40}>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                    {renderSourceBadge(item.publisher)}
-                    {isHighImpact && <span className="chip chip-risk">HIGH IMPACT</span>}
-                    <span className="chip">{targetCat}</span>
-                    <span className="num flex items-center gap-1.5 text-[14px] text-ink-subtle">
-                      <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                      {formatAge(item.publishedAt, now, item.timeAgo)}
-                    </span>
-                  </div>
+                <li key={item.id}>
+                  <Reveal as="div" delay={Math.min(index, 6) * 40} className="py-4">
+                    <article
+                      tabIndex={0}
+                      aria-labelledby={titleId}
+                      className="rounded-md focus-visible:bg-surface-2"
+                    >
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                        {/* The publisher, exactly as the feed records it. */}
+                        <span className="chip">{item.publisher}</span>
+                        {isHighImpact ? <span className="chip chip-risk">HIGH IMPACT</span> : null}
+                        <span className="chip">{item.category}</span>
+                        <span className="num flex items-center gap-1.5 text-[14px] text-ink-subtle">
+                          <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                          {formatAge(item.publishedAt, now, item.timeAgo)}
+                        </span>
+                      </div>
 
-                  <a
-                    href={safeHref(item.link)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group mt-1 block min-h-11 py-0.5"
-                  >
-                    <h4 className="text-[15px] font-semibold leading-snug text-ink underline decoration-rule underline-offset-4 group-hover:decoration-ink">
-                      {item.title}
-                    </h4>
-                  </a>
+                      <a
+                        href={safeHref(item.link)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group mt-1 block min-h-11 py-0.5"
+                      >
+                        <h4
+                          id={titleId}
+                          className="text-[15px] font-semibold leading-snug text-ink underline decoration-rule underline-offset-4 group-hover:decoration-ink"
+                        >
+                          {item.title}
+                        </h4>
+                      </a>
 
-                  {item.summary && (
-                    <p className="prose line-clamp-3 mt-1.5 text-[14px]">{item.summary}</p>
-                  )}
+                      {item.summary ? (
+                        <p
+                          className={`prose mt-1.5 text-[14px] ${expanded ? "" : "line-clamp-3"}`}
+                        >
+                          {item.summary}
+                        </p>
+                      ) : null}
 
-                  <a
-                    href={safeHref(item.link)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="prose-a mt-2 inline-flex min-h-11 items-center gap-1 text-[13px] font-semibold"
-                  >
-                    <span>Read the original</span>
-                    <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-                  </a>
-                </Reveal>
+                      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedId(expanded ? null : item.id)}
+                          aria-expanded={expanded}
+                          aria-controls={detailsId}
+                          className="inline-flex min-h-11 items-center gap-1.5 text-[13px] font-semibold text-ink transition-[color,transform] duration-150 hover:text-ink-muted"
+                        >
+                          <span>{expanded ? "Hide details" : "Show details"}</span>
+                          <ChevronDown
+                            className={`h-4 w-4 ${expanded ? "rotate-180" : ""}`}
+                            aria-hidden="true"
+                          />
+                        </button>
+
+                        <a
+                          href={safeHref(item.link)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="prose-a inline-flex min-h-11 items-center gap-1 text-[13px] font-semibold"
+                        >
+                          <span>Read the original</span>
+                          <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                        </a>
+                      </div>
+
+                      {expanded ? (
+                        <div
+                          id={detailsId}
+                          className="mt-2 border-t border-rule pt-3"
+                        >
+                          <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
+                            <div className="flex items-baseline justify-between gap-3 sm:block">
+                              <dt className="label">Publisher</dt>
+                              <dd className="text-[14px] text-ink sm:mt-0.5">{item.publisher}</dd>
+                            </div>
+                            <div className="flex items-baseline justify-between gap-3 sm:block">
+                              <dt className="label">Category</dt>
+                              <dd className="text-[14px] text-ink sm:mt-0.5">{item.category}</dd>
+                            </div>
+                            <div className="flex items-baseline justify-between gap-3 sm:block">
+                              <dt className="label">Impact</dt>
+                              <dd className="text-[14px] text-ink sm:mt-0.5">{item.impact}</dd>
+                            </div>
+                            <div className="flex items-baseline justify-between gap-3 sm:block">
+                              <dt className="label">Published</dt>
+                              <dd className="num text-[14px] text-ink sm:mt-0.5">
+                                {formatPublished(item.publishedAt, item.timeAgo)}
+                              </dd>
+                            </div>
+                          </dl>
+                        </div>
+                      ) : null}
+                    </article>
+                  </Reveal>
+                </li>
               );
             })}
           </ol>

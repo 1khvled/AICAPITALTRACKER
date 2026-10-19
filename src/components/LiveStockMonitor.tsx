@@ -1,7 +1,15 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import {
+  ChevronDown,
+  ChevronUp,
+  ChevronsUpDown,
+  Search,
+  Star,
+  X,
+} from "lucide-react";
 import {
   LIVE_STOCKS as FALLBACK_STOCKS,
   LIVE_MACRO_INDICATORS,
@@ -18,6 +26,22 @@ import { Reveal } from "@/components/Reveal";
  * feed in `live-stocks.json` (with the static table as a fallback). The board
  * describes itself as a daily snapshot because that is what it is — it does not
  * simulate a live tick, and it never invents a number.
+ *
+ * Interactivity added on 2026-10-19:
+ *   - the desktop board is a real sortable table (five sort keys, asc/desc);
+ *   - a text filter over ticker / company / role with a live result count;
+ *   - a per-row watchlist, persisted in localStorage, filterable by chip.
+ *
+ * The three rules that came with that work:
+ *   1. No number is ever invented, interpolated or re-derived. Rows may be
+ *      reordered, filtered and highlighted, but the rendered figures are the
+ *      feed's own strings and values, untouched.
+ *   2. Sorting is deterministic — the default is ticker A→Z and every sort
+ *      breaks ties on ticker, so the board never reshuffles itself on a
+ *      re-render.
+ *   3. localStorage is only touched in an effect (read) and in a click
+ *      handler (write). Nothing is read during render, so the server render
+ *      and the first client render agree and private-mode failures are inert.
  *
  * Colours carry meaning only: safe for a value that lowers risk, risk for one
  * that raises it, everything else plain ink.
@@ -176,12 +200,138 @@ function TrendLine({
   );
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   Sorting
+   --------------------------------------------------------------------------
+   Five sort keys, each with an ascending and a descending order. The
+   comparator is total and deterministic: the chosen key decides, and every
+   tie is broken on ticker A→Z. Nothing about the sort depends on the order
+   the rows happen to arrive in, so a re-render can never reshuffle the board.
+   ───────────────────────────────────────────────────────────────────────── */
+
+type SortKey = "ticker" | "price" | "change" | "drawdown" | "marketCap";
+type SortDirection = "asc" | "desc";
+
+interface SortState {
+  key: SortKey;
+  direction: SortDirection;
+}
+
+/** The default is ticker A→Z — the same order every reader sees. */
+const DEFAULT_SORT: SortState = { key: "ticker", direction: "asc" };
+
+/**
+ * The direction a column opens on the first click.
+ * - ticker: A→Z
+ * - price / 24h / market cap: largest first
+ * - drawdown: the drawdown values are negative, so ascending puts the
+ *   deepest drawdown (−56.9%) at the top — which is the number a reader of a
+ *   credit-risk board is looking for.
+ */
+const OPENING_DIRECTION: Record<SortKey, SortDirection> = {
+  ticker: "asc",
+  price: "desc",
+  change: "desc",
+  drawdown: "asc",
+  marketCap: "desc",
+};
+
+const CAP_UNITS: Record<string, number> = { T: 1e12, B: 1e9, M: 1e6, K: 1e3 };
+
+/**
+ * Ranking key for the market-cap column.
+ *
+ * The feed carries the cap only as a display string ("$5.27T"), so the
+ * magnitude is read out of that string for ORDERING ONLY. The rendered cap
+ * is always the untouched `marketCapDisplay` string from the feed — no cap
+ * is recomputed, rounded or re-derived for display.
+ */
+function marketCapMagnitude(display: string): number | null {
+  const match = /^\s*\$?\s*([0-9]+(?:\.[0-9]+)?)\s*([TBMK])?/i.exec(display ?? "");
+  if (!match) return null;
+  const value = Number(match[1]);
+  if (!Number.isFinite(value)) return null;
+  const unit = match[2] ? CAP_UNITS[match[2].toUpperCase()] ?? 1 : 1;
+  return value * unit;
+}
+
+function compareQuotes(a: StockQuote, b: StockQuote, key: SortKey): number {
+  switch (key) {
+    case "ticker":
+      return a.ticker < b.ticker ? -1 : a.ticker > b.ticker ? 1 : 0;
+    case "price":
+      return a.priceUsd - b.priceUsd;
+    case "change":
+      return a.change24hPct - b.change24hPct;
+    case "drawdown":
+      return a.drawdownFromAthPct - b.drawdownFromAthPct;
+    case "marketCap": {
+      const left = marketCapMagnitude(a.marketCapDisplay);
+      const right = marketCapMagnitude(b.marketCapDisplay);
+      if (left === null && right === null) return 0;
+      if (left === null) return 1; // an unreadable cap sorts last, never first
+      if (right === null) return -1;
+      return left - right;
+    }
+  }
+}
+
+function sortQuotes(list: StockQuote[], sort: SortState): StockQuote[] {
+  const sign = sort.direction === "asc" ? 1 : -1;
+  return [...list].sort((a, b) => {
+    const primary = compareQuotes(a, b, sort.key);
+    if (primary !== 0) return primary * sign;
+    return a.ticker < b.ticker ? -1 : a.ticker > b.ticker ? 1 : 0;
+  });
+}
+
+/** Case-insensitive match over ticker, company name and role. */
+function matchesQuery(stock: StockQuote, q: string): boolean {
+  return (
+    stock.ticker.toLowerCase().indexOf(q) !== -1 ||
+    stock.name.toLowerCase().indexOf(q) !== -1 ||
+    stock.role.toLowerCase().indexOf(q) !== -1
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Watchlist
+   --------------------------------------------------------------------------
+   A JSON array of tickers under one stable key. Read once after mount,
+   written only when the reader changes it, and every storage call is
+   wrapped — a private-mode browser, a disabled storage API or a corrupted
+   value must never break the board.
+   ───────────────────────────────────────────────────────────────────────── */
+
+const WATCHLIST_KEY = "aict-watchlist-v1";
+
+function readWatchlist(): string[] {
+  try {
+    const raw = window.localStorage.getItem(WATCHLIST_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((ticker): ticker is string => typeof ticker === "string");
+  } catch {
+    return [];
+  }
+}
+
+function writeWatchlist(tickers: string[]): void {
+  try {
+    window.localStorage.setItem(WATCHLIST_KEY, JSON.stringify(tickers));
+  } catch {
+    /* storage unavailable (private mode, quota) — the in-memory list still works */
+  }
+}
+
 export type TerminalCategory =
   | "All"
   | "Hyperscalers"
   | "Semiconductors"
   | "Power & infra"
-  | "Macro";
+  | "Macro"
+  | "Watchlist";
 
 const CATEGORIES: TerminalCategory[] = [
   "All",
@@ -198,19 +348,175 @@ function inCategory(stock: StockQuote, category: TerminalCategory): boolean {
   if (category === "Power & infra") {
     return stock.category === "Power & Infrastructure" || stock.category === "Frontier Lab Partner";
   }
-  return stock.ticker === "ORCL";
+  if (category === "Macro") return stock.ticker === "ORCL";
+  return false;
+}
+
+/** The label shown next to the result count. */
+function categoryLabel(category: TerminalCategory): string {
+  if (category === "All") return "all categories";
+  if (category === "Watchlist") return "your watchlist";
+  return category;
+}
+
+/**
+ * The row-level watchlist toggle. Icon plus a word — never icon only, so the
+ * control explains itself without a tooltip.
+ */
+function WatchToggle({
+  ticker,
+  saved,
+  onToggle,
+}: {
+  ticker: string;
+  saved: boolean;
+  onToggle: (ticker: string) => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={saved}
+      onClick={() => onToggle(ticker)}
+      className={[
+        "inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border px-2 text-[13px] font-semibold transition-colors duration-150",
+        saved
+          ? "border-ink bg-ink text-canvas hover:bg-ink-muted hover:border-ink-muted"
+          : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:bg-surface-2 hover:text-ink",
+      ].join(" ")}
+    >
+      <Star className={`h-4 w-4 ${saved ? "fill-current" : ""}`} aria-hidden="true" />
+      <span>{saved ? "Saved" : "Save"}</span>
+      <span className="sr-only">
+        {saved ? ` — remove ${ticker} from your watchlist` : ` — add ${ticker} to your watchlist`}
+      </span>
+    </button>
+  );
+}
+
+/**
+ * A sortable column header. The cell carries `aria-sort`, the button carries
+ * an accessible name that spells out the current direction, and the indicator
+ * is a lucide chevron — no glyph, no emoji.
+ */
+function SortHeader({
+  label,
+  sortKey,
+  sort,
+  onSort,
+  align,
+}: {
+  label: string;
+  sortKey: SortKey;
+  sort: SortState;
+  onSort: (key: SortKey) => void;
+  align: "left" | "right";
+}) {
+  const active = sort.key === sortKey;
+  const direction = active ? sort.direction : null;
+  const ariaSort = active
+    ? direction === "asc"
+      ? "ascending"
+      : "descending"
+    : "none";
+  const accessibleName = active
+    ? `Sort by ${label}, currently ${direction === "asc" ? "ascending" : "descending"}. Activate to sort ${
+        direction === "asc" ? "descending" : "ascending"
+      }.`
+    : `Sort by ${label}`;
+
+  return (
+    <th
+      scope="col"
+      aria-sort={ariaSort}
+      className={`pb-1.5 ${align === "right" ? "pl-3 text-right" : "pr-3 text-left"}`}
+    >
+      <button
+        type="button"
+        onClick={() => onSort(sortKey)}
+        aria-label={accessibleName}
+        className={[
+          "inline-flex min-h-11 min-w-11 items-center gap-1 text-[13px] font-medium uppercase tracking-[0.1em] transition-colors duration-150",
+          align === "right" ? "w-full justify-end" : "",
+          active ? "text-ink" : "text-ink-faint hover:text-ink-muted",
+        ].join(" ")}
+      >
+        <span>{label}</span>
+        {active && direction === "asc" ? (
+          <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
+        ) : null}
+        {active && direction === "desc" ? (
+          <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+        ) : null}
+        {!active ? <ChevronsUpDown className="h-3.5 w-3.5 opacity-60" aria-hidden="true" /> : null}
+      </button>
+    </th>
+  );
 }
 
 export function LiveStockMonitor() {
   const [category, setCategory] = useState<TerminalCategory>("All");
+  const [query, setQuery] = useState<string>("");
+  const [sort, setSort] = useState<SortState>(DEFAULT_SORT);
+  const [watchlist, setWatchlist] = useState<string[]>([]);
 
   const showMacro = category === "All" || category === "Macro";
 
-  const { rows, advancing, declining } = useMemo(() => {
-    const visible = INITIAL_STOCKS.filter((stock) => inCategory(stock, category));
+  // The watchlist is read AFTER mount — never during render, so the server
+  // markup and the first client render are identical.
+  useEffect(() => {
+    setWatchlist(readWatchlist());
+  }, []);
+
+  const watchlistSet = useMemo(() => new Set(watchlist), [watchlist]);
+
+  // The pool the filters act on: one category, or the saved watchlist.
+  const scoped = useMemo(() => {
+    if (category === "Watchlist") {
+      return INITIAL_STOCKS.filter((stock) => watchlistSet.has(stock.ticker));
+    }
+    return INITIAL_STOCKS.filter((stock) => inCategory(stock, category));
+  }, [category, watchlistSet]);
+
+  // The rows on screen: the pool, filtered by the text query, then sorted.
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const filtered = q ? scoped.filter((stock) => matchesQuery(stock, q)) : scoped;
+    return sortQuotes(filtered, sort);
+  }, [scoped, query, sort]);
+
+  const { advancing, declining } = useMemo(() => {
     const up = INITIAL_STOCKS.filter((s) => s.change24hPct >= 0).length;
-    return { rows: visible, advancing: up, declining: INITIAL_STOCKS.length - up };
-  }, [category]);
+    return { advancing: up, declining: INITIAL_STOCKS.length - up };
+  }, []);
+
+  const onSort = useCallback((key: SortKey) => {
+    setSort((prev) =>
+      prev.key === key
+        ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
+        : { key, direction: OPENING_DIRECTION[key] }
+    );
+  }, []);
+
+  const toggleWatch = useCallback(
+    (ticker: string) => {
+      const next = watchlist.includes(ticker)
+        ? watchlist.filter((t) => t !== ticker)
+        : [...watchlist, ticker];
+      writeWatchlist(next);
+      setWatchlist(next);
+      // Un-saving the last ticker while the watchlist view is open would
+      // leave an empty table behind — step back to the full list instead.
+      if (next.length === 0 && category === "Watchlist") setCategory("All");
+    },
+    [watchlist, category]
+  );
+
+  const resetFilters = useCallback(() => {
+    setQuery("");
+    setCategory("All");
+  }, []);
+
+  const watchlistEmpty = watchlist.length === 0;
 
   return (
     <Reveal>
@@ -252,6 +558,84 @@ export function LiveStockMonitor() {
             </button>
           );
         })}
+        <span className="h-6 w-px shrink-0 bg-rule" aria-hidden="true" />
+        <button
+          type="button"
+          onClick={() => {
+            if (!watchlistEmpty) setCategory("Watchlist");
+          }}
+          aria-pressed={category === "Watchlist"}
+          aria-disabled={watchlistEmpty}
+          title={
+            watchlistEmpty
+              ? "Save a ticker to build a watchlist"
+              : `Show your ${watchlist.length} saved ticker${watchlist.length === 1 ? "" : "s"}`
+          }
+          className={[
+            "chip min-h-11 shrink-0 items-center whitespace-nowrap px-3 transition-colors duration-150",
+            category === "Watchlist"
+              ? "chip-on"
+              : watchlistEmpty
+                ? "cursor-not-allowed border-rule text-ink-faint"
+                : "hover:border-rule-strong hover:bg-surface-2",
+          ].join(" ")}
+        >
+          <Star
+            className={`h-3.5 w-3.5 ${category === "Watchlist" ? "fill-current" : ""}`}
+            aria-hidden="true"
+          />
+          Watchlist
+          <span className="num opacity-70">{watchlist.length}</span>
+        </button>
+      </div>
+
+      {/* Filter bar — always rendered, so nothing shifts when it changes */}
+      <div className="border-t border-rule px-4 py-3">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
+          <div className="relative min-w-0 md:w-80">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint"
+              aria-hidden="true"
+            />
+            <label htmlFor="markets-quote-search" className="sr-only">
+              Filter quotes by ticker, company name or role
+            </label>
+            <input
+              id="markets-quote-search"
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Filter by ticker, company or role"
+              autoComplete="off"
+              className="min-h-11 w-full rounded-md border border-rule-strong bg-canvas pl-9 pr-11 text-[15px] text-ink placeholder:text-ink-faint"
+            />
+            {query ? (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-ink-subtle transition-colors duration-150 hover:bg-surface-2 hover:text-ink"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+                <span className="sr-only">Clear the quote filter</span>
+              </button>
+            ) : null}
+          </div>
+
+          <p
+            className="shrink-0 text-[14px] text-ink-subtle"
+            aria-live="polite"
+          >
+            <span className="num font-semibold text-ink">{visible.length}</span> of{" "}
+            <span className="num font-semibold text-ink">{scoped.length}</span> shown
+          </p>
+        </div>
+
+        {/* One line, always present: the watchlist state or how to start one. */}
+        <p className="mt-2 min-h-[1.5rem] text-[14px] text-ink-faint">
+          {watchlistEmpty
+            ? "Save a ticker to build a watchlist."
+            : `${watchlist.length} ticker${watchlist.length === 1 ? "" : "s"} saved on this device.`}
+        </p>
       </div>
 
       <div className="border-t border-rule p-4">
@@ -312,119 +696,230 @@ export function LiveStockMonitor() {
               Listed AI companies
             </h3>
             <p className="text-[14px] text-ink-subtle">
-              <span className="num">{rows.length}</span> of{" "}
-              <span className="num">{INITIAL_STOCKS.length}</span> shown ·{" "}
-              <span className="capitalize">{category}</span>
+              <span className="num">{scoped.length}</span> name
+              {scoped.length === 1 ? "" : "s"} in{" "}
+              <span className="capitalize">{categoryLabel(category)}</span>
             </p>
           </div>
 
-          {/* Column headers, desktop only */}
-          <div
-            aria-hidden="true"
-            className="mt-3 hidden grid-cols-[5rem_minmax(0,1fr)_5.5rem_4.5rem_6rem_6rem_5rem] items-center gap-3 border-b border-rule pb-1.5 text-[13px] uppercase tracking-[0.1em] text-ink-faint md:grid"
-          >
-            <span>Ticker</span>
-            <span>Company and role</span>
-            <span className="text-right">Price</span>
-            <span className="text-right">24h</span>
-            <span className="text-right">From high</span>
-            <span className="text-right">Market cap</span>
-            <span className="text-right">Trend</span>
-          </div>
-
-          <ul className="divide-y divide-rule">
-            {rows.map((stock, index) => {
-              const up = stock.change24hPct >= 0;
-              const trend = TREND_SHAPES[stock.ticker] || FALLBACK_SHAPE;
-              const tone = up
-                ? "text-safe-600 dark:text-safe-300"
-                : "text-risk-600 dark:text-risk-300";
-              /**
-               * 2026-10-19 (design pass): a 24-hour move washes its cell once
-               * as the board ticks in — 600ms, in the row's own direction,
-               * never a loop. The delay staggers it down the column so the
-               * board reads as a tape, not a strobe.
-               */
-              const tickFlash = up ? "flash-safe" : "flash-risk";
-              const tickDelay = { animationDelay: `${Math.min(index, 20) * 40}ms` };
-              return (
-                <li key={stock.ticker} className="py-3">
-                  {/* Phone: one calm block */}
-                  <div className="md:hidden">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="flex items-baseline gap-2">
-                          <Link
-                            href={`/companies?search=${encodeURIComponent(stock.ticker)}`}
-                            className="-my-2.5 inline-flex min-h-11 items-center py-2.5 num text-[15px] font-semibold text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
+          {visible.length === 0 ? (
+            <div className="panel mt-3 flex min-h-[12rem] flex-col items-center justify-center gap-3 p-8 text-center">
+              <Search className="h-6 w-6 text-ink-faint" aria-hidden="true" />
+              <p className="text-[15px] font-semibold text-ink">No ticker matches that filter.</p>
+              <p className="max-w-reading text-[14px] text-ink-muted">
+                {query.trim() ? (
+                  <>
+                    Nothing in {categoryLabel(category)} matches{" "}
+                    <span className="num">“{query.trim()}”</span>.
+                  </>
+                ) : category === "Watchlist" ? (
+                  <>Your watchlist is empty — save a ticker to build one.</>
+                ) : (
+                  <>No listed name sits in {categoryLabel(category)} right now.</>
+                )}{" "}
+                Clear the filter to see all {INITIAL_STOCKS.length} listed names.
+              </p>
+              <button type="button" onClick={resetFilters} className="btn min-h-11">
+                <X className="h-4 w-4" aria-hidden="true" />
+                Clear filters
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Desktop: a real, sortable table */}
+              <div className="mt-3 hidden md:block">
+                <table className="w-full table-fixed border-collapse text-[14px]">
+                  <caption className="sr-only">
+                    Listed AI companies with the last close, the 24-hour change, the drawdown from
+                    the 52-week high and the market capitalisation. The column buttons sort the
+                    table.
+                  </caption>
+                  <colgroup>
+                    <col className="w-20" />
+                    <col />
+                    <col className="w-[5.5rem]" />
+                    <col className="w-[4.5rem]" />
+                    <col className="w-[5.5rem]" />
+                    <col className="w-[5.5rem]" />
+                    <col className="w-[5.5rem]" />
+                  </colgroup>
+                  <thead>
+                    <tr className="border-b border-rule">
+                      <SortHeader
+                        label="Ticker"
+                        sortKey="ticker"
+                        sort={sort}
+                        onSort={onSort}
+                        align="left"
+                      />
+                      <th scope="col" className="pb-1.5 pr-3 text-left text-[13px] font-medium uppercase tracking-[0.1em] text-ink-faint">
+                        Company and role
+                      </th>
+                      <SortHeader
+                        label="Price"
+                        sortKey="price"
+                        sort={sort}
+                        onSort={onSort}
+                        align="right"
+                      />
+                      <SortHeader
+                        label="24h"
+                        sortKey="change"
+                        sort={sort}
+                        onSort={onSort}
+                        align="right"
+                      />
+                      <SortHeader
+                        label="From high"
+                        sortKey="drawdown"
+                        sort={sort}
+                        onSort={onSort}
+                        align="right"
+                      />
+                      <SortHeader
+                        label="Market cap"
+                        sortKey="marketCap"
+                        sort={sort}
+                        onSort={onSort}
+                        align="right"
+                      />
+                      <th scope="col" className="pb-1.5 pl-2 text-right text-[13px] font-medium uppercase tracking-[0.1em] text-ink-faint">
+                        Watchlist
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-rule">
+                    {visible.map((stock, index) => {
+                      const up = stock.change24hPct >= 0;
+                      const trend = TREND_SHAPES[stock.ticker] || FALLBACK_SHAPE;
+                      const tone = up
+                        ? "text-safe-600 dark:text-safe-300"
+                        : "text-risk-600 dark:text-risk-300";
+                      /**
+                       * 2026-10-19 (design pass): a 24-hour move washes its cell once
+                       * as the board ticks in — 600ms, in the row's own direction,
+                       * never a loop. The delay staggers it down the column so the
+                       * board reads as a tape, not a strobe.
+                       */
+                      const tickFlash = up ? "flash-safe" : "flash-risk";
+                      const tickDelay = { animationDelay: `${Math.min(index, 20) * 40}ms` };
+                      const saved = watchlistSet.has(stock.ticker);
+                      return (
+                        <tr key={stock.ticker}>
+                          <td className="py-3 pr-3 align-top">
+                            <Link
+                              href={`/companies?search=${encodeURIComponent(stock.ticker)}`}
+                              className="inline-flex min-h-11 items-start num text-[15px] font-semibold text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
+                            >
+                              {stock.ticker}
+                            </Link>
+                            {/* The sparkline sits in the lower half of the ticker's
+                                44px target, so the row keeps its original height. */}
+                            <div className="-mt-5 flex items-center">
+                              <TrendLine
+                                points={trend}
+                                rising={up}
+                                width={64}
+                                height={18}
+                                label={`${stock.ticker} recent trend`}
+                              />
+                            </div>
+                          </td>
+                          <td className="py-3 pr-3 align-top">
+                            <p className="truncate text-[14px] text-ink">{stock.name}</p>
+                            <p className="truncate text-[14px] text-ink-subtle">{stock.role}</p>
+                          </td>
+                          <td className="num py-3 pl-3 text-right align-top text-[15px] font-semibold text-ink">
+                            ${stock.priceUsd.toFixed(2)}
+                          </td>
+                          <td
+                            className={`num rounded-sm py-3 pl-3 text-right align-top text-[14px] font-semibold ${tone} ${tickFlash}`}
+                            style={tickDelay}
                           >
-                            {stock.ticker}
-                          </Link>
-                          <span className="text-[14px] text-ink-faint">
-                            {stock.ticker === "TSM" || stock.ticker === "ORCL" ? "NYSE" : "NASDAQ"}
-                          </span>
-                        </p>
-                        <p className="mt-0.5 truncate text-[14px] text-ink">{stock.name}</p>
-                        <p className="truncate text-[14px] text-ink-subtle">{stock.role}</p>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <p className="num text-[15px] font-semibold text-ink">
-                          ${stock.priceUsd.toFixed(2)}
-                        </p>
-                        <p
-                          className={`num rounded-sm text-[14px] font-semibold ${tone} ${tickFlash}`}
-                          style={tickDelay}
-                        >
-                          {up ? "+" : ""}
-                          {stock.change24hPct.toFixed(1)}%
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-2 flex items-center justify-between gap-3 border-t border-rule pt-2">
-                      <p className="text-[14px] text-ink-subtle">
-                        <span className="num">{stock.drawdownFromAthPct.toFixed(1)}%</span> from
-                        high · <span className="num">{stock.marketCapDisplay}</span> cap
-                      </p>
-                      <TrendLine points={trend} rising={up} label={`${stock.ticker} recent trend`} />
-                    </div>
-                  </div>
+                            {up ? "+" : ""}
+                            {stock.change24hPct.toFixed(1)}%
+                          </td>
+                          <td className="num py-3 pl-3 text-right align-top text-[14px] text-ink-muted">
+                            {stock.drawdownFromAthPct.toFixed(1)}%
+                          </td>
+                          <td className="num py-3 pl-3 text-right align-top text-[14px] text-ink-muted">
+                            {stock.marketCapDisplay}
+                          </td>
+                          <td className="py-3 pl-2 text-right align-top">
+                            <WatchToggle
+                              ticker={stock.ticker}
+                              saved={saved}
+                              onToggle={toggleWatch}
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
 
-                  {/* Desktop: a quiet table row */}
-                  <div className="hidden grid-cols-[5rem_minmax(0,1fr)_5.5rem_4.5rem_6rem_6rem_5rem] items-center gap-3 md:grid">
-                    <Link
-                      href={`/companies?search=${encodeURIComponent(stock.ticker)}`}
-                      className="-my-2.5 inline-flex min-h-11 items-center justify-start py-2.5 num text-[15px] font-semibold text-ink underline decoration-rule underline-offset-4 hover:decoration-ink md:justify-start"
-                    >
-                      {stock.ticker}
-                    </Link>
-                    <div className="min-w-0">
-                      <p className="truncate text-[14px] text-ink">{stock.name}</p>
-                      <p className="truncate text-[14px] text-ink-subtle">{stock.role}</p>
-                    </div>
-                    <span className="num text-right text-[15px] font-semibold text-ink">
-                      ${stock.priceUsd.toFixed(2)}
-                    </span>
-                    <span
-                      className={`num rounded-sm text-right text-[14px] font-semibold ${tone} ${tickFlash}`}
-                      style={tickDelay}
-                    >
-                      {up ? "+" : ""}
-                      {stock.change24hPct.toFixed(1)}%
-                    </span>
-                    <span className="num text-right text-[14px] text-ink-muted">
-                      {stock.drawdownFromAthPct.toFixed(1)}%
-                    </span>
-                    <span className="num text-right text-[14px] text-ink-muted">
-                      {stock.marketCapDisplay}
-                    </span>
-                    <span className="flex justify-end">
-                      <TrendLine points={trend} rising={up} label={`${stock.ticker} recent trend`} />
-                    </span>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+              {/* Phone: one calm block per name */}
+              <ul className="divide-y divide-rule md:hidden">
+                {visible.map((stock) => {
+                  const up = stock.change24hPct >= 0;
+                  const trend = TREND_SHAPES[stock.ticker] || FALLBACK_SHAPE;
+                  const tone = up
+                    ? "text-safe-600 dark:text-safe-300"
+                    : "text-risk-600 dark:text-risk-300";
+                  const saved = watchlistSet.has(stock.ticker);
+                  return (
+                    <li key={stock.ticker} className="py-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="flex items-baseline gap-2">
+                            <Link
+                              href={`/companies?search=${encodeURIComponent(stock.ticker)}`}
+                              className="-my-2.5 inline-flex min-h-11 items-center py-2.5 num text-[15px] font-semibold text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
+                            >
+                              {stock.ticker}
+                            </Link>
+                            <span className="text-[14px] text-ink-faint">
+                              {stock.ticker === "TSM" || stock.ticker === "ORCL" ? "NYSE" : "NASDAQ"}
+                            </span>
+                          </p>
+                          <p className="mt-0.5 truncate text-[14px] text-ink">{stock.name}</p>
+                          <p className="truncate text-[14px] text-ink-subtle">{stock.role}</p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <p className="num text-[15px] font-semibold text-ink">
+                            ${stock.priceUsd.toFixed(2)}
+                          </p>
+                          <p className={`num rounded-sm text-[14px] font-semibold ${tone}`}>
+                            {up ? "+" : ""}
+                            {stock.change24hPct.toFixed(1)}%
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-rule pt-2">
+                        <p className="text-[14px] text-ink-subtle">
+                          <span className="num">{stock.drawdownFromAthPct.toFixed(1)}%</span> from
+                          high · <span className="num">{stock.marketCapDisplay}</span> cap
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <TrendLine
+                            points={trend}
+                            rising={up}
+                            label={`${stock.ticker} recent trend`}
+                          />
+                          <WatchToggle
+                            ticker={stock.ticker}
+                            saved={saved}
+                            onToggle={toggleWatch}
+                          />
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
 
           <p className="mt-4 border-t border-rule pt-3 text-[14px] text-ink-subtle">
             Prices are the last close in the daily feed; sparklines are an indicative recent shape,
