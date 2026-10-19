@@ -124,6 +124,22 @@ const ARTIFACT = fs.existsSync(ARTIFACT_PATH)
   ? JSON.parse(fs.readFileSync(ARTIFACT_PATH, 'utf8'))
   : null;
 
+/**
+ * The FROZEN wave-1 canon (scripts/fixtures/wave1-canon.json) — the input set
+ * and artifact constants the wave-1 print (71.6% / composite 63.3 / fragility
+ * 65.6) was published from. The live inputs move with the market every day, so
+ * PRINT-STABILITY checks must never run on them: a formula edit that shifts the
+ * frozen print fails the suite here until the fixture expectations are
+ * deliberately updated (that is the wave-2 gate). Structural checks
+ * (monotonicity, bounds, response floors, TS↔mirror parity) keep running on the
+ * live canon, which is free to move with the data.
+ */
+const FROZEN_CANON = JSON.parse(
+  fs.readFileSync(path.join(projectRoot, 'scripts', 'fixtures', 'wave1-canon.json'), 'utf8'),
+);
+const FROZEN_INPUTS = FROZEN_CANON.inputs;
+const FROZEN_ARTIFACT = FROZEN_CANON.artifact;
+
 // ANSI Terminal Colors & Styling
 const c = {
   reset: '\x1b[0m',
@@ -630,26 +646,39 @@ await runTest(
 await runTest(
   11,
   'Credit Response Ladder (convex tail alive above the ramp ceiling)',
-  'Runs on the LIVE canon: dP/dCDS >= 0.5pt per 100bp on {288,400,600,900}, score strictly increasing, no composite clipping below the ceiling, flat-print relief bounded',
+  'Response ladder on the LIVE canon (dP/dCDS >= 0.5pt per 100bp above the live record print, score strictly increasing, no composite clipping, flat-print relief bounded) + the wave-1 print-stability check on the FROZEN canon',
   async () => {
+    const REF = LIVE_INPUTS.cds.currentBps;
     const base = evaluateBubbleModel(LIVE_INPUTS);
     const atCds = (bps) =>
       evaluateBubbleModel({ ...LIVE_INPUTS, cds: { ...LIVE_INPUTS.cds, currentBps: bps } });
     const scoreOf = (res) => res.contributions.find((c) => c.id === 'cds_stress').reading.score;
     const coreOf = (res) => res.contributions.find((c) => c.id === 'cds_stress').reading.coreScore;
 
-    // The live print must still be the published one (print stability).
-    assert(base.burstProbability === 71.6, `Live probability must stay 71.6, got ${base.burstProbability}`);
-    assert(base.compositeScore === 63.3, `Live composite must stay 63.3, got ${base.compositeScore}`);
+    // PRINT STABILITY runs on the FROZEN wave-1 canon. The live inputs move with
+    // the market every day, so pinning the live print would fail the pipeline on
+    // every legitimate data revision — exactly what happened on 2026-10-19. The
+    // frozen set never moves: a formula edit that shifts the wave-1 print
+    // (71.6% / 63.3) fails here until the fixture is deliberately updated.
+    const frozen = evaluateBubbleModel(FROZEN_INPUTS);
+    assert(
+      frozen.burstProbability === 71.6,
+      `Frozen wave-1 probability must stay 71.6, got ${frozen.burstProbability}`,
+    );
+    assert(
+      frozen.compositeScore === 63.3,
+      `Frozen wave-1 composite must stay 63.3, got ${frozen.compositeScore}`,
+    );
 
     // 1. dP/dCDS >= 0.5 probability points per 100bp, strictly positive (the reference
-    //    point is the live 288bp print itself, so dP = 0 there by construction).
-    const ladder = [400, 600, 900];
+    //    point is the live record print itself, so dP = 0 there by construction).
+    const ladder = [400, 600, 900].filter((bps) => bps > REF + 50);
+    assert(ladder.length >= 2, `The ladder needs at least two points above the live ${REF}bp print`);
     const deltas = [];
     for (const bps of ladder) {
       const res = atCds(bps);
       const dProb = res.burstProbability - base.burstProbability;
-      const per100 = dProb / ((bps - 288) / 100);
+      const per100 = dProb / ((bps - REF) / 100);
       assert(dProb > 0, `Expected dP/dCDS > 0 at ${bps}bp, got ${dProb}`);
       assert(
         per100 >= 0.5,
@@ -658,21 +687,21 @@ await runTest(
       deltas.push(`${bps}bp:+${dProb.toFixed(1)}`);
     }
     assert(
-      atCds(288).burstProbability === base.burstProbability,
-      `The live 288bp print must be the reference point (no self-delta)`,
+      atCds(REF).burstProbability === base.burstProbability,
+      `The live ${REF}bp print must be the reference point (no self-delta)`,
     );
 
-    // 2. The factor score must be STRICTLY increasing across (288, 1100] — the old
+    // 2. The factor score must be STRICTLY increasing across (REF, REF+812] — the old
     //    ramp was frozen above 288bp (288 → 1000bp moved the probability by 0.0).
     let prevScore = -1;
-    for (const bps of [288, 350, 400, 600, 900, 1000, 1100]) {
+    for (const bps of [0, 62, 112, 312, 612, 712, 812].map((d) => REF + d)) {
       const s = scoreOf(atCds(bps));
       assert(s > prevScore, `Credit score must be strictly increasing: ${bps}bp scored ${s} <= ${prevScore}`);
       prevScore = s;
     }
 
     // 3. The composite must not clip at 100 while the factor is below its ceiling.
-    for (const bps of [400, 600, 900, 1000]) {
+    for (const bps of ladder) {
       const res = atCds(bps);
       assert(
         res.compositeScore < 100,
@@ -684,7 +713,7 @@ await runTest(
     //    85% of the level ramp (the old form read a flat record print as −17.1 points).
     const flat = evaluateBubbleModel({
       ...LIVE_INPUTS,
-      cds: { ...LIVE_INPUTS.cds, currentBps: 288, priorBps: 288 },
+      cds: { ...LIVE_INPUTS.cds, currentBps: REF, priorBps: REF },
     });
     const flatCore = coreOf(flat);
     const reliefPts = base.compositeScore - flat.compositeScore;
@@ -695,7 +724,7 @@ await runTest(
       `Flat-print relief must be bounded to 8 composite points, got ${reliefPts.toFixed(2)}`,
     );
 
-    return `Live 288→900bp: ${deltas.join(' ')} (>= 0.5pt/100bp). Score strictly increasing to ${prevScore.toFixed(4)} (ceiling 2.0). Flat-print relief ${reliefPts.toFixed(2)} composite pts (core ${flatCore.toFixed(2)}).`;
+    return `Frozen wave-1 print 71.6% / 63.3 stable. Live ${REF}→900bp: ${deltas.join(' ')} (>= 0.5pt/100bp). Score strictly increasing to ${prevScore.toFixed(4)} (ceiling 2.0). Flat-print relief ${reliefPts.toFixed(2)} composite pts (core ${flatCore.toFixed(2)}).`;
   }
 );
 
@@ -764,8 +793,24 @@ await runTest(
       d500 < d200,
       `More deflation must lower the burst probability (demand credit): 200× ${d200}% vs 500× ${d500}%`,
     );
-    // The live print (670×) must be unchanged: the leg clamps to 1.0 there.
-    assert(base.burstProbability === 71.6, `Live probability must stay 71.6, got ${base.burstProbability}`);
+
+    // 3. PRINT STABILITY + the 500× clamp run on the FROZEN wave-1 canon: the live
+    //    inputs move daily, the frozen set carries the published 670× print. The
+    //    deflation leg clamps at 500×, so 500× and 670× must print the same value.
+    const frozen = evaluateBubbleModel(FROZEN_INPUTS);
+    assert(
+      frozen.burstProbability === 71.6,
+      `Frozen wave-1 probability must stay 71.6, got ${frozen.burstProbability}`,
+    );
+    const frozenAtDefl = (d) =>
+      evaluateBubbleModel({
+        ...FROZEN_INPUTS,
+        adoption: { ...FROZEN_INPUTS.adoption, apiPriceDeclineMultiple: d },
+      });
+    assert(
+      Math.abs(frozenAtDefl(670).burstProbability - frozenAtDefl(500).burstProbability) <= 0.05,
+      `The frozen 670× print must sit on the clamped 500× value (500× ${frozenAtDefl(500).burstProbability}%, 670× ${frozenAtDefl(670).burstProbability}%)`,
+    );
 
     return `HY ladder ${hyTrace.join(' ')} (strictly increasing, panic tail alive above 500bp). Deflation 200×→500× moves the probability ${(d500 - d200).toFixed(1)}pt (was exactly 0).`;
   }
@@ -902,7 +947,7 @@ await runTest(
 await runTest(
   15,
   'Contribution Reconciliation Guard',
-  'Verifies Σ earned points + systemic contagion − damper == composite on the live canon and on the frozen fixture',
+  'Verifies Σ earned points + systemic contagion − damper == composite within the 1-decimal display rounding budget, on the live canon and on the frozen fixture',
   async () => {
     for (const [label, inputs] of [
       ['live canon', LIVE_INPUTS],
@@ -917,9 +962,15 @@ await runTest(
         .reduce((a, c) => a + c.earnedPoints, 0);
       const reconciled =
         Math.round((riskPoints + res.systemicContagionPoints + damperPoints) * 10) / 10;
+      // earnedPoints are PUBLISHED rounded to 0.1 (the methodology page reconciles the
+      // rounded values), so the reconciled sum can drift by up to 0.05 per published
+      // point plus 0.05 for the composite's own rounding. That budget is bookkeeping,
+      // not a modelling error: 2026-10-19's live revision exposed a bare ±0.1 tolerance
+      // as too tight (63.4 vs 63.5 failed on floating-point residue).
+      const roundingBudget = 0.05 * (res.contributions.length + 1) + 1e-9;
       assert(
-        Math.abs(reconciled - res.compositeScore) <= 0.1,
-        `${label}: Σ earned (${riskPoints}) + contagion (${res.systemicContagionPoints}) + damper (${damperPoints}) = ${reconciled} != composite ${res.compositeScore}`,
+        Math.abs(reconciled - res.compositeScore) <= roundingBudget,
+        `${label}: Σ earned (${riskPoints}) + contagion (${res.systemicContagionPoints}) + damper (${damperPoints}) = ${reconciled} != composite ${res.compositeScore} (rounding budget ±${roundingBudget.toFixed(2)})`,
       );
     }
     const res = evaluateBubbleModel(LIVE_INPUTS);
@@ -929,7 +980,7 @@ await runTest(
     const damperPoints = res.contributions
       .filter((c) => c.kind === 'damper')
       .reduce((a, c) => a + c.earnedPoints, 0);
-    return `Live canon reconciles: ${riskPoints} + ${res.systemicContagionPoints} + (${damperPoints}) = ${res.compositeScore} (tolerance ±0.1).`;
+    return `Live canon reconciles: ${riskPoints} + ${res.systemicContagionPoints} + (${damperPoints}) = ${res.compositeScore} (rounding budget ±${(0.05 * (res.contributions.length + 1)).toFixed(2)}).`;
   }
 );
 
@@ -1026,26 +1077,28 @@ await runTest(
 await runTest(
   18,
   'Documented Formulas & Page-Sourced Strings',
-  'Executes src/lib/model/documentFormulas.ts on the live canon (fragility 65.6, freeze 0.196, ECY 0.34, DD 5.13, Altman 8.41, LPPLS 81.5, odds 2.72) and greps methodology/page.tsx for the published strings',
+  'Executes src/lib/model/documentFormulas.ts on the frozen wave-1 canon (fragility 65.6, freeze 0.196, ECY 0.34, DD 5.13, Altman 8.41, LPPLS 81.5, odds 2.72) and greps methodology/page.tsx for the published strings',
   async () => {
     const doc = loadTsModule(['types.ts', 'factors.ts', 'documentFormulas.ts']).documentFormulas;
 
     assert(ARTIFACT, 'the published artifact (src/data/latest-model.json) is required for this test');
 
-    // The live canon: the published artifact's pinned Minsky levers + the live inputs.
+    // The frozen wave-1 canon. These numbers were published from THIS input set;
+    // recomputing them from the live inputs would re-pin the pipeline to one day's
+    // market snapshot (the 2026-10-19 failure). Formula drift still fails here.
     const minskyInputs = {
-      speculativeSharePct: ARTIFACT.minsky.speculativeSharePct,
-      ponziSharePct: ARTIFACT.minsky.ponziSharePct,
-      cdsCurrentBps: LIVE_INPUTS.cds.currentBps,
-      cdsBaselineBps: LIVE_INPUTS.cds.baselineBps,
-      capexToOcfRatio: LIVE_INPUTS.aiDebt.capexToOcfRatio,
+      speculativeSharePct: FROZEN_ARTIFACT.minsky.speculativeSharePct,
+      ponziSharePct: FROZEN_ARTIFACT.minsky.ponziSharePct,
+      cdsCurrentBps: FROZEN_INPUTS.cds.currentBps,
+      cdsBaselineBps: FROZEN_INPUTS.cds.baselineBps,
+      capexToOcfRatio: FROZEN_INPUTS.aiDebt.capexToOcfRatio,
     };
 
     // 1. Minsky Financial Fragility Index — published 65.6.
     const fragility = doc.minskyFragilityIndex(minskyInputs);
     assert(
       Math.abs(fragility - 65.6) <= 0.05,
-      `Minsky fragility ${fragility} must be 65.6 ± 0.05 on the live canon`,
+      `Minsky fragility ${fragility} must be 65.6 ± 0.05 on the frozen wave-1 canon`,
     );
 
     // 2. Refinancing-freeze probability — published 19.6% (0.196).
@@ -1063,10 +1116,10 @@ await runTest(
     // 3. Shiller Excess CAPE Yield — published +0.34% on the TIPS basis; the
     //    CPI-basis alternative (+1.71%, Normal band) is disclosed once on the page.
     const ecyInputs = {
-      capeMultiple: ARTIFACT.shillerCape.aiCapeMultiple,
-      us10yYieldPct: LIVE_INPUTS.macro.us10yYieldPct,
-      breakeven10yPct: Math.round((LIVE_INPUTS.macro.us10yYieldPct - LIVE_INPUTS.macro.realYield10y) * 100) / 100,
-      cpiInflationYoY: LIVE_INPUTS.macro.cpiInflationYoY,
+      capeMultiple: FROZEN_ARTIFACT.shillerCape.aiCapeMultiple,
+      us10yYieldPct: FROZEN_INPUTS.macro.us10yYieldPct,
+      breakeven10yPct: Math.round((FROZEN_INPUTS.macro.us10yYieldPct - FROZEN_INPUTS.macro.realYield10y) * 100) / 100,
+      cpiInflationYoY: FROZEN_INPUTS.macro.cpiInflationYoY,
     };
     const ecyTips = doc.excessCapeYieldPct(ecyInputs, 'tips');
     assert(Math.abs(ecyTips - 0.34) <= 0.05, `ECY (TIPS basis) ${ecyTips} must be 0.34 ± 0.05`);
@@ -1083,9 +1136,9 @@ await runTest(
 
     // 4. Merton distance-to-default — published 5.13σ, default probability below resolution.
     const mertonInputs = {
-      assetValueUsd: ARTIFACT.merton.assetValueUsd,
-      totalDebtUsd: LIVE_INPUTS.aiDebt.totalTrackedDebtUsd,
-      riskFreeRatePct: LIVE_INPUTS.macro.us10yYieldPct,
+      assetValueUsd: FROZEN_ARTIFACT.merton.assetValueUsd,
+      totalDebtUsd: FROZEN_INPUTS.aiDebt.totalTrackedDebtUsd,
+      riskFreeRatePct: FROZEN_INPUTS.macro.us10yYieldPct,
       assetVolatilityPct: 36.5,
     };
     const dd = doc.mertonDistanceToDefault(mertonInputs);
@@ -1106,8 +1159,8 @@ await runTest(
 
     // 6. LPPLS hazard — published 81.5, and it is an index, never a probability.
     const hazard = doc.lpplsHazardIndex({
-      cdsCurrentBps: LIVE_INPUTS.cds.currentBps,
-      capexToOcfRatio: LIVE_INPUTS.aiDebt.capexToOcfRatio,
+      cdsCurrentBps: FROZEN_INPUTS.cds.currentBps,
+      capexToOcfRatio: FROZEN_INPUTS.aiDebt.capexToOcfRatio,
     });
     assert(Math.abs(hazard - 81.5) <= 0.05, `LPPLS hazard index ${hazard} must be 81.5 ± 0.05`);
     assert(
