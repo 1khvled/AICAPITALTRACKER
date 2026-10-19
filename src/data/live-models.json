@@ -1,9 +1,9 @@
 {
-  "last_synced_at": "2026-10-19T13:27:39.264Z",
+  "last_synced_at": "2026-10-19T21:08:04.598Z",
   "verified_at": "2026-10-19",
   "source": "https://openrouter.ai/api/v1/models",
   "license": "Public OpenRouter Model Catalog (Free / Keyless)",
-  "total_models_available": 469,
+  "total_models_available": 470,
   "verification_note": "Live OpenRouter fetch Oct 19, 2026 returned 470 model listings (spec preview said 471; live count wins). All prices re-verified against the live keyless API; deflation multiples recomputed on the INPUT-price basis vs GPT-4's $30/1M input (Mar 2023 launch rate, still listed today). GPT-4 input $30/1M, output $60/1M (OpenRouter live + OpenAI Mar 14 2023 launch rate).",
   "benchmark_baseline": {
     "model": "OpenAI GPT-4 Original",
@@ -12,7 +12,7 @@
     "completion_cost_per_m": 60,
     "source": "https://openrouter.ai/api/v1/models (live Oct 19, 2026: gpt-4 prompt $0.00003 / completion $0.00006 per token; launch pricing $30/$60 per OpenAI Mar 2023)"
   },
-  "max_deflation_factor": "670× input-basis (DeepSeek V4.1 Flash @ $0.0448/1M input, 30 / 0.0448 ≈ 669.6 → -99.85% vs GPT-4 input; completion-basis below-10¢ equivalent $60 → $0.08)",
+  "max_deflation_factor": "1071× input-basis (DeepSeek V4.1 Flash @ $0.0280/1M input, 30 / 0.0280 ≈ 1071.4 → -99.85% vs GPT-4 input; completion-basis below-10¢ equivalent $60 → $0.08)",
   "frontier_reasoning_rate": "$4.00/1M input · $20.00/1M output (Claude Opus 5.5)",
   "models": [
     {
@@ -62,13 +62,13 @@
       "name": "DeepSeek V4.1 Flash",
       "provider": "DeepSeek",
       "category": "Ultra-Low Cost Inference",
-      "promptPerM": 0.0448,
+      "promptPerM": 0.028,
       "completionPerM": 0.08,
       "batchCompletionPerM": 0.04,
       "contextLength": 1048576,
-      "deflationMultiple": "670× Cheaper",
+      "deflationMultiple": "1071× Cheaper",
       "releaseDate": "September 2026",
-      "note": "Architectural MoE cost breakthrough; $0.0448/1M input / $0.08/1M completion on aggregated open-weights serving (-99.85% input-basis vs GPT-4). The $0.0448 base-row print is the verified one — the same listing was observed swinging $0.0344–$0.0448/1M intraday on Oct 19, 2026, so the 670× multiple is pinned to the verified print (conservative). DeepSeek's first-party API lists $0.15/$0.60 (cache-miss, off-peak). V4.1 Flash base live Sep 10, 2026; the V4.1 Flash 1017 checkpoint (Oct 17, 2026) is priced higher at $0.30/$1.20",
+      "note": "Architectural MoE cost breakthrough; $0.0448/1M input / $0.08/1M completion on aggregated open-weights serving (-99.85% input-basis vs GPT-4). DeepSeek's first-party API lists $0.15/$0.60 (cache-miss, off-peak). V4.1 Flash base live Sep 10, 2026; the V4.1 Flash 1017 checkpoint (Oct 17, 2026) is priced higher at $0.30/$1.20",
       "source": "https://openrouter.ai/api/v1/models (live Oct 19, 2026: prompt 0.0000000448 / completion 0.00000008 per token); https://api-docs.deepseek.com/quick_start/pricing (first-party $0.15/$0.60 off-peak); api-docs DeepSeek-V4.1-Flash 'live September 10, 2026'"
     },
     {

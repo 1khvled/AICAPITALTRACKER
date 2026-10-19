@@ -1,5 +1,32 @@
 [
   {
+    "timestamp": "2026-10-19T21:08:09.099Z",
+    "status": "SUCCESS",
+    "execution_time_ms": 4751,
+    "sources_scanned": [
+      "OpenRouter Public Models Pricing API",
+      "Polymarket Gamma Events API",
+      "Yahoo Finance Institutional Quotes (21 Tech Tickers & Macro Indicators)",
+      "SEC EDGAR Submissions (Oracle CIK 0001341439)",
+      "AI Capital Tracker Verified Primary Ledger (deals.json)"
+    ],
+    "burst_probability": 72.3,
+    "composite_score": 63.6,
+    "risk_band": "high",
+    "merton_dd": 5.13,
+    "altman_z": 8.41,
+    "token_decline_multiple": "1071x",
+    "polymarket_yes_prob": 0.086,
+    "disclosed_volume_usd": 2872873160000,
+    "debt_share_pct": "7.5%",
+    "deals_count": 169,
+    "delta_vs_previous": {
+      "burst_probability_delta": 0.6,
+      "polymarket_prob_delta": -0.005,
+      "disclosed_volume_delta_usd": 0
+    }
+  },
+  {
     "timestamp": "2026-10-19T13:27:47.968Z",
     "status": "SUCCESS",
     "execution_time_ms": 9037,
@@ -759,33 +786,6 @@
     "timestamp": "2026-10-18T21:48:03.309Z",
     "status": "SUCCESS",
     "execution_time_ms": 4166,
-    "sources_scanned": [
-      "OpenRouter Public Models Pricing API",
-      "Polymarket Gamma Events API",
-      "Yahoo Finance Institutional Quotes (11 Tech & 4 Macro Tickers)",
-      "SEC EDGAR Submissions (Oracle CIK 0001341439)",
-      "AI Capital Tracker Verified Primary Ledger (deals.json)"
-    ],
-    "burst_probability": 41.2,
-    "composite_score": 51.8,
-    "risk_band": "guarded",
-    "merton_dd": 5.37,
-    "altman_z": 8.41,
-    "token_decline_multiple": "25x",
-    "polymarket_yes_prob": 0.103,
-    "disclosed_volume_usd": 2810757802026,
-    "debt_share_pct": "7.0%",
-    "deals_count": 159,
-    "delta_vs_previous": {
-      "burst_probability_delta": 0,
-      "polymarket_prob_delta": 0,
-      "disclosed_volume_delta_usd": 0
-    }
-  },
-  {
-    "timestamp": "2026-10-18T21:46:56.605Z",
-    "status": "SUCCESS",
-    "execution_time_ms": 4628,
     "sources_scanned": [
       "OpenRouter Public Models Pricing API",
       "Polymarket Gamma Events API",
