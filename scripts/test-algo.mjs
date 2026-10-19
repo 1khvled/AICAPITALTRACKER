@@ -67,9 +67,11 @@ const BASELINE_INPUTS = {
     { company: 'OpenAI', valuationUsd: 950_000_000_000, runRateRevenueUsd: 50_000_000_000 },
     { company: 'Anthropic', valuationUsd: 2_000_000_000_000, runRateRevenueUsd: 47_000_000_000 },
     { company: 'Databricks', valuationUsd: 190_000_000_000, runRateRevenueUsd: 7_000_000_000 },
-    { company: 'xAI', valuationUsd: 50_000_000_000, runRateRevenueUsd: 1_800_000_000 },
-    { company: 'Mistral AI', valuationUsd: 11_000_000_000, runRateRevenueUsd: 350_000_000 },
-    { company: 'Scale AI', valuationUsd: 13_800_000_000, runRateRevenueUsd: 900_000_000 },
+    { company: 'xAI', valuationUsd: 250_000_000_000, runRateRevenueUsd: 500_000_000 },
+    { company: 'Mistral AI', valuationUsd: 24_000_000_000, runRateRevenueUsd: 450_000_000 },
+    { company: 'Scale AI', valuationUsd: 29_000_000_000, runRateRevenueUsd: 1_100_000_000 },
+    { company: 'Cohere', valuationUsd: 7_000_000_000, runRateRevenueUsd: 250_000_000 },
+    { company: 'Perplexity AI', valuationUsd: 20_000_000_000, runRateRevenueUsd: 500_000_000 },
   ],
   ledger: {
     totalDisclosedUsd: 2_810_757_802_026,
@@ -94,8 +96,8 @@ const BASELINE_INPUTS = {
     trainingCostBand: 'rising',
   },
   capex: {
-    aggregateCapexUsd: 210_000_000_000,
-    aggregateFcfUsd: 184_000_000_000,
+    aggregateCapexUsd: 485_000_000_000,
+    aggregateFcfUsd: 260_000_000_000,
   },
   macro: {
     us10yYieldPct: 5.10,

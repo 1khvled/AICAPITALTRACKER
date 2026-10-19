@@ -252,7 +252,7 @@ export default function HomePage() {
                 Median Lab P/S: 31.4×
               </h3>
               <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-sans">
-                OpenAI ($950B at 19.0× on $50B ARR), Anthropic ($2.0T debut target at 42.5× on $47B ARR with $57B in debt facilities), and Mistral ($11B at 31.4×) command multi-trillion valuations.
+                OpenAI ($950B at 19.0× on $50B ARR), Anthropic ($2.0T debut target at 42.5× on $47B ARR with $57B in debt facilities), and Mistral ($24B at 53.3×) command unprecedented multi-trillion valuations.
               </p>
               <details className="group">
                 <summary className="list-none [&::-webkit-details-marker]:hidden cursor-pointer inline-flex items-center space-x-1 font-mono text-[11px] font-bold text-amber-600/80 hover:text-amber-600 dark:text-amber-400/80 dark:hover:text-amber-400 transition-colors py-0.5">

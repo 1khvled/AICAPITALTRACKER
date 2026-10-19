@@ -1533,7 +1533,7 @@ export default function MethodologyPage() {
                   <code>{"CF_t > P_t + I_t \\quad (\\forall t)"}</code>
                 </div>
                 <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
-                  Established hyperscalers (Microsoft, Alphabet, Meta, Amazon) with massive non-AI enterprise SaaS and advertising cash reserves ($414B+ operating cash flow, generating $184B annualized net free cash flow even against $210B capex). 
+                  Established hyperscalers (Microsoft, Alphabet, Meta, Amazon, Apple) with massive non-AI enterprise SaaS, cloud, phone, and advertising cash reserves ($668B+ operating cash flow, retaining $260B+ annualized net free cash flow even against record $485B capex). 
                   Operating cash flows service coupon obligations and principal amortization without market dependency.
                 </p>
               </div>

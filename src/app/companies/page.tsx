@@ -219,16 +219,16 @@ const COMPANIES: CompanyProfile[] = [
         notes: "Landmark asset-backed facility using NVIDIA H100 GPUs directly as physical collateral."
       }
     ],
-    valuationUsd: 23_000_000_000,
-    runRateRevenueUsd: 2_000_000_000,
-    psMultiple: 11.5,
+    valuationUsd: 35_000_000_000,
+    runRateRevenueUsd: 4_500_000_000,
+    psMultiple: 7.8,
     circularityConnections: ["NVIDIA", "Blackstone", "Magnetar", "OpenAI", "Microsoft"],
     circularRiskLevel: "Severe (Circular)",
     circularitySummary: "NVIDIA owns an equity stake and guarantees GPU allocations; CoreWeave pledges the GPUs as collateral to borrow billions from Blackstone to purchase more NVIDIA silicon.",
     riskTier: "Critical",
-    exposureSummary: "$25.1B total debt across 5 verified credit facilities. 94% of total capital structure is debt-financed, creating extreme sensitivity to GPU depreciation and secondary pricing.",
+    exposureSummary: "$25.1B total debt across 5 verified credit facilities. Publicly traded on Nasdaq (CRWV) at ~$35B market cap with a $129B+ contracted revenue backlog. 71% of enterprise structure is debt-financed, creating extreme sensitivity to GPU secondary pricing and power interconnection.",
     polymarketOdds: {
-      marketName: "CoreWeave IPO Valuation >$25B",
+      marketName: "CoreWeave Market Cap >$40B by Dec 2026",
       oddsDisplay: "44.0¢ (44.0%)",
       url: "https://polymarket.com/?r=AIbubble"
     }
@@ -294,14 +294,14 @@ const COMPANIES: CompanyProfile[] = [
         notes: "Zero long-term debt; profitable enterprise operations with government & hyperscaler revenue."
       }
     ],
-    valuationUsd: 13_800_000_000,
-    runRateRevenueUsd: 900_000_000,
-    psMultiple: 15.3,
+    valuationUsd: 29_000_000_000,
+    runRateRevenueUsd: 1_100_000_000,
+    psMultiple: 26.4,
     circularityConnections: ["Meta Platforms", "Amazon AWS", "OpenAI", "US Department of Defense"],
     circularRiskLevel: "Low (Arm's Length)",
     circularitySummary: "Broad, diversified customer base across defense and competing commercial labs; low dependency on circular vendor financing.",
     riskTier: "Guarded",
-    exposureSummary: "$1B Series F at $13.8B valuation (15.3× P/S). Strong unit economics with zero debt overhang, serving as the trusted verification baseline for frontier model labs.",
+    exposureSummary: "Meta strategic 49% stake benchmark ($29B valuation, 26.4× P/S multiple). Strong unit economics with zero debt overhang on $1.1B ARR, serving as the trusted verification baseline for frontier model labs.",
   },
 
   // 7. MICROSOFT
@@ -419,7 +419,7 @@ const COMPANIES: CompanyProfile[] = [
   // 11. xAI
   {
     name: "xAI",
-    ticker: "Private",
+    ticker: "Merged with SpaceX ($250B)",
     sector: "Frontier Labs",
     role: "Frontier Model & Colossus Supercluster",
     disclosedDealsCount: 6,
@@ -441,14 +441,14 @@ const COMPANIES: CompanyProfile[] = [
         notes: "Secured credit line underwriting Memphis supercluster infrastructure."
       }
     ],
-    valuationUsd: 50_000_000_000,
+    valuationUsd: 250_000_000_000,
     runRateRevenueUsd: 500_000_000,
-    psMultiple: 100.0,
+    psMultiple: 500.0,
     circularityConnections: ["NVIDIA", "Valor Equity", "Tesla", "Oracle", "Apollo"],
     circularRiskLevel: "Severe (Circular)",
     circularitySummary: "Highest debt-to-revenue ratio among frontier labs (35× debt/revenue). SPV debt relies directly on GPU hardware maintaining secondary liquidation value.",
     riskTier: "Critical",
-    exposureSummary: "$17.5B total debt obligations ($12.5B SPV debt + $5B secured bank loan) against $500M annualized revenue (100× P/S multiple).",
+    exposureSummary: "$17.5B total debt obligations ($12.5B SPV debt + $5B secured bank loan) against $500M annualized revenue. Closed $20B Series E at $230B, merged into SpaceX at $250B valuation inside $1.25T combined entity.",
   },
 
   // 12. NVIDIA
@@ -621,14 +621,14 @@ const COMPANIES: CompanyProfile[] = [
         notes: "€1.5B ($1.65B) structured convertible note and hardware compute facility for sovereign European clusters."
       }
     ],
-    valuationUsd: 11_000_000_000,
-    runRateRevenueUsd: 350_000_000,
-    psMultiple: 31.4,
+    valuationUsd: 24_000_000_000,
+    runRateRevenueUsd: 450_000_000,
+    psMultiple: 53.3,
     circularityConnections: ["Microsoft", "NVIDIA", "ASML", "CMA CGM"],
     circularRiskLevel: "High (Circular)",
     circularitySummary: "Multiple tech and industrial giants hold equity and compute agreements; €1.5B debt facility tied to European sovereign compute buildout.",
     riskTier: "Critical",
-    exposureSummary: "Valued at €10B ($11.0B) benchmark on $350M annualized ARR (31.4× P/S), backed by €1.5B convertible debt facility.",
+    exposureSummary: "Valued at €21B ($24.0B) Series D on $450M annualized ARR (53.3× P/S multiple), backed by €1.5B convertible debt facility.",
   },
 
   // 18. DATABRICKS

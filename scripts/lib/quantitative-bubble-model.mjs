@@ -241,8 +241,8 @@ export function evaluateBubbleModel(inputs, options = {}) {
 
   // Factor 8: Capex vs FCF & Hardware Depreciation (weight: 8)
   {
-    const capex = inputs.capex?.aggregateCapexUsd ?? 210_000_000_000;
-    const fcf = inputs.capex?.aggregateFcfUsd ?? 184_000_000_000;
+    const capex = inputs.capex?.aggregateCapexUsd ?? 485_000_000_000;
+    const fcf = inputs.capex?.aggregateFcfUsd ?? 260_000_000_000;
     const ratio = fcf > 0 ? capex / fcf : 1.14;
     const ocfRatio = inputs.aiDebt?.capexToOcfRatio ?? 0.548;
     const fcfScore = ramp(ratio, 0.5, 2.0);

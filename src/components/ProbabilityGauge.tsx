@@ -1134,7 +1134,7 @@ export function ProbabilityGauge({
                   <span>2. Can Big Tech go bankrupt? (Merton: {quantitativeData.mertonDD.toFixed(1)}σ)</span>
                 </span>
                 <p className="text-slate-600 dark:text-zinc-300 leading-relaxed font-sans text-xs">
-                  <strong>No. Default risk is near zero.</strong> Unlike the 2000 Dot-Com crash where startups had zero revenue, Microsoft, Google, Meta, and Apple generate over $414B in annual operating cash flow ($315B+ net accounting profits) from search, cloud, phones, and enterprise software, retaining $184B+ in free cash flow even after record GPU datacenter capex. Their debt solvency is fortress-grade.
+                  <strong>No. Default risk is near zero.</strong> Unlike the 2000 Dot-Com crash where startups had zero revenue, Microsoft, Google, Meta, Apple, and Amazon generate over $668B in annual operating cash flow ($400B+ net accounting profits) from search, cloud, phones, and enterprise software, retaining $260B+ in free cash flow even after record $485B GPU datacenter capex. Their debt solvency is fortress-grade.
                 </p>
               </div>
 

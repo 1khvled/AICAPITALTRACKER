@@ -1,13 +1,13 @@
 {
-  "timestamp": "2026-10-19T00:33:24.212Z",
+  "timestamp": "2026-10-19T00:42:48.001Z",
   "model_version": "2.5.0",
-  "burstProbability": 38.2,
-  "compositeScore": 50.7,
-  "band": "guarded",
+  "burstProbability": 48.2,
+  "compositeScore": 54.4,
+  "band": "elevated",
   "coverage": 1.1,
   "confidenceInterval": [
-    33.4,
-    43.3
+    42.4,
+    54
   ],
   "fragilityIndex": 52,
   "systemicContagionPoints": 4.6,
@@ -34,10 +34,10 @@
       "label": "Private valuation stretch",
       "kind": "risk",
       "weightPct": 16,
-      "earnedPoints": 6.6,
+      "earnedPoints": 8,
       "reading": {
-        "score": 0.4154456654456654,
-        "reading": "Median price/sales across commercial frontier labs: 29.6×",
+        "score": 0.5,
+        "reading": "Median price/sales across commercial frontier labs: 34.0×",
         "coverage": 1
       }
     },
@@ -96,8 +96,8 @@
       "weightPct": 9,
       "earnedPoints": 0.7,
       "reading": {
-        "score": 0.0785,
-        "reading": "Polymarket crowd: 7.8% YES ($9.15M volume)",
+        "score": 0.079,
+        "reading": "Polymarket crowd: 7.9% YES ($9.15M volume)",
         "coverage": 1
       }
     },
@@ -106,10 +106,10 @@
       "label": "Capex vs free cash flow & hardware depreciation",
       "kind": "risk",
       "weightPct": 8,
-      "earnedPoints": 3.9,
+      "earnedPoints": 6.2,
       "reading": {
-        "score": 0.48280745341614917,
-        "reading": "Hyperscaler capex = 1.14× of FCF (54.8% OCF; $38.5B/yr GPU amortization drag)",
+        "score": 0.7724395604395605,
+        "reading": "Hyperscaler capex = 1.87× of FCF (54.8% OCF; $38.5B/yr GPU amortization drag)",
         "coverage": 1
       }
     },
@@ -165,79 +165,79 @@
     "ponziDebtSharePct": 12.9
   },
   "shillerCape": {
-    "aiCapeMultiple": 32.7,
+    "aiCapeMultiple": 37.5,
     "historicalMedianCape": 17.2,
-    "earningsYieldPct": 3.06,
+    "earningsYieldPct": 2.67,
     "real10yYieldPct": 2.7,
-    "excessCapeYieldPct": 0.36,
+    "excessCapeYieldPct": -0.03,
     "equityRiskPremiumBand": "Compressed (<1.5%)",
     "equityRiskPremiumStatus": "Compressed (<1.5%)",
-    "interpretation": "Excess CAPE Yield of +0.36% is in the Compressed band (<1.5%), indicating that AI and mega-cap tech equities offer a wafer-thin risk premium over real Treasuries (2.70%). Tech valuation multiples (CAPE 32.7x vs historical median 17.2x) leave negligible safety margin against interest rate or earnings growth disappointments."
+    "interpretation": "Excess CAPE Yield of +-0.03% is in the Compressed band (<1.5%), indicating that AI and mega-cap tech equities offer a wafer-thin risk premium over real Treasuries (2.70%). Tech valuation multiples (CAPE 37.5x vs historical median 17.2x) leave negligible safety margin against interest rate or earnings growth disappointments."
   },
   "monteCarlo": {
     "iterationsCount": 25000,
-    "meanProbabilityPct": 41.5,
-    "medianProbabilityPct": 40.4,
-    "stdDevPct": 21.2,
+    "meanProbabilityPct": 49.3,
+    "medianProbabilityPct": 50.2,
+    "stdDevPct": 21.8,
     "ci90Pct": [
-      14.5,
-      70.8
+      19.9,
+      78
     ],
     "ci95Pct": [
-      12.4,
-      73.6
+      16.9,
+      80.1
     ],
-    "valueAtRisk95Pct": 73.6,
-    "conditionalValueAtRisk95Pct": 76.2,
-    "valueAtRisk99Pct": 77.9,
-    "conditionalValueAtRisk99Pct": 79.4,
-    "skewness": 0.11,
-    "kurtosis": 1.64,
+    "valueAtRisk95Pct": 80.1,
+    "conditionalValueAtRisk95Pct": 82.1,
+    "valueAtRisk99Pct": 83.4,
+    "conditionalValueAtRisk99Pct": 84.4,
+    "skewness": -0.06,
+    "kurtosis": 1.63,
     "histogram": [
       {
         "range": "0%–10%",
-        "count": 351,
-        "percentage": 1.4
+        "count": 42,
+        "percentage": 0.2
       },
       {
         "range": "10%–20%",
-        "count": 5537,
-        "percentage": 22.1
+        "count": 2483,
+        "percentage": 9.9
       },
       {
         "range": "20%–30%",
-        "count": 3325,
-        "percentage": 13.3
+        "count": 4274,
+        "percentage": 17.1
       },
       {
         "range": "30%–40%",
-        "count": 3148,
-        "percentage": 12.6
+        "count": 2728,
+        "percentage": 10.9
       },
       {
         "range": "40%–50%",
-        "count": 3024,
-        "percentage": 12.1
+        "count": 2902,
+        "percentage": 11.6
       },
       {
         "range": "50%–60%",
-        "count": 2921,
-        "percentage": 11.7
+        "count": 3053,
+        "percentage": 12.2
       },
       {
         "range": "60%–70%",
-        "count": 3821,
-        "percentage": 15.3
+        "count": 3275,
+        "percentage": 13.1
       },
       {
         "range": "70%–80%",
-        "count": 2804,
-        "percentage": 11.2
+        "count": 4908,
+        "percentage": 19.6
       },
       {
         "range": "80%–90%",
-        "count": 69,
-        "percentage": 0.3
+        "count": 1335,
+        "percentage": 5.3
       },
       {
         "range": "90%–100%",
@@ -245,6 +245,6 @@
         "percentage": 0
       }
     ],
-    "executionTimeMs": 279
+    "executionTimeMs": 286
   }
 }
