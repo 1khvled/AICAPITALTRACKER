@@ -21,7 +21,7 @@ export async function GET() {
 
   return NextResponse.json({
     status: "ONLINE_AUTOMATED",
-    cadence: "Every 24 hours at 00:00 UTC via GitHub Actions Cron",
+    cadence: "Every 24 hours at 00:00 UTC via Autonomous Telemetry Ingestion",
     lastRun,
     nextScheduledRun: {
       timestamp: nextUtc.toISOString(),

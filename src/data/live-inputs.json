@@ -81,9 +81,9 @@
     "count": 169
   },
   "crowd": {
-    "yesProbability": 0.1,
-    "volumeUsd": 9166253.005098004,
-    "bubble2026Probability": 0.1,
+    "yesProbability": 0.1005,
+    "volumeUsd": 9166472.425098006,
+    "bubble2026Probability": 0.1005,
     "bubble2027Probability": 0.19,
     "activeContractsCount": 16,
     "markets": [
@@ -102,7 +102,7 @@
         "question": "AI bubble burst in 2026?",
         "slug": "ai-industry-downturn-by-december-31-2026-857",
         "eventSlug": "ai-bubble-burst-by",
-        "yesProbabilityPct": 10,
+        "yesProbabilityPct": 10.1,
         "noProbabilityPct": 90,
         "volumeUsd": 2479938,
         "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
@@ -124,7 +124,7 @@
         "eventSlug": "ai-bubble-burst-by",
         "yesProbabilityPct": 19,
         "noProbabilityPct": 81,
-        "volumeUsd": 34444,
+        "volumeUsd": 34563,
         "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
       },
       {
@@ -214,7 +214,7 @@
         "eventSlug": "openai-announces-it-has-achieved-agi-before-2027",
         "yesProbabilityPct": 8.5,
         "noProbabilityPct": 91.5,
-        "volumeUsd": 331372,
+        "volumeUsd": 331472,
         "referralUrl": "https://polymarket.com/event/openai-announces-it-has-achieved-agi-before-2027?r=AIbubble"
       },
       {
@@ -255,7 +255,7 @@
   "adoption": {
     "topProductUsers": 350000000,
     "annualUserGrowth": 0.65,
-    "apiPriceDeclineMultiple": 24,
+    "apiPriceDeclineMultiple": 60,
     "trainingCostBand": "rising",
     "note": "Public API rate cards, OpenAI DevDay statements, Anthropic pricing logs"
   },
@@ -283,8 +283,8 @@
     "note": "SEC 10-Q Capex vs OCF synthesis & private debt facilities"
   },
   "meta": {
-    "last_synced_at": "2026-10-19T06:29:11.703Z",
-    "sync_mode": "github_actions_cron_24h",
+    "last_synced_at": "2026-10-19T08:41:52.721Z",
+    "sync_mode": "autonomous_24h_telemetry",
     "sources": [
       "Federal Reserve Economic Data (FRED) St. Louis API (DGS10, DGS2, BAMLH0A0HYM2, FEDFUNDS)",
       "Finnhub Institutional Financial API (Real-Time Equities & SEC EDGAR Filings)",

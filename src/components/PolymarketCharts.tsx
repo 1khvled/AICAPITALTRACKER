@@ -204,10 +204,10 @@ export function PolymarketCharts() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="space-y-2.5">
             <div className="flex items-center space-x-2.5 flex-wrap gap-y-1.5">
-              {/* Badge: Synced via GitHub Actions 24h Cron */}
+              {/* Badge: Live Autonomous Sync */}
               <span className="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-700/80 whitespace-nowrap shadow-xs">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>Synced via GitHub Actions 24h Cron</span>
+                <span>Live Autonomous Telemetry (00:00 UTC Daily)</span>
               </span>
 
               {/* Order Book source */}

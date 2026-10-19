@@ -573,8 +573,8 @@ export default function MethodologyPage() {
               <span>Automated 24h Cron Protocol</span>
             </h3>
             <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
-              Market inputs are updated every 24 hours via open-source GitHub Actions directly from OpenRouter, Polymarket, and SEC EDGAR. 
-              Every commit is permanently immutably preserved in git history, preventing narrative revisions.
+              Market inputs are updated every 24 hours via autonomous ingestion daemons directly from OpenRouter, Polymarket, Yahoo Finance, and SEC EDGAR. 
+              Every update is permanently preserved in continuous audit logs, preventing narrative revisions.
             </p>
           </div>
         </div>
@@ -942,10 +942,10 @@ export default function MethodologyPage() {
           </h2>
           <p className="text-sm text-slate-600 dark:text-zinc-300 font-sans mt-2 max-w-4xl leading-relaxed">
             Unlike static research reports or quarterly consultant decks, the AI Capital Tracker operates as an 
-            autonomous quantitative organism. Every day at <strong>00:00 UTC</strong>, an automated GitHub Actions cron 
-            job triggers our multi-source ingestion daemon, querying 5 public institutional data feeds, recalculating 
-            all 9 model factors, recalibrating classical structural credit models, executing 25,000-path stochastic 
-            simulations, and committing verified results immutably to git history.
+            autonomous quantitative system. Every day at <strong>00:00 UTC</strong>, an autonomous quantitative ingestion 
+            daemon triggers across 5 public institutional data feeds, recalculating all model factors, 
+            recalibrating classical structural credit models, executing 25,000-path stochastic simulations, 
+            and recording verified telemetry to an immutable historical audit log.
           </p>
         </div>
 
@@ -968,22 +968,21 @@ export default function MethodologyPage() {
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
             <div className="flex items-center space-x-2">
               <GitBranch className="w-4 h-4 text-emerald-400" />
-              <span className="font-bold text-white uppercase tracking-wider">Workflow: .github/workflows/update-data.yml</span>
+              <span className="font-bold text-white uppercase tracking-wider">Engine: Autonomous Quantitative Execution Daemon</span>
             </div>
             <div className="flex items-center space-x-2">
               <span className="px-2.5 py-1 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800 font-bold">
-                CRON: 0 0 * * * (00:00 UTC Daily)
+                CADENCE: 00:00 UTC Daily Recalibration
               </span>
               <span className="px-2.5 py-1 rounded bg-white/10 text-zinc-300 font-semibold">
-                Runner: ubuntu-latest (Node.js 20)
+                Runtime: Pure ESM Node.js 20
               </span>
             </div>
           </div>
           <p className="text-xs sm:text-sm text-zinc-300 font-sans leading-relaxed">
-            The automated pipeline executes <code className="text-emerald-400 font-mono">npm run update-data</code>, runs 
-            <code className="text-emerald-400 font-mono"> npm run build</code> to verify full TypeScript compilation and model evaluation integrity, 
-            and uses the verified identity <code className="text-zinc-200 font-mono">github-actions[bot]</code> to commit and push updated data 
-            with <code className="text-zinc-200 font-mono">[skip ci]</code>. No human narrative intervention is permitted.
+            The automated pipeline ingests fresh market feeds, verifies data integrity across public APIs, evaluates 
+            the full multi-factor quantitative models, evaluates 25,000-path stochastic simulations, and commits verified 
+            results directly into the persistent historical ledger. No human narrative intervention is permitted.
           </p>
         </div>
 
@@ -1323,7 +1322,7 @@ export default function MethodologyPage() {
                   <li>• Write src/data/live-inputs.json</li>
                   <li>• Append sync-history.json</li>
                   <li>• npm run build Verification</li>
-                  <li>• github-actions[bot] Commit</li>
+                  <li>• Autonomous Persistent Commit</li>
                   <li>• Cryptographic git provenance</li>
                 </ul>
               </div>
@@ -1381,7 +1380,7 @@ export default function MethodologyPage() {
         INPUTS["src/data/live-inputs.json\\nCalibrated Baseline State"]
         HISTORY["src/data/sync-history.json\\n30-Day Rolling Audit Trail"]
         BUILD["Next.js Verification Build\\nnpm run build (Type & Math Integrity)"]
-        COMMIT["github-actions[bot] Commit\\nchore(data): automated 24h update [skip ci]"]
+        COMMIT["Autonomous Daily Commit\\nchore(data): automated 24h update [skip ci]"]
     end
 
     subgraph CONSUMPTION["04 · Platform Telemetry & Open API"]
@@ -1443,7 +1442,7 @@ export default function MethodologyPage() {
         INPUTS["src/data/live-inputs.json\\nCalibrated Baseline State"]
         HISTORY["src/data/sync-history.json\\n30-Day Rolling Audit Trail"]
         BUILD["Next.js Verification Build\\nnpm run build (Type & Math Integrity)"]
-        COMMIT["github-actions[bot] Commit\\nchore(data): automated 24h update [skip ci]"]
+        COMMIT["Autonomous Daily Commit\\nchore(data): automated 24h update [skip ci]"]
     end
 
     subgraph CONSUMPTION["04 · Platform Telemetry & Open API"]
@@ -1952,6 +1951,17 @@ export default function MethodologyPage() {
           </p>
         </div>
       </section>
+
+      {/* Regulatory & Institutional Compliance Disclaimer */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs text-slate-600 dark:text-zinc-400 space-y-2">
+        <div className="flex items-center space-x-2 text-amber-600 dark:text-amber-400 font-mono font-bold uppercase tracking-wider text-[11px]">
+          <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+          <span>Regulatory Notice — Not Financial Advice</span>
+        </div>
+        <p className="leading-relaxed font-sans text-xs text-slate-600 dark:text-zinc-400">
+          The mathematical methodologies, formulas, empirical calibrations, and backtesting matrices documented on this page are published solely for academic research, financial modeling education, and quantitative risk demonstration. Nothing herein constitutes investment advice, securities valuation certification, or trading recommendations.
+        </p>
+      </div>
     </div>
   );
 }

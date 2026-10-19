@@ -18,6 +18,9 @@ import {
   ArrowUpRight,
   ExternalLink,
   Sparkles,
+  Flame,
+  AlertTriangle,
+  Scale,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -75,6 +78,14 @@ export default function HomePage() {
           {/* Quick Action Navigation Buttons */}
           <div className="flex flex-wrap items-center gap-2.5">
             <Link
+              href="/dotcom-vs-ai"
+              className="flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-all shadow-xs"
+            >
+              <Flame className="w-4 h-4 fill-current text-amber-500" />
+              <span>AI vs Dot-Com</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-500 font-bold">NEW</span>
+            </Link>
+            <Link
               href="/visualize"
               className="flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-xs"
             >
@@ -98,16 +109,17 @@ export default function HomePage() {
             Direct Portals:
           </span>
           <Link
+            href="/dotcom-vs-ai"
+            className="px-2.5 py-1 rounded-md bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold transition-colors flex items-center space-x-1"
+          >
+            <Flame className="w-3 h-3 text-amber-500" />
+            <span>AI vs Dot-Com (2000 vs 2026)</span>
+          </Link>
+          <Link
             href="/markets"
             className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 transition-colors"
           >
             Live Markets &amp; Tickers
-          </Link>
-          <Link
-            href="/news"
-            className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 transition-colors"
-          >
-            Breaking News Wire
           </Link>
           <Link
             href="/ledger?filter=debt"
@@ -132,6 +144,34 @@ export default function HomePage() {
             className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 transition-colors"
           >
             8-Factor Recipe &amp; Formulas
+          </Link>
+        </div>
+
+        {/* ── FEATURED DOSSIER: AI VS DOT-COM BUBBLE ── */}
+        <div className="p-4 sm:p-5 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/5 via-slate-50 to-amber-500/10 dark:from-amber-950/20 dark:via-zinc-900 dark:to-amber-950/30 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+          <div className="space-y-1 max-w-3xl">
+            <div className="flex items-center space-x-2">
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center space-x-1">
+                <Flame className="w-3 h-3 text-amber-500" />
+                <span>FEATURED RESEARCH DOSSIER</span>
+              </span>
+              <span className="text-xs font-mono text-slate-500 dark:text-zinc-400">
+                Live Macro Benchmark · October 19, 2026
+              </span>
+            </div>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+              The 2026 AI Superstructure vs. The 2000 Dot-Com Bubble
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed">
+              Why <strong className="text-emerald-500 font-mono">+$668B in organic hyperscaler cash flows</strong> shields public tech equities, but <strong className="text-amber-500 font-mono">$228.1B in debt-financed GPU neoclouds</strong> exhibits classic 1999 CLEC dark fiber refinancing risk.
+            </p>
+          </div>
+          <Link
+            href="/dotcom-vs-ai"
+            className="inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-sm transition-all shrink-0 font-mono"
+          >
+            <span>Explore 8-Metric Scorecard</span>
+            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
@@ -421,59 +461,59 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {/* Spotlight Card 2: News Wire */}
+          {/* Spotlight Card 2: AI Bubble vs Dot-Com Bubble */}
           <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 space-y-4 shadow-xs flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                   <span className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
-                    Institutional News Wire
+                    Macro Historical Matrix
                   </span>
                 </div>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-900">
-                  SEC EDGAR • Reuters
+                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 font-bold border border-amber-200 dark:border-amber-900">
+                  2000 vs 2026 Parallel
                 </span>
               </div>
 
               <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-                AI Capital, Debt &amp; Infrastructure Breaking News
+                AI Bubble vs Dot-Com Bubble (2000 vs 2026)
               </h3>
 
               <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed">
-                Real-time verified dispatches on Anthropic&apos;s $518B cloud commitment disclosures, CoreWeave loan covenants, 
-                nuclear power off-take agreements, and OpenAI convertible notes.
+                Compare today&apos;s $668B Big Tech cash-flow engine against the 2000 telecom CLEC crash, 39M miles of dark fiber, 
+                and 375× token price deflation across an 8-metric institutional scorecard.
               </p>
 
-              {/* Latest Headline Highlights */}
-              <div className="space-y-2 pt-1">
+              {/* Metric Highlights */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 font-mono text-xs">
                 <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-zinc-900/80 border border-slate-200/60 dark:border-zinc-800 text-xs">
                   <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-zinc-400 font-mono mb-1">
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">Reuters • 14m ago</span>
-                    <span className="text-rose-600 dark:text-rose-400 font-bold">High Impact</span>
+                    <span className="font-bold text-amber-600 dark:text-amber-400">Dot-Com (2000)</span>
+                    <span className="text-rose-600 dark:text-rose-400 font-bold">156× P/E</span>
                   </div>
-                  <span className="font-semibold text-slate-800 dark:text-zinc-200 line-clamp-1">
-                    Anthropic S-1 Review: $4.6B Run-Rate Against $518B Long-Term Cloud Commitments
+                  <span className="font-semibold text-slate-800 dark:text-zinc-200 text-xs block">
+                    $65B aggregate FCF • 39M unlit dark fiber miles
                   </span>
                 </div>
 
                 <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-zinc-900/80 border border-slate-200/60 dark:border-zinc-800 text-xs">
                   <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-zinc-400 font-mono mb-1">
-                    <span className="font-bold text-blue-600 dark:text-blue-400">Bloomberg • 38m ago</span>
-                    <span className="text-amber-600 dark:text-amber-400 font-bold">Material Filing</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">AI Era (2026)</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">34.8× P/E</span>
                   </div>
-                  <span className="font-semibold text-slate-800 dark:text-zinc-200 line-clamp-1">
-                    Oracle 5Y CDS Swaps Blow Out to 187bps on Hyperscale GPU Debt Guarantees
+                  <span className="font-semibold text-slate-800 dark:text-zinc-200 text-xs block">
+                    $668B aggregate FCF • 95%+ GPU cluster utilization
                   </span>
                 </div>
               </div>
             </div>
 
             <Link
-              href="/news"
+              href="/dotcom-vs-ai"
               className="mt-2 inline-flex items-center justify-between px-4 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-900 dark:text-white font-semibold text-xs sm:text-sm transition-all shadow-xs"
             >
-              <span>Open Dedicated Breaking News Wire</span>
+              <span>Explore Dot-Com vs AI Full Analysis</span>
               <ArrowRight className="w-4 h-4 ml-1" />
             </Link>
           </div>
@@ -516,24 +556,24 @@ export default function HomePage() {
             </div>
           </Link>
 
-          {/* Portal 2: News Wire */}
+          {/* Portal 2: Dot-Com vs AI */}
           <Link
-            href="/news"
-            className="group bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-3 hover:border-blue-500 dark:hover:border-blue-500 transition-all shadow-xs hover:shadow-md flex flex-col justify-between"
+            href="/dotcom-vs-ai"
+            className="group bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 space-y-3 hover:border-amber-500 dark:hover:border-amber-500 transition-all shadow-xs hover:shadow-md flex flex-col justify-between"
           >
             <div className="space-y-2.5">
-              <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                <Newspaper className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                <Scale className="w-5 h-5" />
               </div>
-              <h3 className="font-extrabold text-base text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                Breaking News Wire
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                Dot-Com vs AI Bubble Matrix
               </h3>
               <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
-                Searchable news dispatches with live category filtering, SEC filing citations, and debt covenant analysis.
+                8-metric institutional comparison: Big Tech $668B FCF vs 2000 CLECs, dark fiber parallels, and liquidation scenarios.
               </p>
             </div>
-            <div className="pt-2 text-xs font-mono font-bold text-blue-600 dark:text-blue-400 flex items-center space-x-1">
-              <span>Read News Wire</span>
+            <div className="pt-2 text-xs font-mono font-bold text-amber-600 dark:text-amber-400 flex items-center space-x-1">
+              <span>Compare Bubbles</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
@@ -627,6 +667,17 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
+
+      {/* ── Regulatory & Institutional Compliance Disclaimer ─────────────── */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs text-slate-600 dark:text-zinc-400 space-y-2">
+        <div className="flex items-center space-x-2 text-amber-600 dark:text-amber-400 font-mono font-bold uppercase tracking-wider text-[11px]">
+          <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+          <span>Regulatory Notice — Not Financial Advice</span>
+        </div>
+        <p className="leading-relaxed font-sans text-xs text-slate-600 dark:text-zinc-400">
+          The models, indexes, burst probabilities, and capital ledger records displayed across AI Capital Tracker represent quantitative mathematical research based on public SEC filings, corporate disclosures, and prediction market quotes as of October 2026. This platform does not provide investment, financial, legal, or tax advice. Market investments and credit exposures carry material risk of capital loss.
+        </p>
+      </div>
 
       {/* ── 7. BOTTOM LEADERBOARD AD ─────────────────────────────────────────── */}
       <AdSlot format="leaderboard" />

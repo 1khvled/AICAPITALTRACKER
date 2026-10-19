@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { ArrowUpRight, Zap, ShieldCheck, Database, FileText, Code2, Activity, ExternalLink } from "lucide-react";
+import { ArrowUpRight, Zap, ShieldCheck, Database, FileText, Code2, Activity, ExternalLink, AlertTriangle } from "lucide-react";
 import { POLYMARKET_BASE_URL, POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 
@@ -110,6 +110,12 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/dotcom-vs-ai" className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center justify-between group">
+                  <span className="text-amber-600 dark:text-amber-400 font-bold">AI vs Dot-Com (2000 vs 2026)</span>
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">NEW</span>
+                </Link>
+              </li>
+              <li>
                 <Link href="/ledger" className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center justify-between group">
                   <span>Deal Ledger (169 Deals)</span>
                   <span className="text-xs font-mono text-slate-400 dark:text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity">$2.86T</span>
@@ -124,11 +130,6 @@ export function Footer() {
               <li>
                 <Link href="/markets" className="hover:text-slate-900 dark:hover:text-white transition-colors">
                   Live Markets &amp; Debt Monitor
-                </Link>
-              </li>
-              <li>
-                <Link href="/news" className="hover:text-slate-900 dark:hover:text-white transition-colors">
-                  Breaking Capital News Wire
                 </Link>
               </li>
               <li>
@@ -229,6 +230,17 @@ export function Footer() {
           </div>
         </div>
 
+        {/* Regulatory & Institutional Compliance Disclaimer */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs text-slate-600 dark:text-zinc-400 space-y-2">
+          <div className="flex items-center space-x-2 text-amber-600 dark:text-amber-400 font-mono font-bold uppercase tracking-wider text-[11px]">
+            <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+            <span>Regulatory Notice — Not Financial Advice</span>
+          </div>
+          <p className="leading-relaxed font-sans text-xs text-slate-600 dark:text-zinc-400">
+            All data, probabilities, fragility metrics, and quantitative simulations published on AI Capital Tracker are strictly for informational, educational, and quantitative research purposes. Nothing on this website constitutes financial, investment, legal, tax, or credit advice. The metrics presented are algorithmic outputs based on public SEC disclosures, secondary trading data, and prediction market quotes as of October 2026. Investing in financial markets, equities, credit facilities, or prediction markets carries risk of capital loss. Always conduct independent due diligence or consult a licensed professional before making investment decisions.
+          </p>
+        </div>
+
         {/* Live Research Status Bar & Bottom Meta */}
         <div className="pt-8 border-t border-slate-200 dark:border-zinc-800 flex flex-col md:flex-row items-center justify-between text-xs text-slate-500 dark:text-zinc-400 gap-4">
           {/* Live Status Badge */}
@@ -238,7 +250,7 @@ export function Footer() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
             <span className="font-mono font-medium text-slate-700 dark:text-zinc-300">
-              Live Research Desk: SEC EDGAR • OpenRouter • Polymarket Sync Active (24h Cron)
+              Live Research Desk: SEC EDGAR • OpenRouter • Polymarket • Yahoo Finance Sync Active (Daily 00:00 UTC)
             </span>
           </div>
 

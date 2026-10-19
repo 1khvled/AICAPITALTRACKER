@@ -216,7 +216,7 @@ export function MarketTickerTape() {
     id: "sync-badge-end",
     label: "24H AUTO-SYNC",
     value: "00:00 UTC",
-    change: "GitHub Actions",
+    change: "Autonomous Daily",
     isPositive: true,
     type: "autosync",
     href: "/methodology",

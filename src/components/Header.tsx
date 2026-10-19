@@ -17,6 +17,7 @@ import {
   TrendingUp,
   Newspaper,
   ChevronDown,
+  Flame,
 } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { POLYMARKET_BASE_URL, POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
@@ -49,10 +50,10 @@ export function Header() {
   // Primary desktop links that always stay visible without crowding
   const primaryLinks = [
     { label: "Model", href: "/", icon: ShieldAlert },
+    { label: "AI vs Dot-Com", href: "/dotcom-vs-ai", icon: Flame, badge: "NEW" },
     { label: "Ledger", href: "/ledger", badge: String(rawDeals.length), icon: Database },
     { label: "Charts", href: "/visualize", icon: BarChart3 },
     { label: "Markets", href: "/markets", icon: TrendingUp },
-    { label: "News", href: "/news", icon: Newspaper },
   ];
 
   // Secondary tools in clean "More" dropdown to guarantee 100% visibility on all screens
@@ -112,6 +113,8 @@ export function Header() {
                     className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
                       isActive
                         ? "bg-slate-800 text-slate-200 dark:bg-zinc-700 dark:text-zinc-200"
+                        : item.badge === "NEW"
+                        ? "bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30"
                         : "bg-slate-200 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300"
                     }`}
                   >

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-19T06:29:11.703Z",
+  "timestamp": "2026-10-19T08:41:52.720Z",
   "stocks": [
     {
       "ticker": "NVDA",
@@ -341,9 +341,9 @@
     {
       "symbol": "VIX",
       "name": "CBOE Volatility Index",
-      "valueDisplay": "19.99",
-      "changeDisplay": "+31.4%",
-      "changePct": 31.4,
+      "valueDisplay": "18.59",
+      "changeDisplay": "+21.7%",
+      "changePct": 21.7,
       "isRiskPositive": true,
       "category": "Credit & Debt",
       "description": "Equity market implied volatility and systemic tail-risk sentiment"

@@ -254,8 +254,8 @@ export default function SandboxPage() {
               <span>Live 24h Automated Snapshot</span>
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed max-w-2xl">
-              Synthesized by GitHub Actions <code className="text-emerald-600 dark:text-emerald-400 font-mono">.github/workflows/update-data.yml</code> at 00:00 UTC. 
-              Provides the institutional baseline against which all slider variations and stochastic iterations are measured.
+              Autonomous quantitative model snapshot calibrated daily at 00:00 UTC across live market feeds (OpenRouter, Polymarket, Yahoo Finance, and SEC EDGAR). 
+              Provides the institutional baseline against which all stress variations and stochastic iterations are measured.
             </p>
           </div>
 
@@ -263,7 +263,7 @@ export default function SandboxPage() {
             {/* Required Badge */}
             <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 shadow-xs">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span>Calibrated against today&apos;s 00:00 UTC automated cron snapshot</span>
+              <span>Calibrated daily at 00:00 UTC baseline</span>
             </div>
 
             {(isSlidersModified || isResampled) && (
@@ -1131,6 +1131,17 @@ export default function SandboxPage() {
         </h2>
         <SensitivityCurveChart />
       </section>
+
+      {/* Regulatory & Institutional Compliance Disclaimer */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs text-slate-600 dark:text-zinc-400 space-y-2">
+        <div className="flex items-center space-x-2 text-amber-600 dark:text-amber-400 font-mono font-bold uppercase tracking-wider text-[11px]">
+          <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+          <span>Regulatory Notice — Not Financial Advice</span>
+        </div>
+        <p className="leading-relaxed font-sans text-xs text-slate-600 dark:text-zinc-400">
+          The interactive sensitivity sliders, scenario presets, stress parameters, and 25,000-path Monte Carlo simulations displayed in this sandbox are mathematical risk-modeling exercises based on public disclosures as of October 2026. They do not constitute financial, investment, or legal advice, nor do they solicit any trading actions or securities recommendations.
+        </p>
+      </div>
 
       {/* Bottom Ad */}
       <AdSlot format="in-feed" />

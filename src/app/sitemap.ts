@@ -12,6 +12,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
+      url: `${baseUrl}/dotcom-vs-ai`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.95,
+    },
+    {
       url: `${baseUrl}/ledger`,
       lastModified: now,
       changeFrequency: "daily",
@@ -34,12 +40,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: "hourly",
       priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/news`,
-      lastModified: now,
-      changeFrequency: "hourly",
-      priority: 0.85,
     },
     {
       url: `${baseUrl}/sandbox`,

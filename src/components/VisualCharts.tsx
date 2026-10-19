@@ -21,7 +21,10 @@ import {
   HelpCircle,
   ChevronRight,
   CheckCircle2,
+  ExternalLink,
+  Radio,
 } from "lucide-react";
+import liveModelsData from "@/data/live-models.json";
 
 // ============================================================================
 // 1. SENSITIVITY CURVE CHART (Cubic Bezier, Confidence Band, Interactive Crosshairs)
@@ -852,6 +855,7 @@ interface LabPoint {
   isExtreme?: boolean;
   isDebtExposed?: boolean;
   color?: string;
+  labelOffset?: { dx: number; dy: number; anchor: "start" | "middle" | "end" };
 }
 
 const LAB_DATA: LabPoint[] = [
@@ -864,6 +868,7 @@ const LAB_DATA: LabPoint[] = [
     notes: "$2.0T debut target ($965B Series H post-money) on $47.0B ARR (Claude Code >$2.5B). Carries $57B Broadcom & syndicate debt.",
     isDebtExposed: true,
     color: "#3b82f6",
+    labelOffset: { dx: 0, dy: -24, anchor: "middle" },
   },
   {
     name: "OpenAI",
@@ -873,6 +878,7 @@ const LAB_DATA: LabPoint[] = [
     round: "Oct 2026 $852B Benchmark / $1.4T Round",
     notes: "$852B post-money valuation (targeting $1.0T–$1.4T) on $50.0B ARR. Flagship LLM anchor tenant.",
     color: "#10b981",
+    labelOffset: { dx: 0, dy: 24, anchor: "middle" },
   },
   {
     name: "Databricks",
@@ -882,6 +888,7 @@ const LAB_DATA: LabPoint[] = [
     round: "Coatue Strategic AI Round",
     notes: "Largest private data & AI infrastructure provider with $7.0B revenue.",
     color: "#8b5cf6",
+    labelOffset: { dx: 0, dy: -24, anchor: "middle" },
   },
   {
     name: "SpaceX / xAI Colossus",
@@ -892,6 +899,7 @@ const LAB_DATA: LabPoint[] = [
     notes: "Memphis 100k+ Colossus cluster ($250B asset value on $500M ARR). Parent SpaceX trades publicly at ~$2.05T market cap.",
     isExtreme: true,
     color: "#f59e0b",
+    labelOffset: { dx: 0, dy: -24, anchor: "middle" },
   },
   {
     name: "Scale AI",
@@ -902,6 +910,7 @@ const LAB_DATA: LabPoint[] = [
     notes: "Data engine, RLHF human-in-the-loop and defense AI pipeline with $1.1B ARR.",
     isExtreme: false,
     color: "#06b6d4",
+    labelOffset: { dx: 18, dy: 4, anchor: "start" },
   },
   {
     name: "Mistral AI",
@@ -912,6 +921,7 @@ const LAB_DATA: LabPoint[] = [
     notes: "European sovereign champion trading at 53.3× P/S on $450M ARR with €1.5B convertible debt facility.",
     isExtreme: true,
     color: "#f43f5e",
+    labelOffset: { dx: -18, dy: -6, anchor: "end" },
   },
   {
     name: "Perplexity AI",
@@ -922,6 +932,7 @@ const LAB_DATA: LabPoint[] = [
     notes: "Conversational search & enterprise citations trading at 40× sales on $500M ARR.",
     isExtreme: true,
     color: "#f59e0b",
+    labelOffset: { dx: 0, dy: 24, anchor: "middle" },
   },
   {
     name: "Cohere",
@@ -932,6 +943,7 @@ const LAB_DATA: LabPoint[] = [
     notes: "Enterprise frontier LLM provider with $250M ARR and 28.0× multiple.",
     isExtreme: false,
     color: "#f59e0b",
+    labelOffset: { dx: -14, dy: 18, anchor: "end" },
   },
 ];
 
@@ -1061,6 +1073,25 @@ export function LabMultiplesChart() {
         </div>
       </div>
 
+      {/* Clean Multiple Band Legend (eliminates text collision on lines) */}
+      <div className="flex flex-wrap items-center gap-2 pt-0.5">
+        <span className="text-[11px] font-mono text-slate-500 dark:text-zinc-400 font-semibold">Valuation Multiples:</span>
+        {refLines.map((ref) => (
+          <span
+            key={ref.multiple}
+            className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold border"
+            style={{
+              backgroundColor: `${ref.color}15`,
+              borderColor: `${ref.color}40`,
+              color: ref.color,
+            }}
+          >
+            <span className="w-2.5 h-0.5" style={{ backgroundColor: ref.color }} />
+            <span>{ref.label}</span>
+          </span>
+        ))}
+      </div>
+
       {/* 2D Interactive Scatter Plot SVG */}
       <div className="relative select-none overflow-hidden rounded-xl bg-slate-50/70 dark:bg-[#0b0b0d] border border-slate-200/80 dark:border-zinc-800/80 p-2 sm:p-4">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto cursor-default">
@@ -1131,7 +1162,7 @@ export function LabMultiplesChart() {
             }
           )}
 
-          {/* Reference Regression / Multiple Lines (10x, 32x, 75x) */}
+          {/* Reference Regression / Multiple Lines (10x, 32x, 75x) without colliding end text */}
           {refLines.map((ref) => {
             const line = getReferenceLine(ref.multiple);
             return (
@@ -1146,17 +1177,6 @@ export function LabMultiplesChart() {
                   strokeDasharray="4 3"
                   strokeOpacity="0.65"
                 />
-                <text
-                  x={line.x2 - 8}
-                  y={line.y2 - 6}
-                  textAnchor="end"
-                  fontSize="9.5"
-                  fill={ref.color}
-                  fontFamily="monospace"
-                  fontWeight="bold"
-                >
-                  {ref.label}
-                </text>
               </g>
             );
           })}
@@ -1187,7 +1207,7 @@ export function LabMultiplesChart() {
             </g>
           )}
 
-          {/* Scatter Plot Bubbles */}
+          {/* Scatter Plot Bubbles with Collision-Free Positioned Labels */}
           {LAB_DATA.map((lab) => {
             const cx = toX(lab.revenueB);
             const cy = toY(lab.valuationB);
@@ -1195,6 +1215,7 @@ export function LabMultiplesChart() {
 
             // Size bubble slightly based on valuation
             const radius = Math.max(7, Math.min(18, 5 + Math.sqrt(lab.valuationB) * 0.9));
+            const offset = lab.labelOffset || { dx: 0, dy: -20, anchor: "middle" };
 
             return (
               <g
@@ -1230,20 +1251,20 @@ export function LabMultiplesChart() {
                   filter={isActive ? "url(#bubbleGlow)" : undefined}
                 />
 
-                {/* Lab Name Label */}
+                {/* Smart Offset Lab Name Label (Zero Collision) */}
                 <text
-                  x={cx}
-                  y={cy - radius - 5}
-                  textAnchor="middle"
+                  x={cx + offset.dx}
+                  y={cy + offset.dy}
+                  textAnchor={offset.anchor}
                   fontSize="10"
                   fontFamily="monospace"
                   fontWeight="bold"
-                  fill={isActive ? "#ffffff" : "#cbd5e1"}
-                  stroke="#0b0b0d"
-                  strokeWidth="2.5"
+                  fill={isActive ? "#38bdf8" : "#f1f5f9"}
+                  stroke="#09090b"
+                  strokeWidth="3.5"
                   paintOrder="stroke"
                 >
-                  {lab.name} ({lab.multiple.toFixed(0)}×)
+                  {lab.name} <tspan fill={lab.multiple >= 50 ? "#f43f5e" : lab.multiple >= 30 ? "#f59e0b" : "#34d399"}>({lab.multiple.toFixed(0)}×)</tspan>
                 </text>
               </g>
             );
@@ -1465,73 +1486,183 @@ export function AiRevenueGapChart() {
 // 5. TOKEN PRICE DEFLATION CHART (200x Collapse in Inference Cost)
 // ============================================================================
 
+// ============================================================================
+// 5. TOKEN PRICE DEFLATION CHART (Up to 375x Collapse in Inference Cost)
+// ============================================================================
+
 export function TokenPriceDeflationChart() {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<"timeline" | "live-feed">("timeline");
 
   const milestones = [
-    { date: "Mar 2023", model: "GPT-4 Original", cost: 30.0, display: "$30.00", multiple: "1.0× (Baseline)" },
-    { date: "Nov 2023", model: "GPT-4 Turbo", cost: 10.0, display: "$10.00", multiple: "3.0× Cheaper" },
-    { date: "May 2024", model: "GPT-4o / Claude 3.5", cost: 5.0, display: "$5.00", multiple: "6.0× Cheaper" },
-    { date: "Dec 2024", model: "Gemini 1.5 Flash", cost: 0.35, display: "$0.35", multiple: "85× Cheaper" },
-    { date: "2026 Today", model: "GPT-4o-mini / Haiku", cost: 0.15, display: "$0.15", multiple: "200× Cheaper" },
+    { date: "Mar 2023", model: "GPT-4 Original", cost: 30.0, display: "$30.00", multiple: "1.0× (Baseline)", badge: "Baseline", color: "bg-slate-500" },
+    { date: "Nov 2023", model: "GPT-4 Turbo", cost: 10.0, display: "$10.00", multiple: "3.0× Cheaper", badge: "-67%", color: "bg-emerald-600" },
+    { date: "May 2024", model: "GPT-4o / Claude 3.5 Sonnet", cost: 5.0, display: "$5.00", multiple: "6.0× Cheaper", badge: "-83%", color: "bg-emerald-600" },
+    { date: "Dec 2024", model: "Gemini 1.5 Flash", cost: 0.35, display: "$0.35", multiple: "85× Cheaper", badge: "-98.8%", color: "bg-emerald-500" },
+    { date: "May 2026", model: "Claude Sonnet 5.5", cost: 2.00, display: "$2.00", multiple: "15× Cheaper", badge: "-93.3%", color: "bg-indigo-500" },
+    { date: "Oct 2026", model: "Claude Opus 5.5 (Frontier)", cost: 20.00, display: "$20.00", multiple: "1.5× Cheaper", badge: "Agentic Tier", color: "bg-purple-500" },
+    { date: "Oct 2026", model: "Claude Haiku 5.5", cost: 0.50, display: "$0.50", multiple: "60× Cheaper", badge: "-98.3%", color: "bg-emerald-400" },
+    { date: "Oct 2026", model: "DeepSeek V4.1 Flash", cost: 0.08, display: "$0.08", multiple: "375× Cheaper", badge: "-99.7%", color: "bg-teal-400" },
   ];
+
+  const modelsList = liveModelsData?.models || [];
 
   return (
     <div className="p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] space-y-4 transition-all shadow-sm">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div>
-          <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">
-            PRODUCTIVITY DAMPER
-          </span>
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">
+              PRODUCTIVITY DAMPER
+            </span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse mr-1" />
+              Live API Feed
+            </span>
+          </div>
           <h4 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mt-0.5">
-            Inference Token Cost Collapse (200× Cheaper)
+            Token Inference Deflation (Up to 375× Cheaper)
           </h4>
         </div>
-        <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-900/60 font-tabular">
-          -99.5% Unit Cost
-        </span>
-      </div>
-
-      <div className="space-y-3 pt-1">
-        {milestones.map((m, idx) => {
-          const logPct = Math.max(8, (Math.log10(m.cost * 10) / Math.log10(300)) * 100);
-          const isHovered = hoveredIdx === idx;
-
-          return (
-            <div
-              key={m.model}
-              onMouseEnter={() => setHoveredIdx(idx)}
-              onMouseLeave={() => setHoveredIdx(null)}
-              className="space-y-1.5 cursor-pointer"
+        
+        {/* Metric Badges & Tab Toggle */}
+        <div className="flex items-center space-x-2">
+          <div className="flex rounded-lg bg-slate-100 dark:bg-zinc-800/80 p-0.5 border border-slate-200 dark:border-zinc-700">
+            <button
+              onClick={() => setActiveTab("timeline")}
+              className={`px-2.5 py-1 text-xs font-mono font-bold rounded-md transition-all ${
+                activeTab === "timeline"
+                  ? "bg-white dark:bg-zinc-700 text-slate-900 dark:text-white shadow-xs"
+                  : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
             >
-              <div className="flex justify-between text-xs sm:text-sm font-mono">
-                <span className="font-semibold text-slate-800 dark:text-zinc-200">
-                  {m.model}{" "}
-                  <span className="text-xs text-slate-500 dark:text-zinc-400 font-normal">
-                    ({m.date})
-                  </span>
-                </span>
-                <span className="font-bold text-slate-900 dark:text-white font-tabular">
-                  {m.display} <span className="text-[11px] font-normal text-slate-400">/ 1M tokens</span>
-                </span>
-              </div>
-              <div className="h-3 w-full bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden p-0.5">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    isHovered ? "bg-emerald-400 shadow-sm" : "bg-emerald-500"
-                  }`}
-                  style={{ width: `${logPct}%`, opacity: 0.35 + idx * 0.16 }}
-                />
-              </div>
-            </div>
-          );
-        })}
+              Timeline (2023–2026)
+            </button>
+            <button
+              onClick={() => setActiveTab("live-feed")}
+              className={`px-2.5 py-1 text-xs font-mono font-bold rounded-md transition-all ${
+                activeTab === "live-feed"
+                  ? "bg-white dark:bg-zinc-700 text-slate-900 dark:text-white shadow-xs"
+                  : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              OpenRouter Rates ({modelsList.length})
+            </button>
+          </div>
+          <span className="hidden md:inline-flex text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-900/60 font-tabular whitespace-nowrap">
+            -99.7% Max Deflation
+          </span>
+        </div>
       </div>
+
+      {activeTab === "timeline" ? (
+        <div className="space-y-3 pt-1">
+          {milestones.map((m, idx) => {
+            // Logarithmic scale so 8 cents and $30 both display meaningfully
+            const logPct = Math.max(6, (Math.log10(m.cost * 10) / Math.log10(300)) * 100);
+            const isHovered = hoveredIdx === idx;
+
+            return (
+              <div
+                key={m.model}
+                onMouseEnter={() => setHoveredIdx(idx)}
+                onMouseLeave={() => setHoveredIdx(null)}
+                className="space-y-1.5 cursor-pointer group"
+              >
+                <div className="flex justify-between items-center text-xs sm:text-sm font-mono">
+                  <div className="flex items-center space-x-1.5 truncate">
+                    <span className="font-semibold text-slate-800 dark:text-zinc-200 truncate group-hover:text-emerald-400 transition-colors">
+                      {m.model}
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-zinc-400 font-normal shrink-0">
+                      ({m.date})
+                    </span>
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 font-bold shrink-0">
+                      {m.multiple}
+                    </span>
+                  </div>
+                  <span className="font-bold text-slate-900 dark:text-white font-tabular shrink-0 ml-2">
+                    {m.display} <span className="text-[11px] font-normal text-slate-400">/ 1M tokens</span>
+                  </span>
+                </div>
+                <div className="h-2.5 w-full bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden p-0.5">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      isHovered ? "bg-emerald-400 shadow-sm" : m.color
+                    }`}
+                    style={{ width: `${logPct}%`, opacity: 0.5 + idx * 0.07 }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        /* Live OpenRouter Model Rates Card */
+        <div className="space-y-2.5 pt-1">
+          <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-zinc-400 pb-1 border-b border-slate-100 dark:border-zinc-800">
+            <span>MODEL (OCTOBER 2026 LIVE FEED)</span>
+            <div className="flex space-x-6">
+              <span className="hidden sm:inline">PROMPT / 1M</span>
+              <span>COMPLETION / 1M</span>
+              <span className="w-20 text-right">VS GPT-4</span>
+            </div>
+          </div>
+
+          <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+            {modelsList.map((mod) => (
+              <div
+                key={mod.id}
+                className="p-2.5 rounded-xl border border-slate-200 dark:border-zinc-800/80 bg-slate-50/50 dark:bg-zinc-900/50 hover:bg-slate-100/80 dark:hover:bg-zinc-800/80 transition-all flex items-center justify-between font-mono text-xs"
+              >
+                <div className="space-y-0.5 truncate pr-2">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-bold text-slate-900 dark:text-white truncate">
+                      {mod.name}
+                    </span>
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60 font-semibold shrink-0">
+                      {mod.provider}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-zinc-400 truncate font-sans">
+                    {mod.category} · {mod.contextLength ? `${(mod.contextLength / 1000).toFixed(0)}k ctx` : "Frontier"}
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-4 shrink-0 font-tabular">
+                  <span className="text-slate-600 dark:text-zinc-400 hidden sm:inline">
+                    ${mod.promptPerM.toFixed(mod.promptPerM < 0.1 ? 4 : 2)}
+                  </span>
+                  <span className="font-bold text-slate-900 dark:text-white">
+                    ${mod.completionPerM.toFixed(mod.completionPerM < 0.1 ? 4 : 2)}
+                  </span>
+                  <span className="w-20 text-right font-bold text-emerald-600 dark:text-emerald-400 text-[11px]">
+                    {mod.deflationMultiple}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between pt-1 text-[11px] font-mono text-slate-500 dark:text-zinc-400">
+            <span>Source: OpenRouter Public API (No key required · 471 live models)</span>
+            <a
+              href="https://openrouter.ai/models"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-1 text-emerald-600 dark:text-emerald-400 hover:underline"
+            >
+              <span>Catalog</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+        </div>
+      )}
 
       <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#09090b] border border-slate-200 dark:border-zinc-800 text-xs sm:text-sm">
         <p className="text-slate-600 dark:text-zinc-300 font-sans leading-relaxed">
-          <strong className="text-slate-900 dark:text-white font-mono">The Adoption Cushion: </strong>
-          Unlike the 2000 telecom fiber glut where bandwidth remained prohibitively costly to light, AI token costs are dropping exponentially. This expands genuine enterprise utilization and knocks <strong className="text-emerald-500 font-mono">-7.2 points</strong> off the systemic burst score.
+          <strong className="text-slate-900 dark:text-white font-mono">The Productivity Damper: </strong>
+          Unlike the 2000 telecom fiber crash where bandwidth remained dark and transit costs did not drop fast enough to rescue burning startups, AI token inference costs have collapsed up to <strong className="text-emerald-500 font-mono">375×</strong> (down to <span className="font-mono text-emerald-400 font-bold">$0.08 / 1M tokens</span> on DeepSeek V4.1 Flash and <span className="font-mono text-emerald-400 font-bold">$0.50 / 1M</span> on Claude Haiku 5.5). This massive deflation allows software gross margins to expand rapidly, knocking <strong className="text-emerald-500 font-mono">-7.2 points</strong> off the systemic bubble burst score.
         </p>
       </div>
     </div>

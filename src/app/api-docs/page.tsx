@@ -252,8 +252,8 @@ const ENDPOINTS: EndpointDoc[] = [
     name: "24h Autonomous Workflow Telemetry",
     method: "GET",
     path: "/api/v1/sync",
-    badge: "24h Cron Protocol",
-    description: "Delivers live operational telemetry, execution health, data freshness, and ingestion audit logs for the autonomous 24-hour GitHub Actions workflow (.github/workflows/update-data.yml). Monitors real-time pipeline status across OpenRouter, Polymarket, Yahoo Finance, and SEC EDGAR.",
+    badge: "24h Pipeline Protocol",
+    description: "Delivers live operational telemetry, execution health, data freshness, and ingestion audit logs for the autonomous 24-hour quantitative pipeline. Monitors real-time pipeline status across OpenRouter, Polymarket, Yahoo Finance, and SEC EDGAR.",
     defaultQuery: "",
     params: [
       { name: "limit", type: "integer", required: false, defaultVal: "5", desc: "Number of historical 24h cron execution audit logs to return (max: 30)." },
@@ -262,14 +262,14 @@ const ENDPOINTS: EndpointDoc[] = [
       success: true,
       data: {
         status: "HEALTHY",
-        workflow: ".github/workflows/update-data.yml",
+        pipeline: "autonomous_quantitative_engine",
         schedule: "0 0 * * * (Daily at 00:00 UTC)",
         last_sync_timestamp: "2026-10-18T21:38:15.716Z",
         next_scheduled_run: "2026-10-19T00:00:00.000Z",
         freshness_status: "OPTIMAL",
         minutes_since_last_sync: 48,
         hours_since_last_sync: 0.8,
-        sync_mode: "github_actions_cron_24h",
+        sync_mode: "autonomous_24h_telemetry",
         active_pipelines: [
           {
             id: "openrouter",
