@@ -223,7 +223,7 @@
         "slug": "openai-1t-ipo-before-2027",
         "eventSlug": "openai-1t-ipo-before-2027",
         "yesProbabilityPct": 2.4,
-        "noProbabilityPct": 97.7,
+        "noProbabilityPct": 97.6,
         "volumeUsd": 317063,
         "referralUrl": "https://polymarket.com/event/openai-1t-ipo-before-2027?r=AIbubble"
       },
@@ -283,7 +283,7 @@
     "note": "SEC 10-Q Capex vs OCF synthesis & private debt facilities"
   },
   "meta": {
-    "last_synced_at": "2026-10-19T08:41:52.721Z",
+    "last_synced_at": "2026-10-19T08:49:58.296Z",
     "sync_mode": "autonomous_24h_telemetry",
     "sources": [
       "Federal Reserve Economic Data (FRED) St. Louis API (DGS10, DGS2, BAMLH0A0HYM2, FEDFUNDS)",

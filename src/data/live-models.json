@@ -1,5 +1,5 @@
 {
-  "last_synced_at": "2026-10-19T08:41:45.066Z",
+  "last_synced_at": "2026-10-19T08:49:49.678Z",
   "source": "https://openrouter.ai/api/v1/models",
   "license": "Public OpenRouter Model Catalog (Free / Keyless)",
   "total_models_available": 471,
@@ -115,6 +115,32 @@
       "deflationMultiple": "50× Cheaper",
       "releaseDate": "2024–2026",
       "note": "Cost-efficient lightweight intelligence for fast classification and routing"
+    },
+    {
+      "id": "openai/gpt-6.1-sol-pro",
+      "name": "GPT-6.1 Sol Pro",
+      "provider": "OpenAI",
+      "category": "Frontier Agentic Reasoning",
+      "promptPerM": 2,
+      "completionPerM": 10,
+      "batchCompletionPerM": 5,
+      "contextLength": 1050000,
+      "deflationMultiple": "3.0× Cheaper",
+      "releaseDate": "October 2026",
+      "note": "Next-generation reasoning & orchestration architecture with native tool planning"
+    },
+    {
+      "id": "openai/gpt-6-luna",
+      "name": "GPT-6 Luna",
+      "provider": "OpenAI",
+      "category": "Sub-Second Edge Inference",
+      "promptPerM": 0.1,
+      "completionPerM": 0.5,
+      "batchCompletionPerM": 0.25,
+      "contextLength": 1050000,
+      "deflationMultiple": "60× Cheaper",
+      "releaseDate": "October 2026",
+      "note": "High-speed speculative decoding engine optimized for micro-latency streaming"
     }
   ]
 }

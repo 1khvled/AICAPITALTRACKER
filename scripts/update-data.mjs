@@ -535,6 +535,32 @@ async function fetchTokenPriceDeflation() {
       deflationMultiple: '50× Cheaper',
       releaseDate: '2024–2026',
       note: 'Cost-efficient lightweight intelligence for fast classification and routing'
+    },
+    {
+      id: 'openai/gpt-6.1-sol-pro',
+      name: 'GPT-6.1 Sol Pro',
+      provider: 'OpenAI',
+      category: 'Frontier Agentic Reasoning',
+      promptPerM: 2.00,
+      completionPerM: 10.00,
+      batchCompletionPerM: 5.00,
+      contextLength: 1000000,
+      deflationMultiple: '3.0× Cheaper',
+      releaseDate: 'October 2026',
+      note: 'Next-generation reasoning & orchestration architecture with native tool planning'
+    },
+    {
+      id: 'openai/gpt-6-luna',
+      name: 'GPT-6 Luna',
+      provider: 'OpenAI',
+      category: 'Sub-Second Edge Inference',
+      promptPerM: 0.10,
+      completionPerM: 0.50,
+      batchCompletionPerM: 0.25,
+      contextLength: 256000,
+      deflationMultiple: '60× Cheaper',
+      releaseDate: 'October 2026',
+      note: 'High-speed speculative decoding engine optimized for micro-latency streaming'
     }
   ];
 

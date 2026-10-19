@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-19T08:41:53.083Z",
+  "timestamp": "2026-10-19T08:49:58.641Z",
   "model_version": "2.5.0",
   "burstProbability": 45.5,
   "compositeScore": 53.4,
@@ -245,6 +245,6 @@
         "percentage": 0
       }
     ],
-    "executionTimeMs": 360
+    "executionTimeMs": 342
   }
 }
