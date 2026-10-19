@@ -84,6 +84,9 @@ import {
 } from "lucide-react";
 import { SensitivityCurveChart } from "@/components/VisualCharts";
 import { AdSlot } from "@/components/AdSlot";
+import { MethodologyToc } from "@/components/MethodologyToc";
+import { SectionAnchor } from "@/components/SectionAnchor";
+import { METHODOLOGY_SECTIONS } from "@/lib/methodology/sections";
 import latestModel from "@/data/latest-model.json";
 
 export default function MethodologyPage() {
@@ -204,24 +207,12 @@ export default function MethodologyPage() {
     brier: b.brierScore === null ? "—" : b.brierScore.toFixed(4),
   }));
 
-  const tocItems = [
-    { id: "thesis", title: "1. Empirical Thesis & Axioms" },
-    { id: "sigmoid", title: "2. Sigmoid Calibration & Odds" },
-    { id: "factors", title: "3. The 9 Mathematical Factors" },
-    { id: "contagion", title: "4. Systemic Contagion Synergy" },
-    { id: "degradation", title: "5. Degradation Honesty Protocol" },
-    { id: "backtests", title: "6. Historical Crisis Backtests" },
-    { id: "classical-models", title: "7. Merton, Altman & LPPLS Models" },
-    { id: "continuous-pipeline", title: "8. 24h Autonomous Execution" },
-    { id: "minsky-shiller", title: "9. Minsky Hypothesis & Shiller CAPE" },
-  ];
-
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
+  /**
+   * The navigation layer. The section registry (src/lib/methodology/
+   * sections.ts) is the single source of truth for the article's anchors and
+   * for the table of contents' entries, so the two can never drift apart.
+   */
+  const tocItems = METHODOLOGY_SECTIONS;
 
 return (
     <div className="section-sm">
@@ -270,22 +261,13 @@ return (
           </Link>
         </div>
 
-        {/* In-page jump bar — 44px targets, scrollable on a phone */}
-        <nav aria-label="Sections" className="-mx-4 overflow-x-auto border-t border-rule px-4 pt-3 scrollbar-none sm:mx-0 sm:px-0">
-          <ul className="flex w-max items-center gap-2">
-            {tocItems.map((item) => (
-              <li key={item.id}>
-                <button
-                  onClick={() => scrollToSection(item.id)}
-                  className="min-h-11 whitespace-nowrap rounded-lg border border-rule bg-surface px-3 py-2 text-[13px] font-medium text-ink-muted transition-colors hover:border-rule-strong hover:text-ink"
-                >
-                  {item.title}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
       </header>
+
+      {/* The navigation layer: a sticky, scroll-spy table of contents with a
+          deep link per section. It is the only interactive chrome on the
+          page and it owns every jump target, so the article body stays
+          untouched. */}
+      <MethodologyToc sections={tocItems} />
 
       {/* Plain-English summary for readers without a maths background */}
       <section aria-label="Plain English summary" className="mt-6">
@@ -346,6 +328,7 @@ return (
         <div className="flex items-center space-x-2 text-[13px] font-mono text-safe-700 font-bold uppercase tracking-wider">
           <BookOpen className="w-4 h-4" />
           <span>Section 01 · The Empirical Imperative</span>
+          <SectionAnchor id="thesis" />
         </div>
 
         <div className="space-y-2">
@@ -388,8 +371,12 @@ return (
               <span>Axiom 3: Static A Priori Weights</span>
             </div>
             <p className="text-[14px] sm:text-sm text-ink-muted leading-relaxed">
-              Factor weights and ramp boundaries were defined a priori and published permanently. They are never calibrated ex-post to fit a desired narrative.
-              If the probability rises or falls, it is solely because the verified underlying financial inputs changed. The logistic mapping
+              Factor weights and ramp boundaries were defined a priori and published permanently. They are never tuned to fit a
+              desired narrative — but they are not sacred either: a boundary changes only through a disclosed, sanctioned wave,
+              and the changelog records what moved and why. On 2026-10-20 (model v2.7.0) the credit factor&apos;s level ceiling was
+              raised from ×3 to ×7.556 of baseline after the factor was found <em>pinned at its maximum</em> since 243bp — it had
+              been adding a flat 18 of 18 points, 46.3 of the 72.3 probability points, so the print moved (72.3% → 32.3%) without a
+              single input changing. The logistic mapping
               itself (anchor {MODEL_CALIBRATION.anchorScore}, steepness {MODEL_CALIBRATION.steepness}) is an unvalidated a priori choice, not
               an estimated parameter set: the historical consistency table was generated under an earlier calibration (anchor ≈54, steepness ≈11.2);
               probabilities implied by the live mapping differ by {calibrationDriftResult.minPct}–{calibrationDriftResult.maxPct} points.
@@ -414,6 +401,7 @@ return (
         <div className="flex items-center space-x-2 text-[13px] font-mono text-safe-700 font-bold uppercase tracking-wider">
           <Sigma className="w-4 h-4" />
           <span>Section 02 · Sigmoid Calibration &amp; Probability Mapping</span>
+          <SectionAnchor id="sigmoid" />
         </div>
 
         <div className="space-y-2">
@@ -572,6 +560,7 @@ return (
             <div className="flex items-center space-x-2 text-[13px] font-mono text-safe-700 font-bold uppercase tracking-wider">
               <Layers className="w-4 h-4" />
               <span>Section 03 · Mathematical Factor Breakdown</span>
+              <SectionAnchor id="factors" />
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-ink mt-1">
               Specification of All {MODEL_FACTORS.length} Model Factors
@@ -653,6 +642,7 @@ return (
         <div className="flex items-center space-x-2 text-[13px] font-mono text-risk-700 font-bold uppercase tracking-wider">
           <AlertTriangle className="w-4 h-4" />
           <span>Section 04 · Systemic Contagion Nonlinear Synergy Term</span>
+          <SectionAnchor id="contagion" />
         </div>
 
         <div className="space-y-2">
@@ -803,6 +793,7 @@ return (
         <div className="flex items-center space-x-2 text-[13px] font-mono text-safe-700 font-bold uppercase tracking-wider">
           <ShieldCheck className="w-4 h-4" />
           <span>Section 05 · Degradation Honesty Protocol &amp; Weight Renormalization</span>
+          <SectionAnchor id="degradation" />
         </div>
 
         <div className="space-y-2">
@@ -863,6 +854,7 @@ return (
           <div className="flex items-center space-x-2 text-[13px] font-mono text-safe-700 font-bold uppercase tracking-wider">
             <BarChart3 className="w-4 h-4" />
             <span>Section 06 · Historical Consistency (Reproducible, Not Validated)</span>
+            <SectionAnchor id="backtests" />
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-ink mt-1">
             Case-Enriched Historical Consistency Across Previous Speculative Epochs
@@ -982,6 +974,14 @@ return (
             counting the open 2026 window as a non-burst) is structurally optimistic for the same
             reason. No score is published for this model until a pre-registered event matures.
           </p>
+          <p className="text-ink-subtle">
+            And every resolved row in the table <strong className="text-ink">burst</strong> — there is no
+            non-burst episode in it at all. The table therefore contains no false-positive evidence
+            whatsoever: it can show that the model catches busts, and nothing about how often the model
+            cries wolf on a regime that did not break. Read the published probability as a conditional
+            estimate given a stress regime, and read the prediction-market price for the same question
+            (published on this site) as the only live estimate that carries a false-positive record.
+          </p>
         </div>
       </section>
 
@@ -991,6 +991,7 @@ return (
           <div className="flex items-center space-x-2 text-[13px] font-mono text-ink-muted font-bold uppercase tracking-wider">
             <Cpu className="w-4 h-4" />
             <span>Section 07 · Alignment with Classical Financial Models</span>
+            <SectionAnchor id="classical-models" />
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-ink mt-1">
             Merton (1974), Altman Z&apos;&apos; (2002), LPPLS, Minsky (1986) &amp; Shiller CAPE Models
@@ -1307,6 +1308,7 @@ return (
           <div className="flex items-center space-x-2 text-[13px] font-mono text-safe-700 font-bold uppercase tracking-wider">
             <RefreshCw className="w-4 h-4 animate-spin text-safe-700" />
             <span>Section 08 · Autonomous 24-Hour Continuous Execution Protocol</span>
+            <SectionAnchor id="continuous-pipeline" />
           </div>
           <h2 className="text-xl sm:text-3xl font-extrabold text-ink mt-1 tracking-tight">
             Automated Daily Ingestion, Quantitative Recalibration &amp; Git-Backed Audit Trail
@@ -1842,6 +1844,7 @@ return (
           <div className="flex items-center space-x-2 text-[13px] font-mono text-ink-muted font-bold uppercase tracking-wider">
             <Scale className="w-4 h-4" />
             <span>Section 09 · Minsky Financial Instability Hypothesis &amp; Shiller Excess CAPE Yields</span>
+            <SectionAnchor id="minsky-shiller" />
           </div>
           <h2 className="text-xl sm:text-3xl font-extrabold text-ink tracking-tight">
             Structural Credit Regimes, Equity Risk Premia &amp; Historical Consistency Matrix

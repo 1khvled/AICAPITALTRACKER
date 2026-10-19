@@ -126,8 +126,8 @@ const ARTIFACT = fs.existsSync(ARTIFACT_PATH)
 
 /**
  * The FROZEN wave-1 canon (scripts/fixtures/wave1-canon.json) — the input set
- * and artifact constants the wave-1 print (71.6% / composite 63.3 / fragility
- * 65.6) was published from. The live inputs move with the market every day, so
+ * and artifact constants the wave-1 print (31.8% / composite 48.1 / fragility
+ * 52.0) was published from. The live inputs move with the market every day, so
  * PRINT-STABILITY checks must never run on them: a formula edit that shifts the
  * frozen print fails the suite here until the fixture expectations are
  * deliberately updated (that is the wave-2 gate). Structural checks
@@ -659,15 +659,15 @@ await runTest(
     // the market every day, so pinning the live print would fail the pipeline on
     // every legitimate data revision — exactly what happened on 2026-10-19. The
     // frozen set never moves: a formula edit that shifts the wave-1 print
-    // (71.6% / 63.3) fails here until the fixture is deliberately updated.
+    // (31.8% / 48.1) fails here until the fixture is deliberately updated.
     const frozen = evaluateBubbleModel(FROZEN_INPUTS);
     assert(
-      frozen.burstProbability === 71.6,
-      `Frozen wave-1 probability must stay 71.6, got ${frozen.burstProbability}`,
+      frozen.burstProbability === 31.8,
+      `Frozen canon probability must stay 31.8, got ${frozen.burstProbability}`,
     );
     assert(
-      frozen.compositeScore === 63.3,
-      `Frozen wave-1 composite must stay 63.3, got ${frozen.compositeScore}`,
+      frozen.compositeScore === 48.1,
+      `Frozen canon composite must stay 48.1, got ${frozen.compositeScore}`,
     );
 
     // 1. dP/dCDS >= 0.5 probability points per 100bp, strictly positive (the reference
@@ -711,20 +711,31 @@ await runTest(
 
     // 4. Flat-print relief must be BOUNDED: with priorBps === currentBps the factor keeps
     //    85% of the level ramp (the old form read a flat record print as −17.1 points).
+    //    The multiplier is measured against the SAME print with a full momentum ramp
+    //    (priorBps 80bp lower), so the assertion does not depend on how large the
+    //    level ramp itself is.
     const flat = evaluateBubbleModel({
       ...LIVE_INPUTS,
       cds: { ...LIVE_INPUTS.cds, currentBps: REF, priorBps: REF },
     });
+    const momentumFull = evaluateBubbleModel({
+      ...LIVE_INPUTS,
+      cds: { ...LIVE_INPUTS.cds, currentBps: REF, priorBps: REF - 80 },
+    });
     const flatCore = coreOf(flat);
+    const flatMultiplier = flatCore / coreOf(momentumFull);
     const reliefPts = base.compositeScore - flat.compositeScore;
-    assert(flatCore >= 0.85 - 1e-9, `Flat-print momentum multiplier must be >= 0.85, got ${flatCore}`);
-    assert(flatCore > 0.7 + 1e-9, `Flat-print core must exceed the old additive 0.70 form, got ${flatCore}`);
+    assert(
+      flatMultiplier >= 0.85 - 1e-9,
+      `Flat-print momentum multiplier must be >= 0.85, got ${flatMultiplier}`,
+    );
+    assert(flatMultiplier > 0.7 + 1e-9, `Flat-print core must exceed the old additive 0.70 form, got ${flatMultiplier}`);
     assert(
       reliefPts <= 8,
       `Flat-print relief must be bounded to 8 composite points, got ${reliefPts.toFixed(2)}`,
     );
 
-    return `Frozen wave-1 print 71.6% / 63.3 stable. Live ${REF}→900bp: ${deltas.join(' ')} (>= 0.5pt/100bp). Score strictly increasing to ${prevScore.toFixed(4)} (ceiling 2.0). Flat-print relief ${reliefPts.toFixed(2)} composite pts (core ${flatCore.toFixed(2)}).`;
+    return `Frozen canon print 31.8% / 48.1 stable. Live ${REF}→900bp: ${deltas.join(' ')} (>= 0.5pt/100bp). Score strictly increasing to ${prevScore.toFixed(4)} (ceiling 2.0). Flat-print relief ${reliefPts.toFixed(2)} composite pts (core ${flatCore.toFixed(2)}).`;
   }
 );
 
@@ -794,13 +805,13 @@ await runTest(
       `More deflation must lower the burst probability (demand credit): 200× ${d200}% vs 500× ${d500}%`,
     );
 
-    // 3. PRINT STABILITY + the 500× clamp run on the FROZEN wave-1 canon: the live
+    // 3. PRINT STABILITY + the 500× clamp run on the FROZEN canon: the live
     //    inputs move daily, the frozen set carries the published 670× print. The
     //    deflation leg clamps at 500×, so 500× and 670× must print the same value.
     const frozen = evaluateBubbleModel(FROZEN_INPUTS);
     assert(
-      frozen.burstProbability === 71.6,
-      `Frozen wave-1 probability must stay 71.6, got ${frozen.burstProbability}`,
+      frozen.burstProbability === 31.8,
+      `Frozen canon probability must stay 31.8, got ${frozen.burstProbability}`,
     );
     const frozenAtDefl = (d) =>
       evaluateBubbleModel({
@@ -1077,7 +1088,7 @@ await runTest(
 await runTest(
   18,
   'Documented Formulas & Page-Sourced Strings',
-  'Executes src/lib/model/documentFormulas.ts on the frozen wave-1 canon (fragility 65.6, freeze 0.196, ECY 0.34, DD 5.13, Altman 8.41, LPPLS 81.5, odds 2.72) and greps methodology/page.tsx for the published strings',
+  'Executes src/lib/model/documentFormulas.ts on the frozen canon (fragility 52.0, freeze 0.196, ECY 0.34, DD 5.13, Altman 8.41, LPPLS 81.5, odds 2.72) and greps methodology/page.tsx for the published strings',
   async () => {
     const doc = loadTsModule(['types.ts', 'factors.ts', 'documentFormulas.ts']).documentFormulas;
 
@@ -1094,11 +1105,15 @@ await runTest(
       capexToOcfRatio: FROZEN_INPUTS.aiDebt.capexToOcfRatio,
     };
 
-    // 1. Minsky Financial Fragility Index — published 65.6.
+    // 1. Minsky Financial Fragility Index — published 65.6. NOTE: this is the
+    //    MINSKY index (0.65·Ponzi% + 4.394·CDS_excess), not the engine's
+    //    derivative-weighted fragilityIndex — a different published metric. The
+    //    credit factor's ramp does not enter it, so the wave-2 de-saturation
+    //    left it unchanged.
     const fragility = doc.minskyFragilityIndex(minskyInputs);
     assert(
       Math.abs(fragility - 65.6) <= 0.05,
-      `Minsky fragility ${fragility} must be 65.6 ± 0.05 on the frozen wave-1 canon`,
+      `Minsky fragility ${fragility} must be 65.6 ± 0.05 on the frozen canon`,
     );
 
     // 2. Refinancing-freeze probability — published 19.6% (0.196).
@@ -1198,17 +1213,17 @@ await runTest(
       `the published freeze formula is wrong: "${doc.MODEL_DOC_FORMULAS.refi_freeze.formula}"`,
     );
 
-    // 9. The composite reconciliation the page prints (61.5 + 7.0 − 5.2 = 63.3)
+    // 9. The composite reconciliation the page prints (50.5 + 2.8 − 5.2 = 48.1)
     //    and the contagion term's leverage in probability points.
     const reconciliation = doc.reconcileComposite({
-      riskPoints: 61.5,
-      contagionPoints: 7.0,
+      riskPoints: 50.5,
+      contagionPoints: 2.8,
       damperPoints: -5.2,
     });
-    assert(reconciliation.compositeScore === 63.3, `the reconciled composite must be 63.3, got ${reconciliation.compositeScore}`);
+    assert(reconciliation.compositeScore === 48.1, `the reconciled composite must be 48.1, got ${reconciliation.compositeScore}`);
     assert(
-      Math.abs(reconciliation.leveragePoints - 17.9) <= 0.1,
-      `the contagion leverage must be 17.9 ± 0.1 probability points, got ${reconciliation.leveragePoints}`,
+      Math.abs(reconciliation.leveragePoints - 6.3) <= 0.1,
+      `the contagion leverage must be 6.3 ± 0.1 probability points, got ${reconciliation.leveragePoints}`,
     );
 
     // 10. The page must render the executed formulas, not a hand-typed copy.

@@ -58,6 +58,11 @@ export async function GET() {
         lastVerified: lastRun?.timestamp || new Date().toISOString(),
       },
     },
+    // 2026-10-20 (model v2.7.0): every fallback below is re-synced to the published
+    // output in src/data/latest-model.json (burst 32.3 / composite 48.3 / band "guarded"
+    // after the credit factor's level ramp stopped clipping at x3; MC median 26.3,
+    // VaR95 75.3, VaR99 92.9). LPPLS 81.5, Minsky MFI 65.6 and Shiller ECY 0.34 are
+    // unchanged — they do not read the credit ramp.
     // 2026-10-19 (round-2 consolidation): every fallback below is re-synced to the published
     // output in src/data/latest-model.json (burst 71.6 / composite 63.3 / band "high" after the
     // HY-OAS correction to the FRED print; LPPLS 81.5; Minsky MFI 65.6; Shiller ECY 0.34).
@@ -69,17 +74,17 @@ export async function GET() {
     // NOTE: `sornetteLpplsHazardPct` keeps its published name (no shape change), but the
     // value it carries is a hazard INDEX, not a probability — it is published without a %.
     latestModelSummary: {
-      burstProbability: latestModel?.burstProbability ?? 71.6,
-      band: latestModel?.band ?? "high",
-      compositeScore: latestModel?.compositeScore ?? 63.3,
+      burstProbability: latestModel?.burstProbability ?? 32.3,
+      band: latestModel?.band ?? "guarded",
+      compositeScore: latestModel?.compositeScore ?? 48.3,
       mertonDD: latestModel?.merton?.distanceToDefault ?? 5.13,
       altmanZ: latestModel?.altman?.score ?? 8.41,
       sornetteLpplsHazardPct: latestModel?.lppls?.crashHazardRatePct ?? 81.5,
       minskyRegime: (latestModel as any)?.minsky?.currentRegime ?? "Speculative Transition",
       minskyFragility: (latestModel as any)?.minsky?.minskyFragilityIndex ?? 65.6,
       shillerECY: (latestModel as any)?.shillerCape?.excessCapeYieldPct ?? 0.34,
-      monteCarloMedianProbPct: latestModel?.monteCarlo?.medianProbabilityPct ?? 67.5,
-      monteCarlo95VaRPct: latestModel?.monteCarlo?.valueAtRisk95Pct ?? 84.6,
+      monteCarloMedianProbPct: latestModel?.monteCarlo?.medianProbabilityPct ?? 26.3,
+      monteCarlo95VaRPct: latestModel?.monteCarlo?.valueAtRisk95Pct ?? 75.3,
       monteCarlo99VaRPct: (latestModel as any)?.monteCarlo?.valueAtRisk99Pct ?? 92.9,
     },
   });

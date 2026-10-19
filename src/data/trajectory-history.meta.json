@@ -6,40 +6,51 @@
     "reason": "the 89 interpolated points (2026-07-22 … 2026-10-18) were a linear backfill with sine noise, not observed market history; they also carried a synthetic var95 = probability × 1.8 series",
     "retired_on": "2026-10-19"
   },
-  "formula_revision": {
-    "date": "2026-10-19",
-    "what": "the algorithm summit (model v2.6.0) re-specified the credit tail, the MC horizon and the sensitivity-band label. The point estimate on the canonical inputs did not move (71.6% before and after).",
-    "problem_it_created": "the 2026-10-18 row had been produced by the previous (unversioned) formula, which printed 42.8% on that day's inputs. Published next to the v2.6.0 print it read as a +29.5 point one-day market move that never happened.",
-    "resolution": "the 2026-10-18 row was RECOMPUTED under v2.6.0 from that day's canonical inputs (src/data/live-inputs.json as committed at db0f32e). The recomputation returns exactly 71.6% / composite 63.3 / VaR95 84.6 / Merton DD 5.13 — identical to the frozen wave-1 canon in scripts/fixtures/wave1-canon.json. The row therefore shows the model move of +0.7 points on 2026-10-19, which is the real market move (HY-OAS 323 → 331bp, US10Y 5.10 → 5.14%, Polymarket 9.05% → 8.6%).",
-    "not_fabricated": "no input was altered and no print was invented: the row is the published v2.6.0 engine evaluated on the published canonical input set of that day. The original print and the formula that produced it are retained on the row (originalPrintPct 42.8, originalModelVersion) and in this file.",
-    "revision_range": "the 14 runs resolved on 2026-10-18 were made under the previous formula, so their probability range (41.2–64%) is not comparable with a v2.6.0 print. The range is published as null on that row rather than mixed across formula versions. The 2026-10-19 range (36.5–72.3% over 17 runs) is entirely v2.6.0 and is published as usual."
-  },
+  "formula_revisions": [
+    {
+      "date": "2026-10-20",
+      "version": "2.7.0",
+      "what": "the credit factor's level ramp now spans the full crisis range (x1 → x7.5556, the model's own published panic extent) instead of clipping at x3.",
+      "why_it_mattered": "the ramp ceiling (3x = 243bp) sat BELOW the live print (3.556x = 288bp), so the factor had been pinned at its full 18 of 18 points since 243bp: 261bp (8 Oct) and 288bp (15 Oct) scored identically, and that one constant contributed 46.3 of the 72.3 probability points.",
+      "resolution": "both rows are RECOMPUTED under v2.7.0 from their own canonical inputs. The 2026-10-18 row (composite 48.1 / 31.8%) comes from that day's canonical input set — the same set as scripts/fixtures/wave1-canon.json; the 2026-10-19 row is the live output (composite 48.3 / 32.3%). The day-over-day move is +0.5 points, which is the real market move (HY-OAS 323 → 331bp, US10Y 5.10 → 5.14%, Polymarket 9.05% → 8.6%).",
+      "not_fabricated": "no input was altered and no print was invented: every row is the published v2.7.0 engine evaluated on that day's canonical inputs. The superseded prints are retained on the rows (originalPrintPct) and in this file.",
+      "revision_range": "the same-day revision ranges were resolved under earlier formula versions, so they are published as null rather than mixed across formula versions."
+    },
+    {
+      "date": "2026-10-19",
+      "version": "2.6.0",
+      "what": "the algorithm summit re-specified the credit tail, the MC horizon and the sensitivity-band label. The point estimate on the canonical inputs did not move (71.6% before and after).",
+      "problem_it_created": "the 2026-10-18 row had been produced by the previous (unversioned) formula, which printed 42.8% on that day's inputs. Published next to the v2.6.0 print it read as a +29.5 point one-day market move that never happened.",
+      "resolution": "the 2026-10-18 row was recomputed under v2.6.0 from that day's canonical inputs (src/data/live-inputs.json at db0f32e), which returned exactly 71.6% / composite 63.3 / VaR95 84.6 — identical to the frozen canon.",
+      "not_fabricated": "no input was altered and no print was invented: the row is the published engine evaluated on the published canonical input set of that day. The original print and the formula that produced it are retained on the row and in this file."
+    }
+  ],
   "schema": {
     "modelRun": "'observed' — the row came from a real pipeline run (the only kind of row that exists now)",
     "modelVersion": "the model version that produced the row. Rows from different formula versions must not be read as one continuous market series.",
-    "recomputedUnderModel": "present only on a row whose probability was recomputed under a later formula from that day's canonical inputs (see formula_revision)",
+    "recomputedUnderModel": "present only on a row whose probability was recomputed under a later formula from that day's canonical inputs (see formula_revisions)",
     "originalPrintPct": "the print the row originally carried, before the recomputation — kept for the audit trail",
-    "revision_min_pct": "lowest burst probability resolved on that UTC day (sync-history.json telemetry); null when the day's runs were resolved under a different formula",
-    "revision_max_pct": "highest burst probability resolved on that UTC day (sync-history.json telemetry); null when the day's runs were resolved under a different formula",
-    "revision_runs": "number of resolved runs on that UTC day (the run count is PER UTC DAY); null when the day's runs were resolved under a different formula",
+    "revision_min_pct": "lowest burst probability resolved on that UTC day (sync-history.json telemetry); null when the day's runs were resolved under a different formula version",
+    "revision_max_pct": "highest burst probability resolved on that UTC day (sync-history.json telemetry); null when the day's runs were resolved under a different formula version",
+    "revision_runs": "number of resolved runs on that UTC day (the run count is PER UTC DAY); null when the day's runs were resolved under a different formula version",
     "backfilled": "always false — retained only so the out-of-lane UI consumers keep compiling",
-    "var95": "present only on rows produced by a canonical run with a Monte-Carlo artifact (2026-10-18: 84.6, 2026-10-19: 84.7)"
+    "var95": "present only on rows produced by a canonical run with a Monte-Carlo artifact (2026-10-18: 75.1, 2026-10-19: 75.3)"
   },
   "rows": [
     {
       "date": "2026-10-18",
-      "source": "2026-10-18 canonical input set (src/data/live-inputs.json at db0f32e), recomputed under model v2.6.0 — identical to the frozen wave-1 canon in scripts/fixtures/wave1-canon.json",
-      "original_source": "last successful pipeline run of 2026-10-18 (sync-history.json, 2026-10-18T22:46:01.343Z), computed under the previous formula",
-      "probability": 71.6,
-      "original_probability": 42.8,
+      "source": "2026-10-18 canonical input set (src/data/live-inputs.json at db0f32e), recomputed under model v2.7.0",
+      "probability": 31.8,
+      "composite_score": 48.1,
+      "original_probability_under_v2_6_0": 71.6,
       "revision_range_pct": null
     },
     {
       "date": "2026-10-19",
-      "source": "canonical artifact (src/data/latest-model.json, model v2.6.0)",
-      "probability": 72.3,
-      "revision_range_pct": [36.5, 72.3],
-      "revision_runs": 17
+      "source": "canonical artifact (src/data/latest-model.json, model v2.7.0)",
+      "probability": 32.3,
+      "composite_score": 48.3,
+      "revision_range_pct": null
     }
   ]
 }

@@ -84,7 +84,7 @@ export const logisticMapping = (score) => 1 / (1 + Math.exp(-(score - kellyAncho
 //     truncates the 2000/2008 tail; HY-OAS is de-collinearised from Oracle CDS.
 //
 // Published model constants (mirrored from src/lib/model/factors.ts):
-export const MODEL_VERSION = '2.6.0';
+export const MODEL_VERSION = '2.7.0';
 export const MARKET_IMPLIED_12M_PCT = 23.0;
 export const FRAGILITY_INDEX_BASIS =
   'derivative-weighted fragility from the same factor scores — not a first-derivative measure';
@@ -133,7 +133,16 @@ export function evaluateBubbleModel(inputs, options = {}) {
     let reading = 'No verified CDS datapoint';
     let coverage = 0;
     if (cds) {
-      const level = ramp(cds.currentBps / cds.baselineBps, 1, 3);
+      // 2026-10-20 (v2.7.0): DE-SATURATION. The level ramp used to top out at 3x
+      // baseline (243bp) while the convex tail only starts at 3.5556x (the record
+      // print), so every print in between read exactly 1.000 - 261bp and 288bp
+      // scored identically and the factor had been pinned at its full 18 points
+      // since 243bp. The ceiling is now the point where the factor's own published
+      // panic premium is fully earned (tail origin + tail span = 7.5556x), so the
+      // linear part spans the whole crisis range and the convex part prices the
+      // panic region on top. No new constant: 288/81 + 4.
+      const CDS_LEVEL_CEILING_RATIO = 288 / 81 + 4;
+      const level = ramp(cds.currentBps / cds.baselineBps, 1, CDS_LEVEL_CEILING_RATIO);
       const momentum = ramp(cds.currentBps - cds.priorBps, 0, 80);
       // 2026-10-19 (v2.6.0): momentum is a MULTIPLIER (a flat record print is "no new
       // stress", not "a 30% collapse in stress"), and a convex RATIO-SPACE tail extends
@@ -1198,9 +1207,9 @@ export const HISTORICAL_BACKTESTS = [
     // 2026-10-19 (round-2 consolidation): composite 63.4 → 63.3 and probability 71.7 → 71.6 — the
     // re-baselined published output after the HY-OAS correction to the FRED print (323bp). The entry
     // describes the CURRENT live output, so it must equal src/data/latest-model.json.
-    compositeScore: 63.3,
-    modelProbabilityPct: 71.6,
-    band: "High Stress",
+    compositeScore: 48.3,
+    modelProbabilityPct: 32.3,
+    band: "Guarded",
     actualBurstObserved: false, // In-progress evaluation window
     actualOutcomeDesc: "Active evaluation window (through October 2027). Elevated credit risk (record Oracle 5Y CDS) against a 670× token price decline and real enterprise software ARR.",
     // 2026-10-19 (v2.6.0): the window is OPEN — it carries no Brier score at all.

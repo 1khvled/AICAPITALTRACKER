@@ -53,21 +53,20 @@ export interface TrajectoryPoint {
  * Fallback trajectory — used ONLY when src/data/trajectory-history.json is
  * missing or empty (19 Oct 2026).
  *
- * Re-anchored to the published world: the recorded 90-day path runs 38.6% →
- * 71.6% burst probability on a composite score of 48.3 → 63.3, with Merton
- * distance-to-default 5.13σ and Monte Carlo VaR95 84.6% at the current point
- * (src/data/latest-model.json, model v2.6.0). The UI marks the panel as a
+ * Re-anchored to the published world: the recorded path runs 31.8% → 32.3%
+ * burst probability on a composite score of 48.1 → 48.3, with Merton
+ * distance-to-default 5.13σ and Monte Carlo VaR95 75.3% at the current point
+ * (src/data/latest-model.json, model v2.7.0). The UI marks the panel as a
  * fallback whenever this array is the source.
  *
- * 2026-10-19 (round-2 consolidation): end-point re-synced to
- * src/data/latest-model.json (burst 71.6 / composite 63.3) — the values had
- * been pinned to the pre-rebaseline 71.7 / 63.4.
+ * 2026-10-20 (v2.7.0): end-points re-synced to the wave-2 output (burst 32.3 /
+ * composite 48.3) after the credit factor's level ramp stopped clipping.
  */
 const FALLBACK_TRAJECTORY: TrajectoryPoint[] = Array.from({ length: 90 }, (_, i) => {
   const t = i / 89;
-  const prob = Math.round((38.6 + (71.6 - 38.6) * t) * 10) / 10;
-  const composite = Math.round((48.3 + (63.3 - 48.3) * t) * 10) / 10;
-  const delta90 = Math.round((prob - 38.6) * 10) / 10;
+  const prob = Math.round((31.8 + (32.3 - 31.8) * t) * 10) / 10;
+  const composite = Math.round((48.1 + (48.3 - 48.1) * t) * 10) / 10;
+  const delta90 = Math.round((prob - 31.8) * 10) / 10;
   return {
     dayIndex: i,
     date: `2026-${String(7 + Math.floor(i / 30)).padStart(2, "0")}-${String(1 + (i % 30)).padStart(2, "0")}`,
@@ -76,7 +75,7 @@ const FALLBACK_TRAJECTORY: TrajectoryPoint[] = Array.from({ length: 90 }, (_, i)
     compositeScore: composite,
     mertonDD: Math.round((5.82 + (5.13 - 5.82) * t) * 100) / 100,
     altmanZ: Math.round((8.8 + (8.41 - 8.8) * t) * 100) / 100,
-    var95: Math.round((72 + (84.6 - 72) * t) * 10) / 10,
+    var95: Math.round((72 + (75.3 - 72) * t) * 10) / 10,
     // 2026-10-19 (round-2 consolidation): "pts" — the trajectory deltas are probability-point
     // changes, matching trajectory-history.json and the home page.
     deltaVs90d: delta90 >= 0 ? `+${delta90.toFixed(1)} pts` : `${delta90.toFixed(1)} pts`,

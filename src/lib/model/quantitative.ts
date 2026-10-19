@@ -955,9 +955,15 @@ export const HISTORICAL_BACKTESTS: HistoricalBacktest[] = [
     // 2026-10-19 (round-2 consolidation): composite 63.4 → 63.3 and probability 71.7 → 71.6 — the
     // re-baselined published output after the HY-OAS correction to the FRED print (323bp). The entry
     // describes the CURRENT live output, so it must equal src/data/latest-model.json.
-    compositeScore: 63.3,
-    modelProbabilityPct: 71.6,
-    band: "High Stress",
+    // 2026-10-20 (v2.7.0): the credit factor's level ramp spans the full crisis
+    // range (x1 -> x7.5556) instead of clipping at x3, so the factor stopped
+    // contributing a flat 18 of 18 points and the published print moved with it:
+    // composite 63.3 -> 48.3, probability 71.6% -> 32.3%, band "High Stress" ->
+    // "Guarded". The entry describes the CURRENT live output, so it must equal
+    // src/data/latest-model.json.
+    compositeScore: 48.3,
+    modelProbabilityPct: 32.3,
+    band: "Guarded",
     actualBurstObserved: false, // In-progress evaluation window
     actualOutcomeDesc: "Active evaluation window (through October 2027). Elevated credit risk (record Oracle 5Y CDS) against a 670× token price decline and real enterprise software ARR.",
     // 2026-10-19 (v2.6.0): the window is OPEN — it carries no Brier score at all.

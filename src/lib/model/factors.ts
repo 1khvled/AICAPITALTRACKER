@@ -61,7 +61,7 @@ const steepness = 9; // logistic slope: ±9 points ≈ ±50% odds shift
 
 // ── Published model constants (v2.6.0) ─────────────────────────────────────
 /** Model version. Bumped when the published calibration changes (weights never do). */
-export const MODEL_VERSION = '2.6.0';
+export const MODEL_VERSION = '2.7.0';
 
 /**
  * The 8 risk factors' published weights sum to exactly 100 risk points and the
@@ -149,6 +149,12 @@ export const EMPIRICAL_DESIGN_MATRIX_5X5: {
 /** Model changelog. Calibration changes are versioned here; weights are not. */
 export const CHANGELOG: { version: string; date: string; scope: string }[] = [
   {
+    version: '2.7.0',
+    date: '2026-10-20',
+    scope:
+      'credit factor de-saturation — the level ramp now spans the full crisis range (×1 → ×7.556) instead of clipping at ×3, so the factor measures stress instead of adding a constant',
+  },
+  {
     version: '2.6.0',
     date: '2026-10-19',
     scope:
@@ -185,6 +191,26 @@ const CDS_TAIL_SPAN = 4.0; // tail spans 3.5556× → 7.5556× baseline
 const CDS_TAIL_WEIGHT = 0.3;
 const CDS_MOMENTUM_FLOOR = 0.85; // a flat print keeps 85% of the level ramp
 const CDS_SCORE_CEILING = 2.0; // panic ceiling: 18 × 2 = 36 composite points
+/**
+ * 2026-10-20 (v2.7.0) — DE-SATURATION. The level ramp used to top out at 3×
+ * baseline (243bp) while the convex tail only starts at 3.5556× (the record
+ * print). That left a DEAD ZONE: every print between 243bp and the record read
+ * exactly 1.000 — 261bp (8 Oct) and 288bp (15 Oct) scored identically, and the
+ * factor had been pinned at its full 18 points since 243bp. A factor that cannot
+ * see 45bp of movement in the range that matters is not measuring stress, it is
+ * adding a constant.
+ *
+ * The ceiling is now the point where the factor's OWN published panic premium
+ * is fully earned (tail origin + tail span = 7.5556× ≈ 611bp), so the linear
+ * part measures progress through the whole crisis range and the convex part
+ * prices the panic region on top. No new constant is introduced: the number
+ * comes from CDS_TAIL_ORIGIN_RATIO + CDS_TAIL_SPAN.
+ *
+ * Effect on the live canon: credit score 1.000 → 0.390 (7.0 of 18 points), the
+ * contagion term falls with it (it consumes the tail-free core), composite
+ * 63.6 → 48.3, published print 72.3% → 32.2%.
+ */
+const CDS_LEVEL_CEILING_RATIO = CDS_TAIL_ORIGIN_RATIO + CDS_TAIL_SPAN; // 7.5556×
 const cdStress: ModelFactor = {
   id: 'cds_stress',
   label: 'Credit stress (CDS spreads)',
@@ -193,11 +219,14 @@ const cdStress: ModelFactor = {
   explain:
     'A CDS is the insurance price on a company\'s debt. When it jumps, bond investors are quietly pricing default risk on AI\'s biggest borrowers.',
   formula:
-    'core = min(1, ramp(current ÷ baseline, ×1, ×3)·(0.85 + 0.15·ramp(90-day rise, +0bp, +80bp))); tail = max(0, (current ÷ baseline − 288/81) ÷ 4)^1.5; score = min(2.00, core + 0.30·tail)',
+    'core = min(1, ramp(current ÷ baseline, ×1, ×7.556)·(0.85 + 0.15·ramp(90-day rise, +0bp, +80bp))); tail = max(0, (current ÷ baseline − 288/81) ÷ 4)^1.5; score = min(2.00, core + 0.30·tail)',
   compute: (i) => {
     if (!i.cds) return { score: 0.35, coreScore: 0.35, reading: 'No verified CDS datapoint', coverage: 0 };
     const { currentBps, baselineBps, priorBps } = i.cds;
-    const level = ramp(currentBps / baselineBps, 1, 3); // 1× baseline calm, 3× extreme
+    // 1× baseline calm, the panic extent (7.5556×) extreme — see
+    // CDS_LEVEL_CEILING_RATIO: the level ramp spans the whole crisis range, so
+    // the factor can never sit pinned at 1.000 below a genuine credit event.
+    const level = ramp(currentBps / baselineBps, 1, CDS_LEVEL_CEILING_RATIO);
     const momentum = ramp(currentBps - priorBps, 0, 80); // +80bp in ~90 days = extreme
     const core = Math.min(
       1,
