@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ChevronDown,
   ChevronUp,
@@ -18,6 +19,8 @@ import {
 } from "@/data/live-stocks";
 import liveStocksData from "@/data/live-stocks.json";
 import { Reveal } from "@/components/Reveal";
+import { WatchToggle } from "@/components/WatchToggle";
+import { useWatchlist } from "@/lib/use-watchlist";
 
 /**
  * Quotes board for /markets.
@@ -297,33 +300,10 @@ function matchesQuery(stock: StockQuote, q: string): boolean {
 /* ─────────────────────────────────────────────────────────────────────────
    Watchlist
    --------------------------------------------------------------------------
-   A JSON array of tickers under one stable key. Read once after mount,
-   written only when the reader changes it, and every storage call is
-   wrapped — a private-mode browser, a disabled storage API or a corrupted
-   value must never break the board.
+   The list itself lives in src/lib/use-watchlist.ts — one list for the whole
+   site, under the key `aict-watchlist-v1`, read after mount and written only
+   from a toggle. The board and the /companies browser share it.
    ───────────────────────────────────────────────────────────────────────── */
-
-const WATCHLIST_KEY = "aict-watchlist-v1";
-
-function readWatchlist(): string[] {
-  try {
-    const raw = window.localStorage.getItem(WATCHLIST_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((ticker): ticker is string => typeof ticker === "string");
-  } catch {
-    return [];
-  }
-}
-
-function writeWatchlist(tickers: string[]): void {
-  try {
-    window.localStorage.setItem(WATCHLIST_KEY, JSON.stringify(tickers));
-  } catch {
-    /* storage unavailable (private mode, quota) — the in-memory list still works */
-  }
-}
 
 export type TerminalCategory =
   | "All"
@@ -357,40 +337,6 @@ function categoryLabel(category: TerminalCategory): string {
   if (category === "All") return "all categories";
   if (category === "Watchlist") return "your watchlist";
   return category;
-}
-
-/**
- * The row-level watchlist toggle. Icon plus a word — never icon only, so the
- * control explains itself without a tooltip.
- */
-function WatchToggle({
-  ticker,
-  saved,
-  onToggle,
-}: {
-  ticker: string;
-  saved: boolean;
-  onToggle: (ticker: string) => void;
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={saved}
-      onClick={() => onToggle(ticker)}
-      className={[
-        "inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border px-2 text-[13px] font-semibold transition-colors duration-150",
-        saved
-          ? "border-ink bg-ink text-canvas hover:bg-ink-muted hover:border-ink-muted"
-          : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:bg-surface-2 hover:text-ink",
-      ].join(" ")}
-    >
-      <Star className={`h-4 w-4 ${saved ? "fill-current" : ""}`} aria-hidden="true" />
-      <span>{saved ? "Saved" : "Save"}</span>
-      <span className="sr-only">
-        {saved ? ` — remove ${ticker} from your watchlist` : ` — add ${ticker} to your watchlist`}
-      </span>
-    </button>
-  );
 }
 
 /**
@@ -453,29 +399,68 @@ function SortHeader({
   );
 }
 
+/**
+ * A key cap in the keyboard hint line. It sits at 13px — a chip, not fine
+ * print — so the hint never drops below the type floor.
+ */
+function Kbd({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd className="num rounded border border-rule bg-surface-2 px-1.5 py-0.5 text-[13px] font-semibold text-ink-muted">
+      {children}
+    </kbd>
+  );
+}
+
+/**
+ * Is the reader typing? A field, a text area or an editable region means the
+ * keys belong to the text, not to the board.
+ */
+function isTypingTarget(target: EventTarget | null): boolean {
+  if (!target) return false;
+  const element = target as HTMLElement;
+  if (
+    element.tagName === "INPUT" ||
+    element.tagName === "TEXTAREA" ||
+    element.tagName === "SELECT"
+  ) {
+    return true;
+  }
+  return element.isContentEditable === true;
+}
+
 export function LiveStockMonitor() {
+  const router = useRouter();
   const [category, setCategory] = useState<TerminalCategory>("All");
   const [query, setQuery] = useState<string>("");
   const [sort, setSort] = useState<SortState>(DEFAULT_SORT);
-  const [watchlist, setWatchlist] = useState<string[]>([]);
+
+  /**
+   * The shared watchlist — ONE list for the whole site. The hook reads the
+   * stored list after mount and writes only from the toggle handler, so the
+   * server render and the first client render always agree.
+   */
+  const { watchlist, isWatched, toggle: toggleTicker } = useWatchlist();
 
   const showMacro = category === "All" || category === "Macro";
 
-  // The watchlist is read AFTER mount — never during render, so the server
-  // markup and the first client render are identical.
-  useEffect(() => {
-    setWatchlist(readWatchlist());
-  }, []);
-
   const watchlistSet = useMemo(() => new Set(watchlist), [watchlist]);
 
-  // The pool the filters act on: one category, or the saved watchlist.
-  const scoped = useMemo(() => {
-    if (category === "Watchlist") {
-      return INITIAL_STOCKS.filter((stock) => watchlistSet.has(stock.ticker));
-    }
-    return INITIAL_STOCKS.filter((stock) => inCategory(stock, category));
-  }, [category, watchlistSet]);
+  /**
+   * The pool the filters act on: one category, or the saved watchlist.
+   *
+   * The two pools are kept apart on purpose. Saving a ticker while the
+   * reader is looking at the full board must not re-create the list of rows
+   * — otherwise the selection under their feet would jump.
+   */
+  const categoryPool = useMemo(
+    () => INITIAL_STOCKS.filter((stock) => inCategory(stock, category)),
+    [category]
+  );
+  const watchPool = useMemo(
+    () => INITIAL_STOCKS.filter((stock) => watchlistSet.has(stock.ticker)),
+    [watchlistSet]
+  );
+  const scoped = category === "Watchlist" ? watchPool : categoryPool;
 
   // The rows on screen: the pool, filtered by the text query, then sorted.
   const visible = useMemo(() => {
@@ -489,6 +474,192 @@ export function LiveStockMonitor() {
     return { advancing: up, declining: INITIAL_STOCKS.length - up };
   }, []);
 
+  /* ───────────────────────────────────────────────────────────────────────
+     Current row — roving focus
+     ─────────────────────────────────────────────────────────────────────── */
+
+  /** The row under the reader's cursor. `null` means no row is selected. */
+  const [activeIndex, setActiveIndex] = useState<number | null>(0);
+  /** The same value, readable inside the keyboard handler. */
+  const activeIndexRef = useRef<number | null>(0);
+  /** What a screen reader is told about the current row. */
+  const [announcement, setAnnouncement] = useState("");
+  const lastAnnounced = useRef<number | null>(0);
+
+  const boardRef = useRef<HTMLDivElement | null>(null);
+  const searchRef = useRef<HTMLInputElement | null>(null);
+  const tableRowsRef = useRef<Array<HTMLTableRowElement | null>>([]);
+  const listRowsRef = useRef<Array<HTMLLIElement | null>>([]);
+
+  const setActive = useCallback((next: number | null) => {
+    activeIndexRef.current = next;
+    setActiveIndex(next);
+  }, []);
+
+  /**
+   * A filter or a sort change re-orders the rows under the reader's feet,
+   * so the selection goes back to the first visible row. It can never point
+   * at a row that is no longer on the page.
+   */
+  useEffect(() => {
+    setActive(visible.length > 0 ? 0 : null);
+  }, [visible, setActive]);
+
+  /**
+   * Say the current row out loud. The row itself holds the focus (roving
+   * focus), and this live region names it and says where it sits in the
+   * list, so the position is announced and not only the ticker.
+   */
+  useEffect(() => {
+    if (lastAnnounced.current === activeIndex) return;
+    lastAnnounced.current = activeIndex;
+    if (activeIndex === null) {
+      setAnnouncement("Row selection cleared.");
+      return;
+    }
+    const stock = visible[activeIndex];
+    if (!stock) return;
+    setAnnouncement(
+      `${stock.ticker}, ${stock.name}. Row ${activeIndex + 1} of ${visible.length}.`
+    );
+  }, [activeIndex, visible]);
+
+  /** Move the DOM focus to a row — the table on a wide screen, the list on a phone. */
+  const focusRow = useCallback((index: number) => {
+    const candidates = [tableRowsRef.current[index], listRowsRef.current[index]];
+    for (const element of candidates) {
+      if (element && element.getClientRects().length > 0) {
+        element.focus();
+        return;
+      }
+    }
+  }, []);
+
+  /** The company profile — the same target the ticker link uses. */
+  const openProfile = useCallback(
+    (ticker: string) => {
+      router.push(`/companies?search=${encodeURIComponent(ticker)}`);
+    },
+    [router]
+  );
+
+  const moveSelection = useCallback(
+    (delta: number) => {
+      const count = visible.length;
+      if (count === 0) return;
+      const current = activeIndexRef.current;
+      const next =
+        current === null
+          ? delta > 0
+            ? 0
+            : count - 1
+          : Math.min(Math.max(current + delta, 0), count - 1);
+      setActive(next);
+      focusRow(next);
+    },
+    [visible, setActive, focusRow]
+  );
+
+  /**
+   * The board's keyboard.
+   *
+   *   J / ↓   next row           K / ↑   previous row
+   *   Enter   open the profile   Space   open the profile
+   *   /       filter field       Esc     clear the selection
+   *
+   * Scope: the listener sits on the window in the CAPTURE phase, so it runs
+   * before any other listener on the page — that is what lets the board own
+   * "/" while it holds the keyboard, without the site's command palette
+   * opening on top of it. It only acts while the board is engaged: the focus
+   * is inside the board, or nothing on the page has been focused yet. It
+   * never fires while the reader is typing in a field, and never for a
+   * Ctrl/Cmd/Alt combination — those belong to the browser.
+   */
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+      const board = boardRef.current;
+      if (!board) return;
+
+      const active = document.activeElement;
+      const insideBoard = !!active && board.contains(active);
+      const nothingFocused = !active || active === document.body;
+      if (!insideBoard && !nothingFocused) return;
+
+      const target = event.target as HTMLElement | null;
+      const typing = isTypingTarget(target);
+
+      if (typing) {
+        // Escape inside the filter field clears the filter, not the row.
+        if (event.key === "Escape" && target instanceof HTMLInputElement && target.value) {
+          setQuery("");
+        }
+        return;
+      }
+
+      // "/" focuses the filter field — but only while the board holds the
+      // keyboard. Anywhere else on the site the command palette owns it.
+      if (event.key === "/") {
+        if (!insideBoard) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const input = searchRef.current;
+        if (input) {
+          input.focus();
+          input.select();
+        }
+        return;
+      }
+
+      if (event.key === "Escape") {
+        if (activeIndexRef.current === null) return;
+        setActive(null);
+        return;
+      }
+
+      const down = event.key === "j" || event.key === "ArrowDown";
+      const up = event.key === "k" || event.key === "ArrowUp";
+      if (down || up) {
+        event.preventDefault();
+        event.stopPropagation();
+        moveSelection(down ? 1 : -1);
+        return;
+      }
+
+      if (event.key === "Enter" || event.key === " ") {
+        const index = activeIndexRef.current;
+        if (index === null) return;
+        const stock = visible[index];
+        if (!stock) return;
+        const control = target
+          ? target.closest("a, button, input, select, textarea")
+          : null;
+        if (control) {
+          // A control inside the row keeps its own behaviour. Enter on the
+          // ticker link follows it — the same target — and Space on any
+          // other control stays that control's own key.
+          if (event.key === "Enter") return;
+          if (
+            !(control instanceof HTMLElement) ||
+            !control.hasAttribute("data-board-ticker")
+          ) {
+            return;
+          }
+          event.preventDefault();
+          openProfile(stock.ticker);
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        openProfile(stock.ticker);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [moveSelection, openProfile, setActive, visible]);
+
   const onSort = useCallback((key: SortKey) => {
     setSort((prev) =>
       prev.key === key
@@ -499,16 +670,15 @@ export function LiveStockMonitor() {
 
   const toggleWatch = useCallback(
     (ticker: string) => {
-      const next = watchlist.includes(ticker)
-        ? watchlist.filter((t) => t !== ticker)
-        : [...watchlist, ticker];
-      writeWatchlist(next);
-      setWatchlist(next);
+      const wasSaved = isWatched(ticker);
+      toggleTicker(ticker);
       // Un-saving the last ticker while the watchlist view is open would
       // leave an empty table behind — step back to the full list instead.
-      if (next.length === 0 && category === "Watchlist") setCategory("All");
+      if (wasSaved && category === "Watchlist" && watchlist.length === 1) {
+        setCategory("All");
+      }
     },
-    [watchlist, category]
+    [isWatched, toggleTicker, category, watchlist.length]
   );
 
   const resetFilters = useCallback(() => {
@@ -517,10 +687,20 @@ export function LiveStockMonitor() {
   }, []);
 
   const watchlistEmpty = watchlist.length === 0;
+  /** Only the current row is in the tab order; the first row keeps it when nothing is selected. */
+  const tabStopIndex = activeIndex ?? 0;
 
   return (
     <Reveal>
-    <div className="card card-flush shadow-card transition-shadow duration-200 hover:shadow-raised">
+    <div
+      ref={boardRef}
+      className="card card-flush shadow-card transition-shadow duration-200 hover:shadow-raised"
+    >
+      {/* What a screen reader is told about the current row. */}
+      <p aria-live="polite" aria-atomic="true" className="sr-only">
+        {announcement}
+      </p>
+
       {/* Board header */}
       <div className="card-header flex-wrap gap-x-4 gap-y-2">
         <div className="min-w-0">
@@ -602,6 +782,7 @@ export function LiveStockMonitor() {
             </label>
             <input
               id="markets-quote-search"
+              ref={searchRef}
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -635,6 +816,13 @@ export function LiveStockMonitor() {
           {watchlistEmpty
             ? "Save a ticker to build a watchlist."
             : `${watchlist.length} ticker${watchlist.length === 1 ? "" : "s"} saved on this device.`}
+        </p>
+
+        {/* The board's keys, always in the same place. */}
+        <p className="mt-1 text-[13px] leading-snug text-ink-subtle">
+          Keyboard: <Kbd>J</Kbd> / <Kbd>K</Kbd> or <Kbd>↑</Kbd> / <Kbd>↓</Kbd> move
+          between rows · <Kbd>Enter</Kbd> opens the profile · <Kbd>/</Kbd> filters ·{" "}
+          <Kbd>Esc</Kbd> clears the selection
         </p>
       </div>
 
@@ -804,11 +992,28 @@ export function LiveStockMonitor() {
                       const tickFlash = up ? "flash-safe" : "flash-risk";
                       const tickDelay = { animationDelay: `${Math.min(index, 20) * 40}ms` };
                       const saved = watchlistSet.has(stock.ticker);
+                      const isCurrent = activeIndex === index;
                       return (
-                        <tr key={stock.ticker}>
-                          <td className="py-3 pr-3 align-top">
+                        <tr
+                          key={stock.ticker}
+                          ref={(element) => {
+                            tableRowsRef.current[index] = element;
+                          }}
+                          tabIndex={tabStopIndex === index ? 0 : -1}
+                          aria-current={isCurrent ? "true" : undefined}
+                          onFocus={() => {
+                            if (activeIndexRef.current !== index) setActive(index);
+                          }}
+                          className={isCurrent ? "bg-surface-2" : undefined}
+                        >
+                          <td
+                            className={`border-l-2 py-3 pr-3 align-top ${
+                              isCurrent ? "border-l-ink" : "border-l-transparent"
+                            }`}
+                          >
                             <Link
                               href={`/companies?search=${encodeURIComponent(stock.ticker)}`}
+                              data-board-ticker={stock.ticker}
                               className="inline-flex min-h-11 items-start num text-[15px] font-semibold text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
                             >
                               {stock.ticker}
@@ -861,20 +1066,35 @@ export function LiveStockMonitor() {
 
               {/* Phone: one calm block per name */}
               <ul className="divide-y divide-rule md:hidden">
-                {visible.map((stock) => {
+                {visible.map((stock, index) => {
                   const up = stock.change24hPct >= 0;
                   const trend = TREND_SHAPES[stock.ticker] || FALLBACK_SHAPE;
                   const tone = up
                     ? "text-safe-600 dark:text-safe-300"
                     : "text-risk-600 dark:text-risk-300";
                   const saved = watchlistSet.has(stock.ticker);
+                  const isCurrent = activeIndex === index;
                   return (
-                    <li key={stock.ticker} className="py-3">
+                    <li
+                      key={stock.ticker}
+                      ref={(element) => {
+                        listRowsRef.current[index] = element;
+                      }}
+                      tabIndex={tabStopIndex === index ? 0 : -1}
+                      aria-current={isCurrent ? "true" : undefined}
+                      onFocus={() => {
+                        if (activeIndexRef.current !== index) setActive(index);
+                      }}
+                      className={`border-l-2 py-3 ${
+                        isCurrent ? "border-l-ink bg-surface-2" : "border-l-transparent"
+                      }`}
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="flex items-baseline gap-2">
                             <Link
                               href={`/companies?search=${encodeURIComponent(stock.ticker)}`}
+                              data-board-ticker={stock.ticker}
                               className="-my-2.5 inline-flex min-h-11 items-center py-2.5 num text-[15px] font-semibold text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
                             >
                               {stock.ticker}

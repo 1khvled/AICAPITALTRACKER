@@ -3,8 +3,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, ChevronDown, ExternalLink, Search, X } from "lucide-react";
+import { ArrowRight, ChevronDown, ExternalLink, Search, Star, X } from "lucide-react";
 import { AdSlot } from "@/components/AdSlot";
+import { WatchToggle } from "@/components/WatchToggle";
+import { useWatchlist } from "@/lib/use-watchlist";
 import {
   COMPANIES,
   SECTORS,
@@ -86,6 +88,27 @@ function matches(company: CompanyProfile, filters: CompanyFilters): boolean {
   );
 }
 
+/**
+ * The listed ticker for a profile, or null when the profile has not listed.
+ *
+ * The `ticker` field carries two different things: a real exchange symbol
+ * ("ORCL", "SPCX (Nasdaq)") and a filing status for a name that has not
+ * listed yet ("Private", "Private (S-1 Filed)"). Only the first kind can be
+ * watchlisted — a filing status is not a symbol, and none is invented here.
+ *
+ * The symbol it returns is the plain ticker ("SPCX"), which is also what the
+ * /markets board stores, so one name is one key on both pages.
+ */
+function listedTicker(raw: string | undefined): string | null {
+  if (!raw) return null;
+  const value = raw.trim();
+  if (!value) return null;
+  if (/^private\b/i.test(value)) return null;
+  const symbol = value.replace(/\s*\([^)]*\)\s*$/, "").trim().toUpperCase();
+  if (!/^[A-Z][A-Z0-9.\-]{0,5}$/.test(symbol)) return null;
+  return symbol;
+}
+
 export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
   const params = useSearchParams();
   const initial = useMemo(() => fromParams(params), [params]);
@@ -94,6 +117,16 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [stuck, setStuck] = useState(false);
   const sentinel = useRef<HTMLDivElement | null>(null);
+
+  /**
+   * The shared watchlist — ONE list for the whole site, under the key
+   * `aict-watchlist-v1`. A ticker saved on /markets shows as saved here.
+   *
+   * The filter is deliberately kept out of the URL: the list lives on the
+   * reader's device, so a link cannot carry it.
+   */
+  const { watchlist, isWatched, toggle: toggleTicker } = useWatchlist();
+  const [watchOnly, setWatchOnly] = useState(false);
 
   useEffect(() => {
     const node = sentinel.current;
@@ -137,16 +170,26 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
     setFilters((prev) => ({ ...prev, ...next }));
   }, []);
 
-  const visible = useMemo(
-    () => COMPANIES.filter((c) => matches(c, filters)),
-    [filters]
-  );
+  /**
+   * The cards on screen: the filters first, then the watchlist filter on
+   * top. A profile is only on the list when it has a real ticker — a name
+   * that has not listed cannot be saved, so it never appears here.
+   */
+  const visible = useMemo(() => {
+    const base = COMPANIES.filter((c) => matches(c, filters));
+    if (!watchOnly) return base;
+    return base.filter((c) => {
+      const ticker = listedTicker(c.ticker);
+      return ticker ? isWatched(ticker) : false;
+    });
+  }, [filters, watchOnly, watchlist, isWatched]);
 
   const grouped =
     filters.sector === "all" &&
     filters.risk === "all" &&
     filters.structure === "all" &&
-    filters.search.trim() === "";
+    filters.search.trim() === "" &&
+    !watchOnly;
 
   const groups = useMemo(() => {
     if (!grouped) return [];
@@ -165,11 +208,22 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
     return counts;
   }, []);
 
+  /** How many companies are on the reader's watchlist. */
+  const savedCount = useMemo(
+    () =>
+      COMPANIES.filter((c) => {
+        const ticker = listedTicker(c.ticker);
+        return ticker ? isWatched(ticker) : false;
+      }).length,
+    [watchlist, isWatched]
+  );
+
   const activeCount =
     (filters.search.trim() ? 1 : 0) +
     (filters.sector !== "all" ? 1 : 0) +
     (filters.risk !== "all" ? 1 : 0) +
-    (filters.structure !== "all" ? 1 : 0);
+    (filters.structure !== "all" ? 1 : 0) +
+    (watchOnly ? 1 : 0);
 
   const visibleVolume = useMemo(
     () => visible.reduce((sum, c) => sum + (c.totalVolumeUsd || 0), 0),
@@ -195,6 +249,13 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
     const ledgerTerm = ledgerLink?.term ?? company.name;
     const ledgerCount = ledgerLink?.count ?? company.disclosedDealsCount;
     const dealWord = ledgerCount === 1 ? "deal" : "deals";
+    /**
+     * Only a listed name can be saved. A profile whose ticker is a filing
+     * status ("Private (S-1 Filed)") gets no watchlist button at all, and
+     * no ticker is invented for it.
+     */
+    const watchTicker = listedTicker(company.ticker);
+    const saved = watchTicker ? isWatched(watchTicker) : false;
     return (
       <li key={company.name} className="min-w-0">
         <article
@@ -262,8 +323,8 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
             </p>
           </div>
 
-          {/* Footer: expand + cross-links */}
-          <div className="flex items-center justify-between gap-2 border-t border-rule px-4 py-2">
+          {/* Footer: expand + cross-links + the watchlist */}
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-rule px-4 py-2">
             <button
               type="button"
               onClick={() => setOpenId(open ? null : company.name)}
@@ -277,13 +338,22 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
                 aria-hidden="true"
               />
             </button>
-            <Link
-              href={`/ledger?search=${encodeURIComponent(ledgerTerm)}`}
-              className="flex min-h-11 shrink-0 items-center gap-1 text-[13px] font-medium text-ink-muted transition-colors hover:text-ink"
-            >
-              <span className="num">{ledgerCount}</span> {dealWord}
-              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-            </Link>
+            <div className="flex items-center gap-2">
+              {watchTicker ? (
+                <WatchToggle
+                  ticker={watchTicker}
+                  saved={saved}
+                  onToggle={toggleTicker}
+                />
+              ) : null}
+              <Link
+                href={`/ledger?search=${encodeURIComponent(ledgerTerm)}`}
+                className="flex min-h-11 shrink-0 items-center gap-1 text-[13px] font-medium text-ink-muted transition-colors hover:text-ink"
+              >
+                <span className="num">{ledgerCount}</span> {dealWord}
+                <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+              </Link>
+            </div>
           </div>
 
           {open ? (
@@ -423,7 +493,10 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
           {activeCount ? (
             <button
               type="button"
-              onClick={() => setFilters({ ...EMPTY })}
+              onClick={() => {
+                setFilters({ ...EMPTY });
+                setWatchOnly(false);
+              }}
               className="btn min-h-11 shrink-0"
             >
               <X className="h-4 w-4" aria-hidden="true" />
@@ -523,6 +596,36 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
               <span className="num opacity-70">{stats.circularCount}</span>
             </button>
           </div>
+
+          <span className="h-6 w-px shrink-0 bg-rule" aria-hidden="true" />
+
+          {/* The watchlist — one list for the whole site, shared with /markets. */}
+          <div className="flex shrink-0 items-center gap-1.5 lg:shrink lg:flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                if (savedCount > 0) setWatchOnly((on) => !on);
+              }}
+              aria-pressed={watchOnly}
+              aria-disabled={savedCount === 0}
+              title={
+                savedCount === 0
+                  ? "Save a ticker on a card to build a watchlist"
+                  : `Show the ${savedCount} compan${savedCount === 1 ? "y" : "ies"} you saved`
+              }
+              className={[
+                chip(watchOnly),
+                savedCount === 0 && !watchOnly ? "cursor-not-allowed text-ink-faint" : "",
+              ].join(" ")}
+            >
+              <Star
+                className={`h-3.5 w-3.5 ${watchOnly ? "fill-current" : ""}`}
+                aria-hidden="true"
+              />
+              Watchlist
+              <span className="num opacity-70">{savedCount}</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -546,7 +649,10 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
           {activeCount ? (
             <button
               type="button"
-              onClick={() => setFilters({ ...EMPTY })}
+              onClick={() => {
+                setFilters({ ...EMPTY });
+                setWatchOnly(false);
+              }}
               className="btn btn-ghost min-h-11 shrink-0 px-2 text-[13px]"
               tabIndex={stuck ? 0 : -1}
             >
@@ -570,11 +676,25 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
 
       {visible.length === 0 ? (
         <div className="card mt-4 text-center">
-          <p className="text-[15px] font-semibold text-ink">No company matches that search.</p>
-          <p className="prose prose-p mx-auto max-w-reading text-[15px]">
-            Try a shorter term, or clear the filters to see all {COMPANIES.length} profiles.
+          <p className="text-[15px] font-semibold text-ink">
+            {watchOnly
+              ? "No saved company matches those filters."
+              : "No company matches that search."}
           </p>
-          <button type="button" onClick={() => setFilters({ ...EMPTY })} className="btn btn-primary mt-4 min-h-11">
+          <p className="prose prose-p mx-auto max-w-reading text-[15px]">
+            {watchOnly
+              ? "Your watchlist holds nothing that clears these filters. Save a ticker on a card, or clear the filters to see all "
+              : "Try a shorter term, or clear the filters to see all "}
+            {COMPANIES.length} profiles.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setFilters({ ...EMPTY });
+              setWatchOnly(false);
+            }}
+            className="btn btn-primary mt-4 min-h-11"
+          >
             Clear all filters
           </button>
         </div>
