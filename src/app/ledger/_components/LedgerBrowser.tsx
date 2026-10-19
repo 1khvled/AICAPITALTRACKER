@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { AdSlot } from "@/components/AdSlot";
 import { LedgerTimelineChart } from "@/components/LedgerTimelineChart";
+import { Reveal } from "@/components/Reveal";
 import StickyFilterBar from "./StickyFilterBar";
 import {
   categoryCopy,
@@ -258,6 +259,16 @@ export default function LedgerBrowser() {
   const shownUsd = useMemo(() => filtered.reduce((sum, d) => sum + (d.amount_usd || 0), 0), [filtered]);
   const activeCount = countActive(filters);
 
+  /**
+   * The largest disclosure on the page currently in view. The row micro-bars
+   * are sized against it, so the column always reads as a share of the
+   * biggest deal the reader is looking at — not of the whole $2.87T.
+   */
+  const maxVisibleAmount = useMemo(
+    () => visible.reduce((max, d) => Math.max(max, d.amount_usd || 0), 0),
+    [visible]
+  );
+
   const patch = useCallback((next: Partial<FilterState>) => {
     setFilters((prev) => ({ ...prev, ...next }));
     setPage(1);
@@ -358,9 +369,9 @@ export default function LedgerBrowser() {
 
   const chipClass = (active: boolean) =>
     [
-      "chip shrink-0 min-h-11 items-center whitespace-nowrap px-3 transition-colors",
+      "chip shrink-0 min-h-11 items-center whitespace-nowrap px-3 transition duration-150 active:scale-[0.97]",
       active
-        ? "border-ink bg-ink text-canvas hover:bg-ink-muted hover:border-ink-muted"
+        ? "chip-on"
         : "hover:border-rule-strong hover:bg-surface-2",
     ].join(" ");
 
@@ -676,6 +687,12 @@ export default function LedgerBrowser() {
             const meta = getDealMeta(deal);
             const open = openIds.includes(deal.id);
             const panelId = `ledger-panel-${deal.id}`;
+            // The micro-bar is a share of the biggest disclosure on screen.
+            const barPct =
+              maxVisibleAmount > 0 && deal.amount_usd > 0
+                ? Math.max(2, Math.round((deal.amount_usd / maxVisibleAmount) * 100))
+                : 0;
+            const barTone = deal.is_debt ? "bg-risk-500" : "bg-safe-500";
             const amountBlock = (
               <>
                 <span className="num block text-[17px] font-semibold leading-tight text-ink">
@@ -685,16 +702,37 @@ export default function LedgerBrowser() {
                   {deal.amount_usd > 0 ? `${formatUsd(deal.amount_usd)} · ` : ""}
                   {deal.sources_count} {deal.sources_count === 1 ? "source" : "sources"}
                 </span>
+                {/* Size of this deal against the largest one in view. */}
+                <span className="mt-1.5 block h-1 w-full bg-surface-3" aria-hidden="true">
+                  <span
+                    className={`bar-grow block h-1 ${barTone}`}
+                    style={{
+                      width: `${barPct}%`,
+                      transitionDelay: `${Math.min(index, 12) * 30}ms`,
+                    }}
+                  />
+                </span>
               </>
             );
             return (
               <li key={deal.id}>
                 {index === 10 ? <AdSlot placementId="ledger-infeed" className="my-2" /> : null}
-                <article
-                  className={`card card-flush transition-colors ${
+                {index === 40 ? <AdSlot placementId="ledger-mid" className="my-2" /> : null}
+                <Reveal
+                  as="article"
+                  className={`card card-flush group relative card-lift ${
                     open ? "border-rule-strong" : "hover:border-rule-strong"
                   }`}
                 >
+                  {/* The rail: a rule that lights in the row's own tone on
+                      hover. Absolutely positioned, so it never moves a
+                      single pixel of the row. */}
+                  <span
+                    aria-hidden="true"
+                    className={`pointer-events-none absolute inset-y-0 left-0 w-[3px] bg-rule transition-colors duration-150 ${
+                      deal.is_debt ? "group-hover:bg-risk-500" : "group-hover:bg-safe-500"
+                    }`}
+                  />
                   <h3>
                     <button
                       type="button"
@@ -848,7 +886,7 @@ export default function LedgerBrowser() {
                       </div>
                     </div>
                   ) : null}
-                </article>
+                </Reveal>
               </li>
             );
           })}

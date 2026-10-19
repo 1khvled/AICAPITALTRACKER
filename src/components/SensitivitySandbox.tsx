@@ -297,7 +297,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
   const activeBand = bandStyles[currentResult.band] || bandStyles.high;
 
   return (
-    <div className="card space-y-7">
+    <div className="card space-y-7 shadow-card">
       {/* Title & Scenario Preset Buttons */}
       <div className="flex flex-col gap-5 border-b border-rule pb-6 lg:flex-row lg:items-start lg:justify-between">
         <div>
@@ -328,7 +328,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                   key={id}
                   onClick={() => applyPreset(id)}
                   aria-pressed={active}
-                  className={`btn min-h-11 cursor-pointer ${active ? "btn-primary" : ""} ${meta.tone}`}
+                  className={`btn min-h-11 cursor-pointer active:scale-[0.98] ${active ? "btn-primary" : ""} ${meta.tone}`}
                 >
                   {meta.icon}
                   <span>{meta.label}</span>
@@ -827,7 +827,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
             </div>
             <button
               onClick={() => applyPreset("baseline")}
-              className="btn min-h-11 cursor-pointer"
+              className="btn min-h-11 cursor-pointer active:scale-[0.98]"
             >
               <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Reset All</span>
@@ -867,7 +867,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                 {activeBand.label}
               </span>
               <span className="text-ink-faint">•</span>
-              <span className="font-semibold text-ink-muted">
+              <span className="num font-semibold text-ink-muted">
                 Composite: {currentResult.compositeScore.toFixed(1)} / 100
               </span>
               {/*
@@ -896,7 +896,13 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
 
             <div className="relative h-3 w-full overflow-hidden rounded-full bg-surface-3 p-0.5">
               <div
-                className={`h-full rounded-full ${currentResult.burstProbability >= 65 ? "bg-risk-500" : currentResult.burstProbability >= 45 ? "bg-caution-500" : "bg-safe-500"}`}
+                className={`h-full rounded-full transition-[width] duration-[400ms] ease-out ${
+                  currentResult.burstProbability >= 65
+                    ? "bg-risk-500"
+                    : currentResult.burstProbability >= 45
+                    ? "bg-caution-500"
+                    : "bg-safe-500"
+                }`}
                 style={{ width: `${Math.min(100, Math.max(5, currentResult.burstProbability))}%` }}
               />
             </div>

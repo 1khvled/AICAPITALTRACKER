@@ -3,6 +3,8 @@ import { ArrowDown } from "lucide-react";
 import type { BubbleBand } from "@/lib/model/types";
 import { BAND_LABEL, BAND_TONE, BAND_VERDICT, factorPlain, formatAsOf } from "./copy";
 import { ScrollLink } from "./ScrollLink";
+import { CountUp } from "@/components/CountUp";
+import { Reveal } from "@/components/Reveal";
 import rawTrajectoryHistory from "@/data/trajectory-history.json";
 
 export interface HeadlineDriver {
@@ -116,7 +118,9 @@ export function AnswerBlock({
       {/* Provenance strip */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
         <span className="label">12-month burst probability</span>
-        <span className={`pill ${BAND_TONE[band].pillTone}`}>{BAND_LABEL[band]}</span>
+        <span className={`pill transition-colors duration-300 ${BAND_TONE[band].pillTone}`}>
+          {BAND_LABEL[band]}
+        </span>
         {provenance && (
           <span className="num text-[14px] text-ink-faint">{provenance}</span>
         )}
@@ -150,13 +154,35 @@ export function AnswerBlock({
 
       {/* Number + plain-English meaning */}
       <div className="mt-3 flex items-end gap-3 sm:gap-5">
-        <span className="num text-[46px] font-bold leading-none tracking-[-0.045em] text-ink sm:text-[60px]">
-          {probability.toFixed(1)}%
-        </span>
+        <CountUp
+          value={probability}
+          decimals={1}
+          suffix="%"
+          startFrom={Math.min(probability, 40)}
+          duration={800}
+          className="num text-[46px] font-bold leading-none tracking-[-0.045em] text-ink sm:text-[60px]"
+        />
         <span className="max-w-[13rem] pb-1 text-[14px] leading-snug text-ink-muted sm:max-w-xs sm:text-sm">
           Chance the AI build-out breaks, measured over the next 12 months.
         </span>
       </div>
+
+      {/* The same number as a share of the twelve months: one rule, filled to
+          the published probability, in the band's own tone. It is a meter,
+          not decoration — the reader can see where the odds sit against the
+          full range without reading the digits. The track is a fixed height,
+          so the fill can never move the page. */}
+      <Reveal as="div" className="reveal-flat" delay={160}>
+        <div
+          className="mt-3.5 h-1.5 w-full max-w-2xl bg-surface-3"
+          aria-hidden="true"
+        >
+          <div
+            className={`bar-grow h-full ${BAND_TONE[band].barTone}`}
+            style={{ width: `${Math.min(100, Math.max(0, probability))}%` }}
+          />
+        </div>
+      </Reveal>
 
       {/* Verdict */}
       <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-muted">
@@ -198,14 +224,16 @@ export function AnswerBlock({
         <div className="mt-3.5 flex flex-wrap items-center gap-x-2 gap-y-1.5">
           <span className="label">Pushing it up</span>
           <ul className="flex flex-wrap gap-1.5">
-            {drivers.map((driver) => {
+            {drivers.map((driver, index) => {
               const { short, gloss } = factorPlain(driver.id);
               return (
                 <li key={driver.id}>
-                  <span title={gloss} className="chip chip-risk">
-                    {short}
-                    <span className="num font-semibold">+{driver.points.toFixed(1)}</span>
-                  </span>
+                  <Reveal as="span" className="inline-block" delay={index * 40}>
+                    <span title={gloss} className="chip chip-risk">
+                      {short}
+                      <span className="num font-semibold">+{driver.points.toFixed(1)}</span>
+                    </span>
+                  </Reveal>
                 </li>
               );
             })}

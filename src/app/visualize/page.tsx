@@ -16,6 +16,7 @@ import {
 } from "@/components/VisualCharts";
 import { AdSlot } from "@/components/AdSlot";
 import { PolymarketCharts } from "@/components/PolymarketCharts";
+import { Reveal } from "@/components/Reveal";
 import {
   BarChart3,
   PieChart,
@@ -235,17 +236,19 @@ return (
       {/* ==================================================================== */}
       {(activeTab === "all" || activeTab === "bubble-universe") && (
         <section id="bubble-universe" className="space-y-4">
-          <div className="flex flex-col gap-2 border-b border-rule pb-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <CircleDot className="w-5 h-5 text-safe-700" />
-              <h2 className="text-xl sm:text-2xl font-bold text-ink">
-                Bubble Universe: Interactive Deal Physics Map &amp; Treemap
-              </h2>
+          <Reveal>
+            <div className="flex flex-col gap-2 border-b border-rule pb-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <CircleDot className="w-5 h-5 text-safe-700" />
+                <h2 className="text-xl sm:text-2xl font-bold text-ink">
+                  Bubble Universe: Interactive Deal Physics Map &amp; Treemap
+                </h2>
+              </div>
+              <span className="text-[14px] text-ink-subtle">
+                {totalDeals} Sourced Deals • Finviz-Grade Category Pods
+              </span>
             </div>
-            <span className="text-[14px] text-ink-subtle">
-              {totalDeals} Sourced Deals • Finviz-Grade Category Pods
-            </span>
-          </div>
+          </Reveal>
 
           {/* Institutional Interpretation Callout for Bubble Universe */}
           <div className="notice flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -292,17 +295,19 @@ return (
       {/* ==================================================================== */}
       {(activeTab === "all" || activeTab === "sensitivity-sigmoid") && (
         <section id="sensitivity-sigmoid" className="space-y-4">
-          <div className="flex flex-col gap-2 border-b border-rule pb-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <Activity className="w-5 h-5 text-risk-700" />
-              <h2 className="text-xl sm:text-2xl font-bold text-ink">
-                Sensitivity Sigmoid: Non-Linear Fragility &amp; Confidence Bands
-              </h2>
+          <Reveal>
+            <div className="flex flex-col gap-2 border-b border-rule pb-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <Activity className="w-5 h-5 text-risk-700" />
+                <h2 className="text-xl sm:text-2xl font-bold text-ink">
+                  Sensitivity Sigmoid: Non-Linear Fragility &amp; Confidence Bands
+                </h2>
+              </div>
+              <span className="text-[14px] text-ink-subtle">
+                Continuous Cubic Bézier • 90% Input-Sensitivity Range
+              </span>
             </div>
-            <span className="text-[14px] text-ink-subtle">
-              Continuous Cubic Bézier • 90% Input-Sensitivity Range
-            </span>
-          </div>
+          </Reveal>
 
           {/* Institutional Interpretation Callout for Sigmoid Curve */}
           <div className="p-4 sm:p-5 rounded-lg bg-risk-50/50 bg-risk-50/15 border border-risk-200/80 border-risk-500/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -349,17 +354,19 @@ return (
       {/* ==================================================================== */}
       {(activeTab === "all" || activeTab === "frontier-multiples") && (
         <section id="frontier-multiples" className="space-y-4">
-          <div className="flex flex-col gap-2 border-b border-rule pb-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-caution-700" />
-              <h2 className="text-xl sm:text-2xl font-bold text-ink">
-                Frontier Lab Multiples: Valuation vs Run-Rate Revenue (2D Scatter)
-              </h2>
+          <Reveal>
+            <div className="flex flex-col gap-2 border-b border-rule pb-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-caution-700" />
+                <h2 className="text-xl sm:text-2xl font-bold text-ink">
+                  Frontier Lab Multiples: Valuation vs Run-Rate Revenue (2D Scatter)
+                </h2>
+              </div>
+              <span className="text-[14px] text-ink-subtle">
+                Log-Log &amp; Linear Projections • Benchmark Regression Lines
+              </span>
             </div>
-            <span className="text-[14px] text-ink-subtle">
-              Log-Log &amp; Linear Projections • Benchmark Regression Lines
-            </span>
-          </div>
+          </Reveal>
 
           {/* Institutional Interpretation Callout for Multiples */}
           <div className="p-4 sm:p-5 rounded-lg bg-caution-50/50 bg-caution-50/15 border border-caution-200/80 border-caution-500/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -406,17 +413,19 @@ return (
       {/* ==================================================================== */}
       {(activeTab === "all" || activeTab === "capital-composition") && (
         <section id="capital-composition" className="space-y-4">
-          <div className="flex flex-col gap-2 border-b border-rule pb-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <PieChart className="w-5 h-5 text-ink-muted" />
-              <h2 className="text-xl sm:text-2xl font-bold text-ink">
-                Capital Composition: Debt vs Equity in the $2.87T Superstructure
-              </h2>
+          <Reveal>
+            <div className="flex flex-col gap-2 border-b border-rule pb-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <PieChart className="w-5 h-5 text-ink-muted" />
+                <h2 className="text-xl sm:text-2xl font-bold text-ink">
+                  Capital Composition: Debt vs Equity in the $2.87T Superstructure
+                </h2>
+              </div>
+              <span className="text-[14px] text-ink-subtle">
+                Interactive Proportional Stack • Capital Stack Seniority
+              </span>
             </div>
-            <span className="text-[14px] text-ink-subtle">
-              Interactive Proportional Stack • Capital Stack Seniority
-            </span>
-          </div>
+          </Reveal>
 
           {/* Institutional Interpretation Callout for Capital Composition */}
           <div className="p-4 sm:p-5 rounded-lg bg-surface-2/50 bg-surface-2/15 border border-rule/80 border-rule/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -460,17 +469,19 @@ return (
       {/* ==================================================================== */}
       {(activeTab === "all" || activeTab === "revenue-gap") && (
         <section id="revenue-gap" className="space-y-4">
-          <div className="flex flex-col gap-2 border-b border-rule pb-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <Scale className="w-5 h-5 text-risk-700" />
-              <h2 className="text-xl sm:text-2xl font-bold text-ink">
-                Revenue Gap, Credit Default Swaps &amp; Token Price Deflation
-              </h2>
+          <Reveal>
+            <div className="flex flex-col gap-2 border-b border-rule pb-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <Scale className="w-5 h-5 text-risk-700" />
+                <h2 className="text-xl sm:text-2xl font-bold text-ink">
+                  Revenue Gap, Credit Default Swaps &amp; Token Price Deflation
+                </h2>
+              </div>
+              <span className="text-[14px] text-ink-subtle">
+                -$706B Deficit • {orclCds} bp Oracle CDS • -99.85% Inference Cost
+              </span>
             </div>
-            <span className="text-[14px] text-ink-subtle">
-              -$706B Deficit • {orclCds} bp Oracle CDS • -99.85% Inference Cost
-            </span>
-          </div>
+          </Reveal>
 
           {/* Institutional Interpretation Callout for Revenue Gap & CDS */}
           <div className="notice flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -582,6 +593,8 @@ return (
           </div>
         </div>
       )}
+
+      <AdSlot placementId="visualize-bottom" className="mt-8" />
     </div>
   );
 }

@@ -75,6 +75,25 @@
  *   NEXT_PUBLIC_ADSTERRA_SOCIAL_BAR_ENABLED=1 required to load the social bar
  *                                             (that placement is default-off)
  *
+ * NON-INTRUSIVE POLICY (hard-coded, not configurable)
+ * ─────────────────────────────────────────────────────────────────────────
+ *   Only two zone shapes are accepted: `/21/` native banners and `/22/`
+ *   display banners. A pasted URL that does not match either shape is treated
+ *   as "not configured" and renders nothing, so a popunder, direct-link or
+ *   interstitial snippet can never be dropped onto the page by accident. The
+ *   `/22/` isolation iframe is sandboxed without `allow-top-navigation`, so a
+ *   creative can open its own tab on a click but can never redirect the reader
+ *   away from the page. The social bar stays default-off because it floats
+ *   over content; nothing is fixed, sticky or overlaid by default.
+ *
+ *   Density rule of thumb (Adsterra's own publisher guidance): at most two
+ *   native blocks per page, and preferably 2-3 units total. The registry
+ *   exposes up to five slots on the long money pages and four elsewhere —
+ *   page, not registry, decides what is actually configured. Every slot is
+ *   below the primary answer or between sections, never above the headline,
+ *   never over a control, and every script below the fold waits for the
+ *   viewport (see AdScript) so phones load only the units being read.
+ *
  * WHY NEXT_PUBLIC_
  * ─────────────────────────────────────────────────────────────────────────
  * The Adsterra loader is a third-party browser script, so it can only run
@@ -153,28 +172,46 @@ export type PlacementId =
   | "home-leaderboard"
   | "home-infeed-1"
   | "home-infeed-2"
+  | "home-mid"
   | "home-footer"
   /* ledger */
   | "ledger-top"
   | "ledger-infeed"
+  | "ledger-mid"
+  | "ledger-bottom"
   /* companies */
   | "companies-top"
   | "companies-infeed"
+  | "companies-mid"
+  | "companies-bottom"
   /* markets */
   | "markets-top"
   | "markets-sidebar-mpu"
+  | "markets-infeed"
+  | "markets-bottom"
+  /* news */
+  | "news-top"
+  | "news-infeed"
+  | "news-bottom"
   /* methodology */
   | "methodology-top"
   | "methodology-infeed"
+  | "methodology-bottom"
   /* 2000 vs 2026 comparison */
   | "dotcom-top"
+  | "dotcom-infeed"
+  | "dotcom-bottom"
   /* charts */
   | "visualize-top"
   | "visualize-infeed"
+  | "visualize-bottom"
   /* simulator */
   | "sandbox-top"
+  | "sandbox-infeed"
+  | "sandbox-bottom"
   /* developer api */
   | "api-docs-top"
+  | "api-docs-bottom"
   /* site-wide */
   | "global-leaderboard"
   | "global-infeed"
@@ -222,6 +259,12 @@ export const AD_PLACEMENTS: Record<PlacementId, AdPlacement> = {
     fallbackFormat: "native",
     label: "Advertisement",
   },
+  "home-mid": {
+    placementId: "home-mid",
+    formats: ["mpu", "banner", "mobile"],
+    fallbackFormat: "mpu",
+    label: "Advertisement",
+  },
   "home-footer": {
     placementId: "home-footer",
     formats: ["billboard", "banner", "mobile"],
@@ -243,6 +286,20 @@ export const AD_PLACEMENTS: Record<PlacementId, AdPlacement> = {
     fallbackFormat: "native",
     label: "Advertisement",
   },
+  "ledger-mid": {
+    placementId: "ledger-mid",
+    /* Second in-feed position, deeper in the table. Adsterra's guidance caps
+       native blocks at two per page; this is the second one. */
+    formats: ["native", "mpu"],
+    fallbackFormat: "native",
+    label: "Advertisement",
+  },
+  "ledger-bottom": {
+    placementId: "ledger-bottom",
+    formats: ["billboard", "banner", "mobile"],
+    fallbackFormat: "billboard",
+    label: "Advertisement",
+  },
 
   /* Companies */
   "companies-top": {
@@ -256,6 +313,18 @@ export const AD_PLACEMENTS: Record<PlacementId, AdPlacement> = {
     placementId: "companies-infeed",
     formats: ["native", "mpu"],
     fallbackFormat: "native",
+    label: "Advertisement",
+  },
+  "companies-mid": {
+    placementId: "companies-mid",
+    formats: ["mpu", "banner", "mobile"],
+    fallbackFormat: "mpu",
+    label: "Advertisement",
+  },
+  "companies-bottom": {
+    placementId: "companies-bottom",
+    formats: ["billboard", "banner", "mobile"],
+    fallbackFormat: "billboard",
     label: "Advertisement",
   },
 
@@ -276,6 +345,39 @@ export const AD_PLACEMENTS: Record<PlacementId, AdPlacement> = {
     fallbackFormat: "mpu",
     label: "Advertisement",
   },
+  "markets-infeed": {
+    placementId: "markets-infeed",
+    formats: ["native", "mpu"],
+    fallbackFormat: "native",
+    label: "Advertisement",
+  },
+  "markets-bottom": {
+    placementId: "markets-bottom",
+    formats: ["billboard", "banner", "mobile"],
+    fallbackFormat: "billboard",
+    label: "Advertisement",
+  },
+
+  /* News */
+  "news-top": {
+    placementId: "news-top",
+    formats: ["banner", "mobile"],
+    fallbackFormat: "banner",
+    label: "Advertisement",
+    eager: true,
+  },
+  "news-infeed": {
+    placementId: "news-infeed",
+    formats: ["native", "mpu"],
+    fallbackFormat: "native",
+    label: "Advertisement",
+  },
+  "news-bottom": {
+    placementId: "news-bottom",
+    formats: ["billboard", "banner", "mobile"],
+    fallbackFormat: "billboard",
+    label: "Advertisement",
+  },
 
   /* Methodology */
   "methodology-top": {
@@ -291,6 +393,12 @@ export const AD_PLACEMENTS: Record<PlacementId, AdPlacement> = {
     fallbackFormat: "native",
     label: "Advertisement",
   },
+  "methodology-bottom": {
+    placementId: "methodology-bottom",
+    formats: ["mpu", "banner", "mobile"],
+    fallbackFormat: "mpu",
+    label: "Advertisement",
+  },
 
   /* 2000 vs 2026 comparison */
   "dotcom-top": {
@@ -299,6 +407,18 @@ export const AD_PLACEMENTS: Record<PlacementId, AdPlacement> = {
     fallbackFormat: "banner",
     label: "Advertisement",
     eager: true,
+  },
+  "dotcom-infeed": {
+    placementId: "dotcom-infeed",
+    formats: ["native", "mpu"],
+    fallbackFormat: "native",
+    label: "Advertisement",
+  },
+  "dotcom-bottom": {
+    placementId: "dotcom-bottom",
+    formats: ["billboard", "banner", "mobile"],
+    fallbackFormat: "billboard",
+    label: "Advertisement",
   },
 
   /* Visualize */
@@ -315,6 +435,12 @@ export const AD_PLACEMENTS: Record<PlacementId, AdPlacement> = {
     fallbackFormat: "native",
     label: "Advertisement",
   },
+  "visualize-bottom": {
+    placementId: "visualize-bottom",
+    formats: ["mpu", "banner", "mobile"],
+    fallbackFormat: "mpu",
+    label: "Advertisement",
+  },
 
   /* Sandbox */
   "sandbox-top": {
@@ -324,6 +450,18 @@ export const AD_PLACEMENTS: Record<PlacementId, AdPlacement> = {
     label: "Advertisement",
     eager: true,
   },
+  "sandbox-infeed": {
+    placementId: "sandbox-infeed",
+    formats: ["mpu", "banner", "mobile"],
+    fallbackFormat: "mpu",
+    label: "Advertisement",
+  },
+  "sandbox-bottom": {
+    placementId: "sandbox-bottom",
+    formats: ["billboard", "banner", "mobile"],
+    fallbackFormat: "billboard",
+    label: "Advertisement",
+  },
 
   /* API docs */
   "api-docs-top": {
@@ -332,6 +470,12 @@ export const AD_PLACEMENTS: Record<PlacementId, AdPlacement> = {
     fallbackFormat: "banner",
     label: "Advertisement",
     eager: true,
+  },
+  "api-docs-bottom": {
+    placementId: "api-docs-bottom",
+    formats: ["billboard", "banner", "mobile"],
+    fallbackFormat: "billboard",
+    label: "Advertisement",
   },
 
   /* Site-wide */
@@ -376,20 +520,37 @@ const PLACEMENT_ENV: Record<PlacementId, string | undefined> = {
   "home-leaderboard": process.env.NEXT_PUBLIC_ADSTERRA_HOME_LEADERBOARD,
   "home-infeed-1": process.env.NEXT_PUBLIC_ADSTERRA_HOME_INFEED_1,
   "home-infeed-2": process.env.NEXT_PUBLIC_ADSTERRA_HOME_INFEED_2,
+  "home-mid": process.env.NEXT_PUBLIC_ADSTERRA_HOME_MID,
   "home-footer": process.env.NEXT_PUBLIC_ADSTERRA_HOME_FOOTER,
   "ledger-top": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_TOP,
   "ledger-infeed": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_INFEED,
+  "ledger-mid": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_MID,
+  "ledger-bottom": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_BOTTOM,
   "companies-top": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_TOP,
   "companies-infeed": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_INFEED,
+  "companies-mid": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_MID,
+  "companies-bottom": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_BOTTOM,
   "markets-top": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_TOP,
   "markets-sidebar-mpu": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_SIDEBAR_MPU,
+  "markets-infeed": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_INFEED,
+  "markets-bottom": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_BOTTOM,
+  "news-top": process.env.NEXT_PUBLIC_ADSTERRA_NEWS_TOP,
+  "news-infeed": process.env.NEXT_PUBLIC_ADSTERRA_NEWS_INFEED,
+  "news-bottom": process.env.NEXT_PUBLIC_ADSTERRA_NEWS_BOTTOM,
   "methodology-top": process.env.NEXT_PUBLIC_ADSTERRA_METHODOLOGY_TOP,
   "methodology-infeed": process.env.NEXT_PUBLIC_ADSTERRA_METHODOLOGY_INFEED,
+  "methodology-bottom": process.env.NEXT_PUBLIC_ADSTERRA_METHODOLOGY_BOTTOM,
   "dotcom-top": process.env.NEXT_PUBLIC_ADSTERRA_DOTCOM_TOP,
+  "dotcom-infeed": process.env.NEXT_PUBLIC_ADSTERRA_DOTCOM_INFEED,
+  "dotcom-bottom": process.env.NEXT_PUBLIC_ADSTERRA_DOTCOM_BOTTOM,
   "visualize-top": process.env.NEXT_PUBLIC_ADSTERRA_VISUALIZE_TOP,
   "visualize-infeed": process.env.NEXT_PUBLIC_ADSTERRA_VISUALIZE_INFEED,
+  "visualize-bottom": process.env.NEXT_PUBLIC_ADSTERRA_VISUALIZE_BOTTOM,
   "sandbox-top": process.env.NEXT_PUBLIC_ADSTERRA_SANDBOX_TOP,
+  "sandbox-infeed": process.env.NEXT_PUBLIC_ADSTERRA_SANDBOX_INFEED,
+  "sandbox-bottom": process.env.NEXT_PUBLIC_ADSTERRA_SANDBOX_BOTTOM,
   "api-docs-top": process.env.NEXT_PUBLIC_ADSTERRA_API_DOCS_TOP,
+  "api-docs-bottom": process.env.NEXT_PUBLIC_ADSTERRA_API_DOCS_BOTTOM,
   "global-leaderboard": process.env.NEXT_PUBLIC_ADSTERRA_GLOBAL_LEADERBOARD,
   "global-infeed": process.env.NEXT_PUBLIC_ADSTERRA_GLOBAL_INFEED,
   "global-footer-billboard":
@@ -402,20 +563,37 @@ const PLACEMENT_CONTAINER_ENV: Record<PlacementId, string | undefined> = {
   "home-leaderboard": process.env.NEXT_PUBLIC_ADSTERRA_HOME_LEADERBOARD_ID,
   "home-infeed-1": process.env.NEXT_PUBLIC_ADSTERRA_HOME_INFEED_1_ID,
   "home-infeed-2": process.env.NEXT_PUBLIC_ADSTERRA_HOME_INFEED_2_ID,
+  "home-mid": process.env.NEXT_PUBLIC_ADSTERRA_HOME_MID_ID,
   "home-footer": process.env.NEXT_PUBLIC_ADSTERRA_HOME_FOOTER_ID,
   "ledger-top": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_TOP_ID,
   "ledger-infeed": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_INFEED_ID,
+  "ledger-mid": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_MID_ID,
+  "ledger-bottom": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_BOTTOM_ID,
   "companies-top": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_TOP_ID,
   "companies-infeed": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_INFEED_ID,
+  "companies-mid": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_MID_ID,
+  "companies-bottom": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_BOTTOM_ID,
   "markets-top": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_TOP_ID,
   "markets-sidebar-mpu": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_SIDEBAR_MPU_ID,
+  "markets-infeed": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_INFEED_ID,
+  "markets-bottom": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_BOTTOM_ID,
+  "news-top": process.env.NEXT_PUBLIC_ADSTERRA_NEWS_TOP_ID,
+  "news-infeed": process.env.NEXT_PUBLIC_ADSTERRA_NEWS_INFEED_ID,
+  "news-bottom": process.env.NEXT_PUBLIC_ADSTERRA_NEWS_BOTTOM_ID,
   "methodology-top": process.env.NEXT_PUBLIC_ADSTERRA_METHODOLOGY_TOP_ID,
   "methodology-infeed": process.env.NEXT_PUBLIC_ADSTERRA_METHODOLOGY_INFEED_ID,
+  "methodology-bottom": process.env.NEXT_PUBLIC_ADSTERRA_METHODOLOGY_BOTTOM_ID,
   "dotcom-top": process.env.NEXT_PUBLIC_ADSTERRA_DOTCOM_TOP_ID,
+  "dotcom-infeed": process.env.NEXT_PUBLIC_ADSTERRA_DOTCOM_INFEED_ID,
+  "dotcom-bottom": process.env.NEXT_PUBLIC_ADSTERRA_DOTCOM_BOTTOM_ID,
   "visualize-top": process.env.NEXT_PUBLIC_ADSTERRA_VISUALIZE_TOP_ID,
   "visualize-infeed": process.env.NEXT_PUBLIC_ADSTERRA_VISUALIZE_INFEED_ID,
+  "visualize-bottom": process.env.NEXT_PUBLIC_ADSTERRA_VISUALIZE_BOTTOM_ID,
   "sandbox-top": process.env.NEXT_PUBLIC_ADSTERRA_SANDBOX_TOP_ID,
+  "sandbox-infeed": process.env.NEXT_PUBLIC_ADSTERRA_SANDBOX_INFEED_ID,
+  "sandbox-bottom": process.env.NEXT_PUBLIC_ADSTERRA_SANDBOX_BOTTOM_ID,
   "api-docs-top": process.env.NEXT_PUBLIC_ADSTERRA_API_DOCS_TOP_ID,
+  "api-docs-bottom": process.env.NEXT_PUBLIC_ADSTERRA_API_DOCS_BOTTOM_ID,
   "global-leaderboard": process.env.NEXT_PUBLIC_ADSTERRA_GLOBAL_LEADERBOARD_ID,
   "global-infeed": process.env.NEXT_PUBLIC_ADSTERRA_GLOBAL_INFEED_ID,
   "global-footer-billboard":
@@ -432,20 +610,37 @@ const PLACEMENT_SIZE_ENV: Record<PlacementId, string | undefined> = {
   "home-leaderboard": process.env.NEXT_PUBLIC_ADSTERRA_HOME_LEADERBOARD_SIZE,
   "home-infeed-1": process.env.NEXT_PUBLIC_ADSTERRA_HOME_INFEED_1_SIZE,
   "home-infeed-2": process.env.NEXT_PUBLIC_ADSTERRA_HOME_INFEED_2_SIZE,
+  "home-mid": process.env.NEXT_PUBLIC_ADSTERRA_HOME_MID_SIZE,
   "home-footer": process.env.NEXT_PUBLIC_ADSTERRA_HOME_FOOTER_SIZE,
   "ledger-top": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_TOP_SIZE,
   "ledger-infeed": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_INFEED_SIZE,
+  "ledger-mid": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_MID_SIZE,
+  "ledger-bottom": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_BOTTOM_SIZE,
   "companies-top": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_TOP_SIZE,
   "companies-infeed": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_INFEED_SIZE,
+  "companies-mid": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_MID_SIZE,
+  "companies-bottom": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_BOTTOM_SIZE,
   "markets-top": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_TOP_SIZE,
   "markets-sidebar-mpu": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_SIDEBAR_MPU_SIZE,
+  "markets-infeed": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_INFEED_SIZE,
+  "markets-bottom": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_BOTTOM_SIZE,
+  "news-top": process.env.NEXT_PUBLIC_ADSTERRA_NEWS_TOP_SIZE,
+  "news-infeed": process.env.NEXT_PUBLIC_ADSTERRA_NEWS_INFEED_SIZE,
+  "news-bottom": process.env.NEXT_PUBLIC_ADSTERRA_NEWS_BOTTOM_SIZE,
   "methodology-top": process.env.NEXT_PUBLIC_ADSTERRA_METHODOLOGY_TOP_SIZE,
   "methodology-infeed": process.env.NEXT_PUBLIC_ADSTERRA_METHODOLOGY_INFEED_SIZE,
+  "methodology-bottom": process.env.NEXT_PUBLIC_ADSTERRA_METHODOLOGY_BOTTOM_SIZE,
   "dotcom-top": process.env.NEXT_PUBLIC_ADSTERRA_DOTCOM_TOP_SIZE,
+  "dotcom-infeed": process.env.NEXT_PUBLIC_ADSTERRA_DOTCOM_INFEED_SIZE,
+  "dotcom-bottom": process.env.NEXT_PUBLIC_ADSTERRA_DOTCOM_BOTTOM_SIZE,
   "visualize-top": process.env.NEXT_PUBLIC_ADSTERRA_VISUALIZE_TOP_SIZE,
   "visualize-infeed": process.env.NEXT_PUBLIC_ADSTERRA_VISUALIZE_INFEED_SIZE,
+  "visualize-bottom": process.env.NEXT_PUBLIC_ADSTERRA_VISUALIZE_BOTTOM_SIZE,
   "sandbox-top": process.env.NEXT_PUBLIC_ADSTERRA_SANDBOX_TOP_SIZE,
+  "sandbox-infeed": process.env.NEXT_PUBLIC_ADSTERRA_SANDBOX_INFEED_SIZE,
+  "sandbox-bottom": process.env.NEXT_PUBLIC_ADSTERRA_SANDBOX_BOTTOM_SIZE,
   "api-docs-top": process.env.NEXT_PUBLIC_ADSTERRA_API_DOCS_TOP_SIZE,
+  "api-docs-bottom": process.env.NEXT_PUBLIC_ADSTERRA_API_DOCS_BOTTOM_SIZE,
   "global-leaderboard": process.env.NEXT_PUBLIC_ADSTERRA_GLOBAL_LEADERBOARD_SIZE,
   "global-infeed": process.env.NEXT_PUBLIC_ADSTERRA_GLOBAL_INFEED_SIZE,
   "global-footer-billboard":
@@ -545,9 +740,17 @@ function pickFormat(placement: AdPlacement, shape: AdZoneShape): AdFormatId {
     placement.formats && placement.formats.length > 0
       ? placement.formats
       : [placement.fallbackFormat];
+  /* `/22/` zones carry a fixed unit. Prefer the sizes those zones actually
+     ship — 160x600 skyscraper, then 300x250 rectangle — before falling back,
+     so the reserved box matches the creative even when a page pastes an MPU
+     into a slot that also allows native. */
   const preferred: AdFormatId =
     shape.pattern === "at-options-iframe"
-      ? "banner160"
+      ? allowed.includes("banner160")
+        ? "banner160"
+        : allowed.includes("mpu")
+          ? "mpu"
+          : placement.fallbackFormat
       : shape.pattern === "native-container"
         ? "native"
         : placement.fallbackFormat;
@@ -639,6 +842,14 @@ export function resolveAdPlacement(
 
     // Which snippet shape is this zone? Detected from the URL itself.
     const shape = detectAdZoneShape(scriptSrc);
+
+    // Non-intrusive guarantee (see the file header): only the two banner
+    // shapes are accepted. A popunder, direct-link or interstitial snippet
+    // classifies as `script-container`; reject it silently so it can never
+    // execute on the page. The social bar keeps its own opt-in path.
+    if (shape.pattern === "script-container" && placementId !== "social-bar") {
+      return null;
+    }
 
     // Placement -> format: shape's natural format when allowed, else the
     // declared fallback. One snippet type therefore maps cleanly onto one CSS

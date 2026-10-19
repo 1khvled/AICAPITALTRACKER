@@ -35,13 +35,17 @@ export const BAND_VERDICT: Record<BubbleBand, string> = {
  * `.pill-risk` / `.pill-caution` / `.pill-safe` and the plain `.pill` neutral.
  * These modifiers carry their own dark-mode colours, so one class works in
  * both themes.
+ *
+ * `barTone` is the matching fill for the one visual bar that carries the
+ * probability (the meter under the answer). It uses the same semantic
+ * families as the gauge arc, so the two surfaces never disagree.
  */
-export const BAND_TONE: Record<BubbleBand, { pillTone: string }> = {
-  calm: { pillTone: "pill-safe" },
-  guarded: { pillTone: "" },
-  elevated: { pillTone: "pill-caution" },
-  high: { pillTone: "pill-risk" },
-  critical: { pillTone: "pill-risk" },
+export const BAND_TONE: Record<BubbleBand, { pillTone: string; barTone: string }> = {
+  calm: { pillTone: "pill-safe", barTone: "bg-safe-500" },
+  guarded: { pillTone: "", barTone: "bg-ink-faint" },
+  elevated: { pillTone: "pill-caution", barTone: "bg-caution-500" },
+  high: { pillTone: "pill-risk", barTone: "bg-risk-500" },
+  critical: { pillTone: "pill-risk", barTone: "bg-risk-600" },
 };
 
 /**

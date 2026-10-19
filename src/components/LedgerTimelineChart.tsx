@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import { formatTotal, formatUsd, type Deal } from "@/app/ledger/_components/ledgerData";
+import { Reveal } from "@/components/Reveal";
 
 /**
  * Capital-by-year strip for /ledger.
@@ -78,64 +79,69 @@ export function LedgerTimelineChart({
   );
 
   return (
-    <div className="card">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <p className="text-[15px] font-semibold tracking-tight text-ink">
-          Disclosed capital by year
-        </p>
-        <p className="text-[14px] text-ink-subtle">
-          <span className="num text-ink">{formatTotal(grandTotal)}</span> across{" "}
-          <span className="num">{deals.length}</span> {deals.length === 1 ? "deal" : "deals"}. Tap a bar or a type to filter.
-        </p>
-      </div>
+    <Reveal>
+      <div className="card shadow-card">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <p className="text-[15px] font-semibold tracking-tight text-ink">
+            Disclosed capital by year
+          </p>
+          <p className="text-[14px] text-ink-subtle">
+            <span className="num text-ink">{formatTotal(grandTotal)}</span> across{" "}
+            <span className="num">{deals.length}</span> {deals.length === 1 ? "deal" : "deals"}. Tap a bar or a type to filter.
+          </p>
+        </div>
 
-      {/* Year bars */}
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {years.map((bucket) => {
-          const active = selectedYear === bucket.year;
-          const height = Math.max(6, Math.round((bucket.total / maxYearTotal) * 100));
-          const debtShare = bucket.total > 0 ? Math.round((bucket.debt / bucket.total) * 100) : 0;
-          return (
-            <button
-              key={bucket.year}
-              type="button"
-              onClick={() => onSelectYear(bucket.year)}
-              aria-pressed={active}
-              className={`flex min-w-0 flex-col gap-2 rounded-md border p-3 text-left transition-colors ${
-                active
-                  ? "border-ink bg-surface-2"
-                  : "border-rule hover:border-rule-strong hover:bg-surface-2"
-              }`}
-            >
-              <span className="flex items-baseline justify-between gap-2">
-                <span className="num text-[14px] font-semibold text-ink">{bucket.year}</span>
-                <span className="num text-[14px] text-ink-faint">
-                  {bucket.count} deal{bucket.count === 1 ? "" : "s"}
+        {/* Year bars */}
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {years.map((bucket, index) => {
+            const active = selectedYear === bucket.year;
+            const height = Math.max(6, Math.round((bucket.total / maxYearTotal) * 100));
+            const debtShare = bucket.total > 0 ? Math.round((bucket.debt / bucket.total) * 100) : 0;
+            return (
+              <button
+                key={bucket.year}
+                type="button"
+                onClick={() => onSelectYear(bucket.year)}
+                aria-pressed={active}
+                className={`flex min-w-0 flex-col gap-2 rounded-md border p-3 text-left transition-colors ${
+                  active
+                    ? "border-ink bg-surface-2"
+                    : "border-rule hover:border-rule-strong hover:bg-surface-2"
+                }`}
+              >
+                <span className="flex items-baseline justify-between gap-2">
+                  <span className="num text-[14px] font-semibold text-ink">{bucket.year}</span>
+                  <span className="num text-[14px] text-ink-faint">
+                    {bucket.count} deal{bucket.count === 1 ? "" : "s"}
+                  </span>
                 </span>
-              </span>
 
-              <span className="flex h-24 w-full items-end overflow-hidden rounded-sm bg-surface-3">
-                <span
-                  className="flex w-full flex-col-reverse"
-                  style={{ height: `${height}%` }}
-                >
-                  <span className="block w-full bg-ink" style={{ height: `${100 - debtShare}%` }} />
-                  <span className="block w-full bg-risk-500" style={{ height: `${debtShare}%` }} />
+                {/* The bar grows from the baseline once the strip is on screen. */}
+                <span className="flex h-24 w-full items-end overflow-hidden rounded-sm bg-surface-3">
+                  <span
+                    className="bar-drop flex w-full flex-col-reverse"
+                    style={{
+                      height: `${height}%`,
+                      transitionDelay: `${index * 60}ms`,
+                    }}
+                  >
+                    <span className="block w-full bg-ink" style={{ height: `${100 - debtShare}%` }} />
+                    <span className="block w-full bg-risk-500" style={{ height: `${debtShare}%` }} />
+                  </span>
                 </span>
-              </span>
 
-              <span className="block">
-                <span className="num block text-[15px] font-semibold text-ink">
-                  {formatTotal(bucket.total)}
+                <span className="block">
+                  <span className="num block text-[15px] font-semibold text-ink">
+                    {formatTotal(bucket.total)}
+                  </span>
+                  <span className="num block text-[14px] text-ink-subtle">
+                    {formatUsd(bucket.debt)} of it debt
+                  </span>
                 </span>
-                <span className="num block text-[14px] text-ink-subtle">
-                  {formatUsd(bucket.debt)} of it debt
-                </span>
-              </span>
-            </button>
-          );
-        })}
-      </div>
+              </button>
+            );
+          })}
+        </div>
 
       <p className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[14px] text-ink-subtle">
         <span className="flex items-center gap-1.5">
@@ -159,7 +165,8 @@ export function LedgerTimelineChart({
         <span className="num">{circularCount}</span> are circular — funded by a party the buyer then
         pays back.
       </p>
-    </div>
+      </div>
+    </Reveal>
   );
 }
 

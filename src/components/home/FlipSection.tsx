@@ -1,5 +1,6 @@
 import React from "react";
 import type { BubbleModelInputs, BubbleModelResult } from "@/lib/model/types";
+import { Reveal } from "@/components/Reveal";
 
 interface FlipSectionProps {
   inputs: BubbleModelInputs;
@@ -88,7 +89,7 @@ export function FlipSection({ inputs, result }: FlipSectionProps) {
 
       <ol className="mt-4 divide-y divide-rule border-y border-rule">
         {items.slice(0, 5).map((item, index) => (
-          <li key={item.key} className="flex gap-3 py-3.5 sm:gap-4">
+          <Reveal as="li" key={item.key} className="flex gap-3 py-3.5 sm:gap-4" delay={index * 50}>
             <span className="num mt-0.5 text-[14px] text-ink-faint">
               {String(index + 1).padStart(2, "0")}
             </span>
@@ -99,7 +100,7 @@ export function FlipSection({ inputs, result }: FlipSectionProps) {
               </p>
               <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-subtle">{item.note}</p>
             </div>
-          </li>
+          </Reveal>
         ))}
       </ol>
     </section>

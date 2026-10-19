@@ -24,6 +24,7 @@ import {
   RefreshCw,
   Layers,
 } from "lucide-react";
+import { Reveal } from "@/components/Reveal";
 
 interface LiveCrowdMarket {
   id: string;
@@ -216,7 +217,7 @@ export function PolymarketCharts() {
   const openaiAgiPath = makePath("openaiAgiOdds");
 
   return (
-<div className="card card-flush overflow-hidden">
+<div className="card card-flush overflow-hidden shadow-card">
       {/* Polymarket Partner Integration Header */}
       <div className="border-b border-rule px-4 py-4 sm:px-5 sm:py-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -368,24 +369,34 @@ export function PolymarketCharts() {
                 </div>
 
                 {/* Odds split — a proportional readout, not a control. Trading links
-                    live in the action row below so every tap target stays 44px. */}
-                <div
-                  aria-hidden="true"
-                  className="flex min-h-11 w-full overflow-hidden rounded-lg border border-rule"
-                >
+                    live in the action row below so every tap target stays 44px.
+                    The split re-draws itself over 400ms when the odds move, so
+                    the reader sees which side the market moved toward. */}
+                <Reveal>
                   <div
-                    style={{ width: `${Math.max(10, flagshipMarket.yesProbabilityPct)}%` }}
-                    className="flex items-center justify-center bg-safe-500 px-2 text-[14px] font-semibold text-canvas"
+                    aria-hidden="true"
+                    className="flex min-h-11 w-full overflow-hidden rounded-lg border border-rule"
                   >
-                    YES {flagshipMarket.yesProbabilityPct.toFixed(1)}%
+                    <div
+                      style={{
+                        width: `${Math.max(10, flagshipMarket.yesProbabilityPct)}%`,
+                        transformOrigin: "left center",
+                      }}
+                      className="bar-grow flex items-center justify-center bg-safe-500 px-2 text-[14px] font-semibold text-canvas transition-[width] duration-[400ms] ease-out"
+                    >
+                      YES {flagshipMarket.yesProbabilityPct.toFixed(1)}%
+                    </div>
+                    <div
+                      style={{
+                        width: `${Math.min(90, flagshipMarket.noProbabilityPct)}%`,
+                        transformOrigin: "right center",
+                      }}
+                      className="bar-grow flex items-center justify-center bg-risk-500 px-2 text-[14px] font-semibold text-canvas transition-[width] duration-[400ms] ease-out"
+                    >
+                      NO {flagshipMarket.noProbabilityPct.toFixed(1)}%
+                    </div>
                   </div>
-                  <div
-                    style={{ width: `${Math.min(90, flagshipMarket.noProbabilityPct)}%` }}
-                    className="flex items-center justify-center bg-risk-500 px-2 text-[14px] font-semibold text-canvas"
-                  >
-                    NO {flagshipMarket.noProbabilityPct.toFixed(1)}%
-                  </div>
-                </div>
+                </Reveal>
               </div>
 
               {/* 24h Trading Stats Grid & Payout Multiplier */}
@@ -442,7 +453,7 @@ export function PolymarketCharts() {
                     href={flagshipMarket.tradeYesUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn min-h-11 flex-1 justify-center whitespace-nowrap border border-safe-300 bg-safe-500 text-canvas hover:bg-safe-600 sm:flex-none"
+                    className="btn min-h-11 flex-1 justify-center whitespace-nowrap border border-safe-300 bg-safe-500 text-canvas transition-transform duration-150 hover:bg-safe-600 active:scale-[0.98] sm:flex-none"
                   >
                     <span>Trade YES ({Math.round(flagshipMarket.yesPriceUsd * 100)}¢)</span>
                     <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -452,7 +463,7 @@ export function PolymarketCharts() {
                     href={flagshipMarket.tradeNoUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn min-h-11 flex-1 justify-center whitespace-nowrap border border-risk-300 bg-risk-600 text-canvas hover:bg-risk-500 sm:flex-none"
+                    className="btn min-h-11 flex-1 justify-center whitespace-nowrap border border-risk-300 bg-risk-600 text-canvas transition-transform duration-150 hover:bg-risk-500 active:scale-[0.98] sm:flex-none"
                   >
                     <span>Trade NO ({Math.round(flagshipMarket.noPriceUsd * 100)}¢)</span>
                     <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -618,7 +629,7 @@ export function PolymarketCharts() {
                   <button
                     onClick={() => setCalcOutcome("YES")}
                     aria-pressed={calcOutcome === "YES"}
-                    className={`flex min-h-11 flex-col items-center justify-center rounded-lg border px-2 py-2 text-[13px] font-semibold transition-colors ${
+                    className={`flex min-h-11 flex-col items-center justify-center rounded-lg border px-2 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${
                       calcOutcome === "YES"
                         ? "border-safe-500 bg-safe-600 text-canvas"
                         : "border-rule bg-surface text-ink-muted hover:border-rule-strong"
@@ -634,7 +645,7 @@ export function PolymarketCharts() {
                   <button
                     onClick={() => setCalcOutcome("NO")}
                     aria-pressed={calcOutcome === "NO"}
-                    className={`flex min-h-11 flex-col items-center justify-center rounded-lg border px-2 py-2 text-[13px] font-semibold transition-colors ${
+                    className={`flex min-h-11 flex-col items-center justify-center rounded-lg border px-2 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${
                       calcOutcome === "NO"
                         ? "border-risk-500 bg-risk-600 text-canvas"
                         : "border-rule bg-surface text-ink-muted hover:border-rule-strong"
@@ -841,13 +852,14 @@ export function PolymarketCharts() {
                   );
                 })}
 
-                {/* Series Lines */}
+                {/* Series Lines — each one draws itself in when the tab opens */}
                 <path
                   d={bubble2026Path}
                   fill="none"
                   stroke={SERIES.risk500}
                   strokeWidth="2.5"
                   strokeLinecap="round"
+                  className="draw-in draw-in-in"
                 />
                 <path
                   d={bubble2027Path}
@@ -855,6 +867,7 @@ export function PolymarketCharts() {
                   stroke={SERIES.caution500}
                   strokeWidth="2.5"
                   strokeLinecap="round"
+                  className="draw-in draw-in-in"
                 />
                 <path
                   d={oracleCdsPath}
@@ -862,6 +875,7 @@ export function PolymarketCharts() {
                   style={{ stroke: SERIES.inkSubtle }}
                   strokeWidth="2.5"
                   strokeLinecap="round"
+                  className="draw-in draw-in-in"
                 />
                 <path
                   d={openaiAgiPath}
@@ -869,6 +883,7 @@ export function PolymarketCharts() {
                   stroke={SERIES.safe500}
                   strokeWidth="2.5"
                   strokeLinecap="round"
+                  className="draw-in draw-in-in"
                 />
 
                 {/* Data Points / Interactive nodes */}

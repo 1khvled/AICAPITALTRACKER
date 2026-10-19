@@ -124,6 +124,8 @@ export default function MarketsPage() {
         <div className="min-w-0 space-y-6">
           <LiveStockMonitor />
 
+          <AdSlot placementId="markets-infeed" />
+
           <section aria-label="Prediction market odds" className="min-w-0">
             <h2 className="text-[15px] font-bold tracking-tight text-ink">
               What the crowd is betting on
@@ -142,7 +144,7 @@ export default function MarketsPage() {
         <aside className="min-w-0 space-y-5">
           <AdSlot placementId="markets-sidebar-mpu" className="xl:sticky xl:top-24" />
 
-          <div className="card">
+          <div className="card shadow-card">
             <h2 className="text-[14px] font-bold tracking-tight text-ink">
               What these numbers mean
             </h2>
@@ -172,7 +174,7 @@ export default function MarketsPage() {
       <section className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Next steps">
         <Link
           href="/dotcom-vs-ai"
-          className="card card-flush flex flex-col gap-1 p-4 transition-colors hover:border-rule-strong"
+          className="card card-flush card-lift flex flex-col gap-1 p-4 shadow-card transition-shadow duration-200 hover:shadow-raised"
         >
           <span className="label">Context</span>
           <span className="text-[15px] font-semibold text-ink">The last build-out, side by side</span>
@@ -187,7 +189,7 @@ export default function MarketsPage() {
 
         <Link
           href="/ledger?filter=debt"
-          className="card card-flush flex flex-col gap-1 p-4 transition-colors hover:border-rule-strong"
+          className="card card-flush card-lift flex flex-col gap-1 p-4 shadow-card transition-shadow duration-200 hover:shadow-raised"
         >
           <span className="label">Behind the quotes</span>
           <span className="text-[15px] font-semibold text-ink">Every debt facility we sourced</span>
@@ -202,7 +204,7 @@ export default function MarketsPage() {
 
         <Link
           href="/methodology"
-          className="card card-flush flex flex-col gap-1 p-4 transition-colors hover:border-rule-strong"
+          className="card card-flush card-lift flex flex-col gap-1 p-4 shadow-card transition-shadow duration-200 hover:shadow-raised"
         >
           <span className="label">Method</span>
           <span className="text-[15px] font-semibold text-ink">How these inputs feed the model</span>
@@ -215,6 +217,8 @@ export default function MarketsPage() {
           </span>
         </Link>
       </section>
+
+      <AdSlot placementId="markets-bottom" className="mt-10" />
 
       <p className="mt-8 flex items-start gap-2 text-[14px] text-ink-subtle">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />

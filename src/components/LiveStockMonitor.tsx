@@ -9,6 +9,7 @@ import {
   MacroIndicator,
 } from "@/data/live-stocks";
 import liveStocksData from "@/data/live-stocks.json";
+import { Reveal } from "@/components/Reveal";
 
 /**
  * Quotes board for /markets.
@@ -159,6 +160,9 @@ function TrendLine({
       aria-label={label}
       className="shrink-0 overflow-visible"
     >
+      {/* 2026-10-19 (design pass): the line draws itself in, once, over 1.5s
+          when the board reaches the reader. It is a one-shot — the shape
+          never redraws, and the line holds still afterwards. */}
       <path
         d={d}
         fill="none"
@@ -166,6 +170,7 @@ function TrendLine({
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
+        className="draw-in draw-in-slow"
       />
     </svg>
   );
@@ -208,7 +213,8 @@ export function LiveStockMonitor() {
   }, [category]);
 
   return (
-    <div className="card card-flush">
+    <Reveal>
+    <div className="card card-flush shadow-card transition-shadow duration-200 hover:shadow-raised">
       {/* Board header */}
       <div className="card-header flex-wrap gap-x-4 gap-y-2">
         <div className="min-w-0">
@@ -238,10 +244,8 @@ export function LiveStockMonitor() {
               onClick={() => setCategory(item)}
               aria-pressed={active}
               className={[
-                "chip min-h-11 shrink-0 items-center whitespace-nowrap px-3 transition-colors",
-                active
-                  ? "border-ink bg-ink text-canvas hover:bg-ink-muted hover:border-ink-muted"
-                  : "hover:border-rule-strong hover:bg-surface-2",
+                "chip min-h-11 shrink-0 items-center whitespace-nowrap px-3 transition duration-150 active:scale-[0.97]",
+                active ? "chip-on" : "hover:border-rule-strong hover:bg-surface-2",
               ].join(" ")}
             >
               {item}
@@ -329,12 +333,20 @@ export function LiveStockMonitor() {
           </div>
 
           <ul className="divide-y divide-rule">
-            {rows.map((stock) => {
+            {rows.map((stock, index) => {
               const up = stock.change24hPct >= 0;
               const trend = TREND_SHAPES[stock.ticker] || FALLBACK_SHAPE;
               const tone = up
                 ? "text-safe-600 dark:text-safe-300"
                 : "text-risk-600 dark:text-risk-300";
+              /**
+               * 2026-10-19 (design pass): a 24-hour move washes its cell once
+               * as the board ticks in — 600ms, in the row's own direction,
+               * never a loop. The delay staggers it down the column so the
+               * board reads as a tape, not a strobe.
+               */
+              const tickFlash = up ? "flash-safe" : "flash-risk";
+              const tickDelay = { animationDelay: `${Math.min(index, 20) * 40}ms` };
               return (
                 <li key={stock.ticker} className="py-3">
                   {/* Phone: one calm block */}
@@ -359,7 +371,10 @@ export function LiveStockMonitor() {
                         <p className="num text-[15px] font-semibold text-ink">
                           ${stock.priceUsd.toFixed(2)}
                         </p>
-                        <p className={`num text-[14px] font-semibold ${tone}`}>
+                        <p
+                          className={`num rounded-sm text-[14px] font-semibold ${tone} ${tickFlash}`}
+                          style={tickDelay}
+                        >
                           {up ? "+" : ""}
                           {stock.change24hPct.toFixed(1)}%
                         </p>
@@ -389,7 +404,10 @@ export function LiveStockMonitor() {
                     <span className="num text-right text-[15px] font-semibold text-ink">
                       ${stock.priceUsd.toFixed(2)}
                     </span>
-                    <span className={`num text-right text-[14px] font-semibold ${tone}`}>
+                    <span
+                      className={`num rounded-sm text-right text-[14px] font-semibold ${tone} ${tickFlash}`}
+                      style={tickDelay}
+                    >
                       {up ? "+" : ""}
                       {stock.change24hPct.toFixed(1)}%
                     </span>
@@ -422,5 +440,6 @@ export function LiveStockMonitor() {
         </section>
       </div>
     </div>
+    </Reveal>
   );
 }

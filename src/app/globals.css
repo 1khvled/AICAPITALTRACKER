@@ -10,6 +10,11 @@
      .ad-slot--{banner|mobile|billboard|mpu|banner160|native|social-bar}
      .skeleton / .skeleton-line
      .skip-link / .font-tabular / .scrollbar-none / .hairline-t / .hairline-b
+     MOTION (added 2026-10-19, design pass):
+     .reveal / .reveal-in / .bar-grow / .bar-drop / .draw-in
+     .flash-safe / .flash-risk / .marquee / .ticker-row
+     .fade-in / .nav-panel / .bubble-node / .bubble-pop / .press
+     Elevation: shadow-card / shadow-raised / shadow-float (tailwind.config.ts)
 
    Tailwind semantic tokens (theme-aware, no dark: twin needed):
      bg-canvas bg-surface bg-surface-2 bg-surface-3
@@ -63,6 +68,12 @@
 
   /* Ad reserved heights (zero CLS). Overridden per format below. */
   --ad-min-h: 0px;
+
+  /* Elevation — three levels only, and they say "this floats above that",
+     nothing else. Borders still do the separating work. */
+  --elev-card: 0 1px 2px 0 rgb(12 14 17 / 0.05), 0 1px 3px 0 rgb(12 14 17 / 0.05);
+  --elev-raised: 0 2px 4px -1px rgb(12 14 17 / 0.06), 0 6px 14px -6px rgb(12 14 17 / 0.1);
+  --elev-float: 0 10px 30px -12px rgb(12 14 17 / 0.24), 0 2px 6px -2px rgb(12 14 17 / 0.1);
 }
 
 html.dark {
@@ -89,6 +100,11 @@ html.dark {
   --c-header-ink: 245 246 248;
   --c-header-rule: 32 36 41;
   --c-header-muted: 140 147 156;
+
+  /* Elevation on graphite: a shadow has to be a darker halo, not a glow. */
+  --elev-card: 0 1px 2px 0 rgb(0 0 0 / 0.4), 0 2px 6px -2px rgb(0 0 0 / 0.3);
+  --elev-raised: 0 4px 10px -2px rgb(0 0 0 / 0.45), 0 10px 22px -8px rgb(0 0 0 / 0.4);
+  --elev-float: 0 14px 34px -12px rgb(0 0 0 / 0.6), 0 3px 8px -3px rgb(0 0 0 / 0.45);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -391,6 +407,19 @@ html.dark .pill-ink {
   border-color: #f6d88c;
   background-color: #fef8ea;
 }
+/* The ACTIVE filter chip — the same ink fill the primary button uses.
+   It needs its own modifier: the plain Tailwind `bg-ink` utility is emitted
+   before this file, so the `.chip` component rule would win it and the
+   active state would be invisible. */
+.chip-on {
+  background-color: rgb(var(--c-ink));
+  border-color: rgb(var(--c-ink));
+  color: rgb(var(--c-canvas));
+}
+.chip-on:hover {
+  background-color: rgb(var(--c-ink-muted));
+  border-color: rgb(var(--c-ink-muted));
+}
 html.dark .chip-safe {
   color: #6fc9a4;
   border-color: rgb(14 159 110 / 0.42);
@@ -424,7 +453,7 @@ html.dark .chip-caution {
   text-decoration: none;
   cursor: pointer;
   transition: background-color 120ms ease, border-color 120ms ease,
-    color 120ms ease;
+    color 120ms ease, transform 150ms ease;
 }
 .btn:hover {
   background-color: rgb(var(--c-surface-2));
@@ -476,6 +505,19 @@ html.dark .chip-caution {
   .num {
     font-size: 0.875rem;
   }
+}
+
+/* A card that lifts when the pointer or the focus lands on it: one step
+   darker, one hairline of shadow, and the rail on its left warms up. */
+.card-lift {
+  transition: background-color 150ms ease, border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+.card-lift:hover,
+.card-lift:focus-within {
+  background-color: rgb(var(--c-surface-2));
+  border-color: rgb(var(--c-rule-strong));
+  box-shadow: var(--elev-card);
 }
 
 /* Reading column — .prose holds the measure; .prose-* the rhythm. */
@@ -762,8 +804,238 @@ html.dark .chip-caution {
   max-width: 76ch;
 }
 
+/* Ticker row — the frame that clips the market-desk marquee. The tape
+   scrolls inside it; the page itself never scrolls sideways. Under
+   reduced motion the clip is released and the reader scrolls by hand. */
+.ticker-row {
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+}
+
 /* ─────────────────────────────────────────────────────────────────────────
-   6. LEGACY MOTION (deprecated — kept so charts outside this file do not
+   6. MOTION SYSTEM (2026-10-19, design pass)
+   --------------------------------------------------------------------------
+   Rules of the house, so every later agent can add motion without re-litigating:
+
+   1. Motion carries information. A reveal says "this arrived". A bar that
+      grows says "this is how big". A drawn line says "this is the path".
+      Nothing loops for attention.
+   2. Only transform, opacity and paint change. No width/height/top/left
+      animation, so nothing can push a neighbour around (zero CLS).
+   3. The entrance state is gated on `html.js-reveal`, a class the pre-paint
+      boot script in src/app/layout.tsx adds only when JavaScript is running.
+      A crawler, a no-JS reader and a print export therefore see the FINAL,
+      static state — never a blank page.
+   4. Every rule below is killed by the single prefers-reduced-motion block
+      at the end of this file.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* Reveal — the one entrance animation on the site.
+   The colour properties are carried in the same transition so a surface that
+   also has a hover state (a ledger row, a card that lifts) keeps its 150ms
+   colour change instead of snapping. */
+html.js-reveal .reveal {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 420ms cubic-bezier(0.2, 0, 0, 1),
+    transform 420ms cubic-bezier(0.2, 0, 0, 1),
+    background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+html.js-reveal .reveal.reveal-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* A reveal that fades only — for an element that must not move at all
+   (a bar inside a fixed track, a figure inside a fixed box). */
+html.js-reveal .reveal.reveal-flat {
+  transform: none;
+}
+
+/* Bar growth — horizontal, from the left edge. */
+html.js-reveal .bar-grow {
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 600ms cubic-bezier(0.2, 0, 0, 1);
+}
+html.js-reveal .reveal-in .bar-grow,
+html.js-reveal .bar-grow.bar-grow-in {
+  transform: scaleX(1);
+}
+
+/* Bar growth — vertical, from the baseline. */
+html.js-reveal .bar-drop {
+  transform: scaleY(0);
+  transform-origin: bottom center;
+  transition: transform 600ms cubic-bezier(0.2, 0, 0, 1);
+}
+html.js-reveal .reveal-in .bar-drop,
+html.js-reveal .bar-drop.bar-drop-in {
+  transform: scaleY(1);
+}
+
+/* Draw-in — an SVG stroke that draws itself. The dash length is a generous
+   constant so no path can out-run it; the offset animates to zero. */
+html.js-reveal .draw-in {
+  stroke-dasharray: 6000;
+  stroke-dashoffset: 6000;
+}
+html.js-reveal .reveal-in .draw-in,
+html.js-reveal .draw-in.draw-in-in {
+  animation: drawStroke var(--draw-duration, 1200ms) cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+.draw-in-slow {
+  --draw-duration: 1500ms;
+}
+@keyframes drawStroke {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Price ticks — a single 600ms wash on the cell that moved. Never a loop. */
+.flash-safe {
+  animation: flashSafe 600ms ease-out 1;
+}
+.flash-risk {
+  animation: flashRisk 600ms ease-out 1;
+}
+@keyframes flashSafe {
+  0% {
+    background-color: rgb(14 159 110 / 0.22);
+  }
+  100% {
+    background-color: rgb(14 159 110 / 0);
+  }
+}
+@keyframes flashRisk {
+  0% {
+    background-color: rgb(209 67 60 / 0.22);
+  }
+  100% {
+    background-color: rgb(209 67 60 / 0);
+  }
+}
+
+/* Marquee — the market desk strip. Duplicated track, 40s, paused on hover
+   and killed outright for reduced-motion readers. */
+@keyframes marqueeSlide {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee {
+  display: flex;
+  width: max-content;
+  animation: marqueeSlide 40s linear infinite;
+}
+.marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Bubble nodes in the deal chart — a keyboard-reachable, hoverable dot.
+   The scale is a transform on the circle itself (60fps, no reflow); the
+   elevation is a drop-shadow filter on the group. */
+.bubble-node {
+  outline: none;
+  cursor: pointer;
+}
+.bubble-node .bubble-core {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+.bubble-node:hover .bubble-core,
+.bubble-node:focus-visible .bubble-core {
+  transform: scale(1.08);
+}
+.bubble-node {
+  transition: filter 200ms ease;
+}
+.bubble-node:hover,
+.bubble-node:focus-visible {
+  filter: drop-shadow(0 6px 12px rgb(12 14 17 / 0.32));
+}
+.bubble-focus-ring {
+  opacity: 0;
+  transition: opacity 160ms ease;
+  pointer-events: none;
+}
+.bubble-node:focus-visible .bubble-focus-ring {
+  opacity: 1;
+}
+
+/* Pop-in for the bubble chart: one short scale, then the node is static.
+   `backwards` fill so the node returns to its normal transform afterwards
+   (which is what lets the hover scale take over). The animation waits, with
+   the node held at scale(0), until its pod scrolls into view.
+
+   The hidden-at-zero state is gated on `html.js-reveal` for the same reason
+   the reveal is: without JavaScript the chart must still be a chart. A
+   no-JS reader and a crawler get every bubble at its final size. */
+html.js-reveal .bubble-pop {
+  animation: bubblePop 520ms cubic-bezier(0.2, 0, 0, 1) backwards;
+  animation-play-state: paused;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+html.js-reveal .bubble-pop.bubble-pop-live {
+  animation-play-state: running;
+}
+@keyframes bubblePop {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* Fade — opacity only, for elements whose position must not move (an SVG
+   glyph, a table cell). Same gate as the reveal: no JS, no hidden state. */
+html.js-reveal .fade-in {
+  opacity: 0;
+  transition: opacity 320ms cubic-bezier(0.2, 0, 0, 1);
+}
+html.js-reveal .fade-in.fade-in-done {
+  opacity: 1;
+}
+
+/* Mobile nav panel — a disclosure under the masthead. It is absolutely
+   positioned, so opening it can never push the page down (zero CLS), and
+   it animates on opacity + transform only. `visibility` is held until the
+   exit finishes so the closed panel's links leave the tab order with the
+   animation, not a frame before it. */
+.nav-panel {
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 180ms cubic-bezier(0.2, 0, 0, 1),
+    transform 180ms cubic-bezier(0.2, 0, 0, 1), visibility 0s linear 180ms;
+}
+.nav-panel-open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  visibility: visible;
+  transition: opacity 180ms cubic-bezier(0.2, 0, 0, 1),
+    transform 180ms cubic-bezier(0.2, 0, 0, 1), visibility 0s linear 0s;
+}
+
+/* Press feedback — a 150ms squeeze on active controls. */
+.press {
+  transition: transform 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+.press:active {
+  transform: scale(0.97);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   7. LEGACY MOTION (deprecated — kept so charts outside this file do not
       break). The marquee is paused for reduced-motion users and for anyone
       who hovers it. Remove once chart owners migrate off these classes.
    ───────────────────────────────────────────────────────────────────────── */
@@ -835,7 +1107,14 @@ html.dark .chip-caution {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   7. MOTION PREFERENCE + PRINT
+   8. MOTION PREFERENCE + PRINT
+   --------------------------------------------------------------------------
+   ONE global guard. Every shared motion class is pinned to its final,
+   static state here: reveals are visible, bars are full width, drawn lines
+   are fully drawn, the marquee does not move, a price wash does not flash.
+   The blanket `*` rule also flattens every CSS transition, so a theme
+   switch or a disclosure panel changes state instantly instead of easing
+   into it. Nothing on the site keeps moving for a reduced-motion reader.
    ───────────────────────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -853,6 +1132,59 @@ html.dark .chip-caution {
   }
   .skeleton {
     animation: none !important;
+  }
+
+  /* Reveals: the final state, immediately. */
+  .reveal,
+  .reveal-in {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  /* Fades: the final state, immediately. */
+  .fade-in {
+    opacity: 1 !important;
+  }
+  /* Bars: full length, no growth. */
+  .bar-grow,
+  .bar-drop {
+    transform: none !important;
+  }
+  /* Drawn lines: fully drawn, no dash maths. */
+  .draw-in {
+    stroke-dasharray: none !important;
+    stroke-dashoffset: 0 !important;
+    animation: none !important;
+  }
+  /* Marquee: the strip sits still and scrolls by hand. */
+  .marquee,
+  .animate-marquee {
+    animation: none !important;
+  }
+  .marquee-dup {
+    display: none !important;
+  }
+  .ticker-row {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .ticker-row::-webkit-scrollbar {
+    display: none;
+  }
+  /* Price wash: no flash at all. */
+  .flash-safe,
+  .flash-risk {
+    animation: none !important;
+    background-color: transparent !important;
+  }
+  /* Bubble pop-in: no scale-in, nodes are simply there. */
+  .bubble-pop {
+    animation: none !important;
+    transform: none !important;
+  }
+  /* Mobile nav panel: open or closed, never sliding. */
+  .nav-panel {
+    transition: none !important;
+    transform: none !important;
   }
 }
 

@@ -1,9 +1,9 @@
-import Script from "next/script";
 import {
   resolveAdPlacement,
   legacyPlacementId,
   type PlacementId,
 } from "@/lib/ads";
+import { AdScript } from "@/components/AdScript";
 
 /**
  * ─────────────────────────────────────────────────────────────────────────────
@@ -54,14 +54,16 @@ import {
  *   Kill switch: `NEXT_PUBLIC_ADSTERRA_DISABLED=1`.
  *
  * PLACEMENT IDS
- *   home-leaderboard, home-infeed-1, home-infeed-2,
- *   ledger-top, ledger-infeed,
- *   companies-top, companies-infeed,
- *   markets-top, markets-sidebar-mpu,
- *   methodology-top, methodology-infeed,
- *   dotcom-top,
- *   visualize-top, visualize-infeed,
- *   sandbox-top, api-docs-top,
+ *   home-leaderboard, home-infeed-1, home-infeed-2, home-mid, home-footer,
+ *   ledger-top, ledger-infeed, ledger-mid, ledger-bottom,
+ *   companies-top, companies-infeed, companies-mid, companies-bottom,
+ *   markets-top, markets-sidebar-mpu, markets-infeed, markets-bottom,
+ *   news-top, news-infeed, news-bottom,
+ *   methodology-top, methodology-infeed, methodology-bottom,
+ *   dotcom-top, dotcom-infeed, dotcom-bottom,
+ *   visualize-top, visualize-infeed, visualize-bottom,
+ *   sandbox-top, sandbox-infeed, sandbox-bottom,
+ *   api-docs-top, api-docs-bottom,
  *   global-leaderboard, global-infeed, global-footer-billboard,
  *   social-bar (default off)
  *
@@ -191,6 +193,12 @@ export function AdSlot({
           Advertisement
         </span>
         <div id={ad.containerId} className="ad-slot__frame">
+          {/* The sandbox FORBIDS `allow-top-navigation`: a creative can open
+              its own tab on a click, but it can never redirect this page.
+              `allow-same-origin` + `allow-scripts` keep normal fill working;
+              `allow-forms` and popups cover ad destinations that submit or
+              open in new tabs. Autoplay stays off (not granted), so nothing
+              ever makes noise on load. */}
           <iframe
             title="Advertisement"
             srcDoc={buildAtOptionsDoc({
@@ -207,6 +215,8 @@ export function AdSlot({
             marginWidth={0}
             marginHeight={0}
             loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms"
           />
         </div>
       </aside>
@@ -226,14 +236,15 @@ export function AdSlot({
         Advertisement
       </span>
       <div id={ad.containerId} className="ad-slot__frame" />
-      <Script
+      {/* Viewport-gated loader: the third-party script is only injected once
+          the slot nears the viewport (see AdScript). The reserved box above
+          already exists, so nothing shifts when the creative arrives. */}
+      <AdScript
         src={ad.scriptSrc}
         strategy={ad.strategy}
-        async
-        data-cfasync="false"
-        data-adsterra-placement={ad.placementId}
         id={`${ad.containerId}-loader`}
-        {...(isSocialBar ? { "data-adsterra-social-bar": "1" } : {})}
+        placementId={ad.placementId}
+        socialBar={isSocialBar}
       />
     </aside>
   );

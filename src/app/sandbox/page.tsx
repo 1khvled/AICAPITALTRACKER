@@ -4,6 +4,7 @@ import React, { useState, useMemo, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { SensitivitySandbox } from "@/components/SensitivitySandbox";
 import { SensitivityCurveChart } from "@/components/VisualCharts";
+import { Reveal } from "@/components/Reveal";
 import { AdSlot } from "@/components/AdSlot";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import type { BubbleModelInputs, BubbleModelResult } from "@/lib/model/types";
@@ -457,7 +458,7 @@ export default function SandboxPage() {
         </details>
       </header>
 
-<section aria-labelledby="live-snapshot-heading" className="card mt-6 space-y-5">
+<section aria-labelledby="live-snapshot-heading" className="card mt-6 space-y-5 shadow-card transition-shadow duration-200 hover:shadow-raised">
         {/* Header with title and calibration stamp */}
         <div className="flex flex-col gap-4 border-b border-rule pb-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-1">
@@ -680,7 +681,7 @@ export default function SandboxPage() {
       />
 
       {/* ── MINSKY INSTABILITY REGIME & SHILLER EXCESS CAPE YIELD LEVERS ──────── */}
-      <section aria-labelledby="minsky-shiller-sandbox-heading" className="card mt-6 space-y-6">
+      <section aria-labelledby="minsky-shiller-sandbox-heading" className="card mt-6 space-y-6 shadow-card transition-shadow duration-200 hover:shadow-raised">
         <div className="flex flex-col gap-4 border-b border-rule pb-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
@@ -946,6 +947,8 @@ export default function SandboxPage() {
         </div>
       </section>
 
+      <AdSlot placementId="sandbox-infeed" className="mt-6" />
+
       {/* ── CLASSICAL FINANCIAL MODELS BENCHMARK (MERTON, ALTMAN, LPPLS) ─────── */}
       <section aria-labelledby="classical-models-heading" className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 pb-1">
@@ -1064,7 +1067,7 @@ export default function SandboxPage() {
       </section>
 
       {/* ── 25,000-PATH MONTE CARLO STOCHASTIC SAMPLING SUITE ────────────────── */}
-      <section aria-labelledby="monte-carlo-heading" className="card mt-6 space-y-6">
+      <section aria-labelledby="monte-carlo-heading" className="card mt-6 space-y-6 shadow-card transition-shadow duration-200 hover:shadow-raised">
         <div className="flex flex-col gap-4 border-b border-rule pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
@@ -1186,8 +1189,9 @@ export default function SandboxPage() {
             </span>
           </div>
 
-          <div className="grid h-32 grid-cols-10 items-end gap-1.5 rounded-xl border border-rule bg-surface-2 p-3">
-            {monteCarlo.histogram.map((bin) => {
+          <Reveal>
+            <div className="grid h-32 grid-cols-10 items-end gap-1.5 rounded-xl border border-rule bg-surface-2 p-3">
+            {monteCarlo.histogram.map((bin, index) => {
               const maxPct = Math.max(...monteCarlo.histogram.map((h) => h.percentage));
               const heightPct = Math.max(8, (bin.percentage / maxPct) * 100);
               const isPeak = bin.percentage === maxPct;
@@ -1197,14 +1201,14 @@ export default function SandboxPage() {
                     {bin.percentage}%
                   </div>
                   <div
-                    className={`w-full rounded-t transition-colors ${
+                    className={`bar-drop w-full rounded-t transition-colors ${
                       isPeak
                         ? "bg-safe-500 "
                         : bin.range >= "50%"
                         ? "bg-risk-500/80 hover:bg-risk-500"
                         : "bg-surface-3/80 hover:bg-surface-3"
                     }`}
-                    style={{ height: `${heightPct}%` }}
+                    style={{ height: `${heightPct}%`, transitionDelay: `${index * 45}ms` }}
                   />
                   <span className="text-[14px] text-ink-subtle mt-1 truncate max-w-full">
                     {bin.range.split("–")[0]}
@@ -1212,7 +1216,8 @@ export default function SandboxPage() {
                 </div>
               );
             })}
-          </div>
+            </div>
+          </Reveal>
         </div>
       </section>
 
@@ -1229,8 +1234,9 @@ export default function SandboxPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {stressScenarios.map((sc) => (
-            <div key={sc.id} className={`card border-t-2 ${sc.colorTone}`}>
+          {stressScenarios.map((sc, index) => (
+            <Reveal key={sc.id} delay={index * 60}>
+            <div className={`card border-t-2 ${sc.colorTone}`}>
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <span className="label">{sc.tag}</span>
@@ -1278,12 +1284,13 @@ export default function SandboxPage() {
                 </span>
               </div>
             </div>
+            </Reveal>
           ))}
         </div>
       </div>
 
       {/* Sensitivity Elasticity Table */}
-      <div className="card mt-6">
+      <div className="card mt-6 shadow-card">
         <div>
           <span className="label">QUANTITATIVE ELASTICITY</span>
           <h2 className="mt-0.5 text-xl font-bold text-ink">Marginal Sensitivity Elasticity Rulebook</h2>
@@ -1333,6 +1340,8 @@ export default function SandboxPage() {
         </h2>
         <SensitivityCurveChart />
       </section>
+
+      <AdSlot placementId="sandbox-bottom" className="mt-6" />
 
       {/* Regulatory & Institutional Compliance Disclaimer */}
       <div className="notice notice-caution mt-6">

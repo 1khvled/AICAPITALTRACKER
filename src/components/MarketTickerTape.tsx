@@ -8,12 +8,16 @@ import liveInputsData from "@/data/live-inputs.json";
 import rawDeals from "@/data/deals.json";
 
 /**
- * Market desk strip — a static, calm quote row that sits above the masthead.
+ * Market desk strip — a slow, horizontal tape of the readings that matter.
  *
- * Deliberately NOT a marquee: no infinite motion, no pulsing dots, no colour
- * that competes with the readings below. Server component, no client JS, no
- * hydration cost. It scrolls horizontally inside its own row on narrow
- * screens, so the page itself never scrolls sideways.
+ * 2026-10-19 (design pass): the strip is now a real marquee. The track
+ * carries the items twice and slides half its own width over 40 seconds, so
+ * the loop is seamless; it pauses the moment the pointer is over it, and a
+ * reduced-motion reader gets a still strip they can scroll by hand.
+ *
+ * The "Market desk" label stays pinned: only the readings move. The tape is
+ * built from the same daily feed as the rest of the site, and it invents
+ * nothing.
  */
 
 interface TickerItem {
@@ -139,57 +143,81 @@ export function MarketTickerTape() {
 
   const items: TickerItem[] = [...stockItems, ...macroItems];
 
+  const renderItem = (item: TickerItem, duplicate: boolean) => {
+    const body = (
+      <span className="flex shrink-0 items-baseline gap-2 whitespace-nowrap px-3 py-1.5 text-[14px]">
+        <span className="label !text-[13px]">{item.label}</span>
+        <span className="num text-ink">{item.value}</span>
+        {item.change ? (
+          <span
+            className={
+              item.tone === "up"
+                ? "text-safe-600 dark:text-safe-400"
+                : item.tone === "down"
+                ? "text-risk-600 dark:text-risk-400"
+                : "text-ink-faint"
+            }
+          >
+            {item.change}
+          </span>
+        ) : null}
+      </span>
+    );
+
+    // The duplicate half of the loop is decoration for the eye: it is hidden
+    // from screen readers and skipped by the keyboard.
+    const tabIndex = duplicate ? -1 : undefined;
+
+    return item.isExternal ? (
+      <a
+        key={item.id}
+        href={item.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        tabIndex={tabIndex}
+        className="-my-1.5 min-h-11 border-r border-rule py-1.5 transition-colors hover:bg-surface-3"
+      >
+        {body}
+      </a>
+    ) : (
+      <Link
+        key={item.id}
+        href={item.href}
+        tabIndex={tabIndex}
+        className="-my-1.5 min-h-11 border-r border-rule py-1.5 transition-colors hover:bg-surface-3"
+      >
+        {body}
+      </Link>
+    );
+  };
+
+  const syncStamp = (
+    <span className="num flex shrink-0 items-center whitespace-nowrap px-3 py-1.5 text-[14px] text-ink-faint">
+      Synced daily 00:00 UTC
+    </span>
+  );
+
   return (
     <div className="border-b border-rule bg-surface-2 text-ink-muted">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
-        <div className="flex min-w-0 items-stretch overflow-x-auto scrollbar-none">
+        <div className="flex min-w-0 items-stretch">
           <span className="label flex shrink-0 items-center border-r border-rule px-3 py-1.5">
             Market desk
           </span>
-          {items.map((item) => {
-            const body = (
-              <span className="flex shrink-0 items-baseline gap-2 whitespace-nowrap px-3 py-1.5 text-[14px]">
-                <span className="label !text-[13px]">{item.label}</span>
-                <span className="num text-ink">{item.value}</span>
-                {item.change ? (
-                  <span
-                    className={
-                      item.tone === "up"
-                        ? "text-safe-600 dark:text-safe-400"
-                        : item.tone === "down"
-                        ? "text-risk-600 dark:text-risk-400"
-                        : "text-ink-faint"
-                    }
-                  >
-                    {item.change}
-                  </span>
-                ) : null}
-              </span>
-            );
 
-            return item.isExternal ? (
-              <a
-                key={item.id}
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="-my-1.5 min-h-11 border-r border-rule py-1.5 transition-colors hover:bg-surface-3"
-              >
-                {body}
-              </a>
-            ) : (
-              <Link
-                key={item.id}
-                href={item.href}
-                className="-my-1.5 min-h-11 border-r border-rule py-1.5 transition-colors hover:bg-surface-3"
-              >
-                {body}
-              </Link>
-            );
-          })}
-          <span className="num flex shrink-0 items-center whitespace-nowrap px-3 py-1.5 text-[14px] text-ink-faint">
-            Synced daily 00:00 UTC
-          </span>
+          {/* The clipper holds the frame; the marquee slides inside it. */}
+          <div className="ticker-row min-w-0 flex-1 overflow-hidden">
+            <div className="marquee items-stretch">
+              <div className="flex items-stretch">
+                {items.map((item) => renderItem(item, false))}
+                {syncStamp}
+              </div>
+              <div className="marquee-dup flex items-stretch" aria-hidden="true">
+                {items.map((item) => renderItem(item, true))}
+                {syncStamp}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

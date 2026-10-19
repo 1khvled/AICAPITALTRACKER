@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { FactorContribution } from "@/lib/model/types";
 import { MODEL_FACTORS } from "@/lib/model/factors";
 import { factorPlain } from "./copy";
+import { Reveal } from "@/components/Reveal";
 
 const EXPLAIN_BY_ID = new Map(MODEL_FACTORS.map((factor) => [factor.id, factor.explain]));
 
@@ -45,12 +46,12 @@ export function DriverSection({
       </div>
 
       <ol className="mt-2 divide-y divide-rule border-y border-rule">
-        {drivers.map((factor) => {
+        {drivers.map((factor, index) => {
           const plain = factorPlain(factor.id);
           const isHeaviest = factor.id === heaviestId;
 
           return (
-            <li key={factor.id} className="py-4">
+            <Reveal as="li" key={factor.id} className="py-4" delay={index * 50}>
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                 <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                   <span className="text-[15px] font-semibold text-ink">{plain.short}</span>
@@ -69,8 +70,11 @@ export function DriverSection({
               <div className="mt-2 flex items-center gap-2">
                 <span className="h-1 w-full max-w-[180px] bg-surface-3">
                   <span
-                    className={`block h-1 ${severityTone(factor.reading.score)}`}
-                    style={{ width: `${Math.round(factor.reading.score * 100)}%` }}
+                    className={`bar-grow block h-1 ${severityTone(factor.reading.score)}`}
+                    style={{
+                      width: `${Math.round(factor.reading.score * 100)}%`,
+                      transitionDelay: "80ms",
+                    }}
                   />
                 </span>
                 <span className="num text-[14px] text-ink-faint">
@@ -87,12 +91,12 @@ export function DriverSection({
               <p className="mt-1 break-words font-mono text-[14px] leading-relaxed text-ink-faint">
                 {factor.reading.reading}
               </p>
-            </li>
+            </Reveal>
           );
         })}
 
         {damper && (
-          <li className="py-4">
+          <Reveal as="li" className="py-4" delay={drivers.length * 50}>
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                 <span className="text-[15px] font-semibold text-ink">
@@ -113,7 +117,7 @@ export function DriverSection({
             <p className="mt-1 break-words font-mono text-[14px] leading-relaxed text-ink-faint">
               {damper.reading.reading}
             </p>
-          </li>
+          </Reveal>
         )}
       </ol>
 

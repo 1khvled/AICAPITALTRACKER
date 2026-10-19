@@ -1249,6 +1249,8 @@ export default function DotComVsAiPage() {
         </div>
       )}
 
+      <AdSlot placementId="dotcom-infeed" className="mt-6" />
+
       {/* Institutional Synthesis & Summary Grid */}
       <div className="p-6 rounded-lg border border-rule bg-surface-2 space-y-4">
         <h3 className="text-base sm:text-lg font-bold text-ink">
@@ -1324,6 +1326,8 @@ export default function DotComVsAiPage() {
           </a>
         </div>
       </div>
+
+      <AdSlot placementId="dotcom-bottom" className="mt-6" />
     </div>
   );
 }

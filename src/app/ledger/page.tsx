@@ -112,6 +112,8 @@ export default function LedgerPage() {
         </dl>
       </section>
 
+      <AdSlot placementId="ledger-bottom" className="mt-10" />
+
       {/* Where to go next */}
       <section className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Next steps">
         <Link href="/companies" className="card card-flush flex flex-col gap-1 p-4 transition-colors hover:border-rule-strong">

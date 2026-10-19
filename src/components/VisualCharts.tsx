@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useMemo, useCallback } from "react";
 import { MODEL_CALIBRATION } from "@/lib/model/factors";
+import { Reveal } from "@/components/Reveal";
 import {
   TrendingUp,
   BarChart2,
@@ -341,15 +342,16 @@ export function SensitivityCurveChart({
           })}
 
           {/* 90% Confidence Interval Band Shading */}
-          <path d={areaD} fill={TOKEN.caution500} fillOpacity="0.10" />
+          <path d={areaD} fill={TOKEN.caution500} fillOpacity="0.10" className="draw-in draw-in-in" />
 
-          {/* Sigmoid Response Curve */}
+          {/* Sigmoid Response Curve — draws itself in once, then holds. */}
           <path
             d={pathD}
             fill="none"
             stroke={TOKEN.risk500}
             strokeWidth="2.5"
             strokeLinecap="round"
+            className="draw-in draw-in-in"
           />
 
           {/* Anchor Tag at 55 pts */}
@@ -1538,7 +1540,8 @@ export function AiRevenueGapChart() {
   const burnRatio = (totalOutlay / revenue).toFixed(1); // 5.4x (was 3.9x)
 
   return (
-    <div className="card space-y-4">
+    <Reveal>
+      <div className="card space-y-4 shadow-card">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <span className="label">STRUCTURAL IMBALANCE</span>
@@ -1551,7 +1554,7 @@ export function AiRevenueGapChart() {
 
       {/* Spend Comparison Bars */}
       <div className="space-y-3 pt-1">
-        {data.map((item) => {
+        {data.map((item, index) => {
           const widthPct = (item.amount / 800) * 100; // scale widened 500 → 800 with the corrected $725B capex basis
           return (
             <div key={item.label} className="space-y-1.5">
@@ -1568,8 +1571,8 @@ export function AiRevenueGapChart() {
               </div>
               <div className="h-3.5 w-full overflow-hidden rounded-full bg-surface-2 p-0.5">
                 <div
-                  className={`h-full rounded-full ${item.isRevenue ? "bg-safe-500" : "bg-surface-3"}`}
-                  style={{ width: `${widthPct}%` }}
+                  className={`bar-grow h-full rounded-full ${item.isRevenue ? "bg-safe-500" : "bg-surface-3"}`}
+                  style={{ width: `${widthPct}%`, transitionDelay: `${index * 60}ms` }}
                 />
               </div>
             </div>
@@ -1594,7 +1597,8 @@ export function AiRevenueGapChart() {
           Hyperscalers (Microsoft, Meta, Google, Amazon) and neoclouds are deploying ~$865B — $725B of guided CY2026 capex plus $140B in power/depreciation — to service $159B+ of reported enterprise AI ARR (OpenAI, Anthropic, Microsoft AI, Databricks; gross of cloud-partner overlap). Guided capex now consumes nearly all four companies' operating cash flow (Forbes, Oct 7 2026); Microsoft's trailing FY26 OCF of $182.9B ≈ 96% of its ~$175B CY2026 guide (Alpha Vantage / SEC filings), with Amazon already guided to negative FCF.
         </p>
       </div>
-    </div>
+      </div>
+    </Reveal>
   );
 }
 
@@ -1837,7 +1841,8 @@ export function TokenPriceDeflationChart() {
   });
 
   return (
-    <div className="card space-y-4">
+    <Reveal>
+      <div className="card space-y-4 shadow-card">
       <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -1914,8 +1919,12 @@ export function TokenPriceDeflationChart() {
                 </div>
                 <div className="h-2.5 w-full overflow-hidden rounded-full bg-surface-2 p-0.5">
                   <div
-                    className={`h-full rounded-full ${isHovered ? "bg-safe-500" : m.color}`}
-                    style={{ width: `${logPct}%`, opacity: 0.6 + idx * 0.05 }}
+                    className={`bar-grow h-full rounded-full ${isHovered ? "bg-safe-500" : m.color}`}
+                    style={{
+                      width: `${logPct}%`,
+                      opacity: 0.6 + idx * 0.05,
+                      transitionDelay: `${Math.min(idx, 14) * 40}ms`,
+                    }}
                   />
                 </div>
                 {isHovered && (
@@ -2013,7 +2022,8 @@ export function TokenPriceDeflationChart() {
           </p>
         )}
       </div>
-    </div>
+      </div>
+    </Reveal>
   );
 }
 

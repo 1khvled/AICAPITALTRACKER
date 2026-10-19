@@ -2480,6 +2480,8 @@ return (
         </div>
       </section>
 
+      <AdSlot placementId="methodology-bottom" className="mt-10" />
+
       {/* Regulatory & Institutional Compliance Disclaimer */}
       <div className="p-4 sm:p-5 rounded-lg bg-caution-500/5 border border-caution-300/20 text-[14px] text-ink-muted space-y-2">
         <div className="flex items-center space-x-2 text-caution-700 font-mono font-bold uppercase tracking-wider text-ink">

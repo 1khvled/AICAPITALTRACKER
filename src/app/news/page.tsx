@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { AdSlot } from "@/components/AdSlot";
 import { LiveNewsFeed } from "@/components/LiveNewsFeed";
 import type { NewsItem } from "@/app/api/v1/news/route";
 import liveNews from "@/data/live-news.json";
@@ -59,9 +60,13 @@ export default function NewsPage() {
         </div>
       </header>
 
+      <AdSlot placementId="news-top" className="mt-6" />
+
       <div className="mt-6">
         <LiveNewsFeed items={items} />
       </div>
+
+      <AdSlot placementId="news-infeed" className="mt-6" />
 
       <p className="notice mt-6">
         <span className="notice-title">How fresh this is</span>
@@ -70,6 +75,8 @@ export default function NewsPage() {
           this page is investment advice.
         </span>
       </p>
+
+      <AdSlot placementId="news-bottom" className="mt-8" />
     </div>
   );
 }

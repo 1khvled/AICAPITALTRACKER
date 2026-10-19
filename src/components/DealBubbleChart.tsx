@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   Search,
   LayoutGrid,
@@ -22,6 +23,7 @@ import {
   Move,
 } from "lucide-react";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
+import { useInView, usePrefersReducedMotion } from "@/components/Reveal";
 
 export interface Deal {
   id: string;
@@ -92,6 +94,18 @@ interface DealBubbleChartProps {
 
 export type ViewMode = "treemap" | "bubbles" | "arena" | "timeline";
 
+/**
+ * Category colours.
+ *
+ * 2026-10-19 (design pass): the palette was a rainbow of arbitrary hexes —
+ * including a violet and a cyan, both of which the site design system
+ * forbids — rendered through radial gradients with a drop-shadow "glow".
+ * Colour now means something: the two red steps are borrowed money and the
+ * build-out, the amber is power and land, the green is money coming back in
+ * through sales, and the four graphite steps are the rest. Every fill is a
+ * flat token colour with white text at AA or better, and depth comes from
+ * elevation, not from a gradient.
+ */
 export const CATEGORY_CONFIG: Record<
   string,
   {
@@ -113,7 +127,7 @@ export const CATEGORY_CONFIG: Record<
     tileBgHover: "",
     badgeBg: "bg-risk-500",
     textColor: "text-risk-700",
-    accentHex: "#ef4444",
+    accentHex: "#D1433C", // risk-500
   },
   "Bets & rounds": {
     name: "Equity & Strategic Bets",
@@ -123,7 +137,7 @@ export const CATEGORY_CONFIG: Record<
     tileBgHover: "",
     badgeBg: "bg-surface-3",
     textColor: "text-ink-muted",
-    accentHex: "#8b5cf6",
+    accentHex: "#4A525C", // ink-muted
   },
   "Compute contracts": {
     name: "Compute & Cloud Clusters",
@@ -133,7 +147,7 @@ export const CATEGORY_CONFIG: Record<
     tileBgHover: "",
     badgeBg: "bg-surface-3",
     textColor: "text-ink-muted",
-    accentHex: "#06b6d4",
+    accentHex: "#646C76", // ink-faint
   },
   "Power & land": {
     name: "Power & Clean Energy",
@@ -143,7 +157,7 @@ export const CATEGORY_CONFIG: Record<
     tileBgHover: "",
     badgeBg: "bg-caution-500",
     textColor: "text-caution-700",
-    accentHex: "#f59e0b",
+    accentHex: "#966A08", // caution-600
   },
   "Buyouts & mergers": {
     name: "M&A & Buyouts",
@@ -153,7 +167,7 @@ export const CATEGORY_CONFIG: Record<
     tileBgHover: "",
     badgeBg: "bg-surface-3",
     textColor: "text-ink-muted",
-    accentHex: "#3b82f6",
+    accentHex: "#0C0E11", // ink
   },
   "Big construction": {
     name: "Hyperscale Capex",
@@ -163,7 +177,7 @@ export const CATEGORY_CONFIG: Record<
     tileBgHover: "",
     badgeBg: "bg-caution-500",
     textColor: "text-caution-700",
-    accentHex: "#f97316",
+    accentHex: "#94271F", // risk-700
   },
   "Share sales": {
     name: "Secondary Share Sales",
@@ -173,7 +187,7 @@ export const CATEGORY_CONFIG: Record<
     tileBgHover: "",
     badgeBg: "bg-safe-500",
     textColor: "text-safe-700",
-    accentHex: "#10b981",
+    accentHex: "#0A6648", // safe-700
   },
   "Other": {
     name: "Ecosystem Deals",
@@ -183,23 +197,9 @@ export const CATEGORY_CONFIG: Record<
     tileBgHover: "",
     badgeBg: "bg-ink",
     textColor: "text-ink-muted",
-    accentHex: "#64748b",
+    accentHex: "#545C66", // ink-subtle
   },
 };
-
-function getDarkerHex(hex: string): string {
-  const colorMap: Record<string, string> = {
-    "#ef4444": "#991b1b",
-    "#8b5cf6": "#5b21b6",
-    "#06b6d4": "#0e7490",
-    "#f59e0b": "#b45309",
-    "#3b82f6": "#1d4ed8",
-    "#f97316": "#c2410c",
-    "#10b981": "#047857",
-    "#64748b": "#334155",
-  };
-  return colorMap[hex] || "#1e293b";
-}
 
 function getSvgPoint(
   e: React.PointerEvent<SVGSVGElement>,
@@ -250,6 +250,8 @@ interface InteractiveBubblePodProps {
     bubbles: Array<{ deal: Deal; r: number; x: number; y: number }>;
   };
   onSelectDeal: (deal: Deal) => void;
+  /** Opens the deal in the ledger, pre-filtered (see DealBubbleChart). */
+  onOpenInLedger: (deal: Deal) => void;
   hoveredDeal: Deal | null;
   setHoveredDeal: (deal: Deal | null) => void;
   searchQuery: string;
@@ -261,6 +263,7 @@ interface InteractiveBubblePodProps {
 function InteractiveBubblePod({
   pod,
   onSelectDeal,
+  onOpenInLedger,
   hoveredDeal,
   setHoveredDeal,
   searchQuery,
@@ -281,6 +284,20 @@ function InteractiveBubblePod({
   const startClientPosRef = useRef({ x: 0, y: 0 });
   const hasMovedRef = useRef(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
+
+  /**
+   * 2026-10-19 (design pass): the pod reveals once, when it scrolls into
+   * view — the bubbles pop in by rank (largest first) and then hold still.
+   * The hover/focus readout is a plain card; the node itself carries the
+   * scale and the elevation.
+   */
+  const podRef = useRef<HTMLDivElement | null>(null);
+  const inView = useInView(podRef);
+  const [tip, setTip] = useState<{ deal: Deal; x: number; y: number } | null>(null);
+
+  const showTip = (deal: Deal, x: number, y: number) =>
+    setTip({ deal, x: (x / 300) * 100, y: (y / 190) * 100 });
+  const hideTip = () => setTip(null);
 
   // Sync state whenever underlying deals, layout, or reset counter changes
   useEffect(() => {
@@ -375,10 +392,17 @@ function InteractiveBubblePod({
         // Fallback
       }
       if (!hasMovedRef.current) {
-        onSelectDeal(node.deal);
+        // A tap (not a drag) opens the deal in the ledger, pre-filtered.
+        onOpenInLedger(node.deal);
       }
       setDraggingId(null);
     }
+  };
+
+  const handleNodeKeyDown = (e: React.KeyboardEvent<SVGGElement>, node: PodBubbleNode) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    e.preventDefault();
+    onOpenInLedger(node.deal);
   };
 
   const handleResetPod = () => {
@@ -391,11 +415,8 @@ function InteractiveBubblePod({
     );
   };
 
-  const gradId = `sphere-grad-${pod.categoryKey.replace(/[^a-zA-Z0-9]/g, "")}`;
-  const darker = getDarkerHex(pod.config.accentHex);
-
   return (
-    <div className="panel space-y-3 transition-colors hover:border-rule-strong">
+    <div ref={podRef} className="panel space-y-3 transition-colors hover:border-rule-strong">
       <div className="flex items-center justify-between pb-2 border-b border-rule">
         <div className="flex items-center space-x-2">
           <span
@@ -434,14 +455,9 @@ function InteractiveBubblePod({
           onPointerMove={handlePointerMove}
         >
           <defs>
-            <radialGradient id={gradId} cx="35%" cy="30%" r="70%">
-              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.45" />
-              <stop offset="35%" stopColor={pod.config.accentHex} stopOpacity="0.9" />
-              <stop offset="100%" stopColor={darker} stopOpacity="1" />
-            </radialGradient>
-            <filter id={`glow-${gradId}`} x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.25" />
-            </filter>
+            {/* No gradients, no glow filter: a flat token fill, a hairline
+                cut-out against the panel, and elevation from CSS on
+                hover/focus. Depth is carried by the surface, not by paint. */}
           </defs>
 
           {nodes.map((b, idx) => {
@@ -463,14 +479,40 @@ function InteractiveBubblePod({
             return (
               <g
                 key={b.deal.id}
-                className={`cursor-grab active:cursor-grabbing ${floatClass}`}
-                style={{ opacity: isHovered || isBeingDragged ? 1 : opacity }}
+                className={`bubble-node bubble-pop cursor-grab active:cursor-grabbing${
+                  inView ? " bubble-pop-live" : ""
+                }`}
+                style={{
+                  opacity: isHovered || isBeingDragged ? 1 : opacity,
+                  animationDelay: `${Math.min(idx, 12) * 24}ms`,
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`${b.deal.title}, ${b.deal.amount_display}, announced ${b.deal.announced_date}. Open in the ledger.`}
+                onKeyDown={(e) => handleNodeKeyDown(e, b)}
                 onPointerDown={(e) => handlePointerDown(e, b)}
                 onPointerUp={(e) => handlePointerUp(e, b)}
-                onMouseEnter={() => setHoveredDeal(b.deal)}
-                onMouseLeave={() => setHoveredDeal(null)}
+                onMouseEnter={() => {
+                  setHoveredDeal(b.deal);
+                  showTip(b.deal, b.x, b.y);
+                }}
+                onMouseLeave={() => {
+                  setHoveredDeal(null);
+                  hideTip();
+                }}
+                onFocus={() => {
+                  setHoveredDeal(b.deal);
+                  showTip(b.deal, b.x, b.y);
+                }}
+                onBlur={() => {
+                  setHoveredDeal(null);
+                  hideTip();
+                }}
               >
-                {/* Drag elevation aura */}
+                {/* The optional drift lives on an inner group so it can never
+                    fight the pop-in for the same transform. */}
+                <g className={floatClass}>
+                {/* Drag elevation aura — a static ruled ring, not a spinner. */}
                 {isBeingDragged && (
                   <circle
                     cx={b.x}
@@ -480,19 +522,29 @@ function InteractiveBubblePod({
                     stroke={pod.config.accentHex}
                     strokeWidth="2"
                     strokeDasharray="4 3"
-                    className="animate-spin opacity-70"
+                    opacity={0.9}
                   />
                 )}
 
+                {/* Keyboard focus ring — visible, and drawn under the node */}
                 <circle
+                  className="bubble-focus-ring"
+                  cx={b.x}
+                  cy={b.y}
+                  r={b.r + 4}
+                  fill="none"
+                  stroke="rgb(var(--c-ink))"
+                  strokeWidth="2"
+                />
+
+                <circle
+                  className="bubble-core"
                   cx={b.x}
                   cy={b.y}
                   r={isBeingDragged ? b.r + 2 : isHovered ? b.r + 1.5 : b.r}
-                  fill={`url(#${gradId})`}
-                  stroke={isBeingDragged ? "#ffffff" : isHovered ? "#ffffff" : pod.config.accentHex}
+                  fill={pod.config.accentHex}
+                  stroke={isBeingDragged || isHovered ? "#ffffff" : "rgb(var(--c-canvas))"}
                   strokeWidth={isBeingDragged ? 2.5 : isHovered ? 2 : 1}
-                  filter={`url(#glow-${gradId})`}
-                  className="transition-transform duration-75"
                 />
 
                 {b.r >= 18 && (
@@ -503,7 +555,7 @@ function InteractiveBubblePod({
                     fill="#ffffff"
                     fontSize={b.r >= 26 ? 13 : 12}
                     fontWeight="800"
-                    fontFamily="Geist Mono, monospace"
+                    fontFamily="JetBrains Mono, monospace"
                     className="pointer-events-none select-none drop-shadow-sm"
                   >
                     {b.deal.amount_display}
@@ -514,19 +566,49 @@ function InteractiveBubblePod({
                     x={b.x}
                     y={b.y + 9}
                     textAnchor="middle"
-                    fill={b.deal.is_debt ? "#fca5a5" : "#a7f3d0"}
+                    fill="#ffffff"
+                    fillOpacity="0.92"
                     fontSize={12}
                     fontWeight="800"
-                    fontFamily="Geist Mono, monospace"
+                    fontFamily="JetBrains Mono, monospace"
                     className="pointer-events-none select-none drop-shadow-sm"
                   >
                     Prob {computeDealBubbleRisk(b.deal).riskScorePct}%
                   </text>
                 )}
+                </g>
               </g>
             );
           })}
         </svg>
+
+        {/* Hover / focus readout. Positioned over the chart, never in the
+            layout flow, so it cannot move a single pixel of the plot. */}
+        {tip ? (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute z-10 w-56 rounded-lg border border-rule bg-surface p-2.5 shadow-float"
+            style={{
+              left: `${tip.x}%`,
+              top: `${tip.y}%`,
+              transform: `translate(-50%, ${tip.y < 45 ? "12px" : "calc(-100% - 12px)"})`,
+            }}
+          >
+            <p className="line-clamp-2 text-[14px] font-semibold leading-snug text-ink">
+              {tip.deal.title}
+            </p>
+            <p className="num mt-1 text-[14px] font-semibold text-ink">
+              {tip.deal.amount_display}
+            </p>
+            <p className="num mt-0.5 text-[12px] text-ink-faint">{tip.deal.announced_date}</p>
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {tip.deal.is_debt ? <span className="chip chip-risk">Debt</span> : null}
+              {tip.deal.is_compute ? <span className="chip">Compute</span> : null}
+              {tip.deal.is_circular ? <span className="chip chip-risk">Circular</span> : null}
+              {tip.deal.is_mega ? <span className="chip chip-caution">$10B+</span> : null}
+            </div>
+          </div>
+        ) : null}
 
         <div className="absolute bottom-1.5 right-2 pointer-events-none opacity-40 hover:opacity-80 transition-opacity">
           <span className="text-[14px] font-mono text-ink-subtle flex items-center gap-1">
@@ -573,8 +655,15 @@ function GravityArena({
   resetCounter,
 }: GravityArenaProps) {
   const [nodes, setNodes] = useState<ArenaNode[]>([]);
-  const [isSimRunning, setIsSimRunning] = useState(true);
+  /**
+   * 2026-10-19 (design pass): the arena starts STILL. A chart that never
+   * stops moving reads as decoration, not information — and the reader
+   * already has a control for it ("Resume Motion"). The physics is the
+   * point, not the loop.
+   */
+  const [isSimRunning, setIsSimRunning] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const reducedMotion = usePrefersReducedMotion();
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const nodesRef = useRef<ArenaNode[]>([]);
@@ -634,8 +723,12 @@ function GravityArena({
     initNodes();
   }, [initNodes, resetCounter]);
 
-  // Main 60FPS physics loop
+  // Main physics loop. It only runs when the reader has asked for motion,
+  // and never for a reduced-motion reader. While it is stopped the nodes
+  // still track a drag (handlePointerMove repaints them directly), so the
+  // arena is never a dead space.
   useEffect(() => {
+    if (!isSimRunning || reducedMotion) return undefined;
     const CANVAS_W = 1000;
     const CANVAS_H = 560;
 
@@ -737,7 +830,12 @@ function GravityArena({
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [isSimRunning, isDriftEnabled]);
+  }, [isSimRunning, isDriftEnabled, reducedMotion]);
+
+  // A reduced-motion reader can never start the simulation.
+  useEffect(() => {
+    if (reducedMotion && isSimRunning) setIsSimRunning(false);
+  }, [reducedMotion, isSimRunning]);
 
   const handlePointerDown = (
     e: React.PointerEvent<SVGGElement>,
@@ -792,6 +890,8 @@ function GravityArena({
       draggedNode.y = Math.max(draggedNode.r + 10, Math.min(560 - draggedNode.r - 10, targetY));
       draggedNode.vx = vx;
       draggedNode.vy = vy;
+      // The simulation is not running, so this drag has to repaint itself.
+      if (!isSimRunning) setNodes([...nodesRef.current]);
     }
   };
 
@@ -817,7 +917,7 @@ function GravityArena({
       {/* HUD Header Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-1">
         <div className="flex items-center space-x-2 text-[14px] sm:text-sm font-semibold text-ink-muted">
-          <Atom className="h-4 w-4 animate-spin text-ink-subtle" aria-hidden="true" />
+          <Atom className="h-4 w-4 text-ink-subtle" aria-hidden="true" />
           <span>Interactive Zero-G Arena: Click &amp; fling any bubble into space!</span>
         </div>
         <div className="flex items-center space-x-2">
@@ -848,7 +948,7 @@ function GravityArena({
       </div>
 
       {/* SVG Physics Arena Viewport */}
-      <div className="relative w-full rounded-lg border border-rule bg-[#070709] overflow-hidden shadow-inner">
+      <div className="relative w-full rounded-lg border border-rule bg-[rgb(12_14_17)] overflow-hidden shadow-inner">
         <svg
           ref={svgRef}
           viewBox="0 0 1000 560"
@@ -857,20 +957,7 @@ function GravityArena({
           onPointerMove={handlePointerMove}
         >
           <defs>
-            {Object.entries(CATEGORY_CONFIG).map(([key, config]) => {
-              const gid = `arena-grad-${key.replace(/[^a-zA-Z0-9]/g, "")}`;
-              const darker = getDarkerHex(config.accentHex);
-              return (
-                <radialGradient key={gid} id={gid} cx="35%" cy="30%" r="70%">
-                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.5" />
-                  <stop offset="40%" stopColor={config.accentHex} stopOpacity="0.9" />
-                  <stop offset="100%" stopColor={darker} stopOpacity="1" />
-                </radialGradient>
-              );
-            })}
-            <filter id="arena-glow" x="-30%" y="-30%" width="160%" height="160%">
-              <feDropShadow dx="0" dy="4" stdDeviation="5" floodOpacity="0.4" />
-            </filter>
+            {/* Flat token fills only — no gradients, no glow filter. */}
           </defs>
 
           {/* Background constellation grid lines */}
@@ -886,7 +973,6 @@ function GravityArena({
             const isBeingDragged = draggingId === b.deal.id;
             const matched = matchesSearch(b.deal);
             const opacity = searchQuery.trim() && !matched ? 0.2 : 0.95;
-            const gid = `arena-grad-${b.deal.category.replace(/[^a-zA-Z0-9]/g, "")}`;
 
             return (
               <g
@@ -898,7 +984,7 @@ function GravityArena({
                 onMouseEnter={() => setHoveredDeal(b.deal)}
                 onMouseLeave={() => setHoveredDeal(null)}
               >
-                {/* Dragging elevation halo */}
+                {/* Dragging elevation halo — a static ruled ring. */}
                 {isBeingDragged && (
                   <circle
                     cx={b.x}
@@ -908,7 +994,7 @@ function GravityArena({
                     stroke="#ffffff"
                     strokeWidth="2.5"
                     strokeDasharray="6 4"
-                    className="animate-spin opacity-70"
+                    opacity={0.9}
                   />
                 )}
 
@@ -916,10 +1002,9 @@ function GravityArena({
                   cx={b.x}
                   cy={b.y}
                   r={isBeingDragged ? b.r + 3 : isHovered ? b.r + 2 : b.r}
-                  fill={`url(#${gid})`}
-                  stroke={isBeingDragged ? "#ffffff" : isHovered ? "#ffffff" : b.config.accentHex}
+                  fill={b.config.accentHex}
+                  stroke={isBeingDragged || isHovered ? "#ffffff" : "rgb(var(--c-canvas))"}
                   strokeWidth={isBeingDragged ? 3 : isHovered ? 2.5 : 1.2}
-                  filter="url(#arena-glow)"
                 />
 
                 {/* Bubble Text */}
@@ -931,7 +1016,7 @@ function GravityArena({
                     fill="#ffffff"
                     fontSize={Math.min(15, Math.max(13, b.r / 3.4))}
                     fontWeight="800"
-                    fontFamily="Geist Mono, monospace"
+                    fontFamily="JetBrains Mono, monospace"
                     className="pointer-events-none select-none drop-shadow-sm"
                   >
                     {b.deal.amount_display}
@@ -944,10 +1029,10 @@ function GravityArena({
                     y={b.y + 5}
                     textAnchor="middle"
                     fill="#ffffff"
-                    opacity="0.95"
+                    fillOpacity="0.92"
                     fontSize={Math.min(13, Math.max(12, b.r / 4.4))}
                     fontWeight="700"
-                    fontFamily="Geist, sans-serif"
+                    fontFamily="Inter, sans-serif"
                     className="pointer-events-none select-none drop-shadow-sm"
                   >
                     {b.deal.title.split(" ")[0]}
@@ -959,10 +1044,11 @@ function GravityArena({
                     x={b.x}
                     y={b.y + 17}
                     textAnchor="middle"
-                    fill={b.deal.is_debt ? "#fca5a5" : "#a7f3d0"}
+                    fill="#ffffff"
+                    fillOpacity="0.85"
                     fontSize={12}
                     fontWeight="800"
-                    fontFamily="Geist Mono, monospace"
+                    fontFamily="JetBrains Mono, monospace"
                     className="pointer-events-none select-none drop-shadow-sm"
                   >
                     Prob {computeDealBubbleRisk(b.deal).riskScorePct}%
@@ -991,10 +1077,48 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
   const [minVolume, setMinVolume] = useState<"all" | "1b" | "10b" | "50b">("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [hoveredDeal, setHoveredDeal] = useState<Deal | null>(null);
-  const [isDriftEnabled, setIsDriftEnabled] = useState(true);
+  // 2026-10-19 (design pass): the drift is off by default. A finance chart
+  // that never stops moving reads as decoration, not information; the reader
+  // can still switch it on.
+  const [isDriftEnabled, setIsDriftEnabled] = useState(false);
   const [resetCounter, setResetCounter] = useState(0);
+  const router = useRouter();
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * The ledger reads ?search= and filters on title, description, amount,
+   * category, status, company and counterparties. The shortest title prefix
+   * that still matches a real record is used, so the URL stays readable and
+   * lands on exactly one deal; the full title is the fallback.
+   */
+  const ledgerSearchFor = useCallback(
+    (deal: Deal): string => {
+      const words = deal.title
+        .toLowerCase()
+        .replace(/[^a-z0-9 ]+/g, " ")
+        .split(/\s+/)
+        .filter(Boolean);
+      for (let n = Math.min(4, words.length); n >= 2; n -= 1) {
+        const probe = words.slice(0, n).join(" ");
+        if (deals.some((d) => d.title.toLowerCase().includes(probe))) return probe;
+      }
+      return deal.title;
+    },
+    [deals]
+  );
+
+  /**
+   * Open a deal in the ledger, pre-filtered. This is a client-side push
+   * (not a <Link>) because the bubble lives inside an <svg>, where an anchor
+   * element is invalid markup.
+   */
+  const openInLedger = useCallback(
+    (deal: Deal) => {
+      router.push(`/ledger?search=${encodeURIComponent(ledgerSearchFor(deal))}`);
+    },
+    [router, ledgerSearchFor]
+  );
 
   // 1. Filter deals by category and volume threshold
   const filteredDeals = useMemo(() => {
@@ -1193,7 +1317,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
   return (
     <div
       ref={containerRef}
-      className="card card-flush overflow-hidden"
+      className="card card-flush overflow-hidden shadow-card"
     >
       {/* Top Header Bar & Mode Selector */}
       <div className="p-5 sm:p-6 border-b border-rule space-y-4">
@@ -1222,7 +1346,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
             <button
               onClick={() => setViewMode("treemap")}
               aria-pressed={viewMode === "treemap"}
-              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${viewMode === "treemap" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
+              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${viewMode === "treemap" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
             >
               <LayoutGrid className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>Capital Treemap</span>
@@ -1230,7 +1354,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
             <button
               onClick={() => setViewMode("bubbles")}
               aria-pressed={viewMode === "bubbles"}
-              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${viewMode === "bubbles" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
+              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${viewMode === "bubbles" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
             >
               <CircleDot className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>Bubble Pods</span>
@@ -1238,7 +1362,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
             <button
               onClick={() => setViewMode("arena")}
               aria-pressed={viewMode === "arena"}
-              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${viewMode === "arena" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
+              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${viewMode === "arena" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
             >
               <Atom className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink-muted shrink-0" />
               <span>Gravity Arena</span>
@@ -1246,7 +1370,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
             <button
               onClick={() => setViewMode("timeline")}
               aria-pressed={viewMode === "timeline"}
-              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${viewMode === "timeline" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
+              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${viewMode === "timeline" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
             >
               <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-caution-700 shrink-0" />
               <span>Timeline Flow</span>
@@ -1291,7 +1415,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                 key={t.id}
                 onClick={() => setMinVolume(t.id as any)}
                 aria-pressed={minVolume === t.id}
-                className={`min-h-11 min-w-11 shrink-0 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${minVolume === t.id ? "border-ink bg-ink text-canvas" : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"}`}
+                className={`min-h-11 min-w-11 shrink-0 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${minVolume === t.id ? "border-ink bg-ink text-canvas" : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"}`}
               >
                 {t.label}
               </button>
@@ -1304,7 +1428,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
           <button
             onClick={() => setSelectedCat("All")}
             aria-pressed={selectedCat === "All"}
-            className={`min-h-11 min-w-11 shrink-0 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${selectedCat === "All" ? "border-ink bg-ink text-canvas" : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"}`}
+            className={`min-h-11 min-w-11 shrink-0 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${selectedCat === "All" ? "border-ink bg-ink text-canvas" : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"}`}
           >
             All Sectors ({deals.length})
           </button>
@@ -1316,7 +1440,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                 key={key}
                 onClick={() => setSelectedCat(key)}
                 aria-pressed={isSelected}
-                className={`flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${isSelected ? "border-ink bg-ink text-canvas" : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"}`}
+                className={`flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${isSelected ? "border-ink bg-ink text-canvas" : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"}`}
               >
                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: config.accentHex }} />
                 <span>{config.name}</span>
@@ -1411,8 +1535,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                       width={Math.max(0, tile.w - 2)}
                       height={Math.max(0, tile.h - 2)}
                       fill={config.accentHex}
-                      fillOpacity={isHovered ? 0.95 : 0.78}
-                      stroke={isHovered ? "#ffffff" : "#09090b"}
+                      stroke={isHovered ? "#ffffff" : "rgb(var(--c-canvas))"}
                       strokeWidth={isHovered ? 2 : 1}
                       rx={3}
                     />
@@ -1425,7 +1548,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                         fill="#ffffff"
                         fontSize={Math.min(15, Math.max(13, tile.w / 11))}
                         fontWeight="800"
-                        fontFamily="Geist, sans-serif"
+                        fontFamily="Inter, sans-serif"
                         className="pointer-events-none select-none drop-shadow-sm"
                       >
                         {shortTitle.slice(0, Math.floor(tile.w / 7.5))}
@@ -1440,7 +1563,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                         fill="#ffffff"
                         fontSize={Math.min(14, Math.max(13, tile.w / 12))}
                         fontWeight="800"
-                        fontFamily="Geist Mono, monospace"
+                        fontFamily="JetBrains Mono, monospace"
                         opacity={1}
                         className="pointer-events-none select-none drop-shadow-sm"
                       >
@@ -1462,6 +1585,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                 key={pod.categoryKey}
                 pod={pod}
                 onSelectDeal={onSelectDeal}
+                onOpenInLedger={openInLedger}
                 hoveredDeal={hoveredDeal}
                 setHoveredDeal={setHoveredDeal}
                 searchQuery={searchQuery}
@@ -1524,7 +1648,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                       >
                         <div className="flex items-center justify-between text-[14px] font-mono">
                           <span
-                            className="px-2.5 py-0.5 rounded font-bold text-ink text-[14px]"
+                            className="px-2.5 py-0.5 rounded font-bold text-white text-[14px]"
                             style={{ backgroundColor: config.accentHex }}
                           >
                             {deal.amount_display}
@@ -1577,13 +1701,22 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                 </p>
               </div>
 
-              <button
-                onClick={() => onSelectDeal(hoveredDeal)}
-                className="btn btn-primary min-h-11 shrink-0"
-              >
-                <span>Inspect Disclosure</span>
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </button>
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <button
+                  onClick={() => openInLedger(hoveredDeal)}
+                  className="btn min-h-11 shrink-0"
+                >
+                  <span>Open in ledger</span>
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </button>
+                <button
+                  onClick={() => onSelectDeal(hoveredDeal)}
+                  className="btn btn-primary min-h-11 shrink-0"
+                >
+                  <span>Inspect Disclosure</span>
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
             </div>
           );
         })()}

@@ -88,6 +88,20 @@ export const metadata: Metadata = {
  */
 const themeBootScript = `(function(){try{var t=localStorage.getItem("theme");document.documentElement.classList.toggle("dark",t!=="light");}catch(e){document.documentElement.classList.add("dark");}})();`;
 
+/**
+ * Motion boot (2026-10-19, design pass).
+ *
+ * `js-reveal` is the single switch that lets the stylesheet hold a reveal in
+ * its "not yet arrived" state. It is added ONLY when JavaScript is running
+ * and only when the browser can observe intersections — a crawler, a no-JS
+ * reader and a print export therefore see the final, static page.
+ *
+ * The failsafe: if hydration never happens (a crashed bundle, a blocked
+ * script), the class is dropped after 4 seconds so the page can never stay
+ * blank. The first <Reveal> to mount clears the timer immediately.
+ */
+const revealBootScript = `(function(){try{if(typeof window.IntersectionObserver!=="function")return;var d=document.documentElement;d.classList.add("js-reveal");window.__aictRevealFailsafe=window.setTimeout(function(){d.classList.remove("js-reveal");},4000);}catch(e){}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -139,6 +153,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+        <script dangerouslySetInnerHTML={{ __html: revealBootScript }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

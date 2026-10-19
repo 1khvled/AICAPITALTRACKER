@@ -5,6 +5,7 @@ import trajectoryHistory from "@/data/trajectory-history.json";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import { AdSlot } from "@/components/AdSlot";
 import { ProbabilityGauge } from "@/components/ProbabilityGauge";
+import { Reveal } from "@/components/Reveal";
 import { AnswerBlock } from "@/components/home/AnswerBlock";
 import { DriverSection } from "@/components/home/DriverSection";
 import { FlipSection } from "@/components/home/FlipSection";
@@ -86,19 +87,21 @@ export default function HomePage() {
 
       {/* ── 2 · The full breakdown: the model, then what it is made of ──────── */}
       <section id="breakdown" aria-labelledby="breakdown-heading">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h2
-            id="breakdown-heading"
-            className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-2xl"
-          >
-            The full breakdown
-          </h2>
-          <span className="label">12-month horizon</span>
-        </div>
-        <p className="mb-4 mt-1.5 max-w-2xl text-sm leading-relaxed text-ink-muted">
-          Eight risk factors plus one damper, each with a fixed published weight. The scenarios below
-          flex one input at a time.
-        </p>
+        <Reveal>
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <h2
+              id="breakdown-heading"
+              className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-2xl"
+            >
+              The full breakdown
+            </h2>
+            <span className="label">12-month horizon</span>
+          </div>
+          <p className="mb-4 mt-1.5 max-w-2xl text-sm leading-relaxed text-ink-muted">
+            Eight risk factors plus one damper, each with a fixed published weight. The scenarios below
+            flex one input at a time.
+          </p>
+        </Reveal>
 
         <ProbabilityGauge
           probability={result.burstProbability}
@@ -126,8 +129,15 @@ export default function HomePage() {
       {/* ── 3 · What would flip the answer ─────────────────────────────────── */}
       <FlipSection inputs={DEFAULT_MODEL_INPUTS} result={result} />
 
+      {/* Second in-feed unit — the deep page keeps two native blocks at most. */}
+      <div className="mt-8">
+        <AdSlot placementId="home-infeed-2" />
+      </div>
+
       {/* ── 4 · Receipts ───────────────────────────────────────────────────── */}
       <ReceiptsBand trackedLabel={trackedLabel} dealsCount={totalDeals} />
+
+      <AdSlot placementId="home-mid" className="mt-8" />
 
       <ModelNote asOf={asOf} />
 

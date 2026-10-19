@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Menu, X } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 
 /**
@@ -42,8 +42,30 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
+  /**
+   * 2026-10-19 (design pass): on a phone the five destinations move into a
+   * disclosure panel under the masthead. The panel is absolutely positioned
+   * and animates on opacity + transform only, so opening it can never push
+   * the page down — and the answer stays where the reader left it.
+   */
+  const [menuOpen, setMenuOpen] = React.useState(false);
 
   React.useEffect(() => setMounted(true), []);
+
+  // A destination was chosen: close the panel behind it.
+  React.useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  // Escape closes the panel, the way every disclosure on the site closes.
+  React.useEffect(() => {
+    if (!menuOpen) return undefined;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [menuOpen]);
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname === href || pathname?.startsWith(`${href}/`);
@@ -72,7 +94,7 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
           {/* Primary navigation — five destinations, nothing else */}
           <nav
             aria-label="Primary"
-            className="order-3 -mx-1 w-full min-w-0 overflow-x-auto scrollbar-none sm:order-none sm:mx-0 sm:w-auto sm:overflow-visible"
+            className="order-3 -mx-1 hidden w-full min-w-0 overflow-x-auto scrollbar-none sm:order-none sm:mx-0 sm:block sm:w-auto sm:overflow-visible"
           >
             <ul className="flex items-center gap-0.5 px-1 sm:gap-1">
               {PRIMARY_LINKS.map((link) => {
@@ -129,8 +151,58 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
                 <Moon className="h-4 w-4" aria-hidden="true" />
               )}
             </button>
+
+            {/* Phone menu — the same five destinations, in a panel */}
+            <button
+              type="button"
+              onClick={() => setMenuOpen((open) => !open)}
+              aria-expanded={menuOpen}
+              aria-controls="primary-menu"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              className="flex h-11 w-11 items-center justify-center rounded-md border border-white/15 text-header-ink transition-colors hover:bg-white/5 hover:text-white sm:hidden"
+            >
+              {menuOpen ? (
+                <X className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <Menu className="h-4 w-4" aria-hidden="true" />
+              )}
+            </button>
           </div>
         </div>
+      </div>
+
+      {/* The phone panel. It hangs off the masthead, never inside the flow,
+          so it cannot move the answer. */}
+      <div
+        id="primary-menu"
+        className={`nav-panel absolute inset-x-0 top-full z-40 border-b border-white/10 bg-[rgb(12_14_17)] shadow-float sm:hidden${
+          menuOpen ? " nav-panel-open" : ""
+        }`}
+      >
+        <nav aria-label="Primary, mobile">
+          <ul className="mx-auto w-full max-w-7xl px-4 py-2">
+            {PRIMARY_LINKS.map((link) => {
+              const active = isActive(link.href);
+              return (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    title={link.hint}
+                    aria-current={active ? "page" : undefined}
+                    className={[
+                      "flex min-h-11 items-center rounded-md px-2 text-[14px] font-medium tracking-tight transition-colors",
+                      active
+                        ? "bg-white/10 text-white"
+                        : "text-header-muted hover:bg-white/5 hover:text-white",
+                    ].join(" ")}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
       </div>
     </header>
   );

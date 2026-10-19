@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import { BubbleBand, FactorContribution, BubbleModelInputs } from "@/lib/model/types";
 import {
@@ -30,6 +30,8 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import { useCountUp } from "@/components/CountUp";
+import { useInView, usePrefersReducedMotion } from "@/components/Reveal";
 
 export interface TrajectoryPoint {
   dayIndex: number;
@@ -262,6 +264,24 @@ export function ProbabilityGauge({
   const [activeScenarioId, setActiveScenarioId] = useState<string>("baseline");
   const [showPlainEnglishGuide, setShowPlainEnglishGuide] = useState<boolean>(false);
 
+  /**
+   * 2026-10-19 (design pass): the gauge is a chart, so it earns its entrance.
+   * The arc sweeps from empty to its published value the first time the card
+   * scrolls into view, the printed number counts up beside it, and the
+   * trajectory draws itself in. Nothing loops, and every number printed is
+   * the same number the model published.
+   */
+  const gaugeRef = useRef<HTMLDivElement | null>(null);
+  const [swept, setSwept] = useState(false);
+  const inView = useInView(gaugeRef);
+  const reducedMotion = usePrefersReducedMotion();
+
+  useEffect(() => {
+    if (!inView || swept) return undefined;
+    const frame = window.requestAnimationFrame(() => setSwept(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, [inView, swept]);
+
   // Scenario levers are derived from the model inputs this gauge is rendering
   // (19 Oct 2026) — never from a hard-coded snapshot of an earlier world.
   const whatIfScenarios = useMemo(() => buildWhatIfScenarios(initialInputs), [initialInputs]);
@@ -286,6 +306,16 @@ export function ProbabilityGauge({
   const currentBand = scenarioResult ? scenarioResult.band : baseBand;
   const currentFragility = scenarioResult ? scenarioResult.fragilityIndex ?? 74 : baseFragilityIndex;
   const currentContributions = scenarioResult ? scenarioResult.contributions : baseContributions;
+
+  // The printed number counts up to the published value; it always lands on
+  // exactly the same digits the model produced. The count is armed on mount
+  // and fires with the arc sweep, the first time the card reaches the
+  // reader — never before, and never without the arc.
+  const displayProb = useCountUp(currentProb, {
+    duration: 800,
+    startFrom: Math.min(currentProb, 40),
+    enabled: !reducedMotion && swept,
+  });
 
   // Delta relative to baseline
   const probDelta = Math.round((currentProb - baseProbability) * 10) / 10;
@@ -463,10 +493,12 @@ export function ProbabilityGauge({
   const clampedProb = Math.min(100, Math.max(0, currentProb));
   const activeOffset = arcLength * (1 - clampedProb / 100);
 
-  // Position of thumb pointer along the arc
+  // Position of thumb pointer along the arc. Before the first sweep the thumb
+  // waits at the zero end of the dial, so it travels with the arc.
   const theta = (Math.PI * clampedProb) / 100;
-  const thumbX = cx - radius * Math.cos(theta);
-  const thumbY = cy - radius * Math.sin(theta);
+  const thumbTheta = swept ? theta : 0;
+  const thumbX = cx - radius * Math.cos(thumbTheta);
+  const thumbY = cy - radius * Math.sin(thumbTheta);
 
   // Confidence Interval Arc Band geometry
   const ciLowClamped = Math.max(0, Math.min(100, ciLow));
@@ -612,7 +644,7 @@ export function ProbabilityGauge({
   const factorCount = (currentContributions ?? []).length;
 
   return (
-    <div className="card card-flush rounded-lg">
+    <div ref={gaugeRef} className="card card-flush rounded-lg shadow-card transition-shadow duration-200 hover:shadow-raised">
       {/* ── Provenance strip ───────────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-rule px-4 py-2.5 sm:px-6">
         <div className="flex flex-wrap items-center gap-1.5">
@@ -740,10 +772,10 @@ export function ProbabilityGauge({
                 strokeWidth="14"
                 strokeLinecap="round"
                 strokeDasharray={arcLength}
-                strokeDashoffset={activeOffset}
+                strokeDashoffset={swept ? activeOffset : arcLength}
                 style={{
                   stroke: arcColor,
-                  transition: "stroke-dashoffset 0.6s ease-in-out",
+                  transition: "stroke-dashoffset 0.7s ease-in-out",
                 }}
               />
               {[0, 25, 45, 65, 80, 100].map((pct) => {
@@ -771,16 +803,16 @@ export function ProbabilityGauge({
                 style={{
                   fill: "rgb(var(--c-canvas))",
                   stroke: arcColor,
-                  transition: "cx 0.6s ease-in-out, cy 0.6s ease-in-out",
+                  transition: "cx 0.7s ease-in-out, cy 0.7s ease-in-out",
                 }}
               />
               <text
                 x={cx}
                 y={cy - 14}
                 textAnchor="middle"
-                className="num fill-ink text-[44px] font-bold"
+                className={`num fill-ink text-[44px] font-bold fade-in${swept ? " fade-in-done" : ""}`}
               >
-                {currentProb.toFixed(1)}%
+                {displayProb.toFixed(1)}%
               </text>
               <text
                 x={cx}
@@ -841,7 +873,7 @@ export function ProbabilityGauge({
             <span className="num text-sm font-semibold text-ink">{net90DeltaBadge}</span>
           </div>
 
-          <div className="mt-2 rounded-sm border border-rule bg-canvas p-2.5">
+          <div className={`mt-2 rounded-sm border border-rule bg-canvas p-2.5${inView ? " reveal-in" : ""}`}>
             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 border-b border-rule pb-1.5 text-[14px] text-ink-faint">
               <span className="inline-flex items-center gap-1.5">
                 <Clock className="h-3 w-3" aria-hidden="true" />
@@ -871,6 +903,7 @@ export function ProbabilityGauge({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 vectorEffect="non-scaling-stroke"
+                className="draw-in"
                 style={{ stroke: arcColor }}
               />
               {hoveredPointIndex !== null && activeSparkPoint && (
@@ -885,14 +918,17 @@ export function ProbabilityGauge({
                   style={{ stroke: arcColor }}
                 />
               )}
-              {[0, 30, 60, trajectoryPoints.length - 2, trajectoryPoints.length - 1].map((idx) => {
+              {[0, 30, 60, trajectoryPoints.length - 2, trajectoryPoints.length - 1].map((idx, slot) => {
                 const pt = sparkPoints[idx];
                 if (!pt) return null;
                 const isLast = idx === trajectoryPoints.length - 1;
                 const isActive = hoveredPointIndex === idx;
                 return (
                   <circle
-                    key={`${pt.date}-${idx}`}
+                    /* The slot is part of the key: with a short history the
+                       same index can appear twice (first == yesterday), and
+                       React needs a unique key per rendered node. */
+                    key={`${pt.date}-${idx}-${slot}`}
                     cx={pt.x}
                     cy={pt.y}
                     r={isActive ? 4 : isLast ? 3 : 2}
@@ -989,8 +1025,11 @@ export function ProbabilityGauge({
           </div>
           <div className="mt-2 h-1.5 w-full bg-surface-3">
             <div
-              className="h-1.5 bg-risk-500 transition-all duration-500"
-              style={{ width: `${Math.min(100, Math.max(0, currentFragility))}%` }}
+              className={`bar-grow h-1.5 bg-risk-500${inView ? " bar-grow-in" : ""}`}
+              style={{
+                width: `${Math.min(100, Math.max(0, currentFragility))}%`,
+                transition: "transform 600ms cubic-bezier(0.2, 0, 0, 1), width 500ms ease",
+              }}
             />
           </div>
           <div className="mt-1 flex justify-between text-[14px] text-ink-faint">
@@ -1153,8 +1192,12 @@ export function ProbabilityGauge({
             </div>
             <div className="mt-1 h-1.5 w-full bg-surface-3">
               <div
-                className="h-1.5 bg-risk-500 transition-all duration-500"
-                style={{ width: `${Math.min(100, Math.max(0, currentProb))}%` }}
+                className={`bar-grow h-1.5 bg-risk-500${inView ? " bar-grow-in" : ""}`}
+                style={{
+                  width: `${Math.min(100, Math.max(0, currentProb))}%`,
+                  transition: "transform 600ms cubic-bezier(0.2, 0, 0, 1), width 500ms ease",
+                  transitionDelay: "80ms",
+                }}
               />
             </div>
           </div>
@@ -1165,8 +1208,12 @@ export function ProbabilityGauge({
             </div>
             <div className="mt-1 h-1.5 w-full bg-surface-3">
               <div
-                className="h-1.5 bg-ink-subtle transition-all duration-500"
-                style={{ width: `${Math.min(100, Math.max(0, polyOdds2026))}%` }}
+                className={`bar-grow h-1.5 bg-ink-subtle${inView ? " bar-grow-in" : ""}`}
+                style={{
+                  width: `${Math.min(100, Math.max(0, polyOdds2026))}%`,
+                  transition: "transform 600ms cubic-bezier(0.2, 0, 0, 1), width 500ms ease",
+                  transitionDelay: "160ms",
+                }}
               />
             </div>
           </div>

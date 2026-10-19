@@ -10,6 +10,7 @@ import {
   X,
   ArrowUpRight,
 } from "lucide-react";
+import { Reveal } from "@/components/Reveal";
 
 /**
  * The wire renders the DAILY INGESTION SNAPSHOT — src/data/live-news.json —
@@ -235,7 +236,7 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
   };
 
   return (
-    <div className="card card-flush overflow-hidden">
+    <div className="card card-flush overflow-hidden shadow-card transition-shadow duration-200 hover:shadow-raised">
       {/* Wire header — snapshot wording, no pulsing dot */}
       <div className="flex flex-col gap-3 border-b border-rule px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
@@ -306,7 +307,7 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
                   aria-pressed={isSelected}
-                  className={`flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${
+                  className={`flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${
                     isSelected
                       ? "border-ink bg-ink text-canvas"
                       : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"
@@ -355,12 +356,12 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
           </div>
         ) : (
           <ol className="divide-y divide-rule border-y border-rule">
-            {filteredNews.map((item) => {
+            {filteredNews.map((item, index) => {
               const targetCat = mapToTargetCategory(item);
               const isHighImpact = item.impact === "High Impact";
 
               return (
-                <li key={item.id} className="py-4">
+                <Reveal as="li" key={item.id} className="py-4" delay={Math.min(index, 6) * 40}>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
                     {renderSourceBadge(item.publisher)}
                     {isHighImpact && <span className="chip chip-risk">HIGH IMPACT</span>}
@@ -395,7 +396,7 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
                     <span>Read the original</span>
                     <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </a>
-                </li>
+                </Reveal>
               );
             })}
           </ol>

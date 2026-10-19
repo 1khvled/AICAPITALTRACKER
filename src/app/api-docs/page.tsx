@@ -862,6 +862,8 @@ return (
 
       {/* Bottom Ad */}
       <AdSlot placementId="global-infeed" className="mt-8" />
+
+      <AdSlot placementId="api-docs-bottom" className="mt-6" />
     </div>
   );
 }

@@ -121,7 +121,10 @@ const config: Config = {
         "3xl": "10px",
       },
 
-      /* No shadow party. Two hairline levels, nothing else. */
+      /* Elevation — three levels, and only three. Borders still do the
+         separating work; a shadow only says "this surface floats above that
+         one". The values live in globals.css so they can differ per theme
+         (a shadow on graphite is a darker halo, not a glow). */
       boxShadow: {
         none: "none",
         xs: "0 1px 2px 0 rgb(var(--c-shadow) / 0.05)",
@@ -132,6 +135,9 @@ const config: Config = {
         xl: "none",
         "2xl": "none",
         inner: "none",
+        card: "var(--elev-card)",
+        raised: "var(--elev-raised)",
+        float: "var(--elev-float)",
       },
 
       fontSize: {

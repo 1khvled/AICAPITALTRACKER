@@ -150,6 +150,8 @@ export default function CompaniesPage() {
         <CompanyBrowser ledgerLinks={ledgerLinks} />
       </Suspense>
 
+      <AdSlot placementId="companies-mid" className="mt-10" />
+
       <section className="mt-10 max-w-measure" aria-labelledby="companies-terms">
         <h2 id="companies-terms" className="text-sm font-bold tracking-tight text-ink">
           The terms used on this page
@@ -210,6 +212,8 @@ export default function CompaniesPage() {
           </span>
         </Link>
       </section>
+
+      <AdSlot placementId="companies-bottom" className="mt-10" />
 
       <p className="mt-8 flex items-start gap-2 text-[14px] text-ink-subtle">
         <CircleDollarSign className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
