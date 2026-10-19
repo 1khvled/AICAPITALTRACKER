@@ -87,7 +87,7 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add src/data/live-inputs.json src/data/latest-model.json src/data/trajectory-history.json src/data/live-stocks.json src/data/sync-history.json src/data/deals.json
+          git add src/data/live-inputs.json src/data/latest-model.json src/data/trajectory-history.json src/data/live-stocks.json src/data/live-news.json src/data/sync-history.json src/data/deals.json
           
           # Check if there are changes to commit
           if git diff --staged --quiet; then

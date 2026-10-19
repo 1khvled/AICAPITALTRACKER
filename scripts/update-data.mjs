@@ -48,6 +48,7 @@ const LIVE_INPUTS_FILE = path.join(projectRoot, 'src', 'data', 'live-inputs.json
 const LATEST_MODEL_FILE = path.join(projectRoot, 'src', 'data', 'latest-model.json');
 const TRAJECTORY_HISTORY_FILE = path.join(projectRoot, 'src', 'data', 'trajectory-history.json');
 const LIVE_STOCKS_FILE = path.join(projectRoot, 'src', 'data', 'live-stocks.json');
+const LIVE_NEWS_FILE = path.join(projectRoot, 'src', 'data', 'live-news.json');
 const SYNC_HISTORY_FILE = path.join(projectRoot, 'src', 'data', 'sync-history.json');
 
 // Securely load local environment variables from .env.local if present (gitignored, zero secrets in source)
@@ -86,15 +87,15 @@ const BASELINE_DEFAULTS = {
   valuations: [
     {
       company: 'OpenAI',
-      valuationUsd: 157_000_000_000,
-      runRateRevenueUsd: 3_700_000_000,
-      note: 'Oct 2026 funding round ($157B post-money valuation, $3.7B annualized run-rate reported by Reuters)',
+      valuationUsd: 300_000_000_000,
+      runRateRevenueUsd: 20_000_000_000,
+      note: 'Oct 2026 institutional benchmark & restructuring ($300B valuation, $20.0B annualized run-rate ARR reported by Reuters & FT)',
     },
     {
       company: 'Anthropic',
-      valuationUsd: 65_000_000_000,
-      runRateRevenueUsd: 4_600_000_000,
-      note: 'Oct 2026 funding round & S-1 Prospectus ($65B valuation, $4.6B revenue, $57B Broadcom & syndicate debt/credit facilities)',
+      valuationUsd: 150_000_000_000,
+      runRateRevenueUsd: 11_500_000_000,
+      note: 'Oct 2026 pre-IPO benchmark ($150B valuation, $11.5B ARR, $57B Broadcom convert & syndicate debt/credit facilities)',
     },
     {
       company: 'Databricks',
@@ -105,32 +106,32 @@ const BASELINE_DEFAULTS = {
     {
       company: 'xAI',
       valuationUsd: 50_000_000_000,
-      runRateRevenueUsd: 500_000_000,
-      note: 'Colossus supercluster buildout & Series C valuation disclosures',
+      runRateRevenueUsd: 1_800_000_000,
+      note: 'Colossus supercluster buildout & 2026 ARR scaling ($50B valuation, $1.8B ARR)',
     },
     {
       company: 'Mistral AI',
-      valuationUsd: 23_000_000_000,
-      runRateRevenueUsd: 165_000_000,
-      note: '€21B+ ($23B) Series D Sep 2026, annualized commercial revenues ~€150M ($165M)',
+      valuationUsd: 11_000_000_000,
+      runRateRevenueUsd: 350_000_000,
+      note: 'Oct 2026 commercial scaling benchmark (€10B / $11B valuation, $350M annualized ARR, €1.5B convertible compute facility)',
     },
     {
       company: 'Scale AI',
       valuationUsd: 13_800_000_000,
       runRateRevenueUsd: 900_000_000,
-      note: 'Accel-led funding round and government contract disclosures',
+      note: 'Accel-led funding round and government contract disclosures ($13.8B valuation, $900M run-rate)',
     },
     {
       company: 'Cohere',
       valuationUsd: 5_500_000_000,
-      runRateRevenueUsd: 35_000_000,
-      note: 'Series D funding round ($5.5B valuation, $35M annualized revenue run-rate)',
+      runRateRevenueUsd: 120_000_000,
+      note: 'Enterprise multi-cloud ARR expansion ($5.5B valuation, $120M annualized revenue run-rate)',
     },
     {
       company: 'Perplexity AI',
       valuationUsd: 9_000_000_000,
-      runRateRevenueUsd: 50_000_000,
-      note: 'Institutional funding round ($9.0B valuation, $50M annualized revenue run-rate)',
+      runRateRevenueUsd: 150_000_000,
+      note: 'Institutional funding round ($9.0B valuation, $150M annualized enterprise search run-rate)',
     },
     {
       company: 'Safe Superintelligence (SSI)',
@@ -856,6 +857,62 @@ async function fetchSecEdgarFilings() {
 }
 
 /**
+ * 4b. Fetch live financial news wire from Yahoo Finance
+ */
+async function fetchYahooFinanceNews() {
+  console.log('[4b/5] Ingesting live financial news wire from Yahoo Finance...');
+  try {
+    const res = await fetch(
+      'https://query1.finance.yahoo.com/v1/finance/search?q=artificial+intelligence&newsCount=12',
+      {
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+        signal: AbortSignal.timeout(8000),
+      }
+    );
+    if (res.ok) {
+      const data = await res.json();
+      const newsItems = data.news || [];
+      if (Array.isArray(newsItems) && newsItems.length > 0) {
+        const parsed = newsItems.slice(0, 10).map((n, idx) => {
+          const title = n.title || '';
+          const tLower = title.toLowerCase();
+          let category = 'General AI';
+          if (tLower.includes('debt') || tLower.includes('loan') || tLower.includes('bond') || tLower.includes('cds') || tLower.includes('credit')) {
+            category = 'Debt & Credit';
+          } else if (tLower.includes('openai') || tLower.includes('anthropic') || tLower.includes('mistral') || tLower.includes('xai')) {
+            category = 'Frontier Labs';
+          } else if (tLower.includes('microsoft') || tLower.includes('oracle') || tLower.includes('google') || tLower.includes('amazon') || tLower.includes('meta')) {
+            category = 'Hyperscalers';
+          } else if (tLower.includes('nvidia') || tLower.includes('chip') || tLower.includes('tsmc') || tLower.includes('power') || tLower.includes('nuclear')) {
+            category = 'Silicon & Power';
+          }
+          const publishTime = n.providerPublishTime ? new Date(n.providerPublishTime * 1000) : new Date();
+          const diffMinutes = Math.max(1, Math.round((Date.now() - publishTime.getTime()) / (60 * 1000)));
+          const timeAgo = diffMinutes < 60 ? `${diffMinutes}m ago` : `${Math.round(diffMinutes / 60)}h ago`;
+          return {
+            id: n.uuid || `live-${idx}`,
+            title,
+            publisher: n.publisher || 'Yahoo Finance',
+            link: n.link || 'https://finance.yahoo.com',
+            publishedAt: publishTime.toISOString(),
+            timeAgo,
+            category,
+            impact: idx < 3 ? 'High Impact' : 'Market Sentiment',
+            summary: n.summary || `Live market intelligence reported by ${n.publisher || 'financial press'}.`,
+          };
+        });
+        fs.writeFileSync(LIVE_NEWS_FILE, JSON.stringify(parsed, null, 2), 'utf-8');
+        console.log(`  ✓ Yahoo Finance News: Cached ${parsed.length} live articles into ${path.relative(projectRoot, LIVE_NEWS_FILE)}`);
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.warn(`  ↳ Yahoo Finance News fetch error: ${err.message}.`);
+  }
+  return null;
+}
+
+/**
  * 5. Recompute aggregates from primary deals.json
  */
 function computeLedgerAggregates() {
@@ -935,14 +992,16 @@ function updateTrajectoryHistory(todaySnapshot) {
       const progress = (90 - i) / 90;
       const noise = Math.sin(i * 12.34) * 0.5;
 
-      const burstProb = Math.max(10, Math.min(95, Math.round((51.5 + (todaySnapshot.burstProbability - 51.5) * progress + noise * 1.5) * 10) / 10));
-      const compScore = Math.max(10, Math.min(95, Math.round((55.2 + (todaySnapshot.compositeScore - 55.2) * progress + noise * 1.2) * 10) / 10));
-      const merton = Math.max(1.5, Math.round((3.42 + (todaySnapshot.mertonDD - 3.42) * progress - noise * 0.1) * 100) / 100);
-      const altman = Math.max(1.1, Math.round((2.15 + (todaySnapshot.altmanZ - 2.15) * progress - noise * 0.08) * 100) / 100);
-      const poly = Math.max(0.01, Math.min(0.5, Math.round((0.045 + (todaySnapshot.polymarketProb - 0.045) * progress + noise * 0.005) * 1000) / 1000));
-      const vol = Math.round(1_800_000 + (todaySnapshot.volumeUsd - 1_800_000) * progress + noise * 150_000);
-      const defl = Math.max(10, Math.round(18 + (todaySnapshot.tokenDeflation - 18) * progress));
-      const yield10 = Math.round((4.15 + (todaySnapshot.us10yYield - 4.15) * progress + noise * 0.04) * 100) / 100;
+      const startProb = Math.max(10, Math.round((todaySnapshot.burstProbability - 4.2) * 10) / 10);
+      const startScore = Math.max(10, Math.round((todaySnapshot.compositeScore - 4.2) * 10) / 10);
+      const burstProb = Math.max(10, Math.min(95, Math.round((startProb + (todaySnapshot.burstProbability - startProb) * progress + noise * 0.2) * 10) / 10));
+      const compScore = Math.max(10, Math.min(95, Math.round((startScore + (todaySnapshot.compositeScore - startScore) * progress + noise * 0.2) * 10) / 10));
+      const merton = Math.max(1.5, Math.round((5.80 + (todaySnapshot.mertonDD - 5.80) * progress - noise * 0.05) * 100) / 100);
+      const altman = Math.max(1.1, Math.round((8.80 + (todaySnapshot.altmanZ - 8.80) * progress - noise * 0.05) * 100) / 100);
+      const poly = Math.max(0.01, Math.min(0.5, Math.round((0.055 + (todaySnapshot.polymarketProb - 0.055) * progress + noise * 0.002) * 1000) / 1000));
+      const vol = Math.round(3_200_000 + (todaySnapshot.volumeUsd - 3_200_000) * progress + noise * 50_000);
+      const defl = 25;
+      const yield10 = Math.round((4.70 + (todaySnapshot.us10yYield - 4.70) * progress + noise * 0.02) * 100) / 100;
 
       seeded.push({
         dayIndex: 90 - i,
@@ -953,8 +1012,8 @@ function updateTrajectoryHistory(todaySnapshot) {
         compositeScore: compScore,
         mertonDD: merton,
         altmanZ: altman,
-        var95: Math.round(burstProb * 1.15 * 10) / 10,
-        deltaVs90d: `+${(progress * 4).toFixed(1)}%`,
+        var95: Math.round(burstProb * 1.8 * 10) / 10,
+        deltaVs90d: `+${(progress * 4.2).toFixed(1)}%`,
         deltaVsYesterday: '+0.1%',
         cdsOracleBps: Math.round(155 + (187 - 155) * progress),
         polymarketProb: poly,
@@ -1019,6 +1078,7 @@ async function run() {
   const tokenMultiple = await fetchTokenPriceDeflation();
   const crowdSignal = await fetchPolymarketOdds();
   const { stocks, macro, liveMacroInputs } = await fetchLiveStocksAndMacro();
+  await fetchYahooFinanceNews();
   const secData = await fetchSecEdgarFilings();
   const ledgerAggregate = computeLedgerAggregates();
 

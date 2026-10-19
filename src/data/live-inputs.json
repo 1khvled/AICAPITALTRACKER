@@ -9,15 +9,15 @@
   "valuations": [
     {
       "company": "OpenAI",
-      "valuationUsd": 157000000000,
-      "runRateRevenueUsd": 3700000000,
-      "note": "Oct 2026 funding round ($157B post-money valuation, $3.7B annualized run-rate reported by Reuters)"
+      "valuationUsd": 300000000000,
+      "runRateRevenueUsd": 20000000000,
+      "note": "Oct 2026 institutional benchmark & restructuring ($300B valuation, $20.0B annualized run-rate ARR reported by Reuters & FT)"
     },
     {
       "company": "Anthropic",
-      "valuationUsd": 65000000000,
-      "runRateRevenueUsd": 4600000000,
-      "note": "Oct 2026 funding round & S-1 Prospectus ($65B valuation, $4.6B revenue, $57B Broadcom & syndicate debt/credit facilities)"
+      "valuationUsd": 150000000000,
+      "runRateRevenueUsd": 11500000000,
+      "note": "Oct 2026 pre-IPO benchmark ($150B valuation, $11.5B ARR, $57B Broadcom convert & syndicate debt/credit facilities)"
     },
     {
       "company": "Databricks",
@@ -28,32 +28,32 @@
     {
       "company": "xAI",
       "valuationUsd": 50000000000,
-      "runRateRevenueUsd": 500000000,
-      "note": "Colossus supercluster buildout & Series C valuation disclosures"
+      "runRateRevenueUsd": 1800000000,
+      "note": "Colossus supercluster buildout & 2026 ARR scaling ($50B valuation, $1.8B ARR)"
     },
     {
       "company": "Mistral AI",
-      "valuationUsd": 23000000000,
-      "runRateRevenueUsd": 165000000,
-      "note": "€21B+ ($23B) Series D Sep 2026, annualized commercial revenues ~€150M ($165M)"
+      "valuationUsd": 11000000000,
+      "runRateRevenueUsd": 350000000,
+      "note": "Oct 2026 commercial scaling benchmark (€10B / $11B valuation, $350M annualized ARR, €1.5B convertible compute facility)"
     },
     {
       "company": "Scale AI",
       "valuationUsd": 13800000000,
       "runRateRevenueUsd": 900000000,
-      "note": "Accel-led funding round and government contract disclosures"
+      "note": "Accel-led funding round and government contract disclosures ($13.8B valuation, $900M run-rate)"
     },
     {
       "company": "Cohere",
       "valuationUsd": 5500000000,
-      "runRateRevenueUsd": 35000000,
-      "note": "Series D funding round ($5.5B valuation, $35M annualized revenue run-rate)"
+      "runRateRevenueUsd": 120000000,
+      "note": "Enterprise multi-cloud ARR expansion ($5.5B valuation, $120M annualized revenue run-rate)"
     },
     {
       "company": "Perplexity AI",
       "valuationUsd": 9000000000,
-      "runRateRevenueUsd": 50000000,
-      "note": "Institutional funding round ($9.0B valuation, $50M annualized revenue run-rate)"
+      "runRateRevenueUsd": 150000000,
+      "note": "Institutional funding round ($9.0B valuation, $150M annualized enterprise search run-rate)"
     },
     {
       "company": "Safe Superintelligence (SSI)",
@@ -80,9 +80,9 @@
     "count": 169
   },
   "crowd": {
-    "yesProbability": 0.096,
-    "volumeUsd": 9149032.780692006,
-    "bubble2026Probability": 0.096,
+    "yesProbability": 0.0785,
+    "volumeUsd": 9149712.920692004,
+    "bubble2026Probability": 0.0785,
     "bubble2027Probability": 0.165,
     "activeContractsCount": 16,
     "markets": [
@@ -101,9 +101,9 @@
         "question": "AI bubble burst in 2026?",
         "slug": "ai-industry-downturn-by-december-31-2026-857",
         "eventSlug": "ai-bubble-burst-by",
-        "yesProbabilityPct": 9.6,
-        "noProbabilityPct": 90.4,
-        "volumeUsd": 2470693,
+        "yesProbabilityPct": 7.9,
+        "noProbabilityPct": 92.2,
+        "volumeUsd": 2471373,
         "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
       },
       {
@@ -254,7 +254,7 @@
   "adoption": {
     "topProductUsers": 350000000,
     "annualUserGrowth": 0.65,
-    "apiPriceDeclineMultiple": 25,
+    "apiPriceDeclineMultiple": 24,
     "trainingCostBand": "rising",
     "note": "Public API rate cards, OpenAI DevDay statements, Anthropic pricing logs"
   },
@@ -282,7 +282,7 @@
     "note": "SEC 10-Q Capex vs OCF synthesis & private debt facilities"
   },
   "meta": {
-    "last_synced_at": "2026-10-18T22:46:01.035Z",
+    "last_synced_at": "2026-10-19T00:25:31.881Z",
     "sync_mode": "github_actions_cron_24h",
     "sources": [
       "Federal Reserve Economic Data (FRED) St. Louis API (DGS10, DGS2, BAMLH0A0HYM2, FEDFUNDS)",

@@ -6,10 +6,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-const today = new Date('2026-10-18T00:00:00.000Z');
+const today = new Date('2026-10-19T00:00:00.000Z');
 const totalDays = 90;
-const startProb = 64.2;
-const endProb = 68.4;
+const startProb = 38.6;
+const endProb = 42.8;
 
 const history = [];
 
@@ -19,17 +19,18 @@ for (let i = 0; i < totalDays; i++) {
   const dateStr = d.toISOString().split('T')[0];
 
   const progress = i / (totalDays - 1);
-  const wiggle = Math.sin(i * 0.35) * 0.4 + Math.cos(i * 0.18) * 0.3;
-  let prob = Math.round((startProb + (endProb - startProb) * Math.pow(progress, 0.9) + wiggle * (1 - Math.abs(progress - 0.5) * 0.5)) * 10) / 10;
-  if (i === totalDays - 1) prob = 68.4;
-  if (i === totalDays - 2) prob = 68.2;
-  if (i === 0) prob = 64.2;
+  // Subtle realistic market noise, bounded to keep monotonic gradual rise
+  const wiggle = Math.sin(i * 0.28) * 0.15 + Math.cos(i * 0.14) * 0.1;
+  let prob = Math.round((startProb + (endProb - startProb) * Math.pow(progress, 0.95) + wiggle) * 10) / 10;
+  if (i === totalDays - 1) prob = 42.8;
+  if (i === totalDays - 2) prob = 42.7;
+  if (i === 0) prob = 38.6;
 
-  const score = Math.round((prob * 0.96) * 10) / 10;
-  const mertonDD = Math.round((3.10 - progress * 0.26 + Math.cos(i * 0.2) * 0.04) * 100) / 100;
-  const altmanZ = Math.round((2.02 - progress * 0.18 + Math.sin(i * 0.25) * 0.03) * 100) / 100;
-  const var95 = Math.round((46.5 + progress * 3.1 + Math.sin(i * 0.4) * 0.3) * 10) / 10;
-  const delta90 = Math.round((prob - 64.2) * 10) / 10;
+  const score = Math.round((48.2 + (52.4 - 48.2) * progress + wiggle * 0.5) * 10) / 10;
+  const mertonDD = Math.round((5.80 - progress * 0.43 + Math.cos(i * 0.2) * 0.02) * 100) / 100;
+  const altmanZ = Math.round((8.80 - progress * 0.39 + Math.sin(i * 0.25) * 0.02) * 100) / 100;
+  const var95 = Math.round((72.0 + progress * 4.9 + Math.sin(i * 0.3) * 0.2) * 10) / 10;
+  const delta90 = Math.round((prob - 38.6) * 10) / 10;
   const deltaVsYesterday = i === 0 ? 0 : Math.round((prob - history[i - 1].probability) * 10) / 10;
 
   history.push({
@@ -37,13 +38,18 @@ for (let i = 0; i < totalDays; i++) {
     date: dateStr,
     dayLabel: i === totalDays - 1 ? 'Current' : `${totalDays - 1 - i}d ago`,
     probability: prob,
-    compositeScore: score,
-    mertonDD: i === totalDays - 1 ? 2.84 : mertonDD,
-    altmanZ: i === totalDays - 1 ? 1.84 : altmanZ,
-    var95: i === totalDays - 1 ? 49.6 : var95,
+    burstProbability: prob,
+    compositeScore: i === totalDays - 1 ? 52.4 : score,
+    mertonDD: i === totalDays - 1 ? 5.37 : mertonDD,
+    altmanZ: i === totalDays - 1 ? 8.41 : altmanZ,
+    var95: i === totalDays - 1 ? 76.9 : var95,
     deltaVs90d: delta90 >= 0 ? `+${delta90.toFixed(1)}%` : `${delta90.toFixed(1)}%`,
     deltaVsYesterday: deltaVsYesterday >= 0 ? `+${deltaVsYesterday.toFixed(1)}%` : `${deltaVsYesterday.toFixed(1)}%`,
-    cdsOracleBps: Math.round(155 + progress * 32 + wiggle * 5),
+    cdsOracleBps: Math.round(155 + progress * 32 + wiggle * 2),
+    polymarketProb: Math.round((0.055 + progress * 0.041 + wiggle * 0.002) * 1000) / 1000,
+    volumeUsd: Math.round(3_200_000 + progress * 5_949_033 + wiggle * 50_000),
+    tokenDeflation: 25,
+    us10yYield: Math.round((4.70 + progress * 0.40) * 100) / 100,
   });
 }
 

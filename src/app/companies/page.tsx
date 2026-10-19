@@ -85,14 +85,14 @@ const COMPANIES: CompanyProfile[] = [
         notes: "Secured credit facility backstopping $518B in cumulative long-term cloud datacenter commitments."
       }
     ],
-    valuationUsd: 65_000_000_000,
-    runRateRevenueUsd: 4_600_000_000,
-    psMultiple: 14.1,
+    valuationUsd: 150_000_000_000,
+    runRateRevenueUsd: 11_500_000_000,
+    psMultiple: 13.0,
     circularityConnections: ["Broadcom", "Amazon AWS", "Google", "Morgan Stanley", "Blackstone"],
     circularRiskLevel: "Severe (Circular)",
     circularitySummary: "Amazon and Google invested $8B+ equity into Anthropic while Anthropic contracted $100B+ multi-year compute on AWS Trainium and Google TPUs. Broadcom underwrites $42B convertible debt tied to custom silicon.",
     riskTier: "Critical",
-    exposureSummary: "$57.0B verified debt across 2 major facilities: $42B convertible note facility from Broadcom and $15B multi-bank revolver against $518B in future cloud liabilities.",
+    exposureSummary: "$57.0B verified debt across 2 major facilities: $42B convertible note facility from Broadcom and $15B multi-bank revolver against $518B in future cloud liabilities. ARR scaled to $11.5B (13.0× P/S multiple).",
     polymarketOdds: {
       marketName: "Anthropic Acquired Before 2027",
       oddsDisplay: "2.6¢ (2.6%)",
@@ -118,14 +118,14 @@ const COMPANIES: CompanyProfile[] = [
         notes: "Unsecured revolving credit line with zero immediate drawn balance, contingent on corporate restructuring."
       }
     ],
-    valuationUsd: 157_000_000_000,
-    runRateRevenueUsd: 3_700_000_000,
-    psMultiple: 42.4,
+    valuationUsd: 300_000_000_000,
+    runRateRevenueUsd: 20_000_000_000,
+    psMultiple: 15.0,
     circularityConnections: ["Microsoft", "Oracle", "NVIDIA", "SoftBank", "Crusoe Energy"],
     circularRiskLevel: "High (Circular)",
     circularitySummary: "Microsoft's $13B+ equity/credits are spent on Azure compute; Oracle and Crusoe issue debt to construct gigawatt campuses exclusively leased by OpenAI.",
     riskTier: "High",
-    exposureSummary: "$4.0B bank revolver at 42.4× P/S revenue multiple. Anchor tenant driving $500B Stargate initiative with multi-year non-cancellable compute obligations.",
+    exposureSummary: "$4.0B bank revolver at 15.0× P/S revenue multiple on $20.0B ARR. Anchor tenant driving $500B Stargate initiative with multi-year non-cancellable compute obligations.",
     polymarketOdds: {
       marketName: "OpenAI IPO by Dec 2026",
       oddsDisplay: "4.3¢ (4.3%)",
@@ -609,26 +609,26 @@ const COMPANIES: CompanyProfile[] = [
     ticker: "Private",
     sector: "Frontier Labs",
     role: "European Open Weights Developer",
-    disclosedDealsCount: 5,
-    totalVolumeUsd: 25_000_000_000,
-    debtInvolvedUsd: 0,
+    disclosedDealsCount: 6,
+    totalVolumeUsd: 26_650_000_000,
+    debtInvolvedUsd: 1_650_000_000,
     debtTranches: [
       {
-        label: "Funded via Equity Capital",
-        amountUsd: 0,
-        type: "Bank Revolver",
-        creditors: "None",
-        notes: "Zero long-term debt; Series D closed at €21B ($23B) valuation."
+        label: "European Consortium Convertible Note & GPU Compute Facility",
+        amountUsd: 1_650_000_000,
+        type: "Convertible Debt",
+        creditors: "ASML & Sovereign European Infrastructure Consortium",
+        notes: "€1.5B ($1.65B) structured convertible note and hardware compute facility for sovereign European clusters."
       }
     ],
-    valuationUsd: 23_000_000_000,
-    runRateRevenueUsd: 165_000_000,
-    psMultiple: 139.4,
+    valuationUsd: 11_000_000_000,
+    runRateRevenueUsd: 350_000_000,
+    psMultiple: 31.4,
     circularityConnections: ["Microsoft", "NVIDIA", "ASML", "CMA CGM"],
     circularRiskLevel: "High (Circular)",
-    circularitySummary: "Multiple tech giants hold equity stakes; revenue multiple (139.4× P/S) represents the highest valuation stretch in the tracker.",
+    circularitySummary: "Multiple tech and industrial giants hold equity and compute agreements; €1.5B debt facility tied to European sovereign compute buildout.",
     riskTier: "Critical",
-    exposureSummary: "Valued at $23B on ~€150M ($165M) annualized run-rate (139.4× P/S). Highest pure multiple froth in the model.",
+    exposureSummary: "Valued at €10B ($11.0B) benchmark on $350M annualized ARR (31.4× P/S), backed by €1.5B convertible debt facility.",
   },
 
   // 18. DATABRICKS

@@ -274,7 +274,7 @@ export default function LedgerPage() {
 
   const quickPresets = [
     { label: "Stargate ($500B)", query: "Stargate" },
-    { label: "OpenAI ($157B)", query: "OpenAI" },
+    { label: "OpenAI ($300B)", query: "OpenAI" },
     { label: "Anthropic", query: "Anthropic" },
     { label: "Oracle Cloud", query: "Oracle" },
     { label: "CoreWeave Debt", query: "CoreWeave" },

@@ -54,19 +54,19 @@ export interface TrajectoryPoint {
 }
 
 const FALLBACK_TRAJECTORY: TrajectoryPoint[] = Array.from({ length: 90 }, (_, i) => {
-  const prob = Math.round((64.2 + (68.4 - 64.2) * (i / 89)) * 10) / 10;
-  const delta90 = Math.round((prob - 64.2) * 10) / 10;
+  const prob = Math.round((38.6 + (42.8 - 38.6) * (i / 89)) * 10) / 10;
+  const delta90 = Math.round((prob - 38.6) * 10) / 10;
   return {
     dayIndex: i,
     date: `2026-${String(7 + Math.floor(i / 30)).padStart(2, "0")}-${String(1 + (i % 30)).padStart(2, "0")}`,
     dayLabel: i === 89 ? "Current" : `${89 - i}d ago`,
     probability: prob,
-    compositeScore: Math.round(prob * 0.96 * 10) / 10,
+    compositeScore: Math.round((48.2 + (52.4 - 48.2) * (i / 89)) * 10) / 10,
     mertonDD: 5.37,
     altmanZ: 8.41,
-    var95: 49.6,
+    var95: 76.9,
     deltaVs90d: delta90 >= 0 ? `+${delta90.toFixed(1)}%` : `${delta90.toFixed(1)}%`,
-    deltaVsYesterday: "+0.2%",
+    deltaVsYesterday: "+0.1%",
   };
 });
 
@@ -624,9 +624,11 @@ export function ProbabilityGauge({
       </div>
 
       {/* ── 3. MAIN GAUGE, RISK BREAKDOWN & 90-DAY SPARKLINE ──────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
-        {/* Left Side: SVG Arc Visualization + Main Score */}
-        <div className="lg:col-span-7 flex flex-col md:flex-row items-center gap-5 sm:gap-6">
+      <div className="space-y-6">
+        {/* Top Split: SVG Arc Gauge & Rationale (Left) + 90-Day Trajectory Sparkline (Right) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
+          {/* Left Side: SVG Arc Visualization + Main Score */}
+          <div className="lg:col-span-7 bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-center gap-6 shadow-sm">
           {/* Modern SVG Arc Gauge */}
           <div className="relative shrink-0 flex flex-col items-center justify-center">
             <svg
@@ -770,189 +772,45 @@ export function ProbabilityGauge({
           </div>
 
           {/* Probability Details & Macro Rationale */}
-          <div className="space-y-3 text-left">
+          <div className="space-y-3.5 text-left min-w-0 flex-1">
             <div>
               <span className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white block">
                 Composite Bubble Stress
               </span>
-              <div className="flex items-center space-x-2 mt-0.5">
-                <span className="text-xs sm:text-sm font-bold text-rose-600 dark:text-rose-400 flex items-center space-x-1">
-                  <TrendingUp className="w-4 h-4" />
+              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-1">
+                <span className={`text-xs sm:text-sm font-bold flex items-center space-x-1 ${
+                  net90DeltaNum >= 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
+                }`}>
+                  {net90DeltaNum >= 0 ? (
+                    <TrendingUp className="w-4 h-4 shrink-0 text-rose-500" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4 shrink-0 text-emerald-500" />
+                  )}
                   <span>{net90DeltaBadge} in last 90 days</span>
                 </span>
-                <span className="text-slate-300 dark:text-zinc-700">•</span>
+                <span className="text-slate-300 dark:text-zinc-700 hidden sm:inline">•</span>
                 <span className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-zinc-400 font-mono">
                   Composite: {currentComposite.toFixed(1)} / 100
                 </span>
               </div>
             </div>
 
-            <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans max-w-lg">
-              {current.desc} Driven by Oracle 5Y CDS widening to 187 bp (+131%), median 34.8× frontier lab revenue multiples, 
+            <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
+              {current.desc} Driven by Oracle 5Y CDS widening to 187 bp (+131%), 2026 enterprise multiples, 
               and $196.8B in verified debt &amp; credit commitments — offset by 40× token price deflation.
             </p>
 
-            {/* Financial Fragility Index Score Meter */}
-            <div className="pt-2">
-              <div className="bg-slate-50 dark:bg-[#18181b] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-slate-800 dark:text-zinc-200 flex items-center space-x-1.5">
-                    <ShieldAlert className="w-4 h-4 text-amber-500" />
-                    <span>Financial Fragility Index:</span>
-                    <span className="font-mono font-black text-amber-600 dark:text-amber-400">
-                      {currentFragility}/100
-                    </span>
-                  </span>
-                  <span className="font-mono font-semibold text-rose-600 dark:text-rose-400 text-[11px] uppercase tracking-wider">
-                    High Vulnerability
-                  </span>
-                </div>
-                <div className="relative h-2 w-full bg-slate-200 dark:bg-zinc-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-500 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min(100, Math.max(0, currentFragility))}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-[11px] font-mono text-slate-500 dark:text-zinc-400">
-                  <span>Resilient (&lt;35)</span>
-                  <span>Moderate (35–65)</span>
-                  <span className="text-rose-600 dark:text-rose-400 font-bold">Fragile (&gt;65)</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Quantitative Financial Models Cross-Validation Strip (5 Institutional Pillars - 100% Live) */}
-            <div className="pt-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 text-center text-xs font-mono">
-              {/* 1. Merton DD */}
-              <div
-                title={`Merton (1974) Distance-to-Default: ${quantitativeData.mertonDD.toFixed(2)}σ. Default prob: ${quantitativeData.mertonProb.toFixed(1)}%. In plain English: Can big tech pay its bills? Yes. Microsoft, Google, and Meta have massive profits and near-zero default risk.`}
-                className="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between"
-              >
-                <span className="text-[10px] text-slate-500 dark:text-zinc-400 block font-sans truncate font-medium">Big Tech Solvency</span>
-                <span className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">{quantitativeData.mertonDD.toFixed(2)}σ</span>
-                <span className="text-[9px] text-emerald-600 dark:text-emerald-400 block font-semibold truncate">0% Default Risk</span>
-              </div>
-
-              {/* 2. Altman Z'' */}
-              <div
-                title={`Altman Z''-Score: ${quantitativeData.altmanScore.toFixed(2)} (${quantitativeData.altmanZone}). In plain English: Company Health Check. Scores above 2.6 mean companies are completely safe from bankruptcy.`}
-                className="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between"
-              >
-                <span className="text-[10px] text-slate-500 dark:text-zinc-400 block font-sans truncate font-medium">Balance Sheet</span>
-                <span className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">{quantitativeData.altmanScore.toFixed(2)}</span>
-                <span className="text-[9px] text-emerald-600 dark:text-emerald-400 block font-semibold truncate">Safe Zone (&gt;2.6)</span>
-              </div>
-
-              {/* 3. Minsky Fragility Index */}
-              <div
-                title={`Minsky Fragility Index: ${quantitativeData.minskyIndex.toFixed(1)} (${quantitativeData.minskyRegime} / Ponzi Debt Share: ${quantitativeData.minskyPonziShare.toFixed(1)}%). In plain English: 60% funded by cash, 27% by loans that must be rolled over, and 13% relies on new funding.`}
-                className="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between"
-              >
-                <span className="text-[10px] text-slate-500 dark:text-zinc-400 block font-sans truncate font-medium">How AI is Funded</span>
-                <span className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">{quantitativeData.minskyIndex.toFixed(1)}/100</span>
-                <span className="text-[9px] text-amber-600 dark:text-amber-400 block font-semibold truncate">60% Cash, 13% Loans</span>
-              </div>
-
-              {/* 4. Shiller Excess CAPE Yield */}
-              <div
-                title={`Robert Shiller Excess CAPE Yield: ${quantitativeData.shillerECY >= 0 ? `+${quantitativeData.shillerECY.toFixed(2)}%` : `${quantitativeData.shillerECY.toFixed(2)}%`} (${quantitativeData.shillerStatus}). In plain English: Stocks vs Bonds. When safe bonds pay 5.1%, tech stocks are expensive.`}
-                className="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between"
-              >
-                <span className="text-[10px] text-slate-500 dark:text-zinc-400 block font-sans truncate font-medium">Stock vs 5.1% Bond</span>
-                <span className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">
-                  {quantitativeData.shillerECY >= 0 ? `+${quantitativeData.shillerECY.toFixed(2)}%` : `${quantitativeData.shillerECY.toFixed(2)}%`}
-                </span>
-                <span className="text-[9px] text-amber-600 dark:text-amber-400 block font-semibold truncate">Tech Stock Premium Tight</span>
-              </div>
-
-              {/* 5. Monte Carlo 25k VaR 95% */}
-              <div
-                title={`25,000-Path Monte Carlo Simulation: In plain English: We ran 25,000 what-if futures on our computers. In 95% of tests, risk stays under 77%.`}
-                className="col-span-2 sm:col-span-1 p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between"
-              >
-                <span className="text-[10px] text-slate-500 dark:text-zinc-400 block font-sans truncate font-medium">25k Stress Tests</span>
-                <span className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">{quantitativeData.var95.toFixed(1)}%</span>
-                <span className="text-[9px] text-rose-600 dark:text-rose-400 block font-semibold truncate">Worst 5% Stress Cap</span>
-              </div>
-            </div>
-
-            {/* Non-Finance Plain English Guide Toggle Button & Accordion */}
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => setShowPlainEnglishGuide(!showPlainEnglishGuide)}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all text-left cursor-pointer ${
-                  showPlainEnglishGuide
-                    ? "bg-amber-500/15 border border-amber-500/30"
-                    : "bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/20"
-                }`}
-              >
-                <div className="flex items-center space-x-2 min-w-0">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                  <div className="min-w-0 truncate">
-                    <span className="text-xs font-bold text-amber-900 dark:text-amber-200 block truncate">
-                      💡 Plain English Guide: What does this mean without math?
-                    </span>
-                    <span className="text-[10px] sm:text-[11px] text-amber-800/70 dark:text-amber-300/70 font-sans block truncate">
-                      Why big tech won&apos;t go broke, where real debt risk lives, and how to read {currentProb.toFixed(1)}% odds
-                    </span>
-                  </div>
-                </div>
-                <div className="shrink-0 text-amber-700 dark:text-amber-400 font-mono text-[11px] font-bold flex items-center space-x-1 ml-2">
-                  <span>{showPlainEnglishGuide ? "Hide" : "Explain"}</span>
-                  {showPlainEnglishGuide ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                </div>
-              </button>
-
-              {showPlainEnglishGuide && (
-                <div className="mt-2.5 p-4 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 space-y-3.5 shadow-sm">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                    {/* Card 1 */}
-                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800/80 space-y-1">
-                      <span className="font-bold text-slate-900 dark:text-white flex items-center space-x-1.5">
-                        <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-                        <span>1. What does {currentProb.toFixed(1)}% odds mean?</span>
-                      </span>
-                      <p className="text-slate-600 dark:text-zinc-300 leading-relaxed font-sans text-[11px]">
-                        Think of driving 85 mph on a highway in heavy rain. It doesn&apos;t guarantee an accident, but your margin for error is thin. Big tech has tons of cash, but borrowing is ramping up fast. If real AI revenues don&apos;t surge, spending will have to slam on the brakes.
-                      </p>
-                    </div>
-
-                    {/* Card 2 */}
-                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800/80 space-y-1">
-                      <span className="font-bold text-slate-900 dark:text-white flex items-center space-x-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                        <span>2. Can Big Tech go bankrupt? (Merton: {quantitativeData.mertonDD.toFixed(1)}σ)</span>
-                      </span>
-                      <p className="text-slate-600 dark:text-zinc-300 leading-relaxed font-sans text-[11px]">
-                        <strong>No. Default risk is near zero.</strong> Unlike the 2000 Dot-Com crash where startups had zero revenue, Microsoft, Google, Meta, and Apple generate over $414B in annual operating cash flow ($315B+ net accounting profits) from search, cloud, phones, and enterprise software, retaining $184B+ in free cash flow even after record GPU datacenter capex. Their debt solvency is fortress-grade.
-                      </p>
-                    </div>
-
-                    {/* Card 3 */}
-                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800/80 space-y-1">
-                      <span className="font-bold text-slate-900 dark:text-white flex items-center space-x-1.5">
-                        <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
-                        <span>3. So where is the real risk?</span>
-                      </span>
-                      <p className="text-slate-600 dark:text-zinc-300 leading-relaxed font-sans text-[11px]">
-                        Over $196 billion of new GPU data centers are funded on debt. AI startups trade at 35× their revenue. If businesses don&apos;t pay hundreds of billions for AI software, that borrowed money can&apos;t be easily refinanced, leading to a sharp freeze in AI spending.
-                      </p>
-                    </div>
-
-                    {/* Card 4 */}
-                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800/80 space-y-1">
-                      <span className="font-bold text-slate-900 dark:text-white flex items-center space-x-1.5">
-                        <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
-                        <span>4. Why are our odds higher than Polymarket ({currentProb.toFixed(1)}% vs 9.6%)?</span>
-                      </span>
-                      <p className="text-slate-600 dark:text-zinc-300 leading-relaxed font-sans text-[11px]">
-                        Polymarket retail bettors are looking for an official crash event in 2026. Our model monitors the underlying financial plumbing — high 5.1% bond yields, rising debt insurance, and massive capex burns. It acts as an early warning thermometer.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+            {/* Provenance Badges */}
+            <div className="pt-1 flex flex-wrap items-center gap-2 text-[11px] font-mono text-slate-500 dark:text-zinc-400">
+              <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-zinc-850 border border-slate-200 dark:border-zinc-750">
+                Band: <strong className="text-slate-900 dark:text-white uppercase">{currentBand}</strong>
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-zinc-850 border border-slate-200 dark:border-zinc-750">
+                90% CI: <strong className="text-slate-900 dark:text-white">[{ciLow.toFixed(1)}% – {ciHigh.toFixed(1)}%]</strong>
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-zinc-850 border border-slate-200 dark:border-zinc-750 hidden sm:inline">
+                Macro: <strong className="text-slate-900 dark:text-white">5.10% US10Y</strong>
+              </span>
             </div>
           </div>
         </div>
@@ -1144,6 +1002,168 @@ export function ProbabilityGauge({
           </div>
         </div>
       </div>
+
+      {/* Financial Fragility Index (FFI) Full-Width Score Meter */}
+      <div className="bg-slate-50/90 dark:bg-[#121214] border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-2.5 shadow-xs">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+          <span className="font-bold text-slate-800 dark:text-zinc-200 flex items-center space-x-1.5">
+            <ShieldAlert className="w-4 h-4 text-amber-500 shrink-0" />
+            <span>Financial Fragility Index (FFI):</span>
+            <span className="font-mono font-black text-amber-600 dark:text-amber-400 text-sm">
+              {currentFragility}/100
+            </span>
+          </span>
+          <span className="font-mono font-bold text-rose-600 dark:text-rose-400 text-xs uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-rose-500/10 border border-rose-500/20">
+            High Vulnerability
+          </span>
+        </div>
+        <div className="relative h-2.5 w-full bg-slate-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-500 rounded-full transition-all duration-500"
+            style={{ width: `${Math.min(100, Math.max(0, currentFragility))}%` }}
+          />
+        </div>
+        <div className="flex justify-between text-[11px] font-mono text-slate-500 dark:text-zinc-400">
+          <span>Resilient (&lt;35)</span>
+          <span>Moderate (35–65)</span>
+          <span className="text-rose-600 dark:text-rose-400 font-bold">Fragile (&gt;65)</span>
+        </div>
+      </div>
+
+      {/* Quantitative Financial Models Cross-Validation Strip (5 Institutional Pillars - Full Width) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-center text-xs font-mono">
+        {/* 1. Merton DD */}
+        <div
+          title={`Merton (1974) Distance-to-Default: ${quantitativeData.mertonDD.toFixed(2)}σ. Default prob: ${quantitativeData.mertonProb.toFixed(1)}%. In plain English: Can big tech pay its bills? Yes. Microsoft, Google, Apple, and Meta generate $414B+ operating cash flow and near-zero default risk.`}
+          className="p-3 sm:p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between space-y-1.5 shadow-xs"
+        >
+          <span className="text-[11px] text-slate-500 dark:text-zinc-400 block font-sans font-medium">Big Tech Solvency</span>
+          <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">{quantitativeData.mertonDD.toFixed(2)}σ</span>
+          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block font-semibold">0% Default Risk</span>
+        </div>
+
+        {/* 2. Altman Z'' */}
+        <div
+          title={`Altman Z''-Score: ${quantitativeData.altmanScore.toFixed(2)} (${quantitativeData.altmanZone}). In plain English: Balance Sheet Health Check. Scores above 2.6 mean companies are completely safe from bankruptcy.`}
+          className="p-3 sm:p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between space-y-1.5 shadow-xs"
+        >
+          <span className="text-[11px] text-slate-500 dark:text-zinc-400 block font-sans font-medium">Balance Sheet</span>
+          <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">{quantitativeData.altmanScore.toFixed(2)}</span>
+          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block font-semibold">Safe Zone (&gt;2.6)</span>
+        </div>
+
+        {/* 3. Minsky Fragility Index */}
+        <div
+          title={`Minsky Fragility Index: ${quantitativeData.minskyIndex.toFixed(1)} (${quantitativeData.minskyRegime} / Ponzi Debt Share: ${quantitativeData.minskyPonziShare.toFixed(1)}%). In plain English: 60% funded by cash, 27% by loans that must be rolled over, and 13% relies on new funding.`}
+          className="p-3 sm:p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between space-y-1.5 shadow-xs"
+        >
+          <span className="text-[11px] text-slate-500 dark:text-zinc-400 block font-sans font-medium">How AI is Funded</span>
+          <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">{quantitativeData.minskyIndex.toFixed(1)}/100</span>
+          <span className="text-[10px] text-amber-600 dark:text-amber-400 block font-semibold">60% Cash, 13% Loans</span>
+        </div>
+
+        {/* 4. Shiller Excess CAPE Yield */}
+        <div
+          title={`Robert Shiller Excess CAPE Yield: ${quantitativeData.shillerECY >= 0 ? `+${quantitativeData.shillerECY.toFixed(2)}%` : `${quantitativeData.shillerECY.toFixed(2)}%`} (${quantitativeData.shillerStatus}). In plain English: Stocks vs Bonds. When safe bonds pay 5.1%, tech stocks are expensive.`}
+          className="p-3 sm:p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between space-y-1.5 shadow-xs"
+        >
+          <span className="text-[11px] text-slate-500 dark:text-zinc-400 block font-sans font-medium">Stock vs 5.1% Bond</span>
+          <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+            {quantitativeData.shillerECY >= 0 ? `+${quantitativeData.shillerECY.toFixed(2)}%` : `${quantitativeData.shillerECY.toFixed(2)}%`}
+          </span>
+          <span className="text-[10px] text-amber-600 dark:text-amber-400 block font-semibold">Tech Stock Premium Tight</span>
+        </div>
+
+        {/* 5. Monte Carlo 25k VaR 95% */}
+        <div
+          title={`25,000-Path Monte Carlo Simulation: In plain English: We ran 25,000 what-if futures on our computers. In 95% of tests, risk stays under 77%.`}
+          className="col-span-2 sm:col-span-1 p-3 sm:p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between space-y-1.5 shadow-xs"
+        >
+          <span className="text-[11px] text-slate-500 dark:text-zinc-400 block font-sans font-medium">25k Stress Tests</span>
+          <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">{quantitativeData.var95.toFixed(1)}%</span>
+          <span className="text-[10px] text-rose-600 dark:text-rose-400 block font-semibold">Worst 5% Stress Cap</span>
+        </div>
+      </div>
+
+      {/* Non-Finance Plain English Guide Toggle Button & Accordion (Full Width) */}
+      <div className="pt-1">
+        <button
+          type="button"
+          onClick={() => setShowPlainEnglishGuide(!showPlainEnglishGuide)}
+          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all text-left cursor-pointer ${
+            showPlainEnglishGuide
+              ? "bg-amber-500/15 border border-amber-500/30"
+              : "bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/20"
+          }`}
+        >
+          <div className="flex items-center space-x-2.5 min-w-0">
+            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+            <div className="min-w-0 truncate">
+              <span className="text-xs sm:text-sm font-bold text-amber-900 dark:text-amber-200 block truncate">
+                💡 Plain English Guide: What does this mean without complex financial math?
+              </span>
+              <span className="text-[11px] text-amber-800/70 dark:text-amber-300/70 font-sans block truncate">
+                Why big tech won&apos;t go broke, where real debt risk lives, and how to read {currentProb.toFixed(1)}% odds
+              </span>
+            </div>
+          </div>
+          <div className="shrink-0 text-amber-700 dark:text-amber-400 font-mono text-xs font-bold flex items-center space-x-1 ml-3">
+            <span>{showPlainEnglishGuide ? "Hide Guide" : "Explain In Plain English"}</span>
+            {showPlainEnglishGuide ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </div>
+        </button>
+
+        {showPlainEnglishGuide && (
+          <div className="mt-3 p-5 rounded-2xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 space-y-4 shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              {/* Card 1 */}
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800/80 space-y-1.5">
+                <span className="font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                  <span>1. What does {currentProb.toFixed(1)}% odds mean?</span>
+                </span>
+                <p className="text-slate-600 dark:text-zinc-300 leading-relaxed font-sans text-xs">
+                  Think of driving 85 mph on a highway in heavy rain. It doesn&apos;t guarantee an accident, but your margin for error is thin. Big tech has tons of cash, but borrowing is ramping up fast. If real AI revenues don&apos;t surge, spending will have to slam on the brakes.
+                </p>
+              </div>
+
+              {/* Card 2 */}
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800/80 space-y-1.5">
+                <span className="font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                  <span>2. Can Big Tech go bankrupt? (Merton: {quantitativeData.mertonDD.toFixed(1)}σ)</span>
+                </span>
+                <p className="text-slate-600 dark:text-zinc-300 leading-relaxed font-sans text-xs">
+                  <strong>No. Default risk is near zero.</strong> Unlike the 2000 Dot-Com crash where startups had zero revenue, Microsoft, Google, Meta, and Apple generate over $414B in annual operating cash flow ($315B+ net accounting profits) from search, cloud, phones, and enterprise software, retaining $184B+ in free cash flow even after record GPU datacenter capex. Their debt solvency is fortress-grade.
+                </p>
+              </div>
+
+              {/* Card 3 */}
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800/80 space-y-1.5">
+                <span className="font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                  <span>3. So where is the real risk?</span>
+                </span>
+                <p className="text-slate-600 dark:text-zinc-300 leading-relaxed font-sans text-xs">
+                  Over $196 billion of new GPU data centers are funded on debt. AI startups trade at high multiples to their revenue. If businesses don&apos;t pay hundreds of billions for AI software, that borrowed money can&apos;t be easily refinanced, leading to a sharp freeze in AI spending.
+                </p>
+              </div>
+
+              {/* Card 4 */}
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800/80 space-y-1.5">
+                <span className="font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                  <span>4. Why are our odds higher than Polymarket ({currentProb.toFixed(1)}% vs 9.6%)?</span>
+                </span>
+                <p className="text-slate-600 dark:text-zinc-300 leading-relaxed font-sans text-xs">
+                  Polymarket retail bettors are looking for an official crash event in 2026. Our model monitors the underlying financial plumbing — high 5.1% bond yields, rising debt insurance, and massive capex burns. It acts as an early warning thermometer.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
 
       {/* ── 4. POLYMARKET PROBABILITY & SPREAD MODULE (DIRECTLY UNDER CALCULATOR) ── */}
       <div className="pt-6 border-t-2 border-slate-200 dark:border-zinc-800 space-y-4">

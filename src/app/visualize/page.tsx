@@ -413,12 +413,12 @@ export default function VisualizePage() {
                   <span className="text-xs text-slate-400">• Multiple Compression</span>
                 </div>
                 <h4 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
-                  The Impossibility of Sustaining 40×+ P/S at a 4.5% Risk-Free Rate
+                  The Impossibility of Sustaining 30×+ P/S at a 5.1% Risk-Free Rate
                 </h4>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed max-w-4xl">
-                  Frontier labs trade at a 34.8× median P/S multiple (with extreme outliers like Mistral at 139× and xAI at 100×). To justify these valuations 
-                  without massive multiple contraction toward the 10× historical SaaS equilibrium, labs must compound revenues at 80%+ annually for 4+ consecutive years. 
-                  In a 4.5% US10Y regime, tech cash flows face severe duration discount penalties whenever growth deceleration hits.
+                  Frontier labs trade at a 27.5× median P/S multiple (with labs like Perplexity at 60× and Mistral at 31.4×). Even with OpenAI scaling to $20.0B ARR and Anthropic to $11.5B ARR, justifying these valuations 
+                  without massive multiple contraction toward the 10× historical SaaS equilibrium requires continuous hypergrowth. 
+                  In a 5.10% US10Y regime, tech cash flows face severe duration discount penalties whenever growth deceleration hits.
                 </p>
               </div>
             </div>

@@ -64,11 +64,11 @@ const BASELINE_INPUTS = {
     note: 'Reuters & ICE Fixed Income 5Y USD CDS on Oracle (AI debt anchor), as of Sep-Oct 2026',
   },
   valuations: [
-    { company: 'OpenAI', valuationUsd: 157_000_000_000, runRateRevenueUsd: 3_700_000_000 },
-    { company: 'Anthropic', valuationUsd: 65_000_000_000, runRateRevenueUsd: 4_600_000_000 },
+    { company: 'OpenAI', valuationUsd: 300_000_000_000, runRateRevenueUsd: 20_000_000_000 },
+    { company: 'Anthropic', valuationUsd: 150_000_000_000, runRateRevenueUsd: 11_500_000_000 },
     { company: 'Databricks', valuationUsd: 190_000_000_000, runRateRevenueUsd: 7_000_000_000 },
-    { company: 'xAI', valuationUsd: 50_000_000_000, runRateRevenueUsd: 500_000_000 },
-    { company: 'Mistral AI', valuationUsd: 23_000_000_000, runRateRevenueUsd: 165_000_000 },
+    { company: 'xAI', valuationUsd: 50_000_000_000, runRateRevenueUsd: 1_800_000_000 },
+    { company: 'Mistral AI', valuationUsd: 11_000_000_000, runRateRevenueUsd: 350_000_000 },
     { company: 'Scale AI', valuationUsd: 13_800_000_000, runRateRevenueUsd: 900_000_000 },
   ],
   ledger: {

@@ -249,10 +249,10 @@ export default function HomePage() {
                 <span className="font-mono font-bold text-slate-600 dark:text-zinc-400">16% Weight</span>
               </div>
               <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-                Median Lab P/S: 34.8×
+                Median Lab P/S: 27.5×
               </h3>
               <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed font-sans">
-                OpenAI ($157B at 42.4×), Anthropic ($65B at 14.1× with $57B in debt facilities), and Mistral trade at multiples exceeding historical tech bubbles.
+                OpenAI ($300B at 15.0× on $20B ARR), Anthropic ($150B at 13.0× with $57B in debt facilities), and Mistral ($11B at 31.4×) trade at multiples exceeding historical software bubbles.
               </p>
               <details className="group">
                 <summary className="list-none [&::-webkit-details-marker]:hidden cursor-pointer inline-flex items-center space-x-1 font-mono text-[11px] font-bold text-amber-600/80 hover:text-amber-600 dark:text-amber-400/80 dark:hover:text-amber-400 transition-colors py-0.5">
@@ -261,7 +261,7 @@ export default function HomePage() {
                   <span className="text-[10px] group-open:rotate-180 transition-transform">▾</span>
                 </summary>
                 <div className="mt-1.5 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/50 text-[11px] font-sans text-amber-900 dark:text-amber-200 leading-relaxed">
-                  <strong>In plain English:</strong> Investors are paying $35 today for every single $1 of startup sales. Startups must grow at superhuman speed for decades to justify this.
+                  <strong>In plain English:</strong> Investors pay $27 today for every $1 of startup sales. While frontier ARR has exploded past $20B, valuations require relentless exponential growth to hold.
                 </div>
               </details>
             </div>
