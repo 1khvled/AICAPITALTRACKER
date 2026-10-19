@@ -1,0 +1,33 @@
+{
+  "_migration": "seeded interpolation rows retired 2026-10-19 per wave-1 summit; history begins on real canonical runs",
+  "_note": "File-level metadata for src/data/trajectory-history.json. The history file itself stays a JSON ARRAY because the published consumers read it as an array (src/app/page.tsx and src/components/ProbabilityGauge.tsx are outside this lane) — an object here would silently make the gauge fall back to its seeded 90-day path. This sidecar carries the dataset-level metadata instead.",
+  "retired": {
+    "seeded_rows": 89,
+    "reason": "the 89 interpolated points (2026-07-22 … 2026-10-18) were a linear backfill with sine noise, not observed market history; they also carried a synthetic var95 = probability × 1.8 series",
+    "retired_on": "2026-10-19"
+  },
+  "schema": {
+    "modelRun": "'observed' — the row came from a real pipeline run (the only kind of row that exists now)",
+    "revision_min_pct": "lowest burst probability resolved on that UTC day (sync-history.json telemetry)",
+    "revision_max_pct": "highest burst probability resolved on that UTC day (sync-history.json telemetry)",
+    "revision_runs": "number of resolved runs on that UTC day (the run count is PER UTC DAY)",
+    "backfilled": "always false — retained only so the out-of-lane UI consumers keep compiling",
+    "var95": "present only on rows produced by a canonical run with a Monte-Carlo artifact (2026-10-19: 84.6 = the canonical MC VaR95)"
+  },
+  "rows": [
+    {
+      "date": "2026-10-18",
+      "source": "last successful pipeline run of 2026-10-18 (sync-history.json, 2026-10-18T22:46:01.343Z)",
+      "probability": 42.8,
+      "revision_range_pct": [41.2, 64],
+      "revision_runs": 14
+    },
+    {
+      "date": "2026-10-19",
+      "source": "canonical artifact (src/data/latest-model.json, model v2.6.0)",
+      "probability": 71.6,
+      "revision_range_pct": [36.5, 71.7],
+      "revision_runs": 16
+    }
+  ]
+}

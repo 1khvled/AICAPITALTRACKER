@@ -14,6 +14,7 @@ import {
 } from "@/lib/model/engine";
 import rawTrajectoryHistory from "@/data/trajectory-history.json";
 import liveInputsData from "@/data/live-inputs.json";
+import latestModel from "@/data/latest-model.json";
 import {
   POLYMARKET_FEATURED_MARKETS,
   POLYMARKET_REFERRAL_CODE,
@@ -52,12 +53,13 @@ export interface TrajectoryPoint {
  *
  * Re-anchored to the published world: the recorded 90-day path runs 38.6% →
  * 71.6% burst probability on a composite score of 48.3 → 63.3, with Merton
- * distance-to-default 5.13σ and Monte Carlo VaR95 80.5% at the current point.
- * The UI marks the panel as a fallback whenever this array is the source.
+ * distance-to-default 5.13σ and Monte Carlo VaR95 84.6% at the current point
+ * (src/data/latest-model.json, model v2.6.0). The UI marks the panel as a
+ * fallback whenever this array is the source.
  *
  * 2026-10-19 (round-2 consolidation): end-point re-synced to
- * src/data/latest-model.json (burst 71.6 / composite 63.3 / MC VaR95 80.5) —
- * the values had been pinned to the pre-rebaseline 71.7 / 63.4 / 80.6.
+ * src/data/latest-model.json (burst 71.6 / composite 63.3) — the values had
+ * been pinned to the pre-rebaseline 71.7 / 63.4.
  */
 const FALLBACK_TRAJECTORY: TrajectoryPoint[] = Array.from({ length: 90 }, (_, i) => {
   const t = i / 89;
@@ -72,7 +74,7 @@ const FALLBACK_TRAJECTORY: TrajectoryPoint[] = Array.from({ length: 90 }, (_, i)
     compositeScore: composite,
     mertonDD: Math.round((5.82 + (5.13 - 5.82) * t) * 100) / 100,
     altmanZ: Math.round((8.8 + (8.41 - 8.8) * t) * 100) / 100,
-    var95: Math.round((72 + (80.5 - 72) * t) * 10) / 10,
+    var95: Math.round((72 + (84.6 - 72) * t) * 10) / 10,
     // 2026-10-19 (round-2 consolidation): "pts" — the trajectory deltas are probability-point
     // changes, matching trajectory-history.json and the home page.
     deltaVs90d: delta90 >= 0 ? `+${delta90.toFixed(1)} pts` : `${delta90.toFixed(1)} pts`,
@@ -86,6 +88,12 @@ interface ProbabilityGaugeProps {
   band: BubbleBand;
   coverage: number;
   topDrivers?: string[];
+  /**
+   * DEPRECATED (model v2.6.0): the hand-rolled factor-dispersion band was
+   * deleted. The gauge now renders the published Monte-Carlo input-sensitivity
+   * range (src/data/latest-model.json → monteCarlo.ci95Pct). The prop is kept
+   * so existing callers keep compiling; it is no longer read.
+   */
   confidenceInterval?: [number, number];
   fragilityIndex?: number;
   contributions?: FactorContribution[];
@@ -245,7 +253,7 @@ export function ProbabilityGauge({
   band: baseBand,
   coverage: baseCoverage,
   topDrivers: _baseTopDrivers,
-  confidenceInterval: baseConfidenceInterval,
+  confidenceInterval: _unusedConfidenceInterval,
   fragilityIndex: baseFragilityIndex = 74,
   contributions: baseContributions,
   initialInputs = DEFAULT_MODEL_INPUTS,
@@ -276,13 +284,8 @@ export function ProbabilityGauge({
   const currentProb = scenarioResult ? scenarioResult.burstProbability : baseProbability;
   const currentComposite = scenarioResult ? scenarioResult.compositeScore : baseCompositeScore;
   const currentBand = scenarioResult ? scenarioResult.band : baseBand;
-  const currentCI = scenarioResult ? scenarioResult.confidenceInterval : baseConfidenceInterval;
   const currentFragility = scenarioResult ? scenarioResult.fragilityIndex ?? 74 : baseFragilityIndex;
   const currentContributions = scenarioResult ? scenarioResult.contributions : baseContributions;
-
-  // Confidence interval calculation fallback
-  const ciLow = currentCI ? currentCI[0] : Math.max(0, Math.round((currentProb - 3.9) * 10) / 10);
-  const ciHigh = currentCI ? currentCI[1] : Math.min(100, Math.round((currentProb + 3.9) * 10) / 10);
 
   // Delta relative to baseline
   const probDelta = Math.round((currentProb - baseProbability) * 10) / 10;
@@ -352,8 +355,28 @@ export function ProbabilityGauge({
       var95: mc.valueAtRisk95Pct,
       var99: mc.valueAtRisk99Pct,
       cvar95: mc.conditionalValueAtRisk95Pct,
+      // The scenario's own simulated input-sensitivity range (used when a
+      // what-if lever is pulled; the baseline uses the published artifact).
+      rangeLow: mc.ci95Pct[0],
+      rangeHigh: mc.ci95Pct[1],
     };
   }, [activeInputs]);
+
+  /**
+   * The published band (model v2.6.0): the Monte-Carlo input-sensitivity
+   * range, NOT a confidence interval. The old ±3.9-point fallback band is
+   * deleted — it was an invented width that tracked the headline, and it could
+   * read narrower than what the market itself prices.
+   */
+  const PUBLISHED_RANGE_LOW = latestModel.monteCarlo.ci95Pct[0];
+  const PUBLISHED_RANGE_HIGH = latestModel.monteCarlo.ci95Pct[1];
+  const PUBLISHED_RANGE_90_LOW = latestModel.monteCarlo.ci90Pct[0];
+  const PUBLISHED_RANGE_90_HIGH = latestModel.monteCarlo.ci90Pct[1];
+  const PUBLISHED_RANGE_TYPE = latestModel.monteCarlo.ciType;
+
+  const isBaselineScenario = activeScenarioId === "baseline";
+  const ciLow = isBaselineScenario ? PUBLISHED_RANGE_LOW : quantitativeData.rangeLow;
+  const ciHigh = isBaselineScenario ? PUBLISHED_RANGE_HIGH : quantitativeData.rangeHigh;
 
   // Load 90-day trajectory from trajectory-history.json with fallback
   const usingFallbackTrajectory = !(
@@ -619,11 +642,17 @@ export function ProbabilityGauge({
               {probDelta > 0 ? `+${probDelta}` : probDelta} vs baseline
             </span>
           )}
-          <span className="chip">
+          <span className="chip" title={PUBLISHED_RANGE_TYPE}>
             <ShieldCheck className="h-3 w-3" aria-hidden="true" />
-            90% CI
+            95% input-sensitivity range
             <span className="num font-semibold text-ink">
               {ciLow.toFixed(1)}–{ciHigh.toFixed(1)}%
+            </span>
+          </span>
+          <span className="chip" title={PUBLISHED_RANGE_TYPE}>
+            90% shock range
+            <span className="num font-semibold text-ink">
+              {PUBLISHED_RANGE_90_LOW.toFixed(1)}–{PUBLISHED_RANGE_90_HIGH.toFixed(1)}%
             </span>
           </span>
         </div>
@@ -687,7 +716,7 @@ export function ProbabilityGauge({
               className="w-[252px] max-w-full sm:w-[318px]"
               viewBox="0 0 320 178"
               role="img"
-              aria-label={`Burst probability ${currentProb.toFixed(1)} percent. 90 percent confidence interval ${ciLow.toFixed(1)} to ${ciHigh.toFixed(1)} percent.`}
+              aria-label={`Burst probability ${currentProb.toFixed(1)} percent. Input-sensitivity range ${ciLow.toFixed(1)} to ${ciHigh.toFixed(1)} percent — not a confidence interval.`}
             >
               <path
                 d="M 48 140 A 112 112 0 0 1 272 140"
@@ -781,7 +810,7 @@ export function ProbabilityGauge({
               ) : (
                 <TrendingDown className="h-3.5 w-3.5" aria-hidden="true" />
               )}
-              {net90DeltaBadge} over 90 days
+              {net90DeltaBadge} since {firstPoint?.date ?? "first observed"}
             </p>
             <p className="mt-2.5 text-sm leading-relaxed text-ink-muted">{current.desc}</p>
             <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[14px] text-ink-faint">
@@ -808,7 +837,7 @@ export function ProbabilityGauge({
         {/* 90-day trajectory + active drivers */}
         <div className="panel rounded-md lg:col-span-5">
           <div className="flex items-baseline justify-between gap-2">
-            <span className="label">90-day trajectory</span>
+            <span className="label">observed trajectory</span>
             <span className="num text-sm font-semibold text-ink">{net90DeltaBadge}</span>
           </div>
 
@@ -877,13 +906,23 @@ export function ProbabilityGauge({
             </svg>
 
             <div className="mt-1 flex justify-between border-t border-rule pt-1 text-[14px] text-ink-faint">
-              {[
-                { label: "90d", idx: 0 },
-                { label: "60d", idx: 30 },
-                { label: "30d", idx: 60 },
-                { label: "Yesterday", idx: trajectoryPoints.length - 2 },
-                { label: "Current", idx: trajectoryPoints.length - 1 },
-              ].map((milestone) => (
+              {(() => {
+                // 2026-10-19 (wave-1): history is observed canonical runs only
+                // (seeded interpolation retired) — indexes 30/60 no longer exist
+                // in a 2-row history. Milestones derive from the actual points
+                // and duplicate indexes are dropped (First == Yesterday early on).
+                const n = trajectoryPoints.length;
+                const milestones = [
+                  { label: "First", idx: 0 },
+                  ...(n >= 5 ? [{ label: "Mid", idx: Math.floor((n - 1) / 2) }] : []),
+                  ...(n >= 2 ? [{ label: "Yesterday", idx: n - 2 }] : []),
+                  { label: "Current", idx: n - 1 },
+                ];
+                const seen = new Set<number>();
+                return milestones.filter((m) =>
+                  seen.has(m.idx) ? false : (seen.add(m.idx), true)
+                );
+              })().map((milestone) => (
                 <button
                   key={milestone.label}
                   type="button"
@@ -1082,7 +1121,7 @@ export function ProbabilityGauge({
             <p className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">This model</p>
             <p className="num mt-1 text-2xl font-bold text-ink">{currentProb.toFixed(1)}%</p>
             <p className="num mt-1 text-[14px] text-ink-faint">
-              CI {ciLow.toFixed(1)}–{ciHigh.toFixed(1)}% · fragility {currentFragility}
+              Range {ciLow.toFixed(1)}–{ciHigh.toFixed(1)}% · fragility {currentFragility}
             </p>
           </div>
           <div className="bg-surface p-3.5">

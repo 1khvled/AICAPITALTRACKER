@@ -106,7 +106,6 @@ export default function HomePage() {
           band={result.band}
           coverage={result.coverage}
           topDrivers={result.topDriverIds}
-          confidenceInterval={result.confidenceInterval}
           fragilityIndex={result.fragilityIndex}
           contributions={result.contributions}
           initialInputs={DEFAULT_MODEL_INPUTS}

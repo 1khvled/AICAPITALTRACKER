@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { AdSlot } from "@/components/AdSlot";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
+import { MODEL_FACTORS, MODEL_VERSION, SUM_RISK_WEIGHT_PCT, DAMPER_WEIGHT_PCT } from "@/lib/model/factors";
 import latestModel from "@/data/latest-model.json";
 
 /**
@@ -78,7 +79,7 @@ const ENDPOINTS: EndpointDoc[] = [
     method: "GET",
     path: "/api/v1/model",
     badge: "Rebuilt On Deploy",
-    description: "Returns the 12-month empirical bubble burst probability, composite stress score (0–100), 90% confidence interval, financial fragility index, systemic contagion synergy, and breakdown of all 9 factor contributions. The route is force-static: the payload is a daily snapshot rebuilt on deploy from the last 24-hour sync, not a live feed. The sample below is that daily snapshot; use the Live Response tab for the exact wire format.",
+    description: "Returns the 12-month empirical bubble burst probability, composite stress score (0-100), the published input-sensitivity range (not a probability interval), financial fragility index, systemic contagion synergy, and the breakdown of all 9 factor contributions. The route is force-static: the payload is a daily snapshot rebuilt on deploy from the last 24-hour sync, not a live feed. The sample below is that daily snapshot, in the route's own wire format; use the Live Response tab for the exact payload.",
     defaultQuery: "",
     params: [
       { name: "format", type: "string", required: false, defaultVal: "full", desc: "Response verbosity. The current build always returns the full payload; 'summary' is accepted and ignored (forward-compatible)." },
@@ -86,26 +87,52 @@ const ENDPOINTS: EndpointDoc[] = [
     sampleResponse: {
       success: true,
       data: {
-        burstProbability: liveModel.burstProbability,
-        compositeScore: liveModel.compositeScore,
-        band: liveModel.band,
-        confidenceInterval: liveModel.confidenceInterval,
-        fragilityIndex: liveModel.fragilityIndex,
-        systemicContagionPoints: liveModel.systemicContagionPoints,
-        coverage: liveModel.coverage,
-        horizonMonths: liveModel.horizonMonths,
-        macroIndicators: {
-          us10yYieldPct: DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct,
-          cpiInflationYoY: DEFAULT_MODEL_INPUTS.macro?.cpiInflationYoY,
-          fedFundsRatePct: DEFAULT_MODEL_INPUTS.macro?.fedFundsRatePct,
-          annualDebtVelocityUsd: DEFAULT_MODEL_INPUTS.aiDebt?.annualDebtIssuanceUsd,
-          totalTrackedDebtUsd: DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd
+        timestamp: latestModel.timestamp,
+        model_version: MODEL_VERSION,
+        modelVersion: MODEL_VERSION,
+        horizon_months: liveModel.horizonMonths,
+        burst_probability_pct: liveModel.burstProbability,
+        composite_score: liveModel.compositeScore,
+        risk_band: liveModel.band,
+        data_coverage_pct: Math.round(liveModel.coverage * 100),
+        coverage_label: `risk-factor coverage (${SUM_RISK_WEIGHT_PCT} risk points across ${MODEL_FACTORS.filter((f) => f.kind === "risk").length} risk factors); the real-use damper (max −${DAMPER_WEIGHT_PCT} pts) is reported separately and is not part of the risk scale`,
+        damper_coverage_pct: Math.round(liveModel.damperCoverage * 100),
+        ci_type: latestModel.monteCarlo.ciType,
+        input_sensitivity_range: {
+          ci_type: latestModel.monteCarlo.ciType,
+          ci90_pct: latestModel.monteCarlo.ci90Pct,
+          ci95_pct: latestModel.monteCarlo.ci95Pct,
+          band_low_pct: latestModel.monteCarlo.bandLowPct,
+          iterations: latestModel.monteCarlo.iterationsCount,
+          source: "25,000-path Monte Carlo input-sensitivity quantiles (src/data/latest-model.json)",
         },
-        topDriverIds: liveModel.topDriverIds,
+        financial_fragility_index: liveModel.fragilityIndex,
+        financial_fragility_index_basis: liveModel.fragilityIndexBasis,
+        systemic_contagion_points: liveModel.systemicContagionPoints,
+        top_driver_ids: liveModel.topDriverIds,
+        calibration: {
+          anchor_score: 55,
+          logistic_steepness: 9,
+          formula: "P(burst) = 1 / (1 + exp(-(Score - 55) / 9))",
+        },
         contributions: liveTopContributions,
-        generatedAt: latestModel.timestamp
-      }
-    }
+        inputs_summary: {
+          oracle_cds_5y_bps: DEFAULT_MODEL_INPUTS.cds?.currentBps,
+          median_lab_ps_multiple: 29.4,
+          debt_share_pct: Math.round((DEFAULT_MODEL_INPUTS.ledger?.debtShare || 0) * 1000) / 10,
+          total_tracked_debt_usd: DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 214_890_400_000,
+          annual_debt_issuance_usd: DEFAULT_MODEL_INPUTS.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000,
+          us10y_treasury_yield_pct: DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 5.1,
+          cpi_inflation_yoy_pct: DEFAULT_MODEL_INPUTS.macro?.cpiInflationYoY ?? 3.72,
+          fed_funds_rate_pct: DEFAULT_MODEL_INPUTS.macro?.fedFundsRatePct ?? 3.75,
+          high_yield_spread_bps: DEFAULT_MODEL_INPUTS.macro?.highYieldSpreadBps ?? 323,
+          capex_to_ocf_ratio_pct: Math.round((DEFAULT_MODEL_INPUTS.aiDebt?.capexToOcfRatio ?? 0.548) * 1000) / 10,
+          token_price_decline_multiple: DEFAULT_MODEL_INPUTS.adoption?.apiPriceDeclineMultiple,
+          token_price_decline_multiple_pinned: 670,
+          polymarket_yes_probability: DEFAULT_MODEL_INPUTS.crowd?.yesProbability,
+        },
+      },
+    },
   },
   {
     id: "deals",
@@ -174,48 +201,23 @@ const ENDPOINTS: EndpointDoc[] = [
     sampleResponse: {
       success: true,
       calibration: {
-        anchorScore: 55,
+        anchor_score: 55,
         steepness: 9,
-        formula: "P(burst) = 1 / (1 + exp(-(S - 55) / 9))"
+        sigmoid_formula: "P(burst) = 1 / (1 + exp(-(Score - anchorScore) / steepness))",
       },
-      factorsCount: 9,
-      totalRiskWeightPct: 100,
-      damperMaxDiscountPoints: 10,
-      factors: [
-        {
-          id: "cds_stress",
-          label: "Credit stress (CDS spreads)",
-          kind: "risk",
-          weightPct: 18,
-          formula: "score = ramp(current ÷ baseline, ×1, ×3)·0.7 + ramp(90-day rise, +0bp, +80bp)·0.3",
-          explain: "CDS spread on Oracle debt serves as the primary fixed-income credit thermometer."
-        },
-        {
-          id: "valuation_stretch",
-          label: "Private valuation stretch",
-          kind: "risk",
-          weightPct: 16,
-          formula: "PS = median(valuation ÷ run-rate revenue); score = ramp(PS, 8×, 60×)",
-          explain: "Frontier lab price-to-sales multiples compared against historical tech bubble multiples."
-        },
-        {
-          id: "debt_reliance",
-          label: "Debt reliance & issuance pace",
-          kind: "risk",
-          weightPct: 14,
-          formula: "score = 0.50·ramp(debtShare, 2.5%, 15%) + 0.35·ramp(annualDebtIssuance, $20B, $100B) + 0.15·ramp(totalTrackedDebt, $50B, $250B)",
-          explain: "Share of capital composed of borrowed debt and annualized pace of debt issuance."
-        },
-        {
-          id: "adoption_demand",
-          label: "Real-use damper",
-          kind: "damper",
-          weightPct: 10,
-          formula: "damper = 0.5·ramp(userGrowth, 10%, 100%) + 0.3·ramp(API price decline multiple, 1×, 50×) + 0.2·(trainingCostBand ≤ falling) · max 10 pts",
-          explain: "Direct deduction from composite stress when token pricing drops and user adoption surges."
-        }
-      ]
-    }
+      // 2026-10-19 (wave 2): the sample is generated from the live MODEL_FACTORS
+      // definitions — the same strings /api/v1/factors returns — so it can never
+      // publish a formula the engine does not use.
+      factors: MODEL_FACTORS.map((f, idx) => ({
+        index: idx + 1,
+        id: f.id,
+        label: f.label,
+        kind: f.kind,
+        weight_pct: f.weightPct,
+        formula: f.formula,
+        description: f.explain,
+      })),
+    },
   },
   {
     id: "news",
@@ -330,13 +332,12 @@ const ENDPOINTS: EndpointDoc[] = [
           }
         ],
         recalibrated_models: [
-          "Merton Structural Distance-to-Default (5.13σ, default prob: 0%)",
+          "Merton Structural Distance-to-Default (5.13σ, default prob: <0.01%)",
           "Altman Z''-Score Tech Classifier (8.41 Safe Zone)",
-          "Sornette LPPLS Bubble Singularity (81.5% hazard, critical window: Q4 2026 - Q2 2027)",
-          // 2026-10-19 (round-2 consolidation): VaR95 80.6% → 80.5% and VaR99 82.8% → 82.7% —
-          // the published values in src/data/latest-model.json. The old pair was the pre-rebaseline
-          // calibration (stale by 0.1 pt each way).
-          "25,000-Path Monte Carlo Cholesky Copula (VaR95 80.5%, VaR99 82.7%)"
+          "Sornette LPPLS Bubble Singularity (hazard index 81.5 — an index, not a probability, critical window: Q4 2026 - Q2 2027)",
+          // 2026-10-19 (wave 2): the VaR pair is re-published from the current
+          // artifact (src/data/latest-model.json): VaR95 84.6%, VaR99 92.9%.
+          "25,000-Path Monte Carlo Cholesky Copula (VaR95 84.6%, VaR99 92.9%)"
         ],
         // DATED HISTORY — these are the values each past sync actually recorded
         // (19 Oct 2026 00:57Z and 18 Oct 2026 21:38Z). They are intentionally NOT

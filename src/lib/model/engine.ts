@@ -1,4 +1,9 @@
-import { MODEL_FACTORS, MODEL_CALIBRATION } from './factors';
+import {
+  MODEL_FACTORS,
+  MODEL_CALIBRATION,
+  MODEL_VERSION,
+  FRAGILITY_INDEX_BASIS,
+} from './factors';
 import {
   computeMertonModel,
   computeAltmanZScore,
@@ -24,19 +29,21 @@ export function evaluateBubbleModel(
   let totalRiskEarned = 0;
   let totalRiskCoverageWeight = 0;
   let damperDiscount = 0;
-  let totalCoverageWeight = 0;
+  let riskCoverageWeight = 0; // risk-only coverage (0-1), published as `coverage`
+  let damperCoverage = 0;
 
   // 1. Evaluate all factors
   for (const factor of MODEL_FACTORS) {
     const reading = factor.compute(inputs);
-    totalCoverageWeight += (factor.weightPct / 100) * reading.coverage;
 
     if (factor.kind === 'risk') {
-      // Risk factor: 0 (calm) -> 1 (extreme)
+      // Risk factor: 0 (calm) -> 1 (extreme); factors with a convex tail may reach 2.
       // Earned points initially proportional to factor weight and reading score
       const rawPoints = (factor.weightPct) * reading.score;
       totalRiskCoverageWeight += factor.weightPct * reading.coverage;
       totalRiskEarned += rawPoints * reading.coverage;
+      // 2026-10-19 (v2.6.0): published coverage is RISK-ONLY and can never exceed 1.
+      riskCoverageWeight += (factor.weightPct / 100) * reading.coverage;
 
       contributions.push({
         id: factor.id,
@@ -47,9 +54,12 @@ export function evaluateBubbleModel(
         reading,
       });
     } else {
-      // Damper factor: knock up to 10 points off composite score
-      const discount = reading.score * 10 * reading.coverage;
+      // Damper factor: knock up to 10 points off composite score.
+      // 2026-10-19 (v2.6.0): the cap is read from the damper factor's own published
+      // weightPct (single source of truth — it used to be a hardcoded 10).
+      const discount = reading.score * factor.weightPct * reading.coverage;
       damperDiscount += discount;
+      damperCoverage = reading.coverage;
 
       contributions.push({
         id: factor.id,
@@ -72,7 +82,10 @@ export function evaluateBubbleModel(
   // In sovereign and corporate credit panics, risk is super-additive: when credit spreads
   // widen simultaneously with high debt leverage and tight monetary rates, refinancing channels
   // freeze non-linearly.
-  const cdsScore = contributions.find((c) => c.id === 'cds_stress')?.reading.score ?? 0;
+  // 2026-10-19 (v2.6.0): the credit excess uses the factor's CORE score (tail-free), so the
+  // convex credit tail is counted once (in the risk channel) and not re-amplified here.
+  const cdsReading = contributions.find((c) => c.id === 'cds_stress')?.reading;
+  const cdsScore = cdsReading?.coreScore ?? cdsReading?.score ?? 0;
   const debtScore = contributions.find((c) => c.id === 'debt_reliance')?.reading.score ?? 0;
   const macroScore = contributions.find((c) => c.id === 'macro_rates')?.reading.score ?? 0;
 
@@ -89,22 +102,10 @@ export function evaluateBubbleModel(
   const rawProb = MODEL_CALIBRATION.mapping(compositeScore);
   const burstProbability = Math.round(rawProb * 1000) / 10; // one decimal, e.g. 68.4
 
-  // 6. Dispersion & 90% Confidence Interval Estimation
-  const riskScores = contributions.filter((c) => c.kind === 'risk').map((c) => c.reading.score);
-  const meanScore = riskScores.reduce((a, b) => a + b, 0) / (riskScores.length || 1);
-  const variance = riskScores.reduce((a, b) => a + Math.pow(b - meanScore, 2), 0) / (riskScores.length || 1);
-  const stdDev = Math.sqrt(variance);
-  const coveragePenalty = 1 + (1 - totalCoverageWeight) * 1.5;
-  const seScore = (stdDev / Math.sqrt(riskScores.length || 1)) * coveragePenalty * 22;
-  const meScore = 1.645 * seScore; // 90% z-score
-  const lowScore = Math.max(0, compositeScore - meScore);
-  const highScore = Math.min(100, compositeScore + meScore);
-  const lowProb = Math.round(MODEL_CALIBRATION.mapping(lowScore) * 1000) / 10;
-  const highProb = Math.round(MODEL_CALIBRATION.mapping(highScore) * 1000) / 10;
-  const confidenceInterval: [number, number] = [lowProb, highProb];
-
-  // 7. Financial Fragility Index (0 - 100)
-  // Measures vulnerability to an incremental 50bps rate hike or credit freeze
+  // 6. Financial Fragility Index (0 - 100)
+  // Measures vulnerability to an incremental 50bps rate hike or credit freeze.
+  // 2026-10-19 (v2.6.0): the FORMULA is unchanged (published 52 stays 52); the index is
+  // now labelled as derived from the same factor scores, not a first-derivative measure.
   const dPdS = (rawProb * (1 - rawProb)) / MODEL_CALIBRATION.steepness;
   const fragilityIndex = Math.min(
     100,
@@ -114,7 +115,7 @@ export function evaluateBubbleModel(
     )
   );
 
-  // 8. Band assignment
+  // 7. Band assignment
   let band: BubbleBand = 'calm';
   if (burstProbability >= 80) band = 'critical';
   else if (burstProbability >= 65) band = 'high';
@@ -122,14 +123,14 @@ export function evaluateBubbleModel(
   else if (burstProbability >= 25) band = 'guarded';
   else band = 'calm';
 
-  // 9. Top driver identification (risk factors with highest score * weight)
+  // 8. Top driver identification (risk factors with highest score * weight)
   const sortedDrivers = [...contributions]
     .filter((c) => c.kind === 'risk')
     .sort((a, b) => (b.reading.score * b.weightPct) - (a.reading.score * a.weightPct))
     .slice(0, 3)
     .map((c) => c.id);
 
-  // 10. Quantitative Academic Models Integration (Merton 1974, Altman 2002, Minsky 1986, Shiller 2000)
+  // 9. Quantitative Academic Models Integration (Merton 1974, Altman 2002, Minsky 1986, Shiller 2000)
   const mertonResult = options?.skipSubModels ? undefined : computeMertonModel(inputs);
   const altmanResult = options?.skipSubModels ? undefined : computeAltmanZScore(inputs);
   const minskyResult = options?.skipSubModels ? undefined : computeMinskyModel(inputs);
@@ -140,12 +141,16 @@ export function evaluateBubbleModel(
     compositeScore: Math.round(compositeScore * 10) / 10,
     band,
     contributions,
-    coverage: Math.round(totalCoverageWeight * 100) / 100,
+    // 2026-10-19 (v2.6.0): risk-only coverage, capped at 1 (it used to include the
+    // damper's 10 points and publish 1.10 — a "coverage" above 100%).
+    coverage: Math.round(Math.min(1, riskCoverageWeight) * 100) / 100,
+    damperCoverage: Math.round(damperCoverage * 100) / 100,
     topDriverIds: sortedDrivers,
     horizonMonths: 12,
     generatedAt: new Date().toISOString(),
-    confidenceInterval,
     fragilityIndex,
+    fragilityIndexBasis: FRAGILITY_INDEX_BASIS,
+    modelVersion: MODEL_VERSION,
     systemicContagionPoints,
     merton: mertonResult
       ? {
@@ -179,11 +184,25 @@ export {
   choleskyDecomposition,
   runMonteCarloSimulation,
   EMPIRICAL_CORRELATION_MATRIX,
+  MC_SHOCK_PARAMS,
+  CI_TYPE,
   HISTORICAL_BACKTESTS,
   computeBrierAndAuc,
   BACKTEST_CALIBRATION_SUMMARY,
   EMPIRICAL_VERIFICATION_MATRIX,
 } from './quantitative';
+
+// 2026-10-19 (v2.6.0): published model constants, re-exported for the API/docs layer.
+export {
+  MODEL_VERSION,
+  SUM_RISK_WEIGHT_PCT,
+  DAMPER_WEIGHT_PCT,
+  MARKET_IMPLIED_12M_PCT,
+  FRAGILITY_INDEX_BASIS,
+  INPUTS_WITHOUT_WEIGHT,
+  EMPIRICAL_DESIGN_MATRIX_5X5,
+  CHANGELOG,
+} from './factors';
 
 
 import liveInputsData from '@/data/live-inputs.json';

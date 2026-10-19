@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { BubbleModelInputs, BubbleModelResult } from "@/lib/model/types";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
+import latestModel from "@/data/latest-model.json";
 import {
   RotateCcw,
   SlidersHorizontal,
@@ -869,14 +870,18 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
               <span className="font-semibold text-ink-muted">
                 Composite: {currentResult.compositeScore.toFixed(1)} / 100
               </span>
-              {currentResult.confidenceInterval && (
-                <>
-                  <span className="text-ink-faint">•</span>
-                  <span className="text-ink-subtle font-bold">
-                    90% CI: [{currentResult.confidenceInterval[0].toFixed(1)}% – {currentResult.confidenceInterval[1].toFixed(1)}%]
-                  </span>
-                </>
-              )}
+              {/*
+                2026-10-19 (model v2.6.0): the old 90%-confidence-interval line rendered a
+                hand-rolled factor-dispersion band that the engine no longer
+                produces. The published range is the Monte-Carlo
+                input-sensitivity range of the BASELINE snapshot; it is not
+                recomputed for sandboxed inputs, so it is labelled as such.
+              */}
+              <span className="text-ink-faint">•</span>
+              <span className="text-ink-subtle font-bold" title={latestModel.monteCarlo.ciType}>
+                Input-sensitivity range (baseline): [{latestModel.monteCarlo.ci95Pct[0].toFixed(1)}% –{" "}
+                {latestModel.monteCarlo.ci95Pct[1].toFixed(1)}%]
+              </span>
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
-import { MODEL_CALIBRATION, MODEL_FACTORS } from "@/lib/model/factors";
+import { MODEL_CALIBRATION, MODEL_FACTORS, MODEL_VERSION, SUM_RISK_WEIGHT_PCT, DAMPER_WEIGHT_PCT } from "@/lib/model/factors";
 import latestModel from "@/data/latest-model.json";
 
 export const dynamic = "force-static";
@@ -24,6 +24,22 @@ export async function GET() {
       ? psValues[mid]
       : (psValues[mid - 1] + psValues[mid]) / 2;
 
+  /**
+   * 2026-10-19 (model v2.6.0): the published ranges are the Monte-Carlo
+   * input-sensitivity quantiles, NOT a probability interval. The hand-rolled
+   * factor-dispersion band (the old 90%-confidence-interval field) was
+   * deleted — see src/lib/model/types.ts. The range block mirrors the field
+   * names published in src/data/latest-model.json so the two can be diffed.
+   */
+  const inputSensitivityRange = {
+    ci_type: latestModel.monteCarlo.ciType,
+    ci90_pct: latestModel.monteCarlo.ci90Pct,
+    ci95_pct: latestModel.monteCarlo.ci95Pct,
+    band_low_pct: latestModel.monteCarlo.bandLowPct,
+    iterations: latestModel.monteCarlo.iterationsCount,
+    source: "25,000-path Monte Carlo input-sensitivity quantiles (src/data/latest-model.json)",
+  };
+
   return NextResponse.json(
     {
       success: true,
@@ -32,14 +48,23 @@ export async function GET() {
   // the raw build clock, so the API agrees with every page's "as of" stamp
   // (security audit 10.3).
   timestamp: latestModel.timestamp,
-        model_version: "2.5.0",
+        // 2026-10-19 (v2.6.0): the version comes from the published changelog /
+        // MODEL_VERSION constant — never a hand-typed literal that can go stale.
+        model_version: MODEL_VERSION,
+        modelVersion: MODEL_VERSION,
         horizon_months: 12,
         burst_probability_pct: Math.round(result.burstProbability * 10) / 10,
         composite_score: Math.round(result.compositeScore * 10) / 10,
         risk_band: result.band,
+        // Risk-only coverage: the 8 risk factors' weighted coverage, capped at 1.
         data_coverage_pct: Math.round(result.coverage * 100),
-        confidence_interval_90pct: result.confidenceInterval,
+        coverage_label: `risk-factor coverage (${SUM_RISK_WEIGHT_PCT} risk points across ${MODEL_FACTORS.filter((f) => f.kind === "risk").length} risk factors); the real-use damper (max −${DAMPER_WEIGHT_PCT} pts) is reported separately and is not part of the risk scale`,
+        damper_coverage_pct: Math.round(result.damperCoverage * 100),
+        // The old 90%-confidence-interval field is gone (deleted in v2.6.0).
+        ci_type: latestModel.monteCarlo.ciType,
+        input_sensitivity_range: inputSensitivityRange,
         financial_fragility_index: result.fragilityIndex,
+        financial_fragility_index_basis: result.fragilityIndexBasis,
         systemic_contagion_points: result.systemicContagionPoints,
         top_driver_ids: result.topDriverIds,
         calibration: {

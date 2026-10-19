@@ -1108,9 +1108,9 @@ export default function SandboxPage() {
             </span>
           </div>
 
-          {/* Card 2: 90% CI */}
+          {/* Card 2: 90% input-sensitivity range */}
           <div className="panel space-y-1">
-            <span className="label">90% Confidence Interval</span>
+            <span className="label">90% Input-Sensitivity Range</span>
             <span className="text-lg sm:text-xl num text-lg font-semibold text-safe-700">
               [{monteCarlo.ci90Pct[0]}%–{monteCarlo.ci90Pct[1]}%]
             </span>

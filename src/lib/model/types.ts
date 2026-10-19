@@ -154,8 +154,21 @@ export interface BubbleModelInputs {
 export type FactorKind = 'risk' | 'damper';
 
 export interface FactorReading {
-  /** Normalized factor score, 0 (calm) → 1 (extreme). */
+  /**
+   * Normalized factor score.
+   *
+   * Domain is [0, 2] as of model v2.6.0: 0 = calm, 1 = the published ramp
+   * ceiling (the factor's "extreme"), 2 = the convex panic ceiling. Only
+   * `cds_stress` and `macro_rates` can exceed 1 (via their convex tails);
+   * every other factor is strictly [0, 1].
+   */
   score: number;
+  /**
+   * Tail-free ("core") score, published only by factors that add a convex tail
+   * above their ramp ceiling. The systemic-contagion term consumes this instead
+   * of `score`, so a convex tail is never counted twice.
+   */
+  coreScore?: number;
   /** Human explanation of the current reading, e.g. "Oracle CDS 288bp vs 81bp baseline". */
   reading: string;
   /** 0-1: how fully this factor could be computed from supplied inputs. */
@@ -168,7 +181,10 @@ export interface FactorContribution {
   kind: FactorKind;
   /** Published weight, percent of total. */
   weightPct: number;
-  /** Points actually earned after coverage renormalization (composite scale 0-100). */
+  /**
+   * Points actually earned after coverage renormalization (composite scale 0-100).
+   * A factor with a convex tail can earn up to 2× its weight (cds_stress: 18% → 36).
+   */
   earnedPoints: number;
   reading: FactorReading;
 }
@@ -184,19 +200,38 @@ export interface BubbleModelResult {
   /** Per-factor breakdown for the methodology display. */
   contributions: FactorContribution[];
   /**
-   * Weighted coverage, 0-1: how much of the model was actually computable.
+   * Weighted RISK-ONLY coverage, 0-1: how much of the 8 risk factors was actually
+   * computable (min(1, Σ w_i·c_i / 100)). The damper's coverage is reported
+   * separately in `damperCoverage` — the damper is not part of the risk scale.
    * Below 0.6 the result is flagged as low-confidence.
    */
   coverage: number;
+  /** Weighted coverage of the real-use damper, 0-1 (reported separately). */
+  damperCoverage: number;
   /** Which factor kind dominated the score. */
   topDriverIds: string[];
   /** 12-month window the probability refers to. */
   horizonMonths: 12;
   generatedAt: string;
-  /** 90% Confidence Interval [lowProbability, highProbability] based on data coverage & dispersion */
+  /**
+   * REMOVED in model v2.6.0 — the hand-rolled factor-dispersion band
+   * (1.645·σ/√n·penalty·22) is deleted. The only published ranges are the
+   * Monte-Carlo input-sensitivity quantiles (`monteCarlo.ci90Pct` /
+   * `monteCarlo.ci95Pct` in src/data/latest-model.json), labelled
+   * `ciType: "input-sensitivity range (not a probability interval)"`.
+   * Kept as an optional field for type compatibility with existing consumers.
+   */
   confidenceInterval?: [number, number];
-  /** Financial Fragility Index (0-100): vulnerability to rate hikes or credit freeze */
+  /**
+   * Financial Fragility Index (0-100): vulnerability to rate hikes or credit freeze.
+   * DERIVED from the same factor scores already inside the composite — see
+   * `fragilityIndexBasis`; it is not an independent measurement.
+   */
   fragilityIndex?: number;
+  /** Plain-language basis of the fragility index (published verbatim). */
+  fragilityIndexBasis?: string;
+  /** Model version of the published calibration. */
+  modelVersion?: string;
   /** Points added by non-linear systemic credit-debt-macro refinancing synergy */
   systemicContagionPoints?: number;
   /** Merton (1974) Structural Distance-to-Default and Default Probability metrics */

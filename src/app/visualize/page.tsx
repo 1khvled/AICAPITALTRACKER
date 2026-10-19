@@ -300,7 +300,7 @@ return (
               </h2>
             </div>
             <span className="text-[14px] text-ink-subtle">
-              Continuous Cubic Bézier • 90% Confidence Corridor
+              Continuous Cubic Bézier • 90% Input-Sensitivity Range
             </span>
           </div>
 

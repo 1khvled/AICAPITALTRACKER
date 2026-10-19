@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
+import { GET as modelEndpoint } from "@/app/api/v1/model/route";
 import latestModel from "@/data/latest-model.json";
 
 /**
@@ -16,7 +16,7 @@ import latestModel from "@/data/latest-model.json";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://aicapitaltracker.com";
 
 const ENDPOINTS: { path: string; what: string; params: string }[] = [
-  { path: "/api/v1/model", what: "Burst probability, composite score, confidence band and the factor breakdown", params: "—" },
+  { path: "/api/v1/model", what: "Burst probability, composite score, input-sensitivity range and the factor breakdown", params: "—" },
   { path: "/api/v1/deals", what: "The sourced deal ledger with search, category and debt filters", params: "?search=&category=&debt_only=&limit=&page=&sort=" },
   { path: "/api/v1/factors", what: "Published weights, formulas and calibration anchors", params: "—" },
   { path: "/api/v1/news", what: "Research wire dispatches", params: "?category=&impact=" },
@@ -26,15 +26,34 @@ const ENDPOINTS: { path: string; what: string; params: string }[] = [
 const CURL = `curl -s ${SITE_URL}/api/v1/model`;
 
 /**
- * The example is recomputed from the SAME inputs the /api/v1/model route uses
- * (src/data/live-inputs.json via DEFAULT_MODEL_INPUTS), so it cannot drift away
- * from the live endpoint. The route is `force-static`: the payload is rebuilt
- * on deploy from the last 24h sync, it is not a live feed.
+ * The example response is the LIVE endpoint's own payload, not a hand-written
+ * approximation: the page calls the route handler and prints the fields it
+ * really emits. The route is `force-static` — the payload is rebuilt on deploy
+ * from the last 24h sync, it is not a live feed.
  *
- * `generatedAt` is the timestamp of the published pipeline snapshot
+ * `timestamp` is the timestamp of the published pipeline snapshot
  * (src/data/latest-model.json) — the dated rebuild this response comes from.
  */
-const model = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
+type ModelEndpointPayload = {
+  success: boolean;
+  data: {
+    timestamp: string;
+    model_version: string;
+    horizon_months: number;
+    burst_probability_pct: number;
+    composite_score: number;
+    risk_band: string;
+    data_coverage_pct: number;
+    ci_type: string;
+    input_sensitivity_range: {
+      ci90_pct: number[];
+      ci95_pct: number[];
+      band_low_pct: number;
+    };
+    financial_fragility_index: number;
+    systemic_contagion_points: number;
+  };
+};
 
 /** "19 Oct 2026" — derived from the published snapshot timestamp, never hardcoded. */
 const SNAPSHOT_DATE = new Date(latestModel.timestamp).toLocaleDateString("en-GB", {
@@ -44,18 +63,36 @@ const SNAPSHOT_DATE = new Date(latestModel.timestamp).toLocaleDateString("en-GB"
   timeZone: "UTC",
 });
 
-const RESPONSE = `{
-  "success": true,
+export default async function ApiLandingPage() {
+  const modelPayload = (await (await modelEndpoint()).json()) as ModelEndpointPayload;
+  const model = modelPayload.data;
+
+  /**
+   * The same JSON the endpoint emits, abbreviated to the headline fields (the
+   * block below is a strict subset of the real payload — same names, same
+   * values, same order).
+   */
+  const RESPONSE = `{
+  "success": ${modelPayload.success},
   "data": {
-    "burstProbability": ${model.burstProbability},
-    "compositeScore": ${model.compositeScore},
-    "band": "${model.band}",
-    "horizonMonths": ${model.horizonMonths},
-    "generatedAt": "${latestModel.timestamp}"
+    "timestamp": "${model.timestamp}",
+    "model_version": "${model.model_version}",
+    "horizon_months": ${model.horizon_months},
+    "burst_probability_pct": ${model.burst_probability_pct},
+    "composite_score": ${model.composite_score},
+    "risk_band": "${model.risk_band}",
+    "data_coverage_pct": ${model.data_coverage_pct},
+    "ci_type": "${model.ci_type}",
+    "input_sensitivity_range": {
+      "ci90_pct": [${model.input_sensitivity_range.ci90_pct.join(", ")}],
+      "ci95_pct": [${model.input_sensitivity_range.ci95_pct.join(", ")}],
+      "band_low_pct": ${model.input_sensitivity_range.band_low_pct}
+    },
+    "financial_fragility_index": ${model.financial_fragility_index},
+    "systemic_contagion_points": ${model.systemic_contagion_points}
   }
 }`;
 
-export default function ApiLandingPage() {
   return (
     <div className="section-sm">
       <header className="flex flex-col gap-4">
@@ -118,8 +155,9 @@ export default function ApiLandingPage() {
           Example response — daily snapshot, data as of {SNAPSHOT_DATE}. The route is
           rebuilt on deploy from the last 24-hour sync, so these are the numbers the
           site renders, not a live feed. The block is abbreviated: the endpoint also
-          returns the calibration anchors, the per-factor breakdown and the input
-          summary.
+          returns the coverage label, the fragility index basis, the calibration
+          anchors, the per-factor breakdown and the input summary. The published range
+          is an input-sensitivity range, not a confidence interval.
         </p>
         <pre className="prose-mono mt-3">
           <code>{RESPONSE}</code>

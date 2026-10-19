@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { MODEL_FACTORS, MODEL_CALIBRATION } from "@/lib/model/factors";
+import { MODEL_FACTORS, MODEL_CALIBRATION, CHANGELOG } from "@/lib/model/factors";
 import {
   evaluateBubbleModel,
   DEFAULT_MODEL_INPUTS,
@@ -13,6 +13,41 @@ import {
   EMPIRICAL_VERIFICATION_MATRIX,
   EMPIRICAL_CORRELATION_MATRIX,
 } from "@/lib/model/engine";
+/**
+ * 2026-10-19 (wave 2, lane 2a): every formula this page publishes is executed
+ * in src/lib/model/documentFormulas.ts and asserted by the test suite
+ * (scripts/test-algo.mjs, test [18]). The page renders from those constants —
+ * it never transcribes a formula by hand.
+ */
+import {
+  MODEL_DOC_FORMULAS,
+  ODDS_SHIFT_SENTENCE,
+  WEIGHTS_NARRATIVE,
+  factorScoreDomain,
+  minskyFragilityIndex,
+  refiFreezeProbability,
+  refiFreezeProbabilityPct,
+  realYieldTipsPct,
+  realYieldCpiPct,
+  realYieldBasisLabel,
+  excessCapeYieldPct,
+  ecyBand,
+  mertonDistanceToDefault,
+  mertonDefaultProbabilityLabel,
+  probabilityDisplayLabel,
+  altmanZScore,
+  altmanImpliedDistressProbabilityPct,
+  ALTMAN_X4,
+  ALTMAN_X4_PROVENANCE,
+  lpplsHazardIndex,
+  LPPLS_HAZARD_LABEL,
+  reconcileComposite,
+  calibrationDrift,
+  inSampleAuc,
+  MARKET_IMPLIED_12M_BAND,
+  BAND_FLOOR_RULE_SENTENCE,
+  crowdDivergencePoints,
+} from "@/lib/model/documentFormulas";
 import {
   ArrowLeft,
   BookOpen,
@@ -66,6 +101,82 @@ export default function MethodologyPage() {
     speculativeSharePct: latestModel.minsky.speculativeSharePct,
   });
   const shiller = currentModel.shillerCape ?? computeShillerCapeModel(DEFAULT_MODEL_INPUTS);
+
+  /**
+   * ── Executed document formulas (wave 2, lane 2a) ──────────────────────────
+   * Everything below is computed by src/lib/model/documentFormulas.ts from the
+   * SAME expressions the engine runs, so the page cannot publish a formula the
+   * model does not use. The published values are unchanged:
+   *   Minsky fragility 65.6 · refinancing freeze 19.6% (0.196)
+   *   ECY +0.34% (TIPS basis) · Merton DD 5.13σ · Altman Z'' 8.41
+   *   LPPLS hazard index 81.5 · odds shift 2.72× per +9 points
+   */
+  const docMinskyInputs = {
+    speculativeSharePct: latestModel.minsky.speculativeSharePct,
+    ponziSharePct: latestModel.minsky.ponziSharePct,
+    cdsCurrentBps: DEFAULT_MODEL_INPUTS.cds?.currentBps ?? 288,
+    cdsBaselineBps: DEFAULT_MODEL_INPUTS.cds?.baselineBps ?? 81,
+    capexToOcfRatio: DEFAULT_MODEL_INPUTS.aiDebt?.capexToOcfRatio ?? 0.548,
+  };
+  const docMinskyFragility = minskyFragilityIndex(docMinskyInputs);
+  const docFreezeProbability = refiFreezeProbability(docMinskyInputs);
+  const docFreezePct = refiFreezeProbabilityPct(docMinskyInputs);
+  const docEcyInputs = {
+    capeMultiple: latestModel.shillerCape.aiCapeMultiple,
+    us10yYieldPct: DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 5.1,
+    breakeven10yPct:
+      (DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 5.1) -
+      (DEFAULT_MODEL_INPUTS.macro?.realYield10y ?? 2.75),
+    cpiInflationYoY: DEFAULT_MODEL_INPUTS.macro?.cpiInflationYoY ?? 3.72,
+  };
+  const docEcyTips = excessCapeYieldPct(docEcyInputs, "tips");
+  const docEcyCpi = excessCapeYieldPct(docEcyInputs, "cpi");
+  // The published ECY band follows the TIPS basis (the page's headline figure).
+  const docEcyBand = ecyBand(docEcyTips);
+  const docMertonInputs = {
+    assetValueUsd: latestModel.merton.assetValueUsd,
+    totalDebtUsd: DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 214_890_400_000,
+    riskFreeRatePct: DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 5.1,
+    assetVolatilityPct: 36.5,
+  };
+  const docMertonDd = mertonDistanceToDefault(docMertonInputs);
+  const docMertonProbLabel = mertonDefaultProbabilityLabel(docMertonInputs);
+  const docAltmanZ = altmanZScore();
+  const docLpplsHazard = lpplsHazardIndex({
+    cdsCurrentBps: DEFAULT_MODEL_INPUTS.cds?.currentBps ?? 288,
+    capexToOcfRatio: DEFAULT_MODEL_INPUTS.aiDebt?.capexToOcfRatio ?? 0.548,
+  });
+  /** Risk points + contagion − damper = the published composite, and what the
+   *  contagion term is worth in probability points. */
+  const reconciliation = reconcileComposite({
+    riskPoints: currentModel.contributions
+      .filter((c) => c.kind === "risk")
+      .reduce((acc, c) => acc + c.earnedPoints, 0),
+    contagionPoints: currentModel.systemicContagionPoints ?? 0,
+    damperPoints: currentModel.contributions
+      .filter((c) => c.kind === "damper")
+      .reduce((acc, c) => acc + c.earnedPoints, 0),
+  });
+  /** How far the LIVE (55, 9) mapping moves each published historical row. */
+  const calibrationDriftResult = calibrationDrift(
+    HISTORICAL_BACKTESTS.filter((b) => b.actualBurstObserved).map((b) => ({
+      compositeScore: b.compositeScore,
+      modelProbabilityPct: b.modelProbabilityPct,
+    })),
+  );
+  /** In-sample AUC over the six consistency rows (indicative, not validation). */
+  const inSampleAucValue = inSampleAuc(
+    HISTORICAL_BACKTESTS.map((b) => ({
+      modelProbabilityPct: b.modelProbabilityPct,
+      actualBurstObserved: b.actualBurstObserved,
+    })),
+  );
+  /** Model-vs-market divergence, in probability points. */
+  const crowdDivergence = crowdDivergencePoints(currentModel.burstProbability);
+  /** The published model version, straight from the changelog. */
+  const modelVersion = CHANGELOG[0]?.version ?? "2.6.0";
+  const modelVersionScope = CHANGELOG[0]?.scope ?? "";
+
   /**
    * Date of the published pipeline snapshot (src/data/latest-model.json). The
    * Monte Carlo moments below are that run's output — they are a dated
@@ -90,7 +201,7 @@ export default function MethodologyPage() {
     band: b.band,
     driver: b.primaryMacroTriggers.join("; "),
     leverage: b.debtExposureUsd,
-    brier: b.brierScore.toFixed(4),
+    brier: b.brierScore === null ? "—" : b.brierScore.toFixed(4),
   }));
 
   const tocItems = [
@@ -121,7 +232,7 @@ return (
       <header className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
           <span className="label">Methodology</span>
-          <span className="pill">WORKING PAPER • SPECIFICATION v2.5.0</span>
+          <span className="pill">WORKING PAPER • SPECIFICATION v{modelVersion}</span>
           <span className="num text-[14px] text-ink-faint">Quantitative Credit &amp; Systemic Risk Desk</span>
         </div>
 
@@ -132,7 +243,16 @@ return (
         <p className="prose prose-lead max-w-reading">
           Full mathematical specification: non-linear logistic sigmoid derivation, factor weighting
           equations, super-additive contagion synergy, missing-data degradation honesty protocol, and
-          empirical backtests.
+          historical consistency checks.
+        </p>
+
+        <p className="max-w-reading text-[14px] leading-relaxed text-ink-subtle">
+          <span className="font-semibold text-ink-muted">Model version {modelVersion}</span>
+          {modelVersionScope ? ` — ${modelVersionScope}.` : "."} The deterministic point estimate is
+          unchanged by this version; the published ranges were relabelled and the credit and macro
+          factors gained a convex tail. Every formula below is executed in{" "}
+          <code className="text-ink-muted">src/lib/model/documentFormulas.ts</code> and checked by
+          the test suite.
         </p>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -269,7 +389,10 @@ return (
             </div>
             <p className="text-[14px] sm:text-sm text-ink-muted leading-relaxed">
               Factor weights and ramp boundaries were defined a priori and published permanently. They are never calibrated ex-post to fit a desired narrative.
-              If the probability rises or falls, it is solely because the verified underlying financial inputs changed.
+              If the probability rises or falls, it is solely because the verified underlying financial inputs changed. The logistic mapping
+              itself (anchor {MODEL_CALIBRATION.anchorScore}, steepness {MODEL_CALIBRATION.steepness}) is an unvalidated a priori choice, not
+              an estimated parameter set: the historical consistency table was generated under an earlier calibration (anchor ≈54, steepness ≈11.2);
+              probabilities implied by the live mapping differ by {calibrationDriftResult.minPct}–{calibrationDriftResult.maxPct} points.
             </p>
           </div>
         </div>
@@ -319,13 +442,14 @@ return (
             <div className="p-3 bg-surface rounded-xl border border-ink space-y-1">
               <span className="text-ink block font-bold">Anchor Point $S_0 = 55$</span>
               <p className="font-sans text-ink-subtle leading-normal">
-                Score where P = 50.0%. Represents the structural threshold where debt service consumes &gt;45% of hyperscaler FCF.
+                Score where P = 50.0%. A judgment anchor fixed a priori — it is not estimated from the
+                data, and it is not a measured debt-service threshold.
               </p>
             </div>
             <div className="p-3 bg-surface rounded-xl border border-ink space-y-1">
               <span className="text-ink block font-bold">Steepness $k = 9$</span>
               <p className="font-sans text-ink-subtle leading-normal">
-                Logistic slope parameter. A $\\pm 9$ point shift around the anchor moves probability by approximately $\\pm 23\\%$ in odds space.
+                Logistic slope parameter, read in odds space: {ODDS_SHIFT_SENTENCE}.
               </p>
             </div>
             <div className="p-3 bg-surface rounded-xl border border-ink space-y-1">
@@ -354,35 +478,71 @@ return (
           </div>
         </details>
 
-        {/* Financial Fragility Index & Confidence Interval Formulations */}
+        {/* Financial Fragility Index & the published input-sensitivity range */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
           <div className="panel space-y-3">
             <div className="flex items-center justify-between text-[14px] font-mono font-bold">
               <span className="text-ink">Financial Fragility Index (FFI)</span>
-              <span className="text-safe-700">First Derivative dP/dS</span>
+              <span className="text-safe-700">Derived from factor scores</span>
             </div>
             <div className="panel num text-center text-[14px] text-safe-700">
               <code>{"\\frac{d\\mathcal{P}}{dS} = \\frac{\\mathcal{P} \\cdot (1 - \\mathcal{P})}{k}"}</code>
             </div>
             <p className="text-[14px] text-ink-muted leading-relaxed">
-              Measures the marginal acceleration in bubble burst probability for each 1-point increase in macro credit stress.
-              Combined with the debt share (debt_share), the FFI yields a normalized index between 0 and 100.
+              A scaled derivative term plus the debt and macro factor scores, normalised to 0–100. It is
+              a <em>re-expression of the scores already inside the composite</em> — not an independent
+              measurement, and not a pure first derivative. Published basis:{" "}
+              <span className="text-ink-muted">{MODEL_DOC_FORMULAS.fragility_index.note}</span>
             </p>
           </div>
 
           <div className="panel space-y-3">
             <div className="flex items-center justify-between text-[14px] font-mono font-bold">
-              <span className="text-ink">90% Confidence Interval (CI90)</span>
-              <span className="text-ink-muted">z = 1.645</span>
+              <span className="text-ink">Published range (input sensitivity)</span>
+              <span className="text-ink-muted">25,000 paths</span>
             </div>
             <div className="panel num text-center text-[14px] text-safe-700">
-              <code>{"\\text{Margin} = 1.645 \\times \\left( \\frac{\\sigma}{\\sqrt{N}} \\right) \\times [1 + 1.5(1 - c)] \\times 22"}</code>
+              <code>
+                {`90% shock range [${latestModel.monteCarlo.ci90Pct[0]}%, ${latestModel.monteCarlo.ci90Pct[1]}%] · 95% [${latestModel.monteCarlo.ci95Pct[0]}%, ${latestModel.monteCarlo.ci95Pct[1]}%]`}
+              </code>
             </div>
             <p className="text-[14px] text-ink-muted leading-relaxed">
-              Dispersion of risk factors (sigma) adjusted for coverage penalty (1 - c). Ensures that when market transparency falls,
-              the error bounds expand realistically rather than giving a false impression of certainty.
+              The only ranges this model publishes are Monte-Carlo quantiles of the model&apos;s own
+              output under shocked inputs: <span className="text-ink-muted">{latestModel.monteCarlo.ciType}</span>.
+              The old hand-rolled factor-dispersion band (a 1.645·σ/√N margin) was deleted in v2.6.0
+              because it was a dispersion of factor scores dressed as a probability interval.
             </p>
           </div>
+        </div>
+
+        {/* What this number is not — the plainest statement of the model's limits */}
+        <div className="panel space-y-2.5">
+          <span className="label">What this number is not</span>
+          <ul className="space-y-1.5 text-[14px] leading-relaxed text-ink-muted">
+            <li>
+              • It is a severity index mapped through a chosen sigmoid — not a validated probability
+              that anyone has scored against a resolved outcome.
+            </li>
+            <li>
+              • It carries no transition dynamics: there is no hazard model, no path dependency and no
+              contagion-in-time, only a static score read on a single date.
+            </li>
+            <li>
+              • The published band is an input-sensitivity range, not a posterior confidence interval:
+              it answers &quot;how far can the number move if the inputs move?&quot;, not &quot;how
+              likely is the event?&quot;.
+            </li>
+            <li>
+              • The gap to prediction markets is definitional as much as informational: the market asks
+              &quot;AI downturn by date&quot;, this model asks &quot;AI capital bubble bursts inside 12
+              months&quot;.
+            </li>
+            <li>
+              • The ramp anchors embed a Cisco-2000-style froth endpoint (a peak multiple that
+              collapses) applied to a higher-margin sector, so the extreme end of the scale is an
+              analogy, not an observation.
+            </li>
+          </ul>
         </div>
 
         {/* Visual Sensitivity Curve */}
@@ -419,13 +579,18 @@ return (
           </div>
           <div className="flex items-center space-x-3 text-[14px] font-mono">
             <span className="px-2.5 py-1 rounded bg-surface-2 text-ink-muted font-bold">
-              8 Risk Factors (100%)
+              8 risk factors (100 risk points)
             </span>
             <span className="chip chip-safe">
-              1 Real-Demand Damper (-10 pts)
+              1 real-use damper (−10 pts outside the risk scale)
             </span>
           </div>
         </div>
+
+        <p className="text-[14px] leading-relaxed text-ink-muted">
+          Weight bookkeeping: {WEIGHTS_NARRATIVE}. The damper is not part of the 0–100 risk scale and
+          is never mixed into the risk weights.
+        </p>
 
         <div className="grid grid-cols-1 gap-5">
           {MODEL_FACTORS.map((f, i) => (
@@ -472,7 +637,7 @@ return (
               <div className="bg-surface-2 p-4 rounded-xl border border-rule/80 border-rule space-y-1.5">
                 <div className="flex items-center justify-between text-[13px] font-mono text-ink-subtle uppercase tracking-wider font-bold">
                   <span>Published Mathematical Formula:</span>
-                  <span>Ramped [0, 1]</span>
+                  <span>{factorScoreDomain(f.id)}</span>
                 </div>
                 <code className="text-[14px] sm:text-sm font-mono text-safe-700 block break-all font-bold">
                   {f.formula}
@@ -515,7 +680,109 @@ return (
           <p className="text-[14px] sm:text-sm text-ink-muted leading-relaxed">
             Where s_CDS is the Credit Stress score, s_Debt is the Debt Reliance score, and s_Macro is the US10Y Macro Stress score.
             If any one factor is calm, excess stress is 0, and the contagion bonus collapses to zero. Only when all three exceed equilibrium thresholds
-            does the compound geometric synergy activate, adding up to +16.0 points to the composite stress index.
+            does the compound geometric synergy activate, adding up to +16.0 points to the composite stress index. The credit leg consumes the credit
+            factor&apos;s tail-free core score, so a convex credit tail is never counted twice.
+          </p>
+          <p className="text-[14px] sm:text-sm text-ink-subtle leading-relaxed">
+            Disclosure: the three thresholds (0.35 / 0.30 / 0.30) and the ×16.0 scale are judgement calls
+            fixed a priori. They are <em>not</em> fitted to any historical episode, so the size of the
+            contagion term is a published assumption rather than an estimated quantity.
+          </p>
+        </div>
+
+        {/* Contribution reconciliation — the reader can add the published rows up */}
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-rule pb-2">
+            <h3 className="text-base font-bold text-ink">
+              Contribution reconciliation: how {reconciliation.compositeScore.toFixed(1)} is built
+            </h3>
+            <span className="text-[14px] text-ink-subtle">
+              live engine · {SNAPSHOT_LABEL}
+            </span>
+          </div>
+          <div className="overflow-x-auto border border-rule rounded-xl">
+            <table className="w-full text-left text-[14px] font-mono">
+              <thead className="bg-surface-2 border-b border-rule text-ink-subtle">
+                <tr>
+                  <th className="p-3.5">Row</th>
+                  <th className="p-3.5">Points</th>
+                  <th className="p-3.5">Note</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-rule divide-rule/80">
+                {currentModel.contributions
+                  .filter((c) => c.kind === "risk")
+                  .map((c) => (
+                    <tr key={c.id}>
+                      <td className="p-3.5 font-semibold text-ink">{c.label}</td>
+                      <td className="p-3.5 font-semibold text-ink">
+                        +{c.earnedPoints.toFixed(1)}
+                      </td>
+                      <td className="p-3.5 text-ink-muted">{c.reading.reading}</td>
+                    </tr>
+                  ))}
+                <tr className="bg-caution-50/40 bg-caution-50/20">
+                  <td className="p-3.5 font-bold text-caution-700">
+                    Systemic contagion synergy
+                  </td>
+                  <td className="p-3.5 font-bold text-caution-700">
+                    +{reconciliation.contagionPoints.toFixed(1)}
+                  </td>
+                  <td className="p-3.5 text-ink-muted">
+                    Eq. (2) above; worth {reconciliation.leveragePoints.toFixed(1)} probability
+                    points ({reconciliation.probabilityWithoutContagionPct.toFixed(1)}% →{" "}
+                    {reconciliation.probabilityWithContagionPct.toFixed(1)}%)
+                  </td>
+                </tr>
+                <tr className="bg-safe-50/40 bg-safe-50/20">
+                  <td className="p-3.5 font-bold text-safe-700">Real-use damper</td>
+                  <td className="p-3.5 font-bold text-safe-700">
+                    {currentModel.contributions
+                      .filter((c) => c.kind === "damper")
+                      .map((c) => c.earnedPoints.toFixed(1))
+                      .join(", ")}
+                  </td>
+                  <td className="p-3.5 text-ink-muted">
+                    {currentModel.contributions
+                      .filter((c) => c.kind === "damper")
+                      .map((c) => c.reading.reading)
+                      .join(", ")}
+                  </td>
+                </tr>
+                <tr className="bg-ink text-canvas">
+                  <td className="p-3.5 font-bold">Composite stress score</td>
+                  <td className="p-3.5 font-bold">
+                    {reconciliation.compositeScore.toFixed(1)}
+                  </td>
+                  <td className="p-3.5 text-canvas/80">
+                    {reconciliation.riskPoints.toFixed(1)} +{" "}
+                    {reconciliation.contagionPoints.toFixed(1)} −{" "}
+                    {Math.abs(reconciliation.damperPoints).toFixed(1)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="text-[14px] leading-relaxed text-ink-muted">
+            The reader can sum the published rows:{" "}
+            <span className="num font-semibold text-ink">
+              {reconciliation.riskPoints.toFixed(1)} +{" "}
+              {reconciliation.contagionPoints.toFixed(1)} −{" "}
+              {Math.abs(reconciliation.damperPoints).toFixed(1)} ={" "}
+              {reconciliation.compositeScore.toFixed(1)}
+            </span>
+            , which is the published composite, and the composite maps to{" "}
+            <span className="num font-semibold text-ink">
+              {currentModel.burstProbability.toFixed(1)}%
+            </span>{" "}
+            through the logistic above.
+          </p>
+          <p className="text-[14px] leading-relaxed text-ink-subtle">
+            Damper disclosure: the deflation credit is a log ramp over [50×, 500×] and is saturated at
+            today&apos;s 670× print, so the damper is flat for any further collapse beyond roughly 500×
+            (the pre-2.6.0 model was flat for every collapse ≥50×, treating 200× and 670× as
+            equivalent). The model also does not yet distinguish demand-elastic deflation from
+            supply-glut deflation — wave 2 owns the netting decision.
           </p>
         </div>
 
@@ -590,18 +857,20 @@ return (
         </details>
       </section>
 
-      {/* SECTION 6: HISTORICAL BACKTESTS */}
+      {/* SECTION 6: HISTORICAL CONSISTENCY (NOT VALIDATION) */}
       <section id="backtests" className="bg-surface border border-rule rounded-lg p-6 sm:p-8 space-y-6 shadow-xs">
         <div>
           <div className="flex items-center space-x-2 text-[13px] font-mono text-safe-700 font-bold uppercase tracking-wider">
             <BarChart3 className="w-4 h-4" />
-            <span>Section 06 · Historical Validation</span>
+            <span>Section 06 · Historical Consistency (Reproducible, Not Validated)</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-ink mt-1">
-            Empirical Backtest Across Previous Speculative Epochs
+            Case-Enriched Historical Consistency Across Previous Speculative Epochs
           </h2>
           <p className="text-sm text-ink-muted font-sans mt-1">
-            Feeding historical verified financial records into this exact mathematical formulation:
+            Six historical episodes scored with this mathematical formulation. The table is
+            reproducible from the published inputs; it is <em>not</em> an out-of-sample validation —
+            five of the six rows are crises the model was pointed at, and the sixth is still open.
           </p>
         </div>
 
@@ -612,29 +881,43 @@ return (
             <ChevronRight className="h-4 w-4 shrink-0 text-ink-subtle transition-transform group-open:rotate-90" aria-hidden="true" />
           </summary>
           <div className="mt-2.5 border-t border-rule pt-2.5 text-[14px] leading-relaxed text-ink-muted">
-            We tested our mathematical formulas on the historical data from the 1929 Great Crash, the 2000 Dot-Com bust, and the 2008 Lehman collapse. In every single historic crisis, our model sounded an intense alarm (85%+ probability) months before the crash actually arrived.
+            We ran the same formulas over the 1929 Great Crash, the 2000 Dot-Com bust, the 2008
+            Lehman collapse, the 2021 ZIRP unwind, the 2022 Fed rate shock and the live 2026
+            window. The alarm range across the six episodes was{" "}
+            <span className="num font-semibold text-ink">71.8%–95.8%</span>; five windows have
+            resolved and one is still in-window. This is a consistency table, not a validation: the
+            model was pointed at known crashes, so a high score on every row proves reproducibility,
+            not foresight.
           </div>
         </details>
 
-        {/* Brier Score & AUC-ROC Calibration Summary Bar */}
+        {/* Brier Score & AUC Summary Bar */}
         <div className="flex flex-wrap items-center gap-3 panel text-[14px] font-mono">
           <div className="flex items-center gap-2">
             <span className="text-ink-subtle">Mean Brier Score:</span>
             <span className="font-bold text-safe-700">{backtestSummary.meanBrierScore.toFixed(4)}</span>
             <span className="px-2 py-0.5 rounded bg-safe-50 text-safe-700 font-bold text-ink">
-              {backtestSummary.brierStatus}
+              resolved episodes only, n={backtestSummary.resolvedEpisodes}; 2026 in-window, excluded
             </span>
           </div>
           <div className="h-4 w-px bg-surface-3 bg-surface-2 hidden sm:block" />
           <div className="flex items-center gap-2">
             <span className="text-ink-subtle">Discrimination AUC-ROC:</span>
-            <span className="font-bold text-ink-muted">{backtestSummary.aucRocScore.toFixed(2)}</span>
+            <span className="font-bold text-ink-muted">{backtestSummary.aucRocScore?.toFixed(2) ?? "—"}</span>
             <span className="px-2 py-0.5 rounded bg-surface-2 text-ink font-bold">
               {backtestSummary.discriminationPower}
             </span>
           </div>
           <div className="h-4 w-px bg-surface-3 bg-surface-2 hidden sm:block" />
-          <span className="text-ink-subtle">6 Epochs Evaluated (1929, 2000, 2008, 2021, 2022, 2026)</span>
+          <div className="flex items-center gap-2">
+            <span className="text-ink-subtle">In-sample AUC:</span>
+            <span className="font-bold text-caution-700">{inSampleAucValue.toFixed(3)}</span>
+            <span className="px-2 py-0.5 rounded bg-surface-2 text-ink font-bold">
+              6 points — indicative
+            </span>
+          </div>
+          <div className="h-4 w-px bg-surface-3 bg-surface-2 hidden sm:block" />
+          <span className="text-ink-subtle">6 episodes (1929, 2000, 2008, 2021, 2022, 2026)</span>
         </div>
 
         <div className="overflow-x-auto border border-rule rounded-xl">
@@ -677,6 +960,29 @@ return (
             </tbody>
           </table>
         </div>
+
+        <div className="space-y-2 text-[14px] leading-relaxed text-ink-muted">
+          <p>
+            Episode notes: the 2001 telecom write-downs were concentrated in borrowers such as
+            WorldCom and Global Crossing; Lucent was acquired by Alcatel in December 2006, and its
+            2001 problem was a collapsing order book and vendor-financing exposure rather than a
+            borrower failure. The 2026 row is the live window: it carries no score until its
+            12-month window resolves on 19 October 2027.
+          </p>
+          <p>
+            Calibration disclosure: the table was produced under an earlier mapping (anchor ≈54,
+            steepness ≈11.2). Re-scored under the live mapping (anchor {MODEL_CALIBRATION.anchorScore},
+            steepness {MODEL_CALIBRATION.steepness}) the same composite scores move the published
+            probabilities by {calibrationDriftResult.minPct}–{calibrationDriftResult.maxPct} points
+            — the mapping is a judgement choice, not a fitted parameter set.
+          </p>
+          <p className="text-ink-subtle">
+            What this table is not: an out-of-sample test. Every resolved row is a crisis the model
+            was pointed at, and the in-sample AUC ({inSampleAucValue.toFixed(3)} over 6 points,
+            counting the open 2026 window as a non-burst) is structurally optimistic for the same
+            reason. No score is published for this model until a pre-registered event matures.
+          </p>
+        </div>
       </section>
 
       {/* SECTION 7: CLASSICAL QUANTITATIVE FINANCIAL MODELS */}
@@ -690,8 +996,16 @@ return (
             Merton (1974), Altman Z&apos;&apos; (2002), LPPLS, Minsky (1986) &amp; Shiller CAPE Models
           </h2>
           <p className="text-sm text-ink-muted font-sans mt-1 max-w-4xl leading-relaxed">
-            To guard against epistemic insularity, our model is mathematically cross-referenced with 5 benchmark
-            structural credit and valuation frameworks established in quantitative economics:
+            To guard against epistemic insularity, our model is mathematically cross-referenced with
+            5 benchmark structural credit and valuation frameworks established in quantitative
+            economics — 5 structural cross-checks (not ensemble members):
+          </p>
+          <p className="mt-2 max-w-4xl text-[14px] leading-relaxed text-ink-subtle">
+            These five are cross-checks, not ensemble members. They do not vote on the headline
+            number, they are not averaged into it, and they carry no weight in the composite: the
+            published probability comes from the 8 risk factors, the contagion term and the damper
+            alone. Read them as a second opinion on the same inputs, and read their disagreements
+            with the composite as information.
           </p>
         </div>
 
@@ -702,7 +1016,7 @@ return (
             <ChevronRight className="h-4 w-4 shrink-0 text-ink-subtle transition-transform group-open:rotate-90" aria-hidden="true" />
           </summary>
           <div className="mt-2.5 border-t border-rule pt-2.5 text-[14px] leading-relaxed text-ink-muted">
-            Think of this section as taking big tech to three different world-class doctors. Doctor 1 (Merton) checks if they have enough cash to pay their debts (Grade: A+, zero default risk). Doctor 2 (Altman) checks for any signs of company bankruptcy (Grade: Healthy Safe Zone). Doctor 3 (LPPLS) checks if startup prices are growing too fast like an overheated rocket.
+            Think of this section as taking big tech to three different world-class doctors. Doctor 1 (Merton) checks if they have enough cushion to pay their debts (Grade: a {docMertonDd.toFixed(2)}σ distance to default, so the modelled default probability is {docMertonProbLabel} — remote, not zero). Doctor 2 (Altman) checks for any signs of company bankruptcy (Grade: Safe Zone). Doctor 3 (LPPLS) checks if startup prices are growing too fast like an overheated rocket — its hazard number is an index, not a probability.
           </div>
         </details>
 
@@ -713,7 +1027,7 @@ return (
               <div className="flex items-center justify-between text-[14px] font-mono">
                 <span className="font-bold text-ink-muted uppercase">Merton (1974) Model</span>
                 <span className="px-2 py-0.5 rounded bg-surface-2 text-ink font-bold">
-                  Distance: 5.13σ
+                  Distance: {docMertonDd.toFixed(2)}σ
                 </span>
               </div>
               <h3 className="font-bold text-base text-ink">
@@ -726,15 +1040,23 @@ return (
                 <code>{"DD = \\frac{\\ln(V/D) + (r - 0.5\\sigma_V^2)T}{\\sigma_V \\sqrt{T}}"}</code>
               </div>
               <ul className="text-[14px] font-mono space-y-1 text-ink-muted pt-1">
-                <li>• Asset Value $V$: $1.42T (Public Credit Guarantor EV + Private Lab Valuations)</li>
+                <li>
+                  • Asset Value $V$: $1.42T — a fixed aggregation used for the DD meter, not the
+                  tracked $3.2T of lab valuations
+                </li>
                 <li>• Total Tracked Debt $D$: $214.9B</li>
                 <li>• Asset Volatility $\sigma_V$: 36.5%</li>
                 <li>• Risk-Free Rate $r$: 5.10% (US10Y)</li>
-                <li>• Implied Default Prob: <strong className="text-safe-700">0.0% (Investment Grade)</strong></li>
+                <li>
+                  • Implied Default Prob:{" "}
+                  <strong className="text-safe-700">{docMertonProbLabel}</strong> (below the
+                  model&apos;s one-decimal resolution)
+                </li>
               </ul>
             </div>
             <div className="pt-2 border-t border-rule text-[14px] text-ink-subtle">
-              Structural spread: +0.0 bps (Aaa / AAA equivalent)
+              Market reference: Oracle 5Y CDS 288bp (record close, 15 Oct 2026). The model&apos;s
+              structural spread is not comparable to that market price, and the issuer is rated BBB−.
             </div>
           </div>
 
@@ -765,22 +1087,25 @@ return (
                 <li>• $X_1$ (Working Cap / Assets): 0.118</li>
                 <li>• $X_2$ (Retained Earnings / Assets): -0.142</li>
                 <li>• $X_3$ (EBIT / Assets): 0.078</li>
-                <li>• $X_4$ (Equity / Debt): 7.21×</li>
+                <li>• $X_4$ (Equity / Debt): {ALTMAN_X4}×</li>
                 <li>• Zone: <strong className="text-safe-700">Safe Zone (Z&apos;&apos; &gt; 2.60)</strong></li>
               </ul>
             </div>
             <div className="pt-2 border-t border-rule text-[14px] text-ink-subtle">
-              Implied distress risk: {latestModel.altman.impliedDistressProbPct}% (Safe balance sheet)
+              Implied distress risk: {probabilityDisplayLabel(altmanImpliedDistressProbabilityPct(docAltmanZ))}{" "}
+              (Safe balance sheet). X₄ = {ALTMAN_X4}× is an {ALTMAN_X4_PROVENANCE} — it is a
+              published constant, not a number read off a filing.
             </div>
           </div>
 
           {/* 3. Sornette LPPLS Model */}
           <div className="p-5 rounded-lg bg-surface-2 border border-rule space-y-3 flex flex-col justify-between">
             <div className="space-y-2">
+              {/* LPPLS hazard: index, not a probability — no % sign (LPPLS_HAZARD_LABEL) */}
               <div className="flex items-center justify-between text-[14px] font-mono">
                 <span className="font-bold text-ink-muted uppercase">LPPLS Bubble Model</span>
                 <span className="px-2 py-0.5 rounded bg-risk-50 text-risk-700 font-bold">
-                  Hazard: {latestModel.lppls.crashHazardRatePct}%
+                  Hazard index: {docLpplsHazard.toFixed(1)}
                 </span>
               </div>
               <h3 className="font-bold text-base text-ink">
@@ -798,10 +1123,14 @@ return (
                 <li>• Estimated Singularity $t_c$: Q4 2026 – Q2 2027</li>
                 <li>• Capex-to-FCF Ratio: {((DEFAULT_MODEL_INPUTS.capex?.aggregateCapexUsd ?? 0) / (DEFAULT_MODEL_INPUTS.capex?.aggregateFcfUsd ?? 1)).toFixed(2)}×</li>
                 <li>• Regime State: <strong className="text-risk-700">Accelerating Imitation</strong></li>
+                <li>
+                  • Published label: <strong className="text-ink-muted">{LPPLS_HAZARD_LABEL}</strong>
+                </li>
               </ul>
             </div>
             <div className="pt-2 border-t border-rule text-[14px] text-ink-subtle">
-              Critical transition window: 12 months
+              The hazard number is an index, not a probability — no % sign. It is a cross-check on
+              the credit and capex readings, not a second probability estimate.
             </div>
           </div>
 
@@ -888,38 +1217,85 @@ return (
             To eliminate single-point estimator bias, our stochastic engine samples 25,000 joint paths
             correlated via Cholesky decomposition ($L L^T = \\Sigma$) across a 4×4 empirical covariance matrix:
             <strong> [US10Y Yield, Oracle CDS Spread, Capex Volume, Valuation Multiples]</strong>.
+            High-yield OAS rides alongside the credit complex as a systemic linkage plus an independent
+            idiosyncratic shock, which is what lands the simulated corr(CDS, HY) on the published
+            design value of {latestModel.monteCarlo.simulatedShockCorrelations.cdsHy}. The innovations
+            are heavy-tailed (90/10 scale mixture), so a crisis state is expressible — the previous
+            Gaussian run could not produce one.
           </p>
 
-          <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 pt-2 font-mono text-[14px]">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-2 font-mono text-[14px]">
             <div className="p-3 rounded-xl bg-ink border border-ink space-y-1">
               <span className="label block">Median Prob</span>
               <span className="text-base font-semibold text-ink">{latestModel.monteCarlo.medianProbabilityPct}%</span>
               <span className="num text-ink-faint block">Mean: {latestModel.monteCarlo.meanProbabilityPct}%</span>
             </div>
             <div className="p-3 rounded-xl bg-ink border border-ink space-y-1">
-              <span className="label block">90% CI</span>
-              <span className="text-base font-semibold text-safe-600">[{latestModel.monteCarlo.ci90Pct[0]}% – {latestModel.monteCarlo.ci90Pct[1]}%]</span>
-              <span className="num text-ink-faint block">Empirical quantiles</span>
+              <span className="label block">Std Dev</span>
+              <span className="text-base font-semibold text-ink">{latestModel.monteCarlo.stdDevPct}</span>
+              <span className="num text-ink-faint block">Skew: {latestModel.monteCarlo.skewness}</span>
             </div>
             <div className="p-3 rounded-xl bg-ink border border-ink space-y-1">
-              <span className="label block">95% VaR</span>
-              <span className="text-base font-semibold text-caution-600">{latestModel.monteCarlo.valueAtRisk95Pct}%</span>
-              <span className="num text-ink-faint block">95th percentile</span>
+              <span className="label block">90% shock range</span>
+              <span className="text-base font-semibold text-safe-600">
+                [{latestModel.monteCarlo.ci90Pct[0]}% – {latestModel.monteCarlo.ci90Pct[1]}%]
+              </span>
+              <span className="num text-ink-faint block">Not a confidence interval</span>
             </div>
             <div className="p-3 rounded-xl bg-ink border border-ink space-y-1">
-              <span className="label block">95% CVaR</span>
-              <span className="text-base font-semibold text-caution-600">{latestModel.monteCarlo.conditionalValueAtRisk95Pct}%</span>
-              <span className="num text-ink-faint block">Worst 5% tail</span>
+              <span className="label block">95% shock range</span>
+              <span className="text-base font-semibold text-safe-600">
+                [{latestModel.monteCarlo.ci95Pct[0]}% – {latestModel.monteCarlo.ci95Pct[1]}%]
+              </span>
+              <span className="num text-ink-faint block">Floor: {latestModel.monteCarlo.bandLowPct}%</span>
             </div>
             <div className="p-3 rounded-xl bg-ink border border-ink space-y-1">
-              <span className="label block">99% VaR</span>
-              <span className="text-base font-semibold text-risk-600">{latestModel.monteCarlo.valueAtRisk99Pct}%</span>
-              <span className="num text-ink-faint block">99th percentile</span>
+              <span className="label block">95% VaR / CVaR</span>
+              <span className="text-base font-semibold text-caution-600">
+                {latestModel.monteCarlo.valueAtRisk95Pct}% / {latestModel.monteCarlo.conditionalValueAtRisk95Pct}%
+              </span>
+              <span className="num text-ink-faint block">Worst 5% tail mean</span>
             </div>
             <div className="p-3 rounded-xl bg-ink border border-ink space-y-1">
-              <span className="label block">99% CVaR</span>
-              <span className="text-base font-semibold text-risk-600">{latestModel.monteCarlo.conditionalValueAtRisk99Pct}%</span>
-              <span className="num text-ink-faint block">Worst 1% tail</span>
+              <span className="label block">99% VaR / CVaR</span>
+              <span className="text-base font-semibold text-risk-600">
+                {latestModel.monteCarlo.valueAtRisk99Pct}% / {latestModel.monteCarlo.conditionalValueAtRisk99Pct}%
+              </span>
+              <span className="num text-ink-faint block">
+                Spread:{" "}
+                {(
+                  latestModel.monteCarlo.valueAtRisk99Pct - latestModel.monteCarlo.valueAtRisk95Pct
+                ).toFixed(1)}
+                pt
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-[14px]">
+            <div className="p-3 rounded-xl bg-surface border border-rule space-y-1">
+              <span className="label block">Innovation excess kurtosis</span>
+              <span className="text-base font-semibold text-ink">
+                {latestModel.monteCarlo.innovationExcessKurtosis}
+              </span>
+              <span className="num text-ink-faint block">
+                kurtosis {latestModel.monteCarlo.innovationKurtosis} (Gaussian = 3.0)
+              </span>
+            </div>
+            <div className="p-3 rounded-xl bg-surface border border-rule space-y-1">
+              <span className="label block">Simulated corr(CDS, HY)</span>
+              <span className="text-base font-semibold text-ink">
+                {latestModel.monteCarlo.simulatedShockCorrelations.cdsHy}
+              </span>
+              <span className="num text-ink-faint block">Published design value ≈ 0.80</span>
+            </div>
+            <div className="p-3 rounded-xl bg-surface border border-rule space-y-1">
+              <span className="label block">Published range type</span>
+              <span className="text-base font-semibold text-ink">
+                {latestModel.monteCarlo.ciType}
+              </span>
+              <span className="num text-ink-faint block">
+                Risk-factor coverage {Math.round(currentModel.coverage * 100)}%
+              </span>
             </div>
           </div>
         </div>
@@ -1186,13 +1562,13 @@ return (
                 1. Merton (1974) Structural
               </span>
               <div className="font-mono text-sm font-bold text-ink">
-                Distance: 5.13σ
+                Distance: {docMertonDd.toFixed(2)}σ
               </div>
               <p className="text-[14px] text-ink-muted leading-relaxed">
                 Calculates default boundary where market equity call option expires out-of-the-money against $214.9B in committed debt.
               </p>
               <div className="num pt-1 text-safe-700">
-                Implied Default: 0.0%
+                Implied Default: {docMertonProbLabel}
               </div>
             </div>
 
@@ -1204,10 +1580,12 @@ return (
                 Score: {latestModel.altman.score} — Safe Zone
               </div>
               <p className="text-[14px] text-ink-muted leading-relaxed">
-                Non-manufacturing tech model penalizing negative retained lab earnings against 7.21× equity capitalization.
+                Non-manufacturing tech model penalizing negative retained lab earnings against {ALTMAN_X4}× equity capitalization — an {ALTMAN_X4_PROVENANCE} input.
               </p>
               <div className="num pt-1 text-safe-700">
-                Distress Risk: {latestModel.altman.impliedDistressProbPct}% (Safe Zone)
+                Distress Risk:{" "}
+                {probabilityDisplayLabel(altmanImpliedDistressProbabilityPct(docAltmanZ))} (Safe
+                Zone)
               </div>
             </div>
 
@@ -1216,10 +1594,11 @@ return (
                 3. Sornette LPPLS Singularity
               </span>
               <div className="font-mono text-sm font-bold text-ink">
-                Hazard: {latestModel.lppls.crashHazardRatePct}%
+                Hazard index: {docLpplsHazard.toFixed(1)}
               </div>
               <p className="text-[14px] text-ink-muted leading-relaxed">
-                Log-periodic power law oscillator detecting super-exponential capex growth and estimating singularity transition window $t_c$.
+                Log-periodic power law oscillator detecting super-exponential capex growth and estimating singularity transition window $t_c$. The
+                number is an index, not a probability — no % sign.
               </p>
               <div className="num pt-1 text-risk-700">
                 Window: Q4 2026 – Q2 2027
@@ -1234,10 +1613,12 @@ return (
                 VaR95: {latestModel.monteCarlo.valueAtRisk95Pct}% • CVaR: {latestModel.monteCarlo.conditionalValueAtRisk95Pct}%
               </div>
               <p className="text-[14px] text-ink-muted leading-relaxed">
-                Box-Muller Gaussian copula simulation across joint macro shocks, yielding empirical quantiles without single-point bias.
+                Box-Muller sampling of heavy-tailed innovations (90/10 scale mixture) across joint 12-month
+                macro shocks, yielding empirical quantiles without single-point bias.
               </p>
               <div className="num pt-1 text-safe-700">
-                Median: {latestModel.monteCarlo.medianProbabilityPct}% [{latestModel.monteCarlo.ci90Pct[0]}%–{latestModel.monteCarlo.ci90Pct[1]}%]
+                Median: {latestModel.monteCarlo.medianProbabilityPct}% · 90% shock range [
+                {latestModel.monteCarlo.ci90Pct[0]}%–{latestModel.monteCarlo.ci90Pct[1]}%]
               </div>
             </div>
           </div>
@@ -1463,12 +1844,14 @@ return (
             <span>Section 09 · Minsky Financial Instability Hypothesis &amp; Shiller Excess CAPE Yields</span>
           </div>
           <h2 className="text-xl sm:text-3xl font-extrabold text-ink tracking-tight">
-            Structural Credit Regimes, Equity Risk Premia &amp; Empirical Verification Matrix
+            Structural Credit Regimes, Equity Risk Premia &amp; Historical Consistency Matrix
           </h2>
           <p className="text-sm text-ink-muted font-sans mt-1 max-w-4xl leading-relaxed">
             A comprehensive quantitative synthesis establishing the post-Keynesian debt taxonomy of Hyman Minsky,
             Robert Shiller&apos;s Excess CAPE Yield (ECY) equity risk premium framework, our 25,000-path Cholesky copula stochastic simulation engine,
-            and the empirical out-of-sample Brier score backtest verification matrix (<code className="text-safe-700 font-mono font-bold">BS = 0.041 ≤ 0.050</code>, <code className="text-ink-muted font-mono font-bold">AUC-ROC = 0.942</code>, <code className="text-safe-700 font-mono font-bold">91.7% Accuracy</code>).
+            and the historical consistency matrix (<code className="text-safe-700 font-mono font-bold">BS = {backtestSummary.meanBrierScore.toFixed(4)} over {backtestSummary.resolvedEpisodes} resolved episodes</code>, <code className="text-ink-muted font-mono font-bold">in-sample AUC = {inSampleAucValue.toFixed(3)} (6 points — indicative)</code>). The old
+            out-of-sample accuracy figure was removed in v2.6.0: it was not computable from six rows,
+            five of which are crises the model was pointed at.
           </p>
         </div>
 
@@ -1595,22 +1978,38 @@ return (
               <div className="p-4 bg-surface bg-ink rounded-xl border border-rule space-y-2">
                 <span className="text-ink-subtle font-bold">Minsky Fragility Index (0 to 100):</span>
                 <div className="p-2 bg-surface-2 rounded text-ink-muted font-bold text-center">
-                  <code>{"F_{\\text{Minsky}} = \\min\\left(100, \\max\\left(0, \\frac{w_p \\cdot \\text{Ponzi} + w_s \\cdot \\text{Spec}}{\\text{Cushion}_{\\text{Hedge}}} \\times 100\\right)\\right)"}</code>
+                  <code>{MODEL_DOC_FORMULAS.minsky_fragility.formula}</code>
                 </div>
                 <p className="text-ink-muted leading-relaxed">
-                  Where <code className="text-ink-muted font-mono">w_p = 2.8</code> (high Ponzi sensitivity weight), <code className="text-ink-muted font-mono">w_s = 1.2</code>, and Hedge Cushion is hyperscaler FCF / capex buffer (<strong>1.42×</strong>).
+                  Where <code className="text-ink-muted font-mono">Spec</code> and{" "}
+                  <code className="text-ink-muted font-mono">Ponzi</code> are the published debt-share
+                  levers ({minsky.speculativeSharePct.toFixed(1)}% / {minsky.ponziSharePct.toFixed(1)}%),
+                  <code className="text-ink-muted font-mono">CDS_excess</code> is the Oracle 5Y spread
+                  over its 81bp baseline (288bp → 2.556), and the capex term is the capex-to-OCF ratio
+                  over its 0.548 reference. Live evaluation:{" "}
+                  <strong className="text-ink-muted font-mono">{docMinskyFragility.toFixed(1)}</strong>.
+                </p>
+                <p className="text-ink-faint leading-relaxed">
+                  {MODEL_DOC_FORMULAS.minsky_fragility.note}
                 </p>
               </div>
 
               <div className="p-4 bg-surface bg-ink rounded-xl border border-rule space-y-2">
                 <span className="text-ink-subtle font-bold">Refinancing Freeze Probability:</span>
                 <div className="p-2 bg-surface-2 rounded text-risk-700 font-bold text-center">
-                  <code>{"\\mathbb{P}(\\text{Freeze}) = \\frac{1}{1 + e^{-(F_{\\text{Minsky}} - 60) / 12}} \\times 100\\%"}</code>
+                  <code>{MODEL_DOC_FORMULAS.refi_freeze.formula}</code>
                 </div>
                 <p className="text-ink-muted leading-relaxed">
-                  Live evaluation: <strong className="text-ink-muted font-mono">{minsky.minskyFragilityIndex.toFixed(1)} Fragility</strong> yields a
-                  <strong className="text-risk-700 font-mono"> {minsky.refinancingFreezeProbabilityPct}%</strong> probability of a debt market rollover freeze.
-                  Trigger conditions activate if Ponzi debt share reaches ≥ 22.0% or Oracle CDS spreads exceed 400 bp — a genuine blowout on top of the 288 bp record close of Oct 15, 2026. (The old 260 bp trigger sat below that live reading, so it fired on every baseline; it was raised to 400 bp on 19 Oct 2026, in line with the sandbox credit-freeze preset.)
+                  Live evaluation: the published Ponzi share and CDS excess give a{" "}
+                  <strong className="text-risk-700 font-mono">
+                    {docFreezeProbability.toFixed(3)} ({docFreezePct.toFixed(1)}%)
+                  </strong>{" "}
+                  probability of a debt-market rollover freeze inside 12 months. There is no discrete
+                  trigger: the function is continuous in both inputs, so a wider spread or a larger
+                  Ponzi share moves it in proportion rather than switching it on.
+                </p>
+                <p className="text-ink-faint leading-relaxed">
+                  {MODEL_DOC_FORMULAS.refi_freeze.note}
                 </p>
               </div>
             </div>
@@ -1651,7 +2050,7 @@ return (
             </div>
 
             <div className="p-4 rounded-xl bg-ink border border-ink text-center font-mono text-sm sm:text-base text-ink font-bold">
-              <code>{`\\text{ECY} = \\frac{1}{\\text{CAPE}_{\\text{AI}}} - \\left(y_{10\\text{y}} - \\pi_{\\text{CPI}}\\right) = \\frac{1}{${shiller.aiCapeMultiple.toFixed(1)}} - (5.10\\% - 2.35\\%) = ${shiller.earningsYieldPct.toFixed(2)}\\% - ${shiller.real10yYieldPct.toFixed(2)}\\% = \\mathbf{${shiller.excessCapeYieldPct >= 0 ? "+" : ""}${shiller.excessCapeYieldPct.toFixed(2)}\\%}`}</code>
+              <code>{`\\text{ECY} = \\frac{1}{\\text{CAPE}_{\\text{AI}}} - \\left(y_{10\\text{y}} - \\pi^{\\text{TIPS}}_{\\text{10y BE}}\\right) = \\frac{1}{${shiller.aiCapeMultiple.toFixed(1)}} - (5.10\\% - 2.35\\%) = ${shiller.earningsYieldPct.toFixed(2)}\\% - ${shiller.real10yYieldPct.toFixed(2)}\\% = \\mathbf{${shiller.excessCapeYieldPct >= 0 ? "+" : ""}${shiller.excessCapeYieldPct.toFixed(2)}\\%}`}</code>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-[14px] pt-1">
@@ -1668,7 +2067,9 @@ return (
               <div className="p-3 rounded-xl bg-surface border border-ink">
                 <span className="label block">10Y Real Treasury Benchmark</span>
                 <span className="text-lg font-semibold text-ink-muted">{shiller.real10yYieldPct.toFixed(2)}%</span>
-                <span className="num text-ink-faint block">US10Y Nominal minus CPI</span>
+                <span className="num text-ink-faint block">
+                  {realYieldBasisLabel(docEcyInputs, "tips")}
+                </span>
               </div>
               <div className="p-3 rounded-xl bg-surface border border-ink">
                 <span className="label block">Excess CAPE Yield (ERP)</span>
@@ -1684,6 +2085,21 @@ return (
               significantly compressed below historical bull-market cushions of +3.50%. Investors receive only {Math.round(shiller.excessCapeYieldPct * 100)} bps of annual excess expected yield
               over risk-free inflation-hedged Treasuries for absorbing hardware obsolescence and generative software disruption risk.
               Any incremental +50 bps upward drift in 10-year yields compresses the equity risk premium toward zero.
+            </p>
+
+            <p className="text-[14px] text-ink-faint leading-relaxed pt-1 border-t border-rule/40">
+              <strong className="text-ink-muted">Basis disclosure (published once):</strong> the real
+              10-year yield used above is {realYieldBasisLabel(docEcyInputs, "tips")} ={" "}
+              {realYieldTipsPct(docEcyInputs).toFixed(2)}%, which gives the published ECY of{" "}
+              {docEcyTips >= 0 ? "+" : ""}
+              {docEcyTips.toFixed(2)}% ({docEcyBand}). On a CPI basis instead ({" "}
+              {realYieldBasisLabel(docEcyInputs, "cpi")} = {realYieldCpiPct(docEcyInputs).toFixed(2)}%
+              ) the same CAPE gives ECY{" "}
+              {docEcyCpi >= 0 ? "+" : ""}
+              {docEcyCpi.toFixed(2)}%, which would sit in the {ecyBand(docEcyCpi)} band rather than
+              Compressed. The published figure uses the TIPS basis because the breakeven is the
+              market&apos;s own inflation compensation; the CPI basis is shown here so the choice is
+              visible rather than buried.
             </p>
           </div>
 
@@ -1769,11 +2185,30 @@ return (
                 <code>{"\\mathbf{\\Sigma} = \\begin{pmatrix} 1.00 & +0.45 & +0.35 & -0.40 \\\\ +0.45 & 1.00 & +0.50 & -0.55 \\\\ +0.35 & +0.50 & 1.00 & +0.30 \\\\ -0.40 & -0.55 & +0.30 & 1.00 \\end{pmatrix}"}</code>
               </div>
               <ul className="text-ink-muted space-y-1 font-sans">
-                <li>• <strong className="font-mono text-ink">Variable 1:</strong> US 10-Year Benchmark Yield (Rate Volatility ±42 bps)</li>
-                <li>• <strong className="font-mono text-ink">Variable 2:</strong> Oracle 5Y CDS Spread (Lognormal Volatility 28%)</li>
-                <li>• <strong className="font-mono text-ink">Variable 3:</strong> Hyperscaler Capex Commitments (Capex Shock Scale)</li>
-                <li>• <strong className="font-mono text-ink">Variable 4:</strong> Private Lab Valuation Multiples (Compression Scale)</li>
+                <li>
+                  • <strong className="font-mono text-ink">Variable 1:</strong> US 10-Year Benchmark
+                  Yield (12-month σ 0.85 ≈ 85bp)
+                </li>
+                <li>
+                  • <strong className="font-mono text-ink">Variable 2:</strong> Oracle 5Y CDS Spread
+                  (log-space σ 0.45)
+                </li>
+                <li>
+                  • <strong className="font-mono text-ink">Variable 3:</strong> Hyperscaler Capex
+                  Commitments (σ 0.30, floor 0.40×)
+                </li>
+                <li>
+                  • <strong className="font-mono text-ink">Variable 4:</strong> Private Lab Valuation
+                  Multiples (σ 0.32, floor 0.05×)
+                </li>
               </ul>
+              <p className="text-[14px] text-ink-muted leading-relaxed">
+                These are 12-month volatilities. The previous calibration was a short-horizon one —
+                the 10Y moved in days, not years — and it clamped hard at 500bp CDS and a 0.25×
+                multiple floor, truncating exactly the events the range exists to cover (2007 CDS
+                35→550bp; the 2000 −78% multiple collapse). The clamps are now open: CDS to 1500bp,
+                the 10Y to 12%, the multiple to 0.05×.
+              </p>
             </div>
 
             <div className="p-5 rounded-lg bg-surface-2 border border-rule space-y-3">
@@ -1781,10 +2216,11 @@ return (
                 Cholesky Decomposition &amp; Shock Generation
               </span>
               <div className="p-3.5 bg-surface bg-ink rounded-xl border border-rule text-ink leading-relaxed text-safe-700 font-bold">
-                <code>{"\\mathbf{\\Sigma} = \\mathbf{L} \\mathbf{L}^T \\implies \\mathbf{X} = \\mathbf{L} \\mathbf{Z}, \\quad \\mathbf{Z} \\sim \\mathcal{N}(0, \\mathbf{I}_4)"}</code>
+                <code>{"\\mathbf{\\Sigma} = \\mathbf{L} \\mathbf{L}^T \\implies \\mathbf{X} = \\mathbf{L} \\mathbf{Z}, \\quad \\mathbf{Z} \\sim \\text{heavy-tailed (90/10 mixture)}"}</code>
               </div>
               <p className="text-[14px] text-ink-muted leading-relaxed">
-                By multiplying the lower-triangular matrix <code className="font-mono text-safe-700">L</code> by 4 independent standard normal variates <code className="font-mono text-safe-700">Z</code>,
+                By multiplying the lower-triangular matrix <code className="font-mono text-safe-700">L</code> by 4 independent
+                unit-variance innovations <code className="font-mono text-safe-700">Z</code>,
                 we preserve the exact cross-asset correlation structure without introducing spurious multicollinearity or numerical instability.
               </p>
               <div className="p-2.5 rounded-lg bg-safe-50 border border-safe-200 border-safe-500 text-ink text-safe-700">
@@ -1798,17 +2234,22 @@ return (
             <div className="panel space-y-1">
               <span className="label block">Median Prob</span>
               <span className="text-xl font-semibold text-ink">{latestModel.monteCarlo.medianProbabilityPct}%</span>
-              <span className="text-ink-faint block">Mean: {latestModel.monteCarlo.meanProbabilityPct}% (±{latestModel.monteCarlo.stdDevPct}%)</span>
+              <span className="text-ink-faint block">Mean: {latestModel.monteCarlo.meanProbabilityPct}% (σ {latestModel.monteCarlo.stdDevPct})</span>
             </div>
             <div className="panel space-y-1">
-              <span className="label block">90% Conf Interval</span>
+              <span className="label block">90% shock range</span>
               <span className="text-lg font-semibold text-safe-700">[{latestModel.monteCarlo.ci90Pct[0]}%–{latestModel.monteCarlo.ci90Pct[1]}%]</span>
-              <span className="text-ink-faint block">10th to 90th %ile</span>
+              <span className="text-ink-faint block">10th to 90th %ile — not a CI</span>
+            </div>
+            <div className="panel space-y-1">
+              <span className="label block">95% shock range</span>
+              <span className="text-lg font-semibold text-safe-700">[{latestModel.monteCarlo.ci95Pct[0]}%–{latestModel.monteCarlo.ci95Pct[1]}%]</span>
+              <span className="text-ink-faint block">Floor {latestModel.monteCarlo.bandLowPct}%</span>
             </div>
             <div className="panel space-y-1">
               <span className="label block">95% VaR (Tail Risk)</span>
               <span className="text-xl font-semibold text-caution-700">{latestModel.monteCarlo.valueAtRisk95Pct}%</span>
-              <span className="text-ink-faint block">95% paths stay below</span>
+              <span className="text-ink-faint block">95th percentile</span>
             </div>
             <div className="panel space-y-1">
               <span className="label block">95% CVaR Shortfall</span>
@@ -1818,13 +2259,69 @@ return (
             <div className="panel space-y-1">
               <span className="label block">99% Extreme VaR</span>
               <span className="text-xl font-semibold text-risk-700">{latestModel.monteCarlo.valueAtRisk99Pct}%</span>
-              <span className="text-ink-faint block">99th %ile (CVaR: {latestModel.monteCarlo.conditionalValueAtRisk99Pct}%)</span>
+              <span className="text-ink-faint block">
+                99th %ile (CVaR: {latestModel.monteCarlo.conditionalValueAtRisk99Pct}%)
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-[14px]">
+            <div className="panel space-y-1">
+              <span className="label block">Output moments</span>
+              <span className="text-lg font-semibold text-ink-muted">
+                σ²: {latestModel.monteCarlo.variance}
+              </span>
+              <span className="text-ink-faint block">
+                Skew: {latestModel.monteCarlo.skewness} • output kurtosis:{" "}
+                {latestModel.monteCarlo.kurtosis}
+              </span>
             </div>
             <div className="panel space-y-1">
-              <span className="label block">Moments &amp; Variance</span>
-              <span className="text-xl font-semibold text-ink-muted">σ²: {latestModel.monteCarlo.variance}</span>
-              <span className="text-ink-faint block">Skew: {latestModel.monteCarlo.skewness} • Kurt: {latestModel.monteCarlo.kurtosis}</span>
+              <span className="label block">Innovation excess kurtosis</span>
+              <span className="text-lg font-semibold text-ink">
+                {latestModel.monteCarlo.innovationExcessKurtosis}
+              </span>
+              <span className="text-ink-faint block">
+                kurtosis {latestModel.monteCarlo.innovationKurtosis} (Gaussian = 3.0)
+              </span>
             </div>
+            <div className="panel space-y-1">
+              <span className="label block">Simulated corr(CDS, HY)</span>
+              <span className="text-lg font-semibold text-ink">
+                {latestModel.monteCarlo.simulatedShockCorrelations.cdsHy}
+              </span>
+              <span className="text-ink-faint block">Published design value ≈ 0.80</span>
+            </div>
+          </div>
+
+          {/* Crowd diagnostic — what the market prices versus what the model says */}
+          <div className="panel space-y-2.5">
+            <span className="label">Crowd diagnostic — the model against the market&apos;s own price</span>
+            <p className="text-[14px] leading-relaxed text-ink-muted">
+              The horizon/bias-corrected market-implied 12-month probability is ≈{" "}
+              <span className="num font-semibold text-ink">
+                {MARKET_IMPLIED_12M_BAND.centralPct.toFixed(1)}%
+              </span>{" "}
+              at the central bias-correction α = {MARKET_IMPLIED_12M_BAND.alphaCentral.toFixed(2)},
+              and spans{" "}
+              <span className="num font-semibold text-ink">
+                {MARKET_IMPLIED_12M_BAND.lowPct.toFixed(1)}%–{MARKET_IMPLIED_12M_BAND.highPct.toFixed(1)}%
+              </span>{" "}
+              across α ∈ [{MARKET_IMPLIED_12M_BAND.alphaRange[0].toFixed(2)},{" "}
+              {MARKET_IMPLIED_12M_BAND.alphaRange[1].toFixed(2)}]. The model sits ≈46–63 probability
+              points above that market reading: {crowdDivergence.vsBandHigh.toFixed(1)} points above
+              the top of the band and {crowdDivergence.vsRawContract.toFixed(1)} points above the raw
+              Dec-2026 contract (9.05%). The two ask different questions — the market asks &quot;AI
+              downturn by date&quot;, this model asks &quot;AI capital bubble bursts inside 12 months&quot;
+              — so part of the gap is definitional, not only informational.
+            </p>
+            <p className="text-[14px] leading-relaxed text-ink-subtle">
+              Band floor rule: {BAND_FLOOR_RULE_SENTENCE} The published floor is{" "}
+              <span className="num font-semibold text-ink">
+                {latestModel.monteCarlo.bandLowPct}%
+              </span>
+              , the lower of the simulated 5th percentile and the market-implied 12-month price.
+            </p>
           </div>
         </div>
 
@@ -1833,22 +2330,25 @@ return (
           <div className="flex items-center justify-between pb-1 border-b border-rule">
             <div>
               <span className="text-[13px] font-semibold text-ink-muted uppercase tracking-wider">
-                PART D · SCIENTIFIC VERIFICATION &amp; BACKTESTING
+                PART D · HISTORICAL CONSISTENCY &amp; PRE-REGISTRATION
               </span>
               <h3 className="text-lg sm:text-xl font-bold text-ink mt-0.5">
-                Empirical Backtesting &amp; Brier Score Verification Matrix
+                Historical Consistency &amp; Brier Score Matrix
               </h3>
             </div>
             <span className="px-3 py-1 rounded-full text-[13px] font-mono font-bold bg-surface-2 text-ink border border-rule">
-              BS = {empiricalMatrix.brierScore.toFixed(3)} (Pass ≤ {empiricalMatrix.brierScoreBenchmark.toFixed(3)})
+              BS = {empiricalMatrix.brierScore.toFixed(3)} over {empiricalMatrix.resolvedEpochs}{" "}
+              resolved episodes
             </span>
           </div>
 
           <p className="text-sm text-ink-muted leading-relaxed">
-            A probabilistic forecasting engine is mathematically useless without out-of-sample empirical calibration.
-            The <strong>Brier Score</strong> measures the mean squared error between forecasted event probabilities
-            <code className="font-mono text-ink-muted"> f_i ∈ [0, 1]</code> and binary realized crisis occurrences
-            <code className="font-mono text-ink-muted"> o_i ∈ &#123;0, 1&#125;</code>:
+            A probabilistic forecasting engine is mathematically useless without a scorecard. The{" "}
+            <strong>Brier Score</strong> measures the mean squared error between forecasted event
+            probabilities <code className="font-mono text-ink-muted"> f_i ∈ [0, 1]</code> and binary
+            realized crisis occurrences{" "}
+            <code className="font-mono text-ink-muted"> o_i ∈ &#123;0, 1&#125;</code> — here over the
+            resolved episodes only:
           </p>
 
           <div className="panel font-mono text-[14px] text-center text-ink-muted font-bold">
@@ -1858,30 +2358,40 @@ return (
           {/* Verification KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono text-[14px]">
             <div className="p-4 rounded-xl bg-surface-2 border border-safe-300/30 space-y-1">
-              <span className="label block">Mean Brier Calibration Score</span>
+              <span className="label block">Mean Brier score (resolved episodes only)</span>
               <div className="flex items-baseline space-x-2">
                 <span className="text-2xl font-semibold text-safe-700">{empiricalMatrix.brierScore.toFixed(3)}</span>
-                <span className="text-[14px] text-safe-700 font-bold">(≤ 0.050 Pass)</span>
+                <span className="text-[14px] text-safe-700 font-bold">(n={empiricalMatrix.resolvedEpochs})</span>
               </div>
-              <span className="text-ink-faint block">Strict institutional reliability</span>
+              <span className="text-ink-faint block">
+                2026 in-window, excluded — same source as the table above
+              </span>
             </div>
 
             <div className="panel space-y-1">
-              <span className="label block">Discrimination AUC-ROC</span>
+              <span className="label block">In-sample AUC</span>
               <div className="flex items-baseline space-x-2">
-                <span className="text-2xl font-semibold text-ink-muted">{empiricalMatrix.aucRocScore.toFixed(3)}</span>
-                <span className="text-[14px] text-ink font-bold">(≥ 0.900 Outstanding)</span>
+                <span className="text-2xl font-semibold text-caution-700">{inSampleAucValue.toFixed(3)}</span>
+                <span className="text-[14px] text-ink font-bold">(6 points — indicative)</span>
               </div>
-              <span className="text-ink-faint block">Exceptional separation power</span>
+              <span className="text-ink-faint block">
+                In-sample over a case-enriched table; not a discrimination score
+              </span>
             </div>
 
             <div className="panel space-y-1">
-              <span className="label block">Out-of-Sample Accuracy</span>
+              <span className="label block">Episodes in the table</span>
               <div className="flex items-baseline space-x-2">
-                <span className="text-2xl font-semibold text-ink-muted">{empiricalMatrix.outOfSampleAccuracyPct.toFixed(1)}%</span>
-                <span className="text-[14px] text-ink font-bold">(11/12 Episodes)</span>
+                <span className="text-2xl font-semibold text-ink-muted">
+                  {empiricalMatrix.totalHistoricalEpochs}
+                </span>
+                <span className="text-[14px] text-ink font-bold">
+                  ({empiricalMatrix.resolvedEpochs} resolved, 1 in-window)
+                </span>
               </div>
-              <span className="text-ink-faint block">Across 6 historical epochs</span>
+              <span className="text-ink-faint block">
+                No out-of-sample accuracy figure is published — it is not computable here
+              </span>
             </div>
           </div>
 
@@ -1921,12 +2431,16 @@ return (
                       </span>
                     </td>
                     <td className="p-3.5 font-bold text-safe-700">
-                      {test.brierScore.toFixed(4)}
+                      {test.brierScore === null ? "—" : test.brierScore.toFixed(4)}
                     </td>
                     <td className="p-3.5">
-                      <span className="inline-flex items-center space-x-1 text-safe-700 font-bold">
+                      <span className="inline-flex items-center space-x-1 text-ink-muted font-bold">
                         <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                        <span>Calibrated Pass</span>
+                        <span>
+                          {test.brierScoreResolved === false
+                            ? "Open window — not scored"
+                            : "Consistency recorded (not validated)"}
+                        </span>
                       </span>
                     </td>
                   </tr>
@@ -1936,10 +2450,33 @@ return (
           </div>
 
           <p className="text-[14px] text-ink-subtle font-sans leading-relaxed pt-2 border-t border-rule">
-            {empiricalMatrix.validationDescription} Independent statistical verification proves the AI Capital Tracker composite engine achieves
-            an aggregate Brier calibration score of <strong>0.041</strong> across multi-decade sovereign, equity, and private credit stress episodes,
-            well within the stringent institutional upper bound of <strong>0.050</strong>.
+            {empiricalMatrix.validationDescription} The published mean Brier score is{" "}
+            <strong>{empiricalMatrix.brierScore.toFixed(4)}</strong>, computed over the{" "}
+            {empiricalMatrix.resolvedEpochs} resolved episodes only — the open 2026 window carries no
+            score. It is a consistency measure on a case-enriched table, not a calibration of an
+            unconditional probability, and it is not evidence that the live mapping is correct.
           </p>
+
+          {/* Pre-registration — published before the window resolves */}
+          <div className="panel space-y-2.5">
+            <span className="label">Pre-registration — what counts as a burst, and when it is scored</span>
+            <ul className="space-y-1.5 text-[14px] leading-relaxed text-ink-muted">
+              <li>
+                • <span className="font-semibold text-ink-muted">Event definition:</span> any of —
+                the tracked basket −30% peak-to-trough, Oracle 5Y CDS +100bp, or tracked debt
+                issuance −50% — inside the 12-month window.
+              </li>
+              <li>
+                • <span className="font-semibold text-ink-muted">Ledger:</span> the daily pair
+                (published probability p, composite score S) and the model version are retained
+                every day, so the pre-registered record cannot be rewritten after the fact.
+              </li>
+              <li>
+                • <span className="font-semibold text-ink-muted">Maturity:</span> no outcome has
+                matured — first maturity 19 October 2027; no score is published until then.
+              </li>
+            </ul>
+          </div>
         </div>
       </section>
 

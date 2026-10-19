@@ -21,23 +21,19 @@
  * Generates Datasets:
  * - src/data/live-inputs.json
  * - src/data/live-stocks.json
- * - src/data/latest-model.json
- * - src/data/trajectory-history.json
+ * - src/data/latest-model.json  (written by scripts/compute-artifact.mjs — model only)
+ * - src/data/trajectory-history.json  (observed canonical runs only — no seeded path)
  * - src/data/sync-history.json
+ * - src/data/input-history/YYYY-MM-DD.json  (canonical daily input snapshot)
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {
-  evaluateBubbleModel,
-  computeMertonModel,
-  computeAltmanZScore,
-  computeLpplsMetrics,
-  computeMinskyModel,
-  computeShillerCapeModel,
-  runMonteCarloSimulation,
-} from './lib/quantitative-bubble-model.mjs';
+import { spawnSync } from 'node:child_process';
+// 2026-10-19 (lane 2b, algorithm-improvement wave): the pipeline no longer imports the
+// model engine. The published artifact is produced by scripts/compute-artifact.mjs —
+// one writer, the same engine the test suite runs, no second copy of the model here.
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,6 +47,11 @@ const LIVE_STOCKS_FILE = path.join(projectRoot, 'src', 'data', 'live-stocks.json
 const LIVE_NEWS_FILE = path.join(projectRoot, 'src', 'data', 'live-news.json');
 const LIVE_MODELS_FILE = path.join(projectRoot, 'src', 'data', 'live-models.json');
 const SYNC_HISTORY_FILE = path.join(projectRoot, 'src', 'data', 'sync-history.json');
+// 2026-10-19 (lane 2b): the model-only artifact writer and the canonical daily
+// input-snapshot archive (one file per UTC day; the LAST successful run of the day
+// owns the file).
+const COMPUTE_ARTIFACT_SCRIPT = path.join(projectRoot, 'scripts', 'compute-artifact.mjs');
+const INPUT_HISTORY_DIR = path.join(projectRoot, 'src', 'data', 'input-history');
 
 // Securely load local environment variables from .env.local if present (gitignored, zero secrets in source)
 try {
@@ -389,16 +390,26 @@ function assertFiniteNumber(value, label) {
   }
 }
 
-function validateArtifacts(liveInputs, latestModelResult) {
+/**
+ * Hard validation gate — a non-finite derived value means a broken pass.
+ *
+ * 2026-10-19 (lane 2b): split in two. The INPUTS are validated before they are
+ * written to disk; the ARTIFACT is validated after the compute script wrote it.
+ */
+function validateLiveInputs(liveInputs) {
   assertFiniteNumber(liveInputs.adoption?.apiPriceDeclineMultiple, 'adoption.apiPriceDeclineMultiple');
   assertFiniteNumber(liveInputs.crowd?.yesProbability, 'crowd.yesProbability');
   assertFiniteNumber(liveInputs.macro?.us10yYieldPct, 'macro.us10yYieldPct');
   assertFiniteNumber(liveInputs.ledger?.totalDisclosedUsd, 'ledger.totalDisclosedUsd');
+}
+
+function validateCanonicalArtifact(latestModelResult) {
   assertFiniteNumber(latestModelResult.burstProbability, 'burstProbability');
   assertFiniteNumber(latestModelResult.compositeScore, 'compositeScore');
   assertFiniteNumber(latestModelResult.merton?.distanceToDefault, 'merton.distanceToDefault');
   assertFiniteNumber(latestModelResult.altman?.score, 'altman.score');
   assertFiniteNumber(latestModelResult.monteCarlo?.medianProbabilityPct, 'monteCarlo.medianProbabilityPct');
+  assertFiniteNumber(latestModelResult.monteCarlo?.valueAtRisk95Pct, 'monteCarlo.valueAtRisk95Pct');
   if (latestModelResult.burstProbability < 0 || latestModelResult.burstProbability > 100) {
     throw new Error(`validation failed: burstProbability out of range (${latestModelResult.burstProbability})`);
   }
@@ -1852,7 +1863,19 @@ function computeLedgerAggregates() {
 }
 
 /**
- * 6. Continuous Trajectory History Management (seed 90 days if < 30 exist)
+ * 6. Continuous Trajectory History Management (observed canonical runs only)
+ *
+ * 2026-10-19 (lane 2b, algorithm-improvement wave / wave-1 summit):
+ * the linear-interpolation backfill is RETIRED. The old block seeded a synthetic
+ * 90-day path (today−4.2 … today, plus sine noise, and a var95 = probability × 1.8
+ * series) whenever the file held fewer than 30 rows. That path was never observed
+ * market history, and it made the UI publish a "+33.0 pts in 90 days" move that no
+ * print ever produced.
+ *
+ * The rule now: ONE row per UTC date, written only from a real pipeline run
+ * (the canonical artifact), and nothing is ever seeded. An empty file stays empty —
+ * the chart shows a single point until day 2 — and a legacy file that still carries
+ * seeded rows is purged on the next write.
  */
 function updateTrajectoryHistory(todaySnapshot) {
   let history = [];
@@ -1861,104 +1884,101 @@ function updateTrajectoryHistory(todaySnapshot) {
       history = JSON.parse(fs.readFileSync(TRAJECTORY_HISTORY_FILE, 'utf-8'));
     } catch {}
   }
+  if (!Array.isArray(history)) history = [];
 
-  if (!Array.isArray(history) || history.length < 30) {
-    console.log(`  ↳ Seeding continuous 90-day trajectory history...`);
-    const seeded = [];
-    const today = new Date(todaySnapshot.date + 'T00:00:00Z');
+  // 2026-10-19 (lane 2b): no seeding, ever. History starts on the first observed
+  // canonical run.
+  console.log('  ↳ Trajectory history: no seeding — history starts on the first observed canonical run.');
 
-    for (let i = 90; i >= 1; i--) {
-      const d = new Date(today.getTime() - i * 86400000);
-      const dateStr = d.toISOString().slice(0, 10);
-      const progress = (90 - i) / 90;
-      const noise = Math.sin(i * 12.34) * 0.5;
-
-      const startProb = Math.max(10, Math.round((todaySnapshot.burstProbability - 4.2) * 10) / 10);
-      const startScore = Math.max(10, Math.round((todaySnapshot.compositeScore - 4.2) * 10) / 10);
-      const burstProb = Math.max(10, Math.min(95, Math.round((startProb + (todaySnapshot.burstProbability - startProb) * progress + noise * 0.2) * 10) / 10));
-      const compScore = Math.max(10, Math.min(95, Math.round((startScore + (todaySnapshot.compositeScore - startScore) * progress + noise * 0.2) * 10) / 10));
-      const merton = Math.max(1.5, Math.round((5.80 + (todaySnapshot.mertonDD - 5.80) * progress - noise * 0.05) * 100) / 100);
-      const altman = Math.max(1.1, Math.round((8.80 + (todaySnapshot.altmanZ - 8.80) * progress - noise * 0.05) * 100) / 100);
-      const poly = Math.max(0.01, Math.min(0.5, Math.round((0.055 + (todaySnapshot.polymarketProb - 0.055) * progress + noise * 0.002) * 1000) / 1000));
-      const vol = Math.round(3_200_000 + (todaySnapshot.volumeUsd - 3_200_000) * progress + noise * 50_000);
-      // 2026-10-19 (pass 11): the seeded deflation multiple now carries the verified input-basis
-      // multiple (670× = GPT-4 $30/1M ÷ DeepSeek V4.1 Flash $0.0448/1M, OpenRouter Oct 19 2026)
-      // instead of the pre-verification 25× literal.
-      const defl = todaySnapshot.tokenDeflation;
-      const yield10 = Math.round((4.70 + (todaySnapshot.us10yYield - 4.70) * progress + noise * 0.02) * 100) / 100;
-
-      seeded.push({
-        dayIndex: 90 - i,
-        date: dateStr,
-        dayLabel: `${i}d ago`,
-        probability: burstProb,
-        burstProbability: burstProb,
-        compositeScore: compScore,
-        mertonDD: merton,
-        altmanZ: altman,
-        var95: Math.round(burstProb * 1.8 * 10) / 10,
-        // 2026-10-19 (pass 11): 90-day delta is expressed in POINTS (composite probability points),
-        // matching the derived deltaVs90d written for the current row.
-        deltaVs90d: `+${(progress * 4.2).toFixed(1)} pts`,
-        deltaVsYesterday: '+0.1%',
-        // 2026-10-19 (pass 11): CDS path re-anchored on the verified prints — 203bp = the 90-day-ago
-        // print (Jul 20-24 2026, ICE), 288bp = the record close (Oct 15 2026).
-        cdsOracleBps: Math.round(203 + (288 - 203) * progress),
-        polymarketProb: poly,
-        volumeUsd: vol,
-        tokenDeflation: defl,
-        us10yYield: yield10,
-        // 2026-10-19 (pass 11): seeded rows are INTERPOLATED, not observed — flag them so the UI
-        // can disclose that the early part of the 90-day curve is backfilled, not measured.
-        backfilled: true,
-      });
-    }
-
-    seeded.push(todaySnapshot);
-    history = seeded;
+  const existingIdx = history.findIndex((h) => h && h.date === todaySnapshot.date);
+  if (existingIdx >= 0) {
+    history[existingIdx] = todaySnapshot; // one row per UTC date — the last successful run of the day wins
   } else {
-    const existingIdx = history.findIndex((h) => h.date === todaySnapshot.date);
-    if (existingIdx >= 0) {
-      history[existingIdx] = todaySnapshot;
-    } else {
-      history.push(todaySnapshot);
-    }
-    history.sort((a, b) => a.date.localeCompare(b.date));
+    history.push(todaySnapshot);
   }
 
-  // Ensure all historical entries have the complete uniform schema
-  history = history.map((entry, idx) => {
-    const progress = idx / (history.length - 1 || 1);
-    const prob = entry.probability ?? entry.burstProbability ?? 65;
-    return {
-      dayIndex: entry.dayIndex ?? idx,
-      date: entry.date,
-      dayLabel: entry.dayLabel ?? (idx === history.length - 1 ? 'Current' : `${history.length - 1 - idx}d ago`),
-      probability: prob,
-      burstProbability: entry.burstProbability ?? prob,
-      compositeScore: entry.compositeScore ?? Math.round(prob * 0.96 * 10) / 10,
-      mertonDD: entry.mertonDD ?? Math.round((3.10 - progress * 0.26) * 100) / 100,
-      altmanZ: entry.altmanZ ?? Math.round((2.02 - progress * 0.18) * 100) / 100,
-      var95: entry.var95 ?? Math.round(prob * 1.15 * 10) / 10,
-      // 2026-10-19 (pass 11): 90-day delta is expressed in POINTS, not percent.
-      deltaVs90d: entry.deltaVs90d ?? `+${(progress * 4).toFixed(1)} pts`,
-      deltaVsYesterday: entry.deltaVsYesterday ?? '+0.1%',
-      // 2026-10-19 (pass 11): CDS default path re-anchored on the verified prints (203bp → 288bp).
-      cdsOracleBps: entry.cdsOracleBps ?? Math.round(203 + (288 - 203) * progress),
-      polymarketProb: entry.polymarketProb ?? Math.max(0.01, Math.min(0.5, Math.round((0.045 + (todaySnapshot.polymarketProb - 0.045) * progress) * 1000) / 1000)),
-      volumeUsd: entry.volumeUsd ?? Math.round(1_800_000 + (todaySnapshot.volumeUsd - 1_800_000) * progress),
-      tokenDeflation: entry.tokenDeflation ?? Math.max(10, Math.round(18 + (todaySnapshot.tokenDeflation - 18) * progress)),
-      us10yYield: entry.us10yYield ?? Math.round((4.15 + (todaySnapshot.us10yYield - 4.15) * progress) * 100) / 100,
-      // 2026-10-19 (pass 11): backfill disclosure flag — true = interpolated/backfilled row,
-      // false = observed snapshot. Carried through so the UI can label the backfilled segment.
-      backfilled: entry.backfilled ?? false,
-    };
-  });
+  // Observed rows only: a row that was seeded (legacy "backfilled": true) is dropped,
+  // never rendered and never counted.
+  const observed = history.filter(
+    (h) => h && typeof h.date === 'string' && typeof h.probability === 'number' && h.backfilled !== true,
+  );
+  observed.sort((a, b) => a.date.localeCompare(b.date));
 
-  // 2026-10-19 (CI hardening): the history is returned to the caller and written in the
-  // atomic write phase — no file is touched while the pipeline is still fetching.
-  console.log(`✓ Prepared continuous trajectory history (${history.length} daily snapshots)`);
-  return history;
+  const latestDate = observed.length ? observed[observed.length - 1].date : todaySnapshot.date;
+  const dayGap = (dateStr) => {
+    const a = Date.parse(`${dateStr}T00:00:00Z`);
+    const b = Date.parse(`${latestDate}T00:00:00Z`);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) return 0;
+    return Math.max(0, Math.round((b - a) / 86_400_000));
+  };
+
+  const normalized = observed.map((entry, idx) => ({
+    ...entry,
+    dayIndex: idx,
+    dayLabel: entry.date === latestDate ? 'Current' : `${dayGap(entry.date)}d ago`,
+    // 2026-10-19 (lane 2b): every row in this file came from a real pipeline run,
+    // so the "backfilled" flag is always false. It is kept only so the out-of-lane
+    // UI consumers (which read the flag) keep compiling against a stable shape.
+    backfilled: false,
+    // 2026-10-19 (lane 2b): the row's provenance marker — 'observed' = written from
+    // a canonical pipeline run. There is no other kind of row any more.
+    modelRun: entry.modelRun ?? 'observed',
+  }));
+
+  console.log(`✓ Prepared continuous trajectory history (${normalized.length} observed daily snapshots)`);
+  return normalized;
+}
+
+/**
+ * Canonical daily input snapshot (A-F8/A-F11 consensus, 2026-10-19).
+ *
+ * After a SUCCESSFUL run the canonical input state of the UTC day is archived at
+ * src/data/input-history/YYYY-MM-DD.json. Later successful runs of the SAME day
+ * overwrite it, so the last successful run of the UTC day owns the day's canonical
+ * snapshot — the same rule the trajectory row follows. The archive is the replayable
+ * record of the day's input state: the artifact can be recomputed from it byte-for-byte.
+ */
+function writeCanonicalInputSnapshot(dateStr) {
+  try {
+    if (!fs.existsSync(INPUT_HISTORY_DIR)) fs.mkdirSync(INPUT_HISTORY_DIR, { recursive: true });
+    const snapshotPath = path.join(INPUT_HISTORY_DIR, `${dateStr}.json`);
+    const inputs = readJsonIfParseable(LIVE_INPUTS_FILE);
+    if (!inputs) {
+      console.warn(`  ↳ Canonical input snapshot skipped: ${path.relative(projectRoot, LIVE_INPUTS_FILE)} is unreadable.`);
+      return null;
+    }
+    const serialized = serializeArtifact({
+      _snapshot: {
+        date: dateStr,
+        captured_at: new Date().toISOString(),
+        rule: 'canonical daily snapshot — the last successful run of the UTC day owns this file',
+      },
+      inputs,
+    });
+    writeArtifact(snapshotPath, serialized);
+    console.log(`  ✓ Written ${path.relative(projectRoot, snapshotPath)} (canonical daily input snapshot)`);
+    return snapshotPath;
+  } catch (err) {
+    console.warn(`  ↳ Canonical input snapshot failed: ${err.message}`);
+    return null;
+  }
+}
+
+/**
+ * Stamp the publication time on the computed artifact.
+ *
+ * 2026-10-19 (lane 2b): scripts/compute-artifact.mjs rewrites the model-output
+ * fields and preserves every other key verbatim — including `timestamp`, which is
+ * the PUBLICATION time of the run, not a model output. Without this stamp the
+ * artifact would keep an old "as of" forever. Called only AFTER a successful
+ * compute, so a failed compute still leaves the artifact completely untouched.
+ */
+function stampArtifactTimestamp() {
+  const artifact = readJsonIfParseable(LATEST_MODEL_FILE);
+  if (!artifact) return false;
+  const stamped = { ...artifact, timestamp: new Date().toISOString() };
+  writeArtifact(LATEST_MODEL_FILE, serializeArtifact(stamped));
+  return true;
 }
 
 /**
@@ -2076,121 +2096,116 @@ async function run() {
     },
   };
 
-  // 2026-10-19 (CI hardening): the live-inputs artifact is written in the atomic write phase.
-  // The previous artifact is read first so hand-maintained `_`-prefixed metadata (and the
-  // append-only _verified trail) is carried forward instead of being dropped.
+  // 2026-10-19 (CI hardening): the live-inputs artifact is written BEFORE the model is
+  // computed (scripts/compute-artifact.mjs reads it from disk). The previous artifact is
+  // read first so hand-maintained `_`-prefixed metadata (and the append-only _verified
+  // trail) is carried forward instead of being dropped.
   const previousLiveInputs = readJsonIfParseable(LIVE_INPUTS_FILE);
   const liveInputsPayload = preserveUnderscoreMetadata(previousLiveInputs, liveInputs);
 
-  // 2. Evaluate Quantitative Bubble Models in Node
-  console.log('\n[Quantitative Modeling] Evaluating bubble models & Monte Carlo paths (25,000 Cholesky paths)...');
-  const evaluatedModel = evaluateBubbleModel(liveInputs);
-  const mertonModel = computeMertonModel(liveInputs);
-  const altmanModel = computeAltmanZScore(liveInputs);
-  const lpplsModel = computeLpplsMetrics(liveInputs);
-  const minskyModel = computeMinskyModel(liveInputs);
-  const shillerCapeModel = computeShillerCapeModel(liveInputs);
-  const monteCarlo = runMonteCarloSimulation(liveInputs, 25_000);
+  // 2. Publish the artifact through the model-only compute script.
+  //
+  // 2026-10-19 (lane 2b, algorithm-improvement wave): this pipeline no longer
+  // AUTHORS src/data/latest-model.json. The artifact is written by
+  // `node scripts/compute-artifact.mjs`, which
+  //   · reads the canonical input set from disk (src/data/live-inputs.json),
+  //   · runs the same engine + 25,000-path Monte Carlo the test suite runs,
+  //   · rewrites ONLY the model-output fields (model_version, burstProbability,
+  //     compositeScore, band, coverage, fragilityIndex, systemicContagionPoints,
+  //     topDriverIds, contributions, merton, altman, lppls, minsky, shillerCape,
+  //     monteCarlo — including ciType / bandLowPct / simulatedShockCorrelations /
+  //     innovationKurtosis, and DELETING the retired `confidenceInterval`),
+  //   · preserves `_corrections` / `_verified` verbatim and appends a dated
+  //     `_verified` row (idempotent), and
+  //   · never touches a network or an input file.
+  // One writer, no second copy of the model in the pipeline: the published
+  // artifact can no longer drift from the engine (the old hand-written block
+  // pinned model_version 2.5.0 and dropped the new Monte-Carlo fields).
+  //
+  // RUN ORDER MATTERS (inputs → fetches → artifact subprocess → upstream rows):
+  //   1. the canonical inputs must be ON DISK before the script runs (it reads
+  //      src/data/live-inputs.json) — so they are written first, atomically;
+  //   2. the artifact must exist before the daily rows are written — the rows
+  //      are derived from the CANONICAL artifact only;
+  //   3. the upstream rows (trajectory + sync telemetry) are written last.
+  console.log('\n[Quantitative Modeling] Computing the canonical artifact (scripts/compute-artifact.mjs)...');
+  // The inputs are validated BEFORE they are published: a non-finite input means a
+  // broken pass, and nothing may reach the disk.
+  validateLiveInputs(liveInputs);
+  writeArtifact(LIVE_INPUTS_FILE, serializeArtifact(liveInputsPayload));
+  console.log(`  ✓ Written ${path.relative(projectRoot, LIVE_INPUTS_FILE)}`);
 
-  const latestModelResult = {
-    timestamp: new Date().toISOString(),
-    model_version: '2.5.0',
-    burstProbability: evaluatedModel.burstProbability,
-    compositeScore: evaluatedModel.compositeScore,
-    band: evaluatedModel.band,
-    coverage: evaluatedModel.coverage,
-    confidenceInterval: evaluatedModel.confidenceInterval,
-    fragilityIndex: evaluatedModel.fragilityIndex,
-    systemicContagionPoints: evaluatedModel.systemicContagionPoints,
-    topDriverIds: evaluatedModel.topDriverIds,
-    contributions: evaluatedModel.contributions,
-    merton: {
-      distanceToDefault: mertonModel.distanceToDefault,
-      defaultProbabilityPct: mertonModel.defaultProbabilityPct,
-      structuralSpreadBps: mertonModel.structuralSpreadBps,
-      assetValueUsd: mertonModel.assetValueUsd,
-      totalDebtUsd: mertonModel.totalDebtUsd,
-      interpretation: mertonModel.interpretation,
-    },
-    altman: {
-      score: altmanModel.score,
-      zone: altmanModel.zone,
-      impliedDistressProbPct: altmanModel.impliedDistressProbPct,
-      interpretation: altmanModel.interpretation,
-    },
-    lppls: {
-      superExponentialExponent: lpplsModel.superExponentialExponent,
-      angularFrequency: lpplsModel.angularFrequency,
-      estimatedCriticalWindow: lpplsModel.estimatedCriticalWindow,
-      crashHazardRatePct: lpplsModel.crashHazardRatePct,
-      interpretation: lpplsModel.interpretation,
-    },
-    minsky: {
-      hedgeSharePct: minskyModel.hedgeSharePct,
-      speculativeSharePct: minskyModel.speculativeSharePct,
-      ponziSharePct: minskyModel.ponziSharePct,
-      minskyFragilityIndex: minskyModel.minskyFragilityIndex,
-      currentRegime: minskyModel.currentRegime,
-      refinancingFreezeProbabilityPct: minskyModel.refinancingFreezeProbabilityPct,
-      breakdown: minskyModel.breakdown,
-      interpretation: minskyModel.interpretation,
-      fragilityIndex: minskyModel.minskyFragilityIndex,
-      regime: minskyModel.currentRegime,
-      ponziDebtSharePct: minskyModel.ponziSharePct,
-    },
-    shillerCape: {
-      aiCapeMultiple: shillerCapeModel.aiCapeMultiple,
-      historicalMedianCape: shillerCapeModel.historicalMedianCape,
-      earningsYieldPct: shillerCapeModel.earningsYieldPct,
-      real10yYieldPct: shillerCapeModel.real10yYieldPct,
-      excessCapeYieldPct: shillerCapeModel.excessCapeYieldPct,
-      equityRiskPremiumBand: shillerCapeModel.equityRiskPremiumBand,
-      equityRiskPremiumStatus: shillerCapeModel.equityRiskPremiumBand,
-      interpretation: shillerCapeModel.interpretation,
-    },
-    monteCarlo: {
-      iterationsCount: monteCarlo.iterationsCount,
-      meanProbabilityPct: monteCarlo.meanProbabilityPct,
-      medianProbabilityPct: monteCarlo.medianProbabilityPct,
-      stdDevPct: monteCarlo.stdDevPct,
-      // 2026-10-19 (pass 11): the payload was dropping the variance moment that the model
-      // computes and the methodology page renders (σ²) — publishing it now.
-      variance: monteCarlo.variance,
-      ci90Pct: monteCarlo.ci90Pct,
-      ci95Pct: monteCarlo.ci95Pct,
-      valueAtRisk95Pct: monteCarlo.valueAtRisk95Pct,
-      conditionalValueAtRisk95Pct: monteCarlo.conditionalValueAtRisk95Pct,
-      valueAtRisk99Pct: monteCarlo.valueAtRisk99Pct,
-      conditionalValueAtRisk99Pct: monteCarlo.conditionalValueAtRisk99Pct,
-      skewness: monteCarlo.skewness,
-      kurtosis: monteCarlo.kurtosis,
-      histogram: monteCarlo.histogram,
-      executionTimeMs: monteCarlo.executionTimeMs,
-    },
-  };
+  const artifactRun = spawnSync(process.execPath, [COMPUTE_ARTIFACT_SCRIPT], {
+    cwd: projectRoot,
+    stdio: 'inherit',
+    encoding: 'utf8',
+  });
+  if (artifactRun.error || artifactRun.status !== 0) {
+    // FAIL FAST (outage behaviour): the compute script writes the artifact only
+    // after a complete pass, so the published artifact is still the previous one —
+    // untouched. The run aborts with exit code 1 and publishes no row.
+    const why = artifactRun.error ? artifactRun.error.message : `exit code ${artifactRun.status}`;
+    console.error(`  ↳ compute-artifact failed (${why}) — the published artifact was not touched.`);
+    abortRun('data-sync aborted: artifact computation failed (no artifact written)');
+    return;
+  }
 
-  // 2026-10-19 (CI hardening): PRESERVATION — the published latest-model.json carries a
-  // hand-maintained `_corrections` array that a bare JSON.stringify of the run result would
-  // DROP. The previous artifact is read (if parseable) and every `_`-prefixed top-level key
-  // it owns and the new result does not is carried forward; `_corrections` is append-only.
-  const previousLatestModel = readJsonIfParseable(LATEST_MODEL_FILE);
-  const latestModelPayload = preserveUnderscoreMetadata(previousLatestModel, latestModelResult);
+  // The canonical artifact is the ONLY source of the published numbers below.
+  const latestModelResult = readJsonIfParseable(LATEST_MODEL_FILE);
+  if (!latestModelResult) {
+    console.error('  ↳ compute-artifact produced no readable artifact.');
+    abortRun('data-sync aborted: the computed artifact is missing or unparseable');
+    return;
+  }
+  // 2026-10-19 (lane 2b): the publication time is stamped after a successful compute
+  // (the compute script preserves every non-model key verbatim, `timestamp` included).
+  stampArtifactTimestamp();
+  validateCanonicalArtifact(latestModelResult);
 
-  console.log(`✓ Evaluated latest model (artifact prepared, written in the write phase)`);
+  // 2026-10-19 (lane 2b): the model-output block is GONE from this file — the canonical
+  // artifact above is the single source of the published numbers. The hand-maintained
+  // `_corrections` / `_verified` trails are preserved by the compute script itself.
+  console.log(`✓ Evaluated latest model (canonical artifact written by compute-artifact.mjs)`);
   console.log(`  ↳ Burst Probability: ${latestModelResult.burstProbability}% [${latestModelResult.band.toUpperCase()}]`);
   console.log(`  ↳ Composite Score: ${latestModelResult.compositeScore} / 100`);
   console.log(`  ↳ Merton DD: ${latestModelResult.merton.distanceToDefault}σ (Default Prob: ${latestModelResult.merton.defaultProbabilityPct}%)`);
   console.log(`  ↳ Altman Z'': ${latestModelResult.altman.score} (${latestModelResult.altman.zone})`);
   console.log(`  ↳ Minsky: Regime: ${latestModelResult.minsky.currentRegime} (Fragility: ${latestModelResult.minsky.minskyFragilityIndex}, Ponzi: ${latestModelResult.minsky.ponziSharePct}%)`);
   console.log(`  ↳ Shiller CAPE: ${latestModelResult.shillerCape.aiCapeMultiple}x, ECY: ${latestModelResult.shillerCape.excessCapeYieldPct}% (${latestModelResult.shillerCape.equityRiskPremiumBand})`);
-  console.log(`  ↳ Monte Carlo 25k (Cholesky): Median ${latestModelResult.monteCarlo.medianProbabilityPct}%, 95% VaR: ${latestModelResult.monteCarlo.valueAtRisk95Pct}%, 99% VaR: ${latestModelResult.monteCarlo.valueAtRisk99Pct}% (${monteCarlo.executionTimeMs}ms)`);
+  console.log(`  ↳ MC range type: ${latestModelResult.monteCarlo.ciType} — ci90 ${JSON.stringify(latestModelResult.monteCarlo.ci90Pct)}, ci95 ${JSON.stringify(latestModelResult.monteCarlo.ci95Pct)}`);
+  console.log(`  ↳ Monte Carlo 25k (Cholesky): Median ${latestModelResult.monteCarlo.medianProbabilityPct}%, 95% VaR: ${latestModelResult.monteCarlo.valueAtRisk95Pct}%, 99% VaR: ${latestModelResult.monteCarlo.valueAtRisk99Pct}% (${latestModelResult.monteCarlo.executionTimeMs}ms)`);
 
   // 3. Update continuous trajectory history
   const todayDateStr = new Date().toISOString().slice(0, 10);
 
+  // 2026-10-19 (lane 2b): the sync telemetry is read BEFORE the daily row is built —
+  // the row carries the same-day revision range (min/max/count of the resolved prints).
+  let historyLogs = [];
+  if (fs.existsSync(SYNC_HISTORY_FILE)) {
+    try {
+      historyLogs = JSON.parse(fs.readFileSync(SYNC_HISTORY_FILE, 'utf-8'));
+    } catch {}
+  }
+  if (!Array.isArray(historyLogs)) historyLogs = [];
+
+  // 2026-10-19 (lane 2b): the same-day REVISION RANGE — the min/max/count of the model
+  // prints resolved on this UTC day (the current run included). The range is the honest
+  // width of the day's inputs: a correction window (a re-synced input, a re-derived
+  // deflation multiple) moves the print until it settles. The counts are PER UTC DAY.
+  const todaysRuns = historyLogs.filter(
+    (r) => r && typeof r.timestamp === 'string' && r.timestamp.slice(0, 10) === todayDateStr && typeof r.burst_probability === 'number',
+  );
+  const resolvedProbs = [...todaysRuns.map((r) => r.burst_probability), latestModelResult.burstProbability];
+  const revisionStats = {
+    min: Math.min(...resolvedProbs),
+    max: Math.max(...resolvedProbs),
+    runs: resolvedProbs.length,
+  };
+
   // 2026-10-19 (pass 11): deltaVs90d is DERIVED from trajectory-history.json (newest probability
   // − row-0 probability, expressed in POINTS) instead of the hardcoded '+4.0%' literal.
-  // e.g. 71.6 − 38.6 = '+33.0 pts'.
+  // 2026-10-19 (lane 2b): row 0 is now the FIRST OBSERVED point, so this is the move since
+  // the first observed canonical run (the seeded 90-day path is retired).
   let deltaVs90d = null;
   try {
     if (fs.existsSync(TRAJECTORY_HISTORY_FILE)) {
@@ -2206,8 +2221,8 @@ async function run() {
 
   // 2026-10-19 (round-2 consolidation): deltaVsYesterday is DERIVED from the previous recorded row's
   // probability (expressed in POINTS, like deltaVs90d) instead of the hardcoded '+0.2%' literal.
-  // The previous row is a BACKFILLED interpolation point, so the jump it implies is the backfill
-  // seam — the UI discloses the backfilled segment next to the 90-day delta. Fallback '+0.0 pts'.
+  // 2026-10-19 (lane 2b): the previous row is now an OBSERVED canonical run (never a seeded
+  // interpolation point), so this is a real run-to-run move. Fallback '+0.0 pts'.
   let deltaVsYesterday = '+0.0 pts';
   try {
     if (fs.existsSync(TRAJECTORY_HISTORY_FILE)) {
@@ -2228,7 +2243,7 @@ async function run() {
   }
 
   const todaySnapshot = {
-    dayIndex: 89,
+    dayIndex: 0, // 2026-10-19 (lane 2b): the index is re-assigned by updateTrajectoryHistory (it is the position in the observed history, not a fixed 89).
     date: todayDateStr,
     dayLabel: 'Current',
     probability: latestModelResult.burstProbability,
@@ -2246,20 +2261,21 @@ async function run() {
     volumeUsd: Math.round(crowdSignal.volumeUsd || 0),
     tokenDeflation: tokenMultiple,
     us10yYield: liveMacroInputs.us10yYieldPct,
-    // 2026-10-19 (pass 11): this row is an OBSERVED snapshot — not backfilled. Every interpolated
-    // row in the file carries backfilled: true so the UI can disclose the backfilled segment.
+    // 2026-10-19 (lane 2b): every row is an OBSERVED snapshot of a real pipeline run — the
+    // seeded interpolation rows are retired, so the flag is always false.
     backfilled: false,
+    // 2026-10-19 (lane 2b): provenance marker + the same-day revision range (the min/max/count
+    // of the prints resolved on this UTC day, the current run included).
+    modelRun: 'observed',
+    revision_min_pct: revisionStats.min,
+    revision_max_pct: revisionStats.max,
+    revision_runs: revisionStats.runs,
   };
   const trajectoryHistory = updateTrajectoryHistory(todaySnapshot);
 
   // 4. Update sync history with telemetry & delta vs previous run
-  let historyLogs = [];
-  if (fs.existsSync(SYNC_HISTORY_FILE)) {
-    try {
-      historyLogs = JSON.parse(fs.readFileSync(SYNC_HISTORY_FILE, 'utf-8'));
-    } catch {}
-  }
-
+  // (historyLogs was read above — before the daily row — so the revision range and the
+  // telemetry log describe the same day.)
   const prevLog = historyLogs[0] || null;
   const deltaVsPrevious = prevLog
     ? {
@@ -2301,20 +2317,27 @@ async function run() {
 
   historyLogs = historyLogs.slice(0, 30);
   console.log(`✓ Prepared sync telemetry log (${historyLogs.length} historical runs retained, duration: ${currentRunDurationMs}ms)`);
+  console.log(`  ↳ Same-day revision range (${todayDateStr}): ${revisionStats.min}% – ${revisionStats.max}% over ${revisionStats.runs} resolved run(s)`);
 
   // ── Validation gate (2026-10-19, CI hardening) ────────────────────────────────
   // A non-finite or out-of-range derived value means the pass is broken: fail loudly
   // (exit code 1) instead of publishing a corrupt artifact.
-  validateArtifacts(liveInputs, latestModelResult);
+  // 2026-10-19 (lane 2b): the inputs were validated before they were written and the
+  // canonical artifact right after the compute script produced it — both gates are
+  // already closed by the time the upstream rows are written.
 
   // ── Atomic write phase (2026-10-19, CI hardening) ─────────────────────────────
   // Every artifact is serialized + JSON.parse'd (sanity gate) FIRST; only then are the
   // files written in sequence (temp file + rename). Nothing is written when the gate
   // aborts, and no file is ever left half-written.
+  //
+  // 2026-10-19 (lane 2b): src/data/live-inputs.json and src/data/latest-model.json are
+  // NOT in this list any more — the inputs were written before the compute script ran
+  // (it reads them from disk) and the artifact is written by that script. Everything
+  // below is the UPSTREAM ROW set: the daily trajectory row, the sync telemetry and
+  // the auxiliary feeds.
   const artifacts = [
-    { file: LIVE_INPUTS_FILE, payload: liveInputsPayload },
     { file: LIVE_STOCKS_FILE, payload: liveStocksPayload },
-    { file: LATEST_MODEL_FILE, payload: latestModelPayload },
     { file: TRAJECTORY_HISTORY_FILE, payload: trajectoryHistory },
     { file: SYNC_HISTORY_FILE, payload: historyLogs },
     { file: LIVE_MODELS_FILE, payload: liveModelsPayload },
@@ -2328,6 +2351,13 @@ async function run() {
   }
 
   writeArtifacts(artifacts);
+
+  // ── Canonical daily input snapshot (A-F8/A-F11 consensus) ─────────────────────
+  // The run is successful at this point: the canonical input state of the UTC day is
+  // archived (overwritten by any later successful run of the same day — the LAST
+  // successful run of the day owns the file). The archive is the replayable record of
+  // the day's input state: the artifact can be recomputed from it byte-for-byte.
+  writeCanonicalInputSnapshot(todayDateStr);
 
   console.log('\n========================================================================');
   console.log(' 24h Market Ingestion & Quantitative Automation Pipeline Complete!');

@@ -18,6 +18,7 @@ import {
   ShillerCapeResult,
   EquityRiskPremiumBand,
 } from './types';
+import { MARKET_IMPLIED_12M_PCT } from './factors';
 import { evaluateBubbleModel } from './engine';
 
 // ── Standard Normal Cumulative Distribution Function (Abramowitz & Stegun 7.1.26) ──
@@ -60,20 +61,33 @@ export interface MertonModelResult {
 /**
  * Merton (1974) Structural Model of Credit Risk
  * Evaluates equity as a call option on total assets with strike price = face value of debt D.
+ *
+ * 2026-10-19 (v2.6.0): the optional volatility override is now EXPLICIT and identical
+ * to the pipeline mirror (scripts/lib/quantitative-bubble-model.mjs), so both engines
+ * produce byte-equal results for the live canon. The published 5.13σ DD is unchanged
+ * (V = $1.42T, σ_V = 36.5%, T = 1y are the frozen calibration constants).
  */
-export function computeMertonModel(inputs: BubbleModelInputs): MertonModelResult {
+export function computeMertonModel(
+  inputs: BubbleModelInputs,
+  customVolatility: number | null = null
+): MertonModelResult {
   const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 214_890_400_000;
-  // Estimated asset value: Public tech credit guarantors enterprise value + private lab valuations
-  const assetValue = 1_420_000_000_000;
-  const volatility = 0.365; // 36.5% asset volatility derived from NVDA/ORCL equity & CDS implied vol
+  // Frozen calibration constants (mirror-parity): asset value and asset volatility.
+  const overrides = inputs as BubbleModelInputs & {
+    assetValueUsd?: number;
+    assetVolatility?: number;
+    maturityHorizonYears?: number;
+  };
+  const assetValue = overrides.assetValueUsd ?? 1_420_000_000_000;
+  const volatility = customVolatility ?? overrides.assetVolatility ?? 0.365;
   const r = (inputs.macro?.us10yYieldPct ?? 5.10) / 100;
-  const T = 1.0; // 1-year horizon
+  const T = overrides.maturityHorizonYears ?? 1.0;
 
   const d1 = (Math.log(assetValue / totalDebt) + (r + 0.5 * volatility * volatility) * T) / (volatility * Math.sqrt(T));
   const distanceToDefault = d1 - volatility * Math.sqrt(T);
   const defaultProbability = normalCdf(-distanceToDefault);
   const defaultProbPct = Math.round(defaultProbability * 1000) / 10;
-  const structuralSpreadBps = Math.round(-((Math.log(1 - defaultProbability * 0.6) / T)) * 10000);
+  const structuralSpreadBps = Math.round(-((Math.log(Math.max(1e-12, 1 - defaultProbability * 0.6)) / T)) * 10000);
 
   let interpretation = "Asset value cushions debt comfortably (Distance-to-Default > 3.0σ).";
   if (distanceToDefault < 2.0) {
@@ -409,12 +423,63 @@ export const computeShillerECY = computeShillerCapeModel;
 
 
 // ── 4x4 Empirical Correlation Matrix between [US10Y, Oracle CDS, Capex, Valuation Multiples] ──
+// 2026-10-19 (v2.6.0): the Cholesky block still covers the four jointly-shocked variables.
+// The published 5×5 DESIGN matrix (EMPIRICAL_DESIGN_MATRIX_5X5 in src/lib/model/factors.ts)
+// adds HY-OAS as a fifth variable with corr(CDS, HY-OAS) ≈ 0.80; the engine realizes that
+// pair as systemic linkage (1.4bp of HY per bp of Oracle CDS) PLUS an independent
+// idiosyncratic HY-OAS shock, so the simulated correlation lands on the published 0.80
+// instead of the deterministic 1.000 the old mapping produced.
 export const EMPIRICAL_CORRELATION_MATRIX: number[][] = [
   [ 1.00,  0.45,  0.35, -0.40], // US10Y Yield
   [ 0.45,  1.00,  0.50, -0.55], // Oracle CDS
   [ 0.35,  0.50,  1.00,  0.30], // Capex commitments
   [-0.40, -0.55,  0.30,  1.00], // Valuation Multiples
 ];
+
+/**
+ * Published Monte-Carlo shock parameters (v2.6.0) — a 12-MONTH horizon.
+ *
+ * The old set (σ_yield 0.42 = a ONE-WEEK move on the 10Y; σ_CDS 0.28; σ_capex 0.15;
+ * σ_multiple 0.22) with hard clamps at 500bp CDS / 6.5% yield / 0.25× multiple
+ * truncated precisely the events the range exists to cover: 2007 CDS 35→550bp and
+ * the 2000 −78% multiple are outside that support, and the published simulation's
+ * kurtosis was 3.98 (i.e. Gaussian — it could not express a crisis state).
+ */
+export const MC_SHOCK_PARAMS = {
+  /** 12-month σ on the US10Y (85bp; the 10Y moved +250bp in 2022). */
+  sigmaYield: 0.85,
+  /** 12-month σ on Oracle CDS in LOG space. */
+  sigmaCds: 0.45,
+  /** 12-month σ on the capex commitment path. */
+  sigmaCapex: 0.3,
+  /** 12-month σ on the valuation multiple path. */
+  sigmaMultiple: 0.32,
+  /** Support windows — widened so the 2000/2008 analogues are inside the support. */
+  yieldClamp: [1.5, 12.0] as [number, number],
+  cdsClamp: [40, 1500] as [number, number],
+  capexFloor: 0.4,
+  multipleFloor: 0.05,
+  /** bp of HY-OAS per bp of Oracle CDS (systemic credit complex). */
+  hyLinkage: 1.4,
+  /**
+   * Independent (idiosyncratic) HY-OAS shock, bp. Sized so the SIMULATED
+   * corr(Oracle CDS, HY-OAS) lands on the published design value ≈ 0.80
+   * (with 90bp the simulated correlation is 0.90 — outside the published band;
+   * 170bp measures 0.805).
+   */
+  hyIdiosyncraticBps: 170,
+  /** 90/10 heavy-tail mixture: P(jump) and the jump's scale. */
+  tailMixProbability: 0.1,
+  tailMixScale: 3.0,
+  /** HY-OAS support. */
+  hyClamp: [50, 2000] as [number, number],
+} as const;
+
+/**
+ * The published ranges are INPUT-SENSITIVITY quantiles of the simulated model,
+ * not a probability interval for the event.
+ */
+export const CI_TYPE = 'input-sensitivity range (not a probability interval)';
 
 /**
  * Cholesky Factorization of a symmetric positive-definite matrix Σ = L * L^T
@@ -455,6 +520,16 @@ export interface MonteCarloSimulationResult {
   variance?: number;
   ci90Pct: [number, number];
   ci95Pct: [number, number];
+  /** Label for the published ranges — they are NOT a probability interval. */
+  ciType: string;
+  /** Published band's lower end after the market-implied floor rule. */
+  bandLowPct: number;
+  /** Simulated correlation of the shocked shock series (CDS vs HY-OAS). */
+  simulatedShockCorrelations: { cdsHy: number };
+  /** Kurtosis of the heavy-tailed INNOVATIONS (3.0 = Gaussian). */
+  innovationKurtosis: number;
+  /** Excess kurtosis of the heavy-tailed innovations (0 = Gaussian). */
+  innovationExcessKurtosis: number;
   valueAtRisk95Pct: number; // 95th percentile burst probability
   conditionalValueAtRisk95Pct: number; // Expected Shortfall (mean of top 5% worst scenarios)
   valueAtRisk99Pct: number; // 99th percentile burst probability
@@ -485,6 +560,63 @@ function sampleStandardNormal(random: () => number): number {
 }
 
 /**
+ * 2026-10-19 (v2.6.0): heavy-tailed innovation — a 90/10 scale mixture,
+ * z = (0.9·N(0,1) + 0.1·N(0,3)) / sqrt(1.8): unit variance, excess kurtosis ≈ 5.3.
+ * The Gaussian innovation could not express a crisis state (published kurtosis 3.98).
+ */
+function sampleHeavyTailedNormal(random: () => number): number {
+  const z = sampleStandardNormal(random);
+  const jump = random() < MC_SHOCK_PARAMS.tailMixProbability;
+  const scaled = jump ? z * MC_SHOCK_PARAMS.tailMixScale : z;
+  const norm = Math.sqrt(
+    1 + MC_SHOCK_PARAMS.tailMixProbability * (MC_SHOCK_PARAMS.tailMixScale ** 2 - 1),
+  );
+  return scaled / norm;
+}
+
+/** Pearson correlation of two equal-length series. */
+function pearsonCorrelation(a: number[], b: number[]): number {
+  const n = Math.min(a.length, b.length);
+  if (n < 2) return 0;
+  const ma = a.reduce((s, v) => s + v, 0) / n;
+  const mb = b.reduce((s, v) => s + v, 0) / n;
+  let num = 0;
+  let da = 0;
+  let db = 0;
+  for (let i = 0; i < n; i++) {
+    const x = a[i] - ma;
+    const y = b[i] - mb;
+    num += x * y;
+    da += x * x;
+    db += y * y;
+  }
+  const den = Math.sqrt(da * db);
+  return den > 0 ? num / den : 0;
+}
+
+/**
+ * Kurtosis of a series (3.0 = Gaussian, > 3 = heavy-tailed).
+ * Reported for the INNOVATION distribution, which is where the heavy-tail change lives:
+ * the simulated OUTPUT (a bounded probability) can be platykurtic even when the
+ * innovations that generate it are heavy-tailed.
+ */
+function seriesKurtosis(values: number[]): number {
+  const n = values.length;
+  if (n < 4) return 3;
+  const mean = values.reduce((s, v) => s + v, 0) / n;
+  let m2 = 0;
+  let m4 = 0;
+  for (const v of values) {
+    const d = v - mean;
+    m2 += d * d;
+    m4 += d * d * d * d;
+  }
+  m2 /= n;
+  m4 /= n;
+  return m2 > 0 ? m4 / (m2 * m2) : 3;
+}
+
+/**
  * 25,000-Path Monte Carlo Sampling Engine with Cholesky Correlated Shocks
  * Simulates joint stochastic paths across [US10Y yields, CDS credit spreads, Capex growth, Valuation multiples].
  */
@@ -495,6 +627,7 @@ export function runMonteCarloSimulation(
 ): MonteCarloSimulationResult {
   const startTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
   const random = createSeededRandom(seed);
+  const P = MC_SHOCK_PARAMS;
 
   // Compute Cholesky lower-triangular factorization once for the simulation
   const L = choleskyDecomposition(EMPIRICAL_CORRELATION_MATRIX);
@@ -506,15 +639,26 @@ export function runMonteCarloSimulation(
   // capex.aggregateCapexUsd) — the old 210B understated the capex shock base by ~3.5×.
   const baseCapex = baseInputs.capex?.aggregateCapexUsd ?? 725_000_000_000;
   const baseDebtPace = baseInputs.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000;
+  const baseHy = baseInputs.macro?.highYieldSpreadBps ?? 323;
 
   const results: number[] = new Array(iterations);
+  const simCdsSeries: number[] = new Array(iterations);
+  const simHySeries: number[] = new Array(iterations);
+  const innovations: number[] = new Array(iterations * 5);
 
   for (let i = 0; i < iterations; i++) {
-    // 1. Generate 4 independent standard normal variates
-    const z0 = sampleStandardNormal(random);
-    const z1 = sampleStandardNormal(random);
-    const z2 = sampleStandardNormal(random);
-    const z3 = sampleStandardNormal(random);
+    // 1. Generate 5 independent heavy-tailed standard variates
+    const z0 = sampleHeavyTailedNormal(random);
+    const z1 = sampleHeavyTailedNormal(random);
+    const z2 = sampleHeavyTailedNormal(random);
+    const z3 = sampleHeavyTailedNormal(random);
+    // z4 = independent idiosyncratic HY-OAS shock (uncorrelated with the 4×4 Cholesky block)
+    const z4 = sampleHeavyTailedNormal(random);
+    innovations[i * 5] = z0;
+    innovations[i * 5 + 1] = z1;
+    innovations[i * 5 + 2] = z2;
+    innovations[i * 5 + 3] = z3;
+    innovations[i * 5 + 4] = z4;
 
     // 2. Transform into correlated standard normal shocks: X = L * Z
     const x0 = L[0][0] * z0;
@@ -522,21 +666,32 @@ export function runMonteCarloSimulation(
     const x2 = L[2][0] * z0 + L[2][1] * z1 + L[2][2] * z2;
     const x3 = L[3][0] * z0 + L[3][1] * z1 + L[3][2] * z2 + L[3][3] * z3;
 
-    // 3. Map shocks to economic variables
-    // Yield shock: +/- 42 bps rate volatility
-    const yieldShock = x0 * 0.42;
-    const simYield = Math.max(3.25, Math.min(6.5, baseYield + yieldShock));
+    // 3. Map shocks to economic variables (12-month horizon, heavy-tailed innovations)
+    const yieldShock = x0 * P.sigmaYield;
+    const simYield = Math.max(P.yieldClamp[0], Math.min(P.yieldClamp[1], baseYield + yieldShock));
 
-    // CDS shock: lognormal credit spread shock (28% volatility)
-    const cdsShock = Math.exp(x1 * 0.28);
-    const simCds = Math.max(60, Math.min(500, Math.round(baseCds * cdsShock)));
+    // CDS shock: lognormal, MEAN-preserving (exp(σx − σ²/2)) so the simulated mean
+    // matches the current level instead of drifting upward.
+    const cdsShock = Math.exp(x1 * P.sigmaCds - (P.sigmaCds ** 2) / 2);
+    const simCds = Math.max(P.cdsClamp[0], Math.min(P.cdsClamp[1], Math.round(baseCds * cdsShock)));
 
-    // Capex shock: 15% volatility
-    const capexShock = 1.0 + x2 * 0.15;
-    const simCapex = Math.max(100_000_000_000, baseCapex * Math.max(0.5, capexShock));
+    const capexShock = 1.0 + x2 * P.sigmaCapex;
+    const simCapex = Math.max(100_000_000_000, baseCapex * Math.max(P.capexFloor, capexShock));
 
-    // Multiple de-rating factor: 22% volatility
-    const multipleShock = Math.max(0.25, 1.0 + x3 * 0.22);
+    const multipleShock = Math.max(P.multipleFloor, 1.0 + x3 * P.sigmaMultiple);
+
+    // 2026-10-19 (v2.6.0): HY-OAS = systemic linkage to the AI credit complex + an
+    // independent idiosyncratic shock (published design corr(CDS, HY) ≈ 0.80; the old
+    // deterministic mapping produced a simulated correlation of 1.000).
+    const simHy = Math.max(
+      P.hyClamp[0],
+      Math.min(
+        P.hyClamp[1],
+        Math.round(baseHy + (simCds - baseCds) * P.hyLinkage + z4 * P.hyIdiosyncraticBps),
+      ),
+    );
+    simCdsSeries[i] = simCds;
+    simHySeries[i] = simHy;
 
     // Evaluate simulated path (skip auxiliary submodels for maximum simulation throughput)
     const simInputs: BubbleModelInputs = {
@@ -548,7 +703,7 @@ export function runMonteCarloSimulation(
             // 2026-10-19 (pass 11): CPI fallback 2.9 → 3.72 (FRED CPIAUCSL Sep-2026 y/y).
             cpiInflationYoY: Math.max(1.8, Math.min(5.5, (baseInputs.macro.cpiInflationYoY ?? 3.72) + yieldShock * 0.5)),
             // 2026-10-19 (pass 11): HY-OAS fallback 328 → 323 (FRED BAMLH0A0HYM2, Oct 15 2026).
-            highYieldSpreadBps: Math.round((baseInputs.macro.highYieldSpreadBps ?? 323) + (simCds - baseCds) * 1.4),
+            highYieldSpreadBps: simHy,
           }
         : null,
       cds: baseInputs.cds
@@ -604,6 +759,11 @@ export function runMonteCarloSimulation(
   const p95 = results[Math.floor(iterations * 0.95)];
   const p99 = results[Math.min(iterations - 1, Math.floor(iterations * 0.99))];
 
+  // 2026-10-19 (v2.6.0): published band floor rule — the published range may never sit
+  // above the market-implied 12-month probability (Lane 2's crowd reconciler), so the
+  // model can never read as more certain than the market's own floor.
+  const bandLowPct = Math.min(p5, MARKET_IMPLIED_12M_PCT);
+
   // Expected Shortfall (CVaR 95%): Mean of worst 5% tail outcomes
   const tailSlice95 = results.slice(Math.floor(iterations * 0.95));
   const cvar95 = tailSlice95.reduce((acc, v) => acc + v, 0) / (tailSlice95.length || 1);
@@ -635,7 +795,14 @@ export function runMonteCarloSimulation(
     stdDevPct: Math.round(stdDev * 10) / 10,
     variance: Math.round(variance * 10) / 10,
     ci90Pct: [Math.round(p10 * 10) / 10, Math.round(p90 * 10) / 10],
-    ci95Pct: [Math.round(p5 * 10) / 10, Math.round(p95 * 10) / 10],
+    ci95Pct: [Math.round(bandLowPct * 10) / 10, Math.round(p95 * 10) / 10],
+    ciType: CI_TYPE,
+    bandLowPct: Math.round(bandLowPct * 10) / 10,
+    simulatedShockCorrelations: {
+      cdsHy: Math.round(pearsonCorrelation(simCdsSeries, simHySeries) * 1000) / 1000,
+    },
+    innovationKurtosis: Math.round(seriesKurtosis(innovations) * 100) / 100,
+    innovationExcessKurtosis: Math.round((seriesKurtosis(innovations) - 3) * 100) / 100,
     valueAtRisk95Pct: Math.round(p95 * 10) / 10,
     conditionalValueAtRisk95Pct: Math.round(cvar95 * 10) / 10,
     valueAtRisk99Pct: Math.round(p99 * 10) / 10,
@@ -658,7 +825,16 @@ export interface HistoricalBacktest {
   band: "Critical" | "High Stress" | "Elevated" | "Guarded";
   actualBurstObserved: boolean;
   actualOutcomeDesc: string;
-  brierScore: number; // (P - Actual)^2 (0.00 = perfect calibration)
+  /**
+   * (P − outcome)² for a RESOLVED episode.
+   * 2026-10-19 (v2.6.0): an UNRESOLVED window carries `null` and is EXCLUDED from the
+   * mean — the live 2026 window previously carried a hardcoded 0.0480, which is not a
+   * Brier score of anything (its honest value as a non-burst would be 0.5127) and
+   * accounted for 28% of the published mean.
+   */
+  brierScore: number | null;
+  /** true = the 12-month window has resolved and carries a score; false = still open. */
+  brierScoreResolved: boolean;
   primaryMacroTriggers: string[];
   mertonDistanceToDefault: number;
   altmanZScore: number;
@@ -675,7 +851,8 @@ export const HISTORICAL_BACKTESTS: HistoricalBacktest[] = [
     band: "Critical",
     actualBurstObserved: true,
     actualOutcomeDesc: "Dow Jones plummeted -89% through 1932. Broker call loans and leveraged utility pyramid holdings suffered catastrophic debt deflation.",
-    brierScore: 0.0018, // (0.958 - 1.0)^2
+    brierScore: 0.001764, // (0.958 - 1.0)^2
+    brierScoreResolved: true,
     primaryMacroTriggers: [
       "Broker call loan margin debt surpassed 10% of US GDP ($8.5B in 1929 dollars)",
       "Multi-tiered public utility holding company pyramids created extreme circular leverage",
@@ -694,7 +871,8 @@ export const HISTORICAL_BACKTESTS: HistoricalBacktest[] = [
     band: "Critical",
     actualBurstObserved: true,
     actualOutcomeDesc: "NASDAQ crashed -78% over subsequent 24 months. Over $1.2T in telecom debt defaulted (WorldCom, Global Crossing, Lucent).",
-    brierScore: 0.0058, // (0.924 - 1.0)^2
+    brierScore: 0.005776, // (0.924 - 1.0)^2
+    brierScoreResolved: true,
     primaryMacroTriggers: [
       "Telecom fiber capex ran at 2.4× free cash flow",
       "Massive circular vendor-financing (Lucent/Nortel funding customers)",
@@ -713,7 +891,8 @@ export const HISTORICAL_BACKTESTS: HistoricalBacktest[] = [
     band: "Critical",
     actualBurstObserved: true,
     actualOutcomeDesc: "Global Financial Crisis materialized within 11 months. Bear Stearns & Lehman Brothers collapsed under short-term repo runs.",
-    brierScore: 0.0190, // (0.862 - 1.0)^2
+    brierScore: 0.019044, // (0.862 - 1.0)^2
+    brierScoreResolved: true,
     primaryMacroTriggers: [
       "Financial sector leverage surpassed 33:1",
       "5Y CDS spreads blew out from 35 bp to 550 bp",
@@ -732,7 +911,8 @@ export const HISTORICAL_BACKTESTS: HistoricalBacktest[] = [
     band: "High Stress",
     actualBurstObserved: true,
     actualOutcomeDesc: "B2B SaaS multiples collapsed -65% in 2022 as Fed hiked 525bps. Venture capital funding velocity dropped 55%.",
-    brierScore: 0.0795, // (0.718 - 1.0)^2
+    brierScore: 0.079524, // (0.718 - 1.0)^2
+    brierScoreResolved: true,
     primaryMacroTriggers: [
       "Cloud median software multiples hit 24.5× P/S peak",
       "Negative real interest rates distorted long-duration DCFs",
@@ -751,7 +931,8 @@ export const HISTORICAL_BACKTESTS: HistoricalBacktest[] = [
     band: "High Stress",
     actualBurstObserved: true,
     actualOutcomeDesc: "Fastest Fed tightening cycle in 40 years (+425bps in 2022). Silicon Valley Bank and Signature Bank collapsed 5 months later under duration losses.",
-    brierScore: 0.0462, // (0.785 - 1.0)^2
+    brierScore: 0.046225, // (0.785 - 1.0)^2
+    brierScoreResolved: true,
     primaryMacroTriggers: [
       "US 10-Year Treasury surged from 1.50% to over 4.25%",
       "Tech sector layoffs exceeded 160,000 workers as free cash flow contracted",
@@ -779,7 +960,11 @@ export const HISTORICAL_BACKTESTS: HistoricalBacktest[] = [
     band: "High Stress",
     actualBurstObserved: false, // In-progress evaluation window
     actualOutcomeDesc: "Active evaluation window (through October 2027). Elevated credit risk (record Oracle 5Y CDS) against a 670× token price decline and real enterprise software ARR.",
-    brierScore: 0.0480, // Calibrated benchmark - retained: the window is unresolved, so there is no outcome to score (the suite's mean Brier sums this stored field)
+    // 2026-10-19 (v2.6.0): the window is OPEN — it carries no Brier score at all.
+    // The previous hardcoded 0.0480 was not a score of any outcome (the honest value
+    // as a non-burst is 0.5127) and it was 28% of the published mean Brier.
+    brierScore: null,
+    brierScoreResolved: false,
     primaryMacroTriggers: [
       "Oracle 5Y CDS at a record 288 bp (+255% vs baseline; Oct 15, 2026)",
       "$214.9B verified debt across 24 debt facilities ($85B/yr issuance pace)",
@@ -794,28 +979,41 @@ export const HISTORICAL_BACKTESTS: HistoricalBacktest[] = [
 
 export interface BacktestCalibrationResult {
   meanBrierScore: number;
-  aucRocScore: number;
+  /**
+   * 2026-10-19 (v2.6.0): null — the consistency table has 5 resolved positives and 1
+   * OPEN window, so an AUC is not computable in any meaningful way. The previous
+   * hardcoded 0.94 was a literal, not a measurement.
+   */
+  aucRocScore: number | null;
   brierStatus: string;
   discriminationPower: string;
   totalEpisodes: number;
+  /** Episodes whose 12-month window has resolved (these carry the score). */
+  resolvedEpisodes: number;
 }
 
 /**
- * Computes mean Brier calibration score and discrimination AUC-ROC across historical backtests.
- * A Brier score <= 0.05 denotes institutional probabilistic calibration.
- * An AUC-ROC of 0.94 reflects outstanding predictive discrimination.
+ * Computes the mean Brier calibration score over the RESOLVED episodes only, and
+ * reports discrimination as null rather than inventing an AUC.
+ *
+ * 2026-10-19 (v2.6.0): the previous version averaged a hardcoded 0.0480 for the OPEN
+ * 2026 window and published a hardcoded AUC of 0.94 plus a hardcoded "91.7% accuracy"
+ * in EMPIRICAL_VERIFICATION_MATRIX. A mean over a case-enriched table (5/6 positives)
+ * is a consistency measure, NOT an out-of-sample calibration of an unconditional
+ * probability — the label now says so.
  */
 export function computeBrierAndAuc(backtests: HistoricalBacktest[] = HISTORICAL_BACKTESTS): BacktestCalibrationResult {
-  const sumBrier = backtests.reduce((acc, b) => acc + b.brierScore, 0);
-  const meanBrierScore = Math.round((sumBrier / backtests.length) * 10000) / 10000;
-  const aucRocScore = 0.94;
+  const resolved = backtests.filter((b) => b.brierScoreResolved !== false && b.brierScore !== null);
+  const sumBrier = resolved.reduce((acc, b) => acc + (b.brierScore ?? 0), 0);
+  const meanBrierScore = Math.round((sumBrier / resolved.length) * 10000) / 10000;
 
   return {
-    meanBrierScore, // 0.0334 <= 0.05
-    aucRocScore, // 0.94
-    brierStatus: "Well-Calibrated (BS <= 0.05)",
-    discriminationPower: "Outstanding (AUC >= 0.90)",
+    meanBrierScore, // 0.0305 over 5 resolved episodes
+    aucRocScore: null,
+    brierStatus: `Well-Calibrated (BS <= 0.05) over ${resolved.length} resolved episodes`,
+    discriminationPower: `Not computed — ${resolved.length} resolved positives, 1 open window (AUC needs both classes)`,
     totalEpisodes: backtests.length,
+    resolvedEpisodes: resolved.length,
   };
 }
 
@@ -824,19 +1022,25 @@ export const BACKTEST_CALIBRATION_SUMMARY: BacktestCalibrationResult = computeBr
 export interface EmpiricalVerificationMatrix {
   brierScore: number;
   brierScoreBenchmark: number;
-  aucRocScore: number;
-  outOfSampleAccuracyPct: number;
+  /** 2026-10-19 (v2.6.0): null — see computeBrierAndAuc. */
+  aucRocScore: number | null;
+  /** 2026-10-19 (v2.6.0): null — the "91.7% accuracy" literal was not computable from 6 rows. */
+  outOfSampleAccuracyPct: number | null;
   totalHistoricalEpochs: number;
+  resolvedEpochs: number;
+  aucLabel: string;
   validationDescription: string;
 }
 
 export const EMPIRICAL_VERIFICATION_MATRIX: EmpiricalVerificationMatrix = {
-  brierScore: 0.041,
-  brierScoreBenchmark: 0.050,
-  aucRocScore: 0.942,
-  outOfSampleAccuracyPct: 91.7,
-  totalHistoricalEpochs: 6,
+  brierScore: BACKTEST_CALIBRATION_SUMMARY.meanBrierScore,
+  brierScoreBenchmark: 0.05,
+  aucRocScore: null,
+  outOfSampleAccuracyPct: null,
+  totalHistoricalEpochs: HISTORICAL_BACKTESTS.length,
+  resolvedEpochs: BACKTEST_CALIBRATION_SUMMARY.resolvedEpisodes,
+  aucLabel: 'AUC not computed — 5 resolved positives, 1 open window (AUC needs both classes)',
   validationDescription:
-    "Calibrated across 1929 Margin Call, 2000 Dot-Com, 2007 Pre-Lehman GFC, 2021 ZIRP SaaS, 2022 Fed Rate Shock, and 2026 AI Superstructure epochs.",
+    'Case-enriched consistency table (1929 Margin Call, 2000 Dot-Com, 2007 Pre-Lehman GFC, 2021 ZIRP SaaS, 2022 Fed Rate Shock) plus the live 2026 window, which is still open and is excluded from the score.',
 };
 

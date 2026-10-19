@@ -35,7 +35,13 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { AdSlot } from "@/components/AdSlot";
-import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
+import {
+  evaluateBubbleModel,
+  computeMertonModel,
+  computeAltmanZScore,
+  DEFAULT_MODEL_INPUTS,
+} from "@/lib/model/engine";
+import type { BubbleBand, BubbleModelInputs } from "@/lib/model/types";
 import { POLYMARKET_BASE_URL } from "@/data/polymarket-data";
 
 // ============================================================================
@@ -236,20 +242,303 @@ const COMPARISON_METRICS: MetricComparison[] = [
   },
 ];
 
+// ============================================================================
+// REGIME RECORDS — the simulator is driven by the same engine as the site
+// ============================================================================
+//
+// 2026-10-19 (B-F11, algorithm-improvement wave): the three regime cards are TYPED
+// BubbleModelInputs records and every number the simulator prints is the engine's
+// output at render time. The hand-authored literals are gone: there is no
+// hand-written probability, score, band, Merton distance or Altman zone in this file.
+//
+// DOCUMENTED CHOICES (one line each — no invented field names, only the eight input
+// groups the engine ingests: cds, valuations, ledger, crowd, adoption, capex, macro, aiDebt):
+//  · 2000 CDS 600bp against an 80bp telecom norm — conservative, the worst 2001
+//    telecom prints implied more than 1000bp.
+//  · 2000 valuations: era market caps over era revenue, carried in the same
+//    valuationUsd / runRateRevenueUsd fields the live input set uses.
+//  · 2000 crowd: 0 — no prediction market existed in 2000, so the leg is zero (not missing).
+//  · 2000 adoption: nulls — no comparable consumer series, so the damper is off (not invented).
+//  · 2000 capex/FCF: $120B telecom capex against ~$15B of cohort operating cash flow
+//    (kept positive: a zero FCF reads as "unreported" to the engine).
+//  · 2000 macro: 10Y 6.66%, fed funds 6.50% (May 2000 peak), CPI 3.4%, HY-OAS 600bp,
+//    CAPE 44 — the published era prints.
+//  · 2000 aiDebt: $1.2T of 1990s telecom junk issuance (the scorecard figure above)
+//    and no GPU depreciation drag (0 — there were no GPUs in 2000).
+//  · 2000 ledger.byYear carries the 1996-2000 era years; the engine's velocity leg
+//    reads the CURRENT year, so it falls back to the live 2026 pace. That understates
+//    the 2000 boom — disclosed here rather than silently patched.
+//  · Credit-freeze CDS 400bp (re-priced from the 288bp record close), HY-OAS 550bp,
+//    US10Y 5.50%, fed funds 4.50% (emergency hold), CPI 3.9%.
+//  · Credit-freeze crowd: 25% YES on the same 2026 contract the live feed reads ($25M traded).
+//  · Credit-freeze capex: free cash flow compresses to $160B as GPU clusters are written down.
+//  · Credit-freeze aiDebt: the tracked base grows to $450B (undrawn GPU-fleet facilities
+//    are drawn to keep clusters alive before any restructuring).
+//  · Credit-freeze valuations and adoption are carried over unchanged: a credit freeze
+//    re-prices the financing, not the lab marks or the usage data.
+const DOTCOM_2000_INPUTS: BubbleModelInputs = {
+  cds: {
+    currentBps: 600,
+    baselineBps: 80,
+    priorBps: 150,
+    otherBps: 450,
+    note: "Telecom-era credit: ~600bp implied 5Y spread on the 1999-2000 CLEC/telecom complex against an 80bp long-run norm (the worst 2001 prints implied >1000bp)",
+  },
+  valuations: [
+    {
+      company: "Cisco (Mar 2000 peak)",
+      valuationUsd: 555_000_000_000,
+      runRateRevenueUsd: 18_900_000_000,
+      note: "Peak market cap ~$555B over FY2000 revenue $18.9B = 29.4x sales (era multiple, same fields the live input set uses)",
+    },
+    {
+      company: "Nortel Networks (Jul 2000 peak)",
+      valuationUsd: 250_000_000_000,
+      runRateRevenueUsd: 17_400_000_000,
+      note: "Peak market cap ~$250B over FY2000 revenue $17.4B = 14.4x sales",
+    },
+    {
+      company: "Qualcomm (2000 peak)",
+      valuationUsd: 100_000_000_000,
+      runRateRevenueUsd: 4_000_000_000,
+      note: "Peak market cap ~$100B over FY2000 revenue $4.0B = 25x sales",
+    },
+    {
+      company: "Yahoo! (Sep 2000 peak)",
+      valuationUsd: 115_000_000_000,
+      runRateRevenueUsd: 1_085_000_000,
+      note: "Peak market cap ~$115B over FY2000 revenue $1.085B = 106x sales",
+    },
+  ],
+  ledger: {
+    totalDisclosedUsd: 1_200_000_000_000,
+    byYear: {
+      1996: 40_000_000_000,
+      1997: 80_000_000_000,
+      1998: 150_000_000_000,
+      1999: 300_000_000_000,
+      2000: 630_000_000_000,
+    },
+    debtShare: 0.28,
+    computeContractShare: 0.35,
+    top10Share: 0.72,
+    circularShare: 0.09,
+    announcedShare: 0.18,
+    megaCountLast12m: 42,
+    daysSinceLastMega: 6,
+  },
+  crowd: {
+    yesProbability: 0,
+    volumeUsd: 0,
+    bubble2026Probability: 0,
+    bubble2027Probability: 0,
+    activeContractsCount: 0,
+    note: "No prediction market existed in 2000 — the crowd leg is zero, not missing",
+  },
+  adoption: {
+    topProductUsers: null,
+    annualUserGrowth: null,
+    apiPriceDeclineMultiple: null,
+    trainingCostBand: null,
+    note: "No comparable consumer-adoption series in 2000 — the real-use damper is off, not fabricated",
+  },
+  capex: {
+    aggregateCapexUsd: 120_000_000_000,
+    aggregateFcfUsd: 15_000_000_000,
+    note: "Telecom capex ~$120B/yr against ~$15B of cohort operating cash flow",
+  },
+  macro: {
+    us10yYieldPct: 6.66,
+    us02yYieldPct: 6.2,
+    us10yBaselinePct: 3.75,
+    cpiInflationYoY: 3.4,
+    fedFundsRatePct: 6.5,
+    rateHikeRiskBps: 100,
+    realYield10y: 3.26,
+    highYieldSpreadBps: 600,
+    capeMultiple: 44,
+    note: "Mar 2000: 10Y 6.66%, fed funds 6.50% (May 2000 peak), CPI ~3.4%, HY OAS ~600bp, CAPE ~44",
+  },
+  aiDebt: {
+    annualDebtIssuanceUsd: 40_000_000_000,
+    totalTrackedDebtUsd: 1_200_000_000_000,
+    capexToOcfRatio: 0.75,
+    gpuDepreciationDragUsd: 0,
+    capexToRevenueMultiple: 6,
+    note: "$1.2T of 1990s telecom junk issuance; no GPU amortization drag in 2000 (0)",
+  },
+};
+
+const CREDIT_FREEZE_INPUTS: BubbleModelInputs = {
+  ...DEFAULT_MODEL_INPUTS,
+  cds: {
+    currentBps: 400,
+    baselineBps: 81,
+    priorBps: 288,
+    otherBps: 450,
+    note: "Neocloud credit freeze: the 5Y Oracle CDS re-prices from the 288bp record close to ~400bp as GPU-cluster financing is repriced",
+  },
+  ledger: {
+    ...(DEFAULT_MODEL_INPUTS.ledger as NonNullable<BubbleModelInputs["ledger"]>),
+    debtShare: 0.09,
+    top10Share: 0.66,
+    circularShare: 0.05,
+    announcedShare: 0.14,
+    daysSinceLastMega: 30,
+  },
+  crowd: {
+    ...(DEFAULT_MODEL_INPUTS.crowd as NonNullable<BubbleModelInputs["crowd"]>),
+    yesProbability: 0.25,
+    bubble2026Probability: 0.25,
+    bubble2027Probability: 0.55,
+    volumeUsd: 25_000_000,
+  },
+  capex: {
+    ...(DEFAULT_MODEL_INPUTS.capex as NonNullable<BubbleModelInputs["capex"]>),
+    aggregateFcfUsd: 160_000_000_000,
+  },
+  macro: {
+    ...(DEFAULT_MODEL_INPUTS.macro as NonNullable<BubbleModelInputs["macro"]>),
+    us10yYieldPct: 5.5,
+    cpiInflationYoY: 3.9,
+    fedFundsRatePct: 4.5,
+    rateHikeRiskBps: 50,
+    realYield10y: 2.4,
+    highYieldSpreadBps: 550,
+    capeMultiple: 26,
+  },
+  aiDebt: {
+    ...(DEFAULT_MODEL_INPUTS.aiDebt as NonNullable<BubbleModelInputs["aiDebt"]>),
+    annualDebtIssuanceUsd: 120_000_000_000,
+    totalTrackedDebtUsd: 450_000_000_000,
+    capexToOcfRatio: 0.68,
+    gpuDepreciationDragUsd: 60_000_000_000,
+    capexToRevenueMultiple: 12,
+  },
+};
+
+/**
+ * Altman Z'' components per regime. The engine's live constants describe the 2026
+ * hyperscaler cohort; the 2000 telecom cohort and the neocloud freeze need their own
+ * balance-sheet ratios, so they are passed through the engine's own API.
+ */
+const ALT_DOTCOM_2000 = { x1: 0.08, x2: -0.28, x3: 0.01, x4: 0.75 };
+const ALT_CREDIT_FREEZE = { x1: 0.08, x2: -0.25, x3: 0.02, x4: 1.35 };
+
+/** Engine band -> display label + the site's semantic tone tokens. */
+const BAND_DISPLAY: Record<
+  BubbleBand,
+  { label: string; bandColor: string; badgeColor: string }
+> = {
+  calm: {
+    label: "CALM",
+    bandColor: "text-safe-700",
+    badgeColor: "bg-safe-500/10 text-safe-700 border-safe-300/20",
+  },
+  guarded: {
+    label: "GUARDED",
+    bandColor: "text-caution-700",
+    badgeColor: "bg-caution-500/10 text-caution-700 border-caution-300/20",
+  },
+  elevated: {
+    label: "ELEVATED",
+    bandColor: "text-caution-700",
+    badgeColor: "bg-caution-500/10 text-caution-700 border-caution-300/20",
+  },
+  high: {
+    label: "HIGH",
+    bandColor: "text-risk-700",
+    badgeColor: "bg-risk-500/10 text-risk-700 border-risk-300/20",
+  },
+  critical: {
+    label: "CRITICAL",
+    bandColor: "text-risk-700",
+    badgeColor: "bg-risk-500/10 text-risk-700 border-risk-300/20",
+  },
+};
+
+interface RegimeOutput {
+  burstProb: number;
+  score: number;
+  band: string;
+  bandColor: string;
+  badgeColor: string;
+  mertonDD: string;
+  altmanZone: string;
+}
+
+/** Run a regime record through the engine and shape the result for display. */
+function evaluateRegime(
+  inputs: BubbleModelInputs,
+  altmanComponents?: { x1?: number; x2?: number; x3?: number; x4?: number },
+): RegimeOutput {
+  const result = evaluateBubbleModel(inputs);
+  const merton = computeMertonModel(inputs);
+  const altman = computeAltmanZScore(inputs, altmanComponents);
+  const band = BAND_DISPLAY[result.band];
+  return {
+    burstProb: result.burstProbability,
+    score: result.compositeScore,
+    band: band.label,
+    bandColor: band.bandColor,
+    badgeColor: band.badgeColor,
+    mertonDD: `${merton.distanceToDefault.toFixed(2)}σ`,
+    altmanZone: `${altman.zone.split("(")[0].trim()} (${altman.score.toFixed(2)})`,
+  };
+}
+
+const LIVE_REGIME = evaluateRegime(DEFAULT_MODEL_INPUTS);
+const DOTCOM_2000_REGIME = evaluateRegime(DOTCOM_2000_INPUTS, ALT_DOTCOM_2000);
+const CREDIT_FREEZE_REGIME = evaluateRegime(CREDIT_FREEZE_INPUTS, ALT_CREDIT_FREEZE);
+
+// The live input blocks the simulator levers write into (non-null in the live set).
+const liveCapex = DEFAULT_MODEL_INPUTS.capex as NonNullable<BubbleModelInputs["capex"]>;
+const liveAiDebt = DEFAULT_MODEL_INPUTS.aiDebt as NonNullable<BubbleModelInputs["aiDebt"]>;
+const liveMacro = DEFAULT_MODEL_INPUTS.macro as NonNullable<BubbleModelInputs["macro"]>;
+const liveAdoption = DEFAULT_MODEL_INPUTS.adoption as NonNullable<BubbleModelInputs["adoption"]>;
+
+// The three card captions are READ from the regime records — no hand-typed numbers.
+const LIVE_CARD_SUMMARY = `$${((liveCapex.aggregateFcfUsd ?? 0) / 1e9).toFixed(0)}B FCF · ${liveMacro.us10yYieldPct.toFixed(2)}% US10Y · ${liveAdoption.apiPriceDeclineMultiple}× Cheaper`;
+const DOTCOM_2000_CARD_SUMMARY = `${DOTCOM_2000_INPUTS.cds?.currentBps}bp CDS · ${DOTCOM_2000_INPUTS.macro?.fedFundsRatePct.toFixed(2)}% Fed Funds · $${((DOTCOM_2000_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 0) / 1e12).toFixed(1)}T Junk Debt`;
+const CREDIT_FREEZE_CARD_SUMMARY = `${CREDIT_FREEZE_INPUTS.cds?.currentBps}bp CDS · ${CREDIT_FREEZE_INPUTS.macro?.highYieldSpreadBps}bp HY-OAS · $${((CREDIT_FREEZE_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 0) / 1e9).toFixed(0)}B Tracked Debt`;
+
+// INVARIANT (asserted here in code, never in the page copy): every preset labelled a
+// STRESS must score at or above the live baseline once the modes compute from the
+// engine. Live baseline 71.6% (score 63.3) · neocloud credit freeze 90.3% (75.1) ·
+// 2000 dot-com peak 97.4% (87.5). A preset that fell below the baseline would be a
+// stress that scores calmer than reality — a broken simulator, not a finding.
+if (process.env.NODE_ENV !== "production") {
+  const stressPresets: { id: string; out: RegimeOutput }[] = [
+    { id: "neocloud-credit-freeze", out: CREDIT_FREEZE_REGIME },
+    { id: "dot-com-2000", out: DOTCOM_2000_REGIME },
+  ];
+  for (const preset of stressPresets) {
+    if (preset.out.burstProb < LIVE_REGIME.burstProb) {
+      console.error(
+        `[dotcom-vs-ai] regime invariant broken: ${preset.id} (${preset.out.burstProb}%) scores BELOW the live baseline (${LIVE_REGIME.burstProb}%)`,
+      );
+    }
+  }
+}
+
 export default function DotComVsAiPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"scorecard" | "clec-parallel" | "cashflows" | "simulator">("scorecard");
   
   // Interactive Simulator State
+  // 2026-10-19 (B-F11): the lever defaults ARE the live input values, so the live mode
+  // reproduces the canonical print (71.6%) instead of a hand-rolled approximation.
   const [simRegime, setSimRegime] = useState<"dotcom2000" | "ai2026" | "creditFreeze">("ai2026");
-  const [customFcf, setCustomFcf] = useState<number>(260); // $B
-  const [customDebt, setCustomDebt] = useState<number>(214.9); // $B — ledger totalTrackedDebtUsd
-  const [customYield, setCustomYield] = useState<number>(5.10); // %
-  const [customDeflation, setCustomDeflation] = useState<number>(60); // x cheaper
+  const [customFcf, setCustomFcf] = useState<number>(Math.round((liveCapex.aggregateFcfUsd ?? 0) / 1e9)); // $B
+  const [customDebt, setCustomDebt] = useState<number>(Math.round((liveAiDebt.totalTrackedDebtUsd / 1e9) * 10) / 10); // $B — ledger totalTrackedDebtUsd
+  const [customYield, setCustomYield] = useState<number>(liveMacro.us10yYieldPct); // %
+  const [customDeflation, setCustomDeflation] = useState<number>(liveAdoption.apiPriceDeclineMultiple ?? 670); // x cheaper
 
   // Current verified model result
-  const baselineModel = useMemo(() => evaluateBubbleModel(DEFAULT_MODEL_INPUTS), []);
+  // 2026-10-19 (B-F11): the baseline model is evaluated once at module scope
+  // (LIVE_REGIME) — the simulator no longer keeps a second, hand-rolled copy of the
+  // live numbers.
 
   // Filtered metrics
   const filteredMetrics = useMemo(() => {
@@ -263,60 +552,40 @@ export default function DotComVsAiPage() {
     });
   }, [selectedCategory, searchQuery]);
 
+  // 2026-10-19 (B-F11): the live mode runs the SAME engine on the live input set with
+  // the four levers applied — the old hand-rolled deltas (each $20B of FCF = 1.2%, each
+  // $30B of debt = 1.5%) are gone; the published model produces the number.
+  const liveSimInputs: BubbleModelInputs = useMemo(
+    () => ({
+      ...DEFAULT_MODEL_INPUTS,
+      capex: { ...liveCapex, aggregateFcfUsd: customFcf * 1_000_000_000 },
+      aiDebt: { ...liveAiDebt, totalTrackedDebtUsd: customDebt * 1_000_000_000 },
+      macro: { ...liveMacro, us10yYieldPct: customYield },
+      adoption: { ...liveAdoption, apiPriceDeclineMultiple: customDeflation },
+    }),
+    [customFcf, customDebt, customYield, customDeflation],
+  );
+
   // Dynamic simulation score calculation
-  const simResult = useMemo(() => {
+  const simResult = useMemo<RegimeOutput & { interpretation: string }>(() => {
     if (simRegime === "dotcom2000") {
       return {
-        burstProb: 91.4,
-        score: 84.2,
-        band: "CRITICAL",
-        bandColor: "text-risk-700",
-        badgeColor: "bg-risk-500/10 text-risk-700 border-risk-300/20",
-        mertonDD: "0.85σ",
-        altmanZone: "Distress Zone (0.42)",
-        interpretation: "Dot-Com 2000 scenario: Negative cash flows, zero software ARR, and 6.50% Fed rate spike make systemic liquidation inevitable.",
+        ...DOTCOM_2000_REGIME,
+        interpretation:
+          "Dot-Com 2000 scenario: Negative cash flows, zero software ARR, and 6.50% Fed rate spike make systemic liquidation inevitable.",
       };
     } else if (simRegime === "creditFreeze") {
       return {
-        burstProb: 68.2,
-        score: 64.8,
-        band: "HIGH STRESS",
-        bandColor: "text-caution-700",
-        badgeColor: "bg-caution-500/10 text-caution-700 border-caution-300/20",
-        mertonDD: "3.20σ",
-        altmanZone: "Grey Zone (1.85)",
-        interpretation: "Neocloud Credit Freeze scenario: Secondary GPU clouds default on debt facilities; Big Tech absorbs distressed clusters at 40¢ on the dollar.",
-      };
-    } else {
-      // Dynamic calculation based on sliders
-      // Cash flow buffer reduces probability
-      const fcfDelta = (customFcf - 260) / 20; // each $20B FCF changes prob by ~1.2%
-      // Debt increases risk
-      const debtDelta = (customDebt - 214.9) / 30; // each $30B debt adds ~1.5%
-      // Yield increases hurdle
-      const yieldDelta = (customYield - 5.10) * 4.0; // each 50bps adds 2%
-      // Deflation acts as adoption cushion
-      const deflDelta = -Math.log10(customDeflation / 60) * 8.0;
-
-      const dynamicProb = Math.min(95, Math.max(15, baselineModel.burstProbability - fcfDelta + debtDelta + yieldDelta + deflDelta));
-      const dynamicScore = Math.min(95, Math.max(20, baselineModel.compositeScore + (dynamicProb - baselineModel.burstProbability) * 0.7));
-
-      const band = dynamicProb >= 70 ? "CRITICAL" : dynamicProb >= 50 ? "ELEVATED" : "MODERATE";
-      const bandColor = dynamicProb >= 70 ? "text-risk-700" : dynamicProb >= 50 ? "text-caution-700" : "text-safe-700";
-      const badgeColor = dynamicProb >= 70 ? "bg-risk-500/10 text-risk-700 border-risk-300/20" : dynamicProb >= 50 ? "bg-caution-500/10 text-caution-700 border-caution-300/20" : "bg-safe-500/10 text-safe-700 border-safe-300/20";
-
-      return {
-        burstProb: Number(dynamicProb.toFixed(1)),
-        score: Number(dynamicScore.toFixed(1)),
-        band,
-        bandColor,
-        badgeColor,
-        mertonDD: "5.13σ",
-        altmanZone: "Safe Zone (8.41)",
-        interpretation: "2026 Baseline: Massive hyperscaler cash flows protect equity solvency, counterbalancing $214.9B in private debt facilities.",
+        ...CREDIT_FREEZE_REGIME,
+        interpretation:
+          "Neocloud Credit Freeze scenario: Secondary GPU clouds default on debt facilities; Big Tech absorbs distressed clusters at 40¢ on the dollar.",
       };
     }
-  }, [simRegime, customFcf, customDebt, customYield, customDeflation, baselineModel]);
+    return {
+      ...evaluateRegime(liveSimInputs),
+      interpretation: `2026 Baseline: Massive hyperscaler cash flows protect equity solvency, counterbalancing $${customDebt}B in private debt facilities.`,
+    };
+  }, [simRegime, liveSimInputs, customDebt]);
 
   return (
 <div className="section-sm">
@@ -794,7 +1063,7 @@ export default function DotComVsAiPage() {
                   {simRegime === "ai2026" && <CheckCircle2 className="h-4 w-4 text-safe-700" aria-hidden="true" />}
                 </div>
                 <p className="mt-1 text-sm font-semibold text-ink">2026 Live Baseline</p>
-                <p className="num mt-0.5 text-[14px] text-ink-subtle">$668B OCF · 5.10% US10Y · 60× Defl</p>
+                <p className="num mt-0.5 text-[14px] text-ink-subtle">{LIVE_CARD_SUMMARY}</p>
               </button>
 
               <button
@@ -810,7 +1079,7 @@ export default function DotComVsAiPage() {
                   {simRegime === "dotcom2000" && <CheckCircle2 className="w-4 h-4 text-risk-700" />}
                 </div>
                 <p className="mt-1 text-sm font-semibold text-ink">2000 Dot-Com Peak</p>
-                <p className="num mt-0.5 text-[14px] text-ink-subtle">-$15B Burn · 6.50% Rates · Zero ARR</p>
+                <p className="num mt-0.5 text-[14px] text-ink-subtle">{DOTCOM_2000_CARD_SUMMARY}</p>
               </button>
 
               <button
@@ -826,7 +1095,7 @@ export default function DotComVsAiPage() {
                   {simRegime === "creditFreeze" && <CheckCircle2 className="w-4 h-4 text-caution-700" />}
                 </div>
                 <p className="mt-1 text-sm font-semibold text-ink">Neocloud Credit Freeze</p>
-                <p className="num mt-0.5 text-[14px] text-ink-subtle">Secondary Cloud Default · CDS Spike</p>
+                <p className="num mt-0.5 text-[14px] text-ink-subtle">{CREDIT_FREEZE_CARD_SUMMARY}</p>
               </button>
             </div>
 
@@ -879,7 +1148,7 @@ export default function DotComVsAiPage() {
                   </div>
                   <input
                     type="range"
-                    min="0"
+                    min="10"
                     max="400"
                     step="10"
                     value={customFcf}
@@ -887,10 +1156,17 @@ export default function DotComVsAiPage() {
                     className="h-11 w-full cursor-pointer accent-safe-500"
                   />
                   <div className="num flex justify-between text-[14px] text-ink-subtle">
-                    <span>$0 (Zero Buffer)</span>
+                    <span>$10B (Engine floor)</span>
                     <span>$260B (Current)</span>
                     <span>$400B (High Cash)</span>
                   </div>
+                  {/* 2026-10-19 (B-F11): the published capex leg saturates at 2.0× capex ÷ FCF,
+                      so below ~$360B of FCF the score no longer moves. The floor is $10B, not
+                      $0: the engine reads a zero FCF as "unreported" and drops the leg. */}
+                  <p className="text-[13px] leading-snug text-ink-subtle">
+                    The published capex leg saturates once capex reaches 2.0× free cash flow, so
+                    the print stops moving below roughly $360B of FCF.
+                  </p>
                 </div>
 
                 {/* Slider 2: Private Tracked Debt */}
@@ -957,8 +1233,10 @@ export default function DotComVsAiPage() {
                       Fact-checked Oct 19, 2026 (input-basis vs GPT-4 $30/1M):
                       Haiku 5.5 $0.10 in → 300×; DeepSeek V4.1 Flash $0.0448 in → ~670×.
                       Slider max raised 375 → 700 so the real input-basis frontier fits.
-                      Default value 60 stays a neutral simulator calibration point for the
-                      deflDelta formula — it is not a model claim.
+                      2026-10-19 (B-F11): the default is now the LIVE deflation multiple
+                      (670×) — the lever drives the model's damper leg directly, so the
+                      default has to be the published value for the live mode to reproduce
+                      the canonical print.
                     */}
                     <span>1× (GPT-4 2023)</span>
                     <span>300× (Haiku 5.5)</span>

@@ -1,13 +1,25 @@
 // ── Burst Probability Model — factor definitions ─────────────────────────────
 //
-// Eight factors, each a pure function from BubbleModelInputs to a normalized
-// 0-1 stress score (risk factors add stress; the adoption damper subtracts).
-// Weights are judgment calls made ONCE, published here, and never tweaked per
-// refresh — that's what makes this an instrument rather than a vibe.
+// EIGHT risk factors (100 risk points) + ONE real-use damper (up to −10 points,
+// OUTSIDE the 0-100 risk scale). Each is a pure function from BubbleModelInputs
+// to a normalized stress score. Weights are judgment calls made ONCE, published
+// here, and never tweaked per refresh — that's what makes this an instrument
+// rather than a vibe.
 //
 // Every factor degrades honestly: if an input is missing it shrinks the
 // factor's coverage (0-1) and the aggregator renormalizes the remaining
 // weights. No invented proxies.
+//
+// ── 2026-10-19 (model v2.6.0, algorithm-improvement wave 1) ──────────────────
+// Three changes, all print-neutral on the 2026-10-19 live canon (71.6% / 63.3):
+//   1. cds_stress gained a CONVEX TAIL above its published ramp ceiling (the linear
+//      ramp saturated at 3× baseline = 243bp, leaving ZERO dynamic range above the
+//      288bp record print — 288bp → 1000bp moved the published probability by 0.0).
+//   2. macro_rates' HY-OAS leg gained the same treatment above 500bp.
+//   3. the damper's deflation leg is no longer clamped at 50×, so it responds
+//      across [50×, 500×] instead of being constant for every deflation ≥ 50×.
+// Score domain widened from [0,1] to [0,2] for cds_stress and macro_rates only;
+// every other factor is still strictly [0,1].
 
 import type {
   BubbleModelInputs,
@@ -47,10 +59,132 @@ const median = (xs: number[]): number | null => {
 const kellyAnchor = 55; // composite score that maps to 50% (judgment anchor, see modelRecipe)
 const steepness = 9; // logistic slope: ±9 points ≈ ±50% odds shift
 
+// ── Published model constants (v2.6.0) ─────────────────────────────────────
+/** Model version. Bumped when the published calibration changes (weights never do). */
+export const MODEL_VERSION = '2.6.0';
+
+/**
+ * The 8 risk factors' published weights sum to exactly 100 risk points and the
+ * damper is a separate 10-point subtraction. Both are DERIVED from MODEL_FACTORS
+ * at the bottom of this file (never hand-typed), so the published weight story
+ * cannot drift from the code.
+ */
+
+/**
+ * 12-month market-implied burst probability used as the published band's floor
+ * (Lane 2's crowd reconciler publishes the derivation). Exported here so the
+ * band rule lives next to the model that consumes it, not in a renderer.
+ */
+export const MARKET_IMPLIED_12M_PCT = 23.0;
+
+/**
+ * The Financial Fragility Index is a LINEAR RE-EXPRESSION of the same factor
+ * scores already inside the composite (a scaled dP/dS term plus debt and macro
+ * score terms). It is not an independent measurement and it is not a pure
+ * first derivative. Published verbatim so no consumer can imply otherwise.
+ */
+export const FRAGILITY_INDEX_BASIS =
+  'derivative-weighted fragility from the same factor scores — not a first-derivative measure';
+
+/**
+ * Inputs the pipeline carries but no factor reads. Published so the API/docs can
+ * state exactly which published inputs move the model and which are context.
+ * `wave2Candidate` marks an input the algorithm-improvement wave has reserved
+ * for a netting decision (it is NOT used by any factor today).
+ */
+export const INPUTS_WITHOUT_WEIGHT: {
+  id: string;
+  field: string;
+  why: string;
+  wave2Candidate?: boolean;
+}[] = [
+  {
+    id: 'aiDebt.capexToRevenueMultiple',
+    field: 'aiDebt.capexToRevenueMultiple',
+    why: 'Capital intensity (capex ÷ revenue) is carried but read by no factor; reserved for the wave-2 deflation/rent netting decision.',
+    wave2Candidate: true,
+  },
+  { id: 'ledger.computeContractShare', field: 'ledger.computeContractShare', why: 'Compute-capacity commitment share is context only; no factor weights it.' },
+  { id: 'ledger.megaCountLast12m', field: 'ledger.megaCountLast12m', why: 'Reported in the velocity reading string but not scored (daysSinceLastMega carries the signal).' },
+  { id: 'ledger.count', field: 'ledger.count', why: 'Deal count is reported in the pipeline telemetry, not scored.' },
+  { id: 'cds.otherBps', field: 'cds.otherBps', why: 'Second AI-exposed borrower spread is carried but not blended into the credit factor.' },
+  { id: 'crowd.bubble2027Probability', field: 'crowd.bubble2027Probability', why: 'Carried for the panel; the scored crowd leg is the 2026 contract only.' },
+  { id: 'crowd.activeContractsCount', field: 'crowd.activeContractsCount', why: 'Contract count is context only; liquidity (volumeUsd) drives coverage.' },
+  { id: 'crowd.markets', field: 'crowd.markets', why: 'Raw market list is retained for provenance; the scored leg is the volume-weighted 2026 probability.' },
+  { id: 'adoption.topProductUsers', field: 'adoption.topProductUsers', why: 'User COUNT is context; the scored leg is the year-over-year growth rate.' },
+  { id: 'macro.fedFundsRatePct', field: 'macro.fedFundsRatePct', why: 'Policy rate is display-only today; it is the input a regime multiplier would use if one were ever estimated.' },
+  { id: 'macro.rateHikeRiskBps', field: 'macro.rateHikeRiskBps', why: 'Forward stress assumption, explicitly not a forecast; carries no weight.' },
+  { id: 'aiDebt.gpuDepreciationDragUsd', field: 'aiDebt.gpuDepreciationDragUsd', why: 'GPU amortization drag is reported in the capex reading; the scored legs are capex ÷ FCF and capex ÷ OCF.' },
+  { id: 'macro.us02yYieldPct', field: 'macro.us02yYieldPct', why: 'Legacy 2-year anchor — display-only and not present in the live input set.' },
+];
+
+/**
+ * Published 5×5 design matrix for the Monte Carlo shock space:
+ * [US10Y, Oracle CDS, HY-OAS, Capex, Valuation Multiples].
+ * corr(CDS, HY-OAS) ≈ 0.80 — a solvency event moves both, but AI-specific
+ * stress can move Oracle CDS while the broad high-yield market stays near 323bp.
+ * The engine realizes this pair as systemic linkage (1.4bp HY per bp of Oracle
+ * CDS) PLUS an independent HY-OAS shock; the 4×4 Cholesky block below covers
+ * the four jointly-shocked variables.
+ */
+export const EMPIRICAL_DESIGN_MATRIX_5X5: {
+  order: string[];
+  matrix: number[][];
+  notes: Record<string, string>;
+} = {
+  order: ['US10Y Yield', 'Oracle CDS', 'HY-OAS', 'Capex', 'Valuation Multiples'],
+  matrix: [
+    [1.00, 0.45, 0.30, 0.35, -0.40],
+    [0.45, 1.00, 0.80, 0.50, -0.55],
+    [0.30, 0.80, 1.00, 0.35, 0.25],
+    [0.35, 0.50, 0.35, 1.00, 0.30],
+    [-0.40, -0.55, 0.25, 0.30, 1.00],
+  ],
+  notes: {
+    'Oracle CDS ↔ HY-OAS': '0.80 — a solvency event moves both, but AI-specific stress can move Oracle CDS while HY stays near 323bp.',
+    'Oracle CDS ↔ Valuation Multiples': '-0.55 — widening credit and de-rating multiples are the same event seen from two sides.',
+  },
+};
+
+/** Model changelog. Calibration changes are versioned here; weights are not. */
+export const CHANGELOG: { version: string; date: string; scope: string }[] = [
+  {
+    version: '2.6.0',
+    date: '2026-10-19',
+    scope:
+      'credit tail, MC horizon-consistency, sensitivity-band relabel — point estimate unchanged',
+  },
+];
+
 // ── 1 · CREDIT STRESS ────────────────────────────────────────────────────────
 // The bond market re-prices AI borrowers first. Oracle is the system's biggest
 // AI borrower, so its 5Y CDS is the primary thermometer: level vs the 2025
 // baseline plus 3-month momentum. Reported levels only.
+//
+// 2026-10-19 (v2.6.0) — the linear ramp saturated: level stopped at 3× baseline
+// (243bp) and momentum at +80bp, so the 288bp record print left the factor with
+// ZERO remaining dynamic range (288bp → 1000bp moved the published probability by
+// 0.0 points). Two repairs, both print-neutral on the live canon:
+//
+//   core = min(1, ramp(cur/base,1,3) · (0.85 + 0.15·ramp(cur−prior,0,80)))
+//     · momentum is now a MULTIPLIER, not a 30% additive term. The old form read a
+//       FLAT record print as "stress fell 30%" (−17.1 composite points); the new
+//       form reads it as "no new stress" (85% of the level ramp, −2.7 points).
+//   tail = max(0, (cur/base − 288/81)/4)^1.5
+//     · a CONVEX tail in RATIO space, above the published ramp ceiling. The origin
+//       288/81 is a PUBLISHED INDEX CONSTANT (the 2026-10-15 record close over the
+//       81bp long-run baseline) — the same idiom as the frozen 187/81 Minsky and
+//       4.42 US10Y references: dimensionless, stationary, independent of run date.
+//
+// cds_stress = min(2.00, core + 0.30·tail) — 288bp → 1.0000 (unchanged), 400bp →
+// 1.061, 600bp → 1.284, panic ceiling 2.00 at ≈1011bp (18 × 2 = 36 composite points
+// max). The contagion term consumes `coreScore` (the tail-free score) so a convex
+// tail is never counted twice.
+const CDS_TAIL_ORIGIN_RATIO = 288 / 81; // 3.5556× — published index constant (record close ÷ baseline)
+const CDS_TAIL_SPAN = 4.0; // tail spans 3.5556× → 7.5556× baseline
+const CDS_TAIL_WEIGHT = 0.3;
+const CDS_MOMENTUM_FLOOR = 0.85; // a flat print keeps 85% of the level ramp
+const CDS_SCORE_CEILING = 2.0; // panic ceiling: 18 × 2 = 36 composite points
 const cdStress: ModelFactor = {
   id: 'cds_stress',
   label: 'Credit stress (CDS spreads)',
@@ -59,15 +193,24 @@ const cdStress: ModelFactor = {
   explain:
     'A CDS is the insurance price on a company\'s debt. When it jumps, bond investors are quietly pricing default risk on AI\'s biggest borrowers.',
   formula:
-    'score = ramp(current ÷ baseline, ×1, ×3)·0.7 + ramp(90-day rise, +0bp, +80bp)·0.3',
+    'core = min(1, ramp(current ÷ baseline, ×1, ×3)·(0.85 + 0.15·ramp(90-day rise, +0bp, +80bp))); tail = max(0, (current ÷ baseline − 288/81) ÷ 4)^1.5; score = min(2.00, core + 0.30·tail)',
   compute: (i) => {
-    if (!i.cds) return { score: 0.35, reading: 'No verified CDS datapoint', coverage: 0 };
+    if (!i.cds) return { score: 0.35, coreScore: 0.35, reading: 'No verified CDS datapoint', coverage: 0 };
     const { currentBps, baselineBps, priorBps } = i.cds;
     const level = ramp(currentBps / baselineBps, 1, 3); // 1× baseline calm, 3× extreme
     const momentum = ramp(currentBps - priorBps, 0, 80); // +80bp in ~90 days = extreme
-    const score = clamp01(level * 0.7 + momentum * 0.3);
+    const core = Math.min(
+      1,
+      level * (CDS_MOMENTUM_FLOOR + (1 - CDS_MOMENTUM_FLOOR) * momentum),
+    );
+    const tail = Math.pow(
+      Math.max(0, (currentBps / baselineBps - CDS_TAIL_ORIGIN_RATIO) / CDS_TAIL_SPAN),
+      1.5,
+    );
+    const score = Math.min(CDS_SCORE_CEILING, core + CDS_TAIL_WEIGHT * tail);
     return {
       score,
+      coreScore: core,
       reading: `CDS ${currentBps}bp vs ${baselineBps}bp baseline (${Math.round(currentBps / baselineBps * 100)}% of baseline; prior ${priorBps}bp)`,
       coverage: 1,
     };
@@ -176,8 +319,17 @@ const macroRatesStress: ModelFactor = {
     const realScore = ramp(m.realYield10y, 1.5, 3.0);
     // 2026-10-19 (pass 11): 328 → 323 (FRED BAMLH0A0HYM2, Oct 15 2026) — same print the note cites.
     const hySpread = m.highYieldSpreadBps ?? 323;
-    const hyScore = ramp(hySpread, 250, 500);
-    const score = clamp01(yieldScore * 0.40 + cpiScore * 0.25 + realScore * 0.15 + hyScore * 0.20);
+    // 2026-10-19 (v2.6.0): the HY-OAS leg gets the same convex panic tail as the credit
+    // factor, above its 500bp ramp ceiling:
+    //   score_hy = min(2, ramp(HY,250,500) + 0.30·clamp01((HY−500)/700)^1.5)
+    // Today (323bp) the tail is 0, so the leg is numerically identical to the old ramp
+    // (0.292) and the published macro score is unchanged at 0.7154.
+    const hyCore = ramp(hySpread, 250, 500);
+    const hyTail = 0.3 * Math.pow(clamp01((hySpread - 500) / 700), 1.5);
+    const hyScore = Math.min(2, hyCore + hyTail);
+    // 2026-10-19 (v2.6.0): the macro factor's domain is [0,2] (reachable only when the HY
+    // leg carries a panic tail); every other leg is strictly [0,1].
+    const score = Math.min(2, yieldScore * 0.40 + cpiScore * 0.25 + realScore * 0.15 + hyScore * 0.20);
     return {
       score,
       // 2026-10-19 (pass 11): "hike risk" → "stress assumption" — rateHikeRiskBps 25 is a
@@ -317,13 +469,31 @@ const adoptionDemand: ModelFactor = {
   explain:
     'Evidence of genuine, growing demand — users rising, tokens getting cheaper, training costs contained — knocks points OFF the burst score.',
   formula:
-    'damper = 0.5·ramp(userGrowth, 10%, 100%) + 0.3·ramp(API price decline multiple, 1×, 50×) + 0.2·(trainingCostBand ≤ falling) · max 10 composite points',
+    'damper = 0.5·ramp(userGrowth, 10%, 100%) + 0.3·clamp01(ln(API price decline multiple ÷ 50) ÷ ln 10) + 0.2·(trainingCostBand ≤ falling) · max 10 composite points',
   compute: (i) => {
     if (!i.adoption)
       return { score: 0, reading: 'Adoption data unreported (damper off)', coverage: 0 };
     const a = i.adoption;
     const growth = a.annualUserGrowth === null ? 0 : ramp(a.annualUserGrowth, 0.1, 1.0);
-    const cheap = a.apiPriceDeclineMultiple === null ? 0 : ramp(a.apiPriceDeclineMultiple, 1, 50);
+    // 2026-10-19 (v2.6.0): the deflation leg is UN-SATURATED across [50×, 500×] — the old
+    // ramp(defl, 1, 50) was constant (1.0) for every deflation ≥ 50×, so 200× ≡ 670× ≡ 873×.
+    // New leg: demand_credit = clamp01(ln(defl/50)/ln 10) — 0 at 50×, 1 at 500×.
+    // Today: 670× → ln(13.4)/ln(10) = 1.127 → clamp 1 → numerically IDENTICAL to the old
+    // saturated leg, so the published damper (5.2 points) is unchanged.
+    //
+    // WAVE-2 OPTION (NOT implemented, normalization still open): net the demand credit
+    // against the rent destruction an 83%/yr token-price collapse implies for a capital
+    // stack with capex/revenue = m (currently 8.75×, an unreviewed derived input):
+    //   δ = 1 − defl^(−1/3.62)   (annual price decay)
+    //   s_defl = 0.30 · demand_credit · (1 − clamp01(δ·m/8.75))
+    // The (1 − ·) form is CONTINUOUS and non-degenerate (0.0498 at today's δ = 0.834);
+    // the wave-1 proposal s_defl = 0.30·max(0, demand_credit − clamp01(δ·m)) is identically
+    // zero for every input (demand_credit > 0 requires defl ≥ 50×, and rent_drag saturates
+    // at 1.0 for every defl ≥ 1.55×) — it deletes the leg instead of netting it.
+    const cheap =
+      a.apiPriceDeclineMultiple === null
+        ? 0
+        : clamp01(Math.log(a.apiPriceDeclineMultiple / 50) / Math.log(10));
     const contained =
       a.trainingCostBand === null ? 0 : a.trainingCostBand === 'rising' ? 0 : a.trainingCostBand === 'flat' ? 0.5 : 1;
     const score = clamp01(growth * 0.5 + cheap * 0.3 + contained * 0.2);
@@ -349,6 +519,26 @@ export const MODEL_FACTORS: ModelFactor[] = [
   capexCoverage,
   adoptionDemand,
 ];
+
+/**
+ * DERIVED weight bookkeeping (never hand-typed):
+ *  · the 8 risk factors carry 100 risk points on the 0-100 composite scale;
+ *  · the damper is NOT part of that scale — it subtracts up to 10 points.
+ * The published "coverage" field is the RISK-ONLY weighted coverage
+ * (min(1, Σ w_i·c_i / 100)); the damper's coverage is reported separately.
+ */
+export const SUM_RISK_WEIGHT_PCT: number = MODEL_FACTORS.filter((f) => f.kind === 'risk').reduce(
+  (acc, f) => acc + f.weightPct,
+  0,
+);
+
+export const DAMPER_WEIGHT_PCT: number =
+  MODEL_FACTORS.find((f) => f.kind === 'damper')?.weightPct ?? 0;
+
+// Spec-named aliases (the API/docs layer addresses these by their published names).
+export const sumRiskWeightPct = SUM_RISK_WEIGHT_PCT;
+export const damperWeightPct = DAMPER_WEIGHT_PCT;
+export const inputsWithoutWeight = INPUTS_WITHOUT_WEIGHT;
 
 /** The published recipe, in one line per factor — rendered by the methodology section. */
 export const modelRecipe = MODEL_FACTORS.map((f) => ({
