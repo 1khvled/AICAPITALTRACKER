@@ -2267,6 +2267,10 @@ async function run() {
     // 2026-10-19 (lane 2b): provenance marker + the same-day revision range (the min/max/count
     // of the prints resolved on this UTC day, the current run included).
     modelRun: 'observed',
+    // 2026-10-19: the model version that produced this row. A trajectory that mixes
+    // formula versions would read a re-specification as a market move, so every row
+    // carries the version it was computed under.
+    modelVersion: latestModelResult.model_version ?? '2.6.0',
     revision_min_pct: revisionStats.min,
     revision_max_pct: revisionStats.max,
     revision_runs: revisionStats.runs,

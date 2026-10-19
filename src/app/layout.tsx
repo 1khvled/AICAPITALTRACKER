@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { MarketTickerTape } from "@/components/MarketTickerTape";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
+import { buildPaletteIndex } from "@/lib/palette-index";
 import rawDeals from "@/data/deals.json";
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aicapitaltracker.com";
@@ -110,6 +111,11 @@ export default function RootLayout({
   const model = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
   const dealCount = rawDeals.length;
   const totalDisclosedUsd = rawDeals.reduce((sum, deal) => sum + (deal.amount_usd || 0), 0);
+  /**
+   * The command palette index is built here, on the server, so the browser gets
+   * a flat list of labels and links — never the records themselves.
+   */
+  const paletteItems = buildPaletteIndex();
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -174,7 +180,11 @@ export default function RootLayout({
               Skip to content
             </a>
             <MarketTickerTape />
-            <Navbar burstProbability={model.burstProbability} band={model.band} />
+            <Navbar
+              burstProbability={model.burstProbability}
+              band={model.band}
+              paletteItems={paletteItems}
+            />
             <main id="main" className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
               {children}
             </main>

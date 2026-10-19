@@ -6,28 +6,40 @@
     "reason": "the 89 interpolated points (2026-07-22 … 2026-10-18) were a linear backfill with sine noise, not observed market history; they also carried a synthetic var95 = probability × 1.8 series",
     "retired_on": "2026-10-19"
   },
+  "formula_revision": {
+    "date": "2026-10-19",
+    "what": "the algorithm summit (model v2.6.0) re-specified the credit tail, the MC horizon and the sensitivity-band label. The point estimate on the canonical inputs did not move (71.6% before and after).",
+    "problem_it_created": "the 2026-10-18 row had been produced by the previous (unversioned) formula, which printed 42.8% on that day's inputs. Published next to the v2.6.0 print it read as a +29.5 point one-day market move that never happened.",
+    "resolution": "the 2026-10-18 row was RECOMPUTED under v2.6.0 from that day's canonical inputs (src/data/live-inputs.json as committed at db0f32e). The recomputation returns exactly 71.6% / composite 63.3 / VaR95 84.6 / Merton DD 5.13 — identical to the frozen wave-1 canon in scripts/fixtures/wave1-canon.json. The row therefore shows the model move of +0.7 points on 2026-10-19, which is the real market move (HY-OAS 323 → 331bp, US10Y 5.10 → 5.14%, Polymarket 9.05% → 8.6%).",
+    "not_fabricated": "no input was altered and no print was invented: the row is the published v2.6.0 engine evaluated on the published canonical input set of that day. The original print and the formula that produced it are retained on the row (originalPrintPct 42.8, originalModelVersion) and in this file.",
+    "revision_range": "the 14 runs resolved on 2026-10-18 were made under the previous formula, so their probability range (41.2–64%) is not comparable with a v2.6.0 print. The range is published as null on that row rather than mixed across formula versions. The 2026-10-19 range (36.5–72.3% over 17 runs) is entirely v2.6.0 and is published as usual."
+  },
   "schema": {
     "modelRun": "'observed' — the row came from a real pipeline run (the only kind of row that exists now)",
-    "revision_min_pct": "lowest burst probability resolved on that UTC day (sync-history.json telemetry)",
-    "revision_max_pct": "highest burst probability resolved on that UTC day (sync-history.json telemetry)",
-    "revision_runs": "number of resolved runs on that UTC day (the run count is PER UTC DAY)",
+    "modelVersion": "the model version that produced the row. Rows from different formula versions must not be read as one continuous market series.",
+    "recomputedUnderModel": "present only on a row whose probability was recomputed under a later formula from that day's canonical inputs (see formula_revision)",
+    "originalPrintPct": "the print the row originally carried, before the recomputation — kept for the audit trail",
+    "revision_min_pct": "lowest burst probability resolved on that UTC day (sync-history.json telemetry); null when the day's runs were resolved under a different formula",
+    "revision_max_pct": "highest burst probability resolved on that UTC day (sync-history.json telemetry); null when the day's runs were resolved under a different formula",
+    "revision_runs": "number of resolved runs on that UTC day (the run count is PER UTC DAY); null when the day's runs were resolved under a different formula",
     "backfilled": "always false — retained only so the out-of-lane UI consumers keep compiling",
-    "var95": "present only on rows produced by a canonical run with a Monte-Carlo artifact (2026-10-19: 84.6 = the canonical MC VaR95)"
+    "var95": "present only on rows produced by a canonical run with a Monte-Carlo artifact (2026-10-18: 84.6, 2026-10-19: 84.7)"
   },
   "rows": [
     {
       "date": "2026-10-18",
-      "source": "last successful pipeline run of 2026-10-18 (sync-history.json, 2026-10-18T22:46:01.343Z)",
-      "probability": 42.8,
-      "revision_range_pct": [41.2, 64],
-      "revision_runs": 14
+      "source": "2026-10-18 canonical input set (src/data/live-inputs.json at db0f32e), recomputed under model v2.6.0 — identical to the frozen wave-1 canon in scripts/fixtures/wave1-canon.json",
+      "original_source": "last successful pipeline run of 2026-10-18 (sync-history.json, 2026-10-18T22:46:01.343Z), computed under the previous formula",
+      "probability": 71.6,
+      "original_probability": 42.8,
+      "revision_range_pct": null
     },
     {
       "date": "2026-10-19",
       "source": "canonical artifact (src/data/latest-model.json, model v2.6.0)",
-      "probability": 71.6,
-      "revision_range_pct": [36.5, 71.7],
-      "revision_runs": 16
+      "probability": 72.3,
+      "revision_range_pct": [36.5, 72.3],
+      "revision_runs": 17
     }
   ]
 }

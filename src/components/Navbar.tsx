@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Moon, Sun, Menu, X } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
+import { CommandPalette, type PaletteItem } from "./CommandPalette";
 
 /**
  * Navbar — the only five destinations most readers ever need.
@@ -20,6 +21,8 @@ export interface NavbarProps {
   burstProbability?: number;
   /** Model band: calm | guarded | elevated | high | critical. */
   band?: string;
+  /** Search index for the global command palette (built on the server). */
+  paletteItems?: PaletteItem[];
 }
 
 const PRIMARY_LINKS: { label: string; href: string; hint: string }[] = [
@@ -38,7 +41,7 @@ const BAND_TONE: Record<string, string> = {
   critical: "bg-risk-400",
 };
 
-export function Navbar({ burstProbability, band }: NavbarProps) {
+export function Navbar({ burstProbability, band, paletteItems }: NavbarProps) {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
@@ -137,6 +140,9 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
                 </span>
               </Link>
             ) : null}
+
+            {/* Global search — one keyboard entry point to every graph on the site */}
+            <CommandPalette items={paletteItems ?? []} />
 
             <button
               type="button"
