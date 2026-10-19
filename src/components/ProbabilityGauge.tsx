@@ -13,6 +13,7 @@ import {
   runMonteCarloSimulation,
 } from "@/lib/model/engine";
 import rawTrajectoryHistory from "@/data/trajectory-history.json";
+import liveInputsData from "@/data/live-inputs.json";
 import {
   POLYMARKET_FEATURED_MARKETS,
   POLYMARKET_REFERRAL_CODE,
@@ -21,22 +22,12 @@ import {
   TrendingUp,
   TrendingDown,
   ShieldCheck,
-  ShieldAlert,
-  ArrowUpRight,
   RotateCcw,
   Sliders,
-  ExternalLink,
-  Coins,
-  Scale,
-  Zap,
-  CheckCircle2,
   Activity,
   Clock,
-  Sparkles,
-  Lightbulb,
   ChevronDown,
   ChevronUp,
-  Info,
 } from "lucide-react";
 
 export interface TrajectoryPoint {
@@ -51,22 +42,41 @@ export interface TrajectoryPoint {
   deltaVs90d?: string;
   deltaVsYesterday?: string;
   cdsOracleBps?: number;
+  /** True when the point was seeded from the model rather than recorded. */
+  backfilled?: boolean;
 }
 
+/**
+ * Fallback trajectory — used ONLY when src/data/trajectory-history.json is
+ * missing or empty (19 Oct 2026).
+ *
+ * Re-anchored to the published world: the recorded 90-day path runs 38.6% →
+ * 71.6% burst probability on a composite score of 48.3 → 63.3, with Merton
+ * distance-to-default 5.13σ and Monte Carlo VaR95 80.5% at the current point.
+ * The UI marks the panel as a fallback whenever this array is the source.
+ *
+ * 2026-10-19 (round-2 consolidation): end-point re-synced to
+ * src/data/latest-model.json (burst 71.6 / composite 63.3 / MC VaR95 80.5) —
+ * the values had been pinned to the pre-rebaseline 71.7 / 63.4 / 80.6.
+ */
 const FALLBACK_TRAJECTORY: TrajectoryPoint[] = Array.from({ length: 90 }, (_, i) => {
-  const prob = Math.round((38.6 + (42.8 - 38.6) * (i / 89)) * 10) / 10;
+  const t = i / 89;
+  const prob = Math.round((38.6 + (71.6 - 38.6) * t) * 10) / 10;
+  const composite = Math.round((48.3 + (63.3 - 48.3) * t) * 10) / 10;
   const delta90 = Math.round((prob - 38.6) * 10) / 10;
   return {
     dayIndex: i,
     date: `2026-${String(7 + Math.floor(i / 30)).padStart(2, "0")}-${String(1 + (i % 30)).padStart(2, "0")}`,
     dayLabel: i === 89 ? "Current" : `${89 - i}d ago`,
     probability: prob,
-    compositeScore: Math.round((48.2 + (52.4 - 48.2) * (i / 89)) * 10) / 10,
-    mertonDD: 5.37,
-    altmanZ: 8.41,
-    var95: 76.9,
-    deltaVs90d: delta90 >= 0 ? `+${delta90.toFixed(1)}%` : `${delta90.toFixed(1)}%`,
-    deltaVsYesterday: "+0.1%",
+    compositeScore: composite,
+    mertonDD: Math.round((5.82 + (5.13 - 5.82) * t) * 100) / 100,
+    altmanZ: Math.round((8.8 + (8.41 - 8.8) * t) * 100) / 100,
+    var95: Math.round((72 + (80.5 - 72) * t) * 10) / 10,
+    // 2026-10-19 (round-2 consolidation): "pts" — the trajectory deltas are probability-point
+    // changes, matching trajectory-history.json and the home page.
+    deltaVs90d: delta90 >= 0 ? `+${delta90.toFixed(1)} pts` : `${delta90.toFixed(1)} pts`,
+    deltaVsYesterday: "+0.2 pts",
   };
 });
 
@@ -90,107 +100,144 @@ interface WhatIfScenario {
   modify: (base: BubbleModelInputs) => BubbleModelInputs;
 }
 
-const WHAT_IF_SCENARIOS: WhatIfScenario[] = [
-  {
-    id: "baseline",
-    label: "Current Baseline",
-    tag: "Verified Live",
-    description: "Current audited SEC filings, Oracle CDS (187bp), and 5.10% US 10Y yield",
-    modify: (b) => b,
-  },
-  {
-    id: "rate_hike",
-    label: "+50bps US10Y Hike (5.60%)",
-    tag: "Macro Shock",
-    description: "Persistent inflation elevates yields to 5.60% and widens HY spreads to 415bp",
-    modify: (b) => ({
-      ...b,
-      macro: b.macro
-        ? {
-            ...b.macro,
-            us10yYieldPct: 5.60,
-            cpiInflationYoY: 3.4,
-            highYieldSpreadBps: 415,
-            rateHikeRiskBps: 50,
-          }
-        : null,
-    }),
-  },
-  {
-    id: "cds_blowout",
-    label: "Oracle CDS Blowout (+63bp)",
-    tag: "Credit Contagion",
-    description: "Oracle 5Y CDS default swap surges from 187bp to 250bp on AI datacenter refinancing stress",
-    modify: (b) => ({
-      ...b,
-      cds: b.cds
-        ? {
-            ...b.cds,
-            currentBps: 250,
-          }
-        : null,
-    }),
-  },
-  {
-    id: "capex_cut",
-    label: "Capex Retrenchment (-20%)",
-    tag: "CapEx Cooling",
-    description: "Hyperscalers slash datacenter commitments by 20% to $168B to restore free cash flow",
-    modify: (b) => ({
-      ...b,
-      capex: b.capex
-        ? {
-            ...b.capex,
-            aggregateCapexUsd: 168_000_000_000,
-          }
-        : null,
-      aiDebt: b.aiDebt
-        ? {
-            ...b.aiDebt,
-            capexToOcfRatio: 0.438,
-          }
-        : null,
-    }),
-  },
-  {
-    id: "multiple_compression",
-    label: "Lab Down-Rounds (15× P/S)",
-    tag: "Valuation Reset",
-    description: "Frontier lab multiples compress from median 34.8× to 15× enterprise run-rate revenues",
-    modify: (b) => ({
-      ...b,
-      valuations: b.valuations
-        ? b.valuations.map((v) => ({
-            ...v,
-            valuationUsd: v.runRateRevenueUsd ? v.runRateRevenueUsd * 15 : v.valuationUsd * 0.45,
-          }))
-        : null,
-    }),
-  },
-  {
-    id: "credit_freeze",
-    label: "Credit Freeze & Circular Handoff",
-    tag: "Systemic Contagion",
-    description: "Private debt facilities freeze, circular supplier financing pauses, and deals slow",
-    modify: (b) => ({
-      ...b,
-      ledger: b.ledger
-        ? {
-            ...b.ledger,
-            debtShare: 0.11,
-            circularShare: 0.08,
-            daysSinceLastMega: 65,
-          }
-        : null,
-      macro: b.macro
-        ? {
-            ...b.macro,
-            highYieldSpreadBps: 460,
-          }
-        : null,
-    }),
-  },
-];
+/** Median P/S across the labs with a verified run-rate (same basis as
+ * /api/v1/model). 19 Oct 2026 live value: 29.4×. */
+function medianPsMultiple(base: BubbleModelInputs): number {
+  const ps = (base.valuations ?? [])
+    .filter((v) => v.runRateRevenueUsd !== null && (v.runRateRevenueUsd as number) >= 100_000_000)
+    .map((v) => v.valuationUsd / (v.runRateRevenueUsd as number))
+    .sort((a, b) => a - b);
+  if (ps.length === 0) return 29.4; // 19 Oct 2026 canonical live median
+  const mid = Math.floor(ps.length / 2);
+  return ps.length % 2 !== 0 ? ps[mid] : (ps[mid - 1] + ps[mid]) / 2;
+}
+
+/**
+ * What-if levers are rebuilt from the LIVE model inputs at render time.
+ *
+ * 19 Oct 2026 fact-check: the old cards were pinned to a pre-verification
+ * world — "Oracle CDS (187bp)", a "+63bp" blowout that was really a
+ * relaxation (250 − 187), a "-20%" capex cut written as $168B against a $725B
+ * live capex, and a 34.8× multiple median. Every label and every stressed
+ * input below is now derived from the model inputs the gauge is rendering.
+ */
+function buildWhatIfScenarios(base: BubbleModelInputs): WhatIfScenario[] {
+  const liveCds = base.cds?.currentBps ?? 288;
+  const liveCapex = base.capex?.aggregateCapexUsd ?? 725_000_000_000;
+  const liveUs10y = base.macro?.us10yYieldPct ?? 5.1;
+  const liveHy = base.macro?.highYieldSpreadBps ?? 323;
+  const liveDebtShare = base.ledger?.debtShare ?? 0.075;
+  const liveMedianPs = medianPsMultiple(base);
+
+  // Credit blowout: live spread +112bp → 400bp, a genuine stress level above
+  // the 288bp record close (15 Oct 2026) rather than a move toward calm.
+  const blowoutBps = liveCds + 112;
+  // Capex retrenchment: a real 20% cut of the live guided capex.
+  const cutCapex = Math.round(liveCapex * 0.8);
+  // Multiple compression: half the live median.
+  const targetPs = Math.round(liveMedianPs / 2);
+
+  return [
+    {
+      id: "baseline",
+      label: "Current Baseline",
+      tag: "Verified Live",
+      description: `Current audited SEC filings, Oracle CDS (${liveCds}bp), and ${liveUs10y.toFixed(2)}% US 10Y yield`,
+      modify: (b) => b,
+    },
+    {
+      id: "rate_hike",
+      label: `+50bps US10Y Hike (${(liveUs10y + 0.5).toFixed(2)}%)`,
+      tag: "Macro Shock",
+      description: `Persistent inflation elevates yields to ${(liveUs10y + 0.5).toFixed(2)}% and widens HY spreads to ${liveHy + 92}bp`,
+      modify: (b) => ({
+        ...b,
+        macro: b.macro
+          ? {
+              ...b.macro,
+              us10yYieldPct: Number((liveUs10y + 0.5).toFixed(2)),
+              highYieldSpreadBps: liveHy + 92,
+              rateHikeRiskBps: 50,
+            }
+          : null,
+      }),
+    },
+    {
+      id: "cds_blowout",
+      label: `Oracle CDS Blowout (+112bp → ${blowoutBps}bp)`,
+      tag: "Credit Contagion",
+      description: `Oracle 5Y CDS default swap surges from ${liveCds}bp to ${blowoutBps}bp on AI datacenter refinancing stress`,
+      modify: (b) => ({
+        ...b,
+        cds: b.cds
+          ? {
+              ...b.cds,
+              currentBps: blowoutBps,
+            }
+          : null,
+      }),
+    },
+    {
+      id: "capex_cut",
+      label: "Capex Retrenchment (-20%)",
+      tag: "CapEx Cooling",
+      description: `Hyperscalers cut guided datacenter capex by 20% to $${(cutCapex / 1e9).toFixed(0)}B (from $${(liveCapex / 1e9).toFixed(0)}B) to restore free cash flow`,
+      modify: (b) => ({
+        ...b,
+        capex: b.capex
+          ? {
+              ...b.capex,
+              aggregateCapexUsd: cutCapex,
+            }
+          : null,
+        aiDebt: b.aiDebt
+          ? {
+              ...b.aiDebt,
+              capexToOcfRatio: Math.round((liveCapex > 0 ? (cutCapex / liveCapex) * (b.aiDebt.capexToOcfRatio ?? 0.548) : 0.548) * 1000) / 1000,
+            }
+          : null,
+      }),
+    },
+    {
+      id: "multiple_compression",
+      label: `Lab Down-Rounds (${targetPs}× P/S)`,
+      tag: "Valuation Reset",
+      description: `Frontier lab multiples compress from median ${liveMedianPs.toFixed(1)}× to ${targetPs}× enterprise run-rate revenues`,
+      modify: (b) => ({
+        ...b,
+        valuations: b.valuations
+          ? b.valuations.map((v) => ({
+              ...v,
+              valuationUsd: v.runRateRevenueUsd ? v.runRateRevenueUsd * targetPs : v.valuationUsd * 0.45,
+            }))
+          : null,
+      }),
+    },
+    {
+      id: "credit_freeze",
+      label: "Credit Freeze & Circular Handoff",
+      tag: "Systemic Contagion",
+      description: "Private debt facilities freeze, circular supplier financing pauses, and deals slow",
+      modify: (b) => ({
+        ...b,
+        ledger: b.ledger
+          ? {
+              ...b.ledger,
+              debtShare: Math.max(liveDebtShare, 0.11),
+              circularShare: 0.08,
+              daysSinceLastMega: 65,
+            }
+          : null,
+        macro: b.macro
+          ? {
+              ...b.macro,
+              highYieldSpreadBps: liveHy + 137,
+            }
+          : null,
+      }),
+    },
+  ];
+}
 
 export function ProbabilityGauge({
   probability: baseProbability,
@@ -207,10 +254,14 @@ export function ProbabilityGauge({
   const [activeScenarioId, setActiveScenarioId] = useState<string>("baseline");
   const [showPlainEnglishGuide, setShowPlainEnglishGuide] = useState<boolean>(false);
 
+  // Scenario levers are derived from the model inputs this gauge is rendering
+  // (19 Oct 2026) — never from a hard-coded snapshot of an earlier world.
+  const whatIfScenarios = useMemo(() => buildWhatIfScenarios(initialInputs), [initialInputs]);
+
   // Evaluate model dynamically when a What-If scenario lever is selected
   const activeScenario = useMemo(
-    () => WHAT_IF_SCENARIOS.find((s) => s.id === activeScenarioId) || WHAT_IF_SCENARIOS[0],
-    [activeScenarioId]
+    () => whatIfScenarios.find((s) => s.id === activeScenarioId) || whatIfScenarios[0],
+    [activeScenarioId, whatIfScenarios]
   );
 
   const scenarioResult = useMemo(() => {
@@ -240,64 +291,35 @@ export function ProbabilityGauge({
     BubbleBand,
     {
       label: string;
-      badge: string;
-      text: string;
-      bg: string;
-      border: string;
+      /** Tone modifier from the global token set: pill-risk / pill-caution / … */
+      pillTone: string;
       desc: string;
-      glowColor: string;
-      gradientId: string;
     }
   > = {
     critical: {
       label: "Critical Risk (≥80%)",
-      badge: "bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300 border-rose-300 dark:border-rose-800",
-      text: "text-rose-600 dark:text-rose-400",
-      bg: "bg-rose-500",
-      border: "border-rose-500",
+      pillTone: "pill-risk",
       desc: "Severe debt saturation, widening CDS spreads, and unsustainable circular counterparty funding create extreme liquidation risk.",
-      glowColor: "rgba(244, 63, 94, 0.55)",
-      gradientId: "gauge-gradient-critical",
     },
     high: {
       label: "High Stress (65–79%)",
-      badge: "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border-rose-200 dark:border-rose-900/80",
-      text: "text-rose-600 dark:text-rose-400",
-      bg: "bg-rose-500",
-      border: "border-rose-500",
+      pillTone: "pill-risk",
       desc: "Valuation multiples and debt commitments significantly outpace verified commercial monetization, leaving capital structures vulnerable to credit shocks.",
-      glowColor: "rgba(244, 63, 94, 0.45)",
-      gradientId: "gauge-gradient-high",
     },
     elevated: {
       label: "Elevated Risk (45–64%)",
-      badge: "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-200 dark:border-amber-900/80",
-      text: "text-amber-600 dark:text-amber-400",
-      bg: "bg-amber-500",
-      border: "border-amber-500",
+      pillTone: "pill-caution",
       desc: "Credit spreads widening and private valuations high, balanced by ongoing enterprise adoption and organic revenue generation.",
-      glowColor: "rgba(245, 158, 11, 0.45)",
-      gradientId: "gauge-gradient-elevated",
     },
     guarded: {
       label: "Guarded (25–44%)",
-      badge: "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400 border-blue-200 dark:border-blue-900/80",
-      text: "text-blue-600 dark:text-blue-400",
-      bg: "bg-blue-500",
-      border: "border-blue-500",
+      pillTone: "",
       desc: "Moderate multiple expansion adequately covered by real utility, commercial software enterprise adoption, and healthy balance sheets.",
-      glowColor: "rgba(59, 130, 246, 0.45)",
-      gradientId: "gauge-gradient-guarded",
     },
     calm: {
       label: "Low Risk (<25%)",
-      badge: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/80",
-      text: "text-emerald-600 dark:text-emerald-400",
-      bg: "bg-emerald-500",
-      border: "border-emerald-500",
+      pillTone: "pill-safe",
       desc: "Revenues, cash flow, and token unit economics fully justify current capital investments with minimal default exposure.",
-      glowColor: "rgba(16, 185, 129, 0.45)",
-      gradientId: "gauge-gradient-calm",
     },
   };
 
@@ -334,6 +356,21 @@ export function ProbabilityGauge({
   }, [activeInputs]);
 
   // Load 90-day trajectory from trajectory-history.json with fallback
+  const usingFallbackTrajectory = !(
+    rawTrajectoryHistory &&
+    Array.isArray(rawTrajectoryHistory) &&
+    rawTrajectoryHistory.length > 0
+  );
+  // Points the pipeline had to seed rather than observe (flagged "backfilled"
+  // in trajectory-history.json) are disclosed under the chart.
+  const backfilledPointCount = useMemo(
+    () =>
+      (Array.isArray(rawTrajectoryHistory) ? (rawTrajectoryHistory as TrajectoryPoint[]) : []).filter(
+        (p) => p.backfilled === true
+      ).length,
+    []
+  );
+
   const trajectoryPoints: TrajectoryPoint[] = useMemo(() => {
     const source: TrajectoryPoint[] = (rawTrajectoryHistory && Array.isArray(rawTrajectoryHistory) && rawTrajectoryHistory.length > 0)
       ? (rawTrajectoryHistory as TrajectoryPoint[])
@@ -341,8 +378,8 @@ export function ProbabilityGauge({
 
     // Clone array
     const points = source.map((pt) => ({ ...pt }));
-    const baseFirstProb = points[0]?.probability ?? 64.2;
-    const yesterdayProb = points[points.length - 2]?.probability ?? 68.2;
+    const baseFirstProb = points[0]?.probability ?? 38.6;
+    const yesterdayProb = points[points.length - 2]?.probability ?? 71.5;
 
     // If scenario or baseline changes current probability, update the last point ("Current")
     if (points.length > 0) {
@@ -359,8 +396,12 @@ export function ProbabilityGauge({
         mertonDD: quantitativeData.mertonDD,
         altmanZ: quantitativeData.altmanScore,
         var95: quantitativeData.var95,
-        deltaVs90d: delta90 >= 0 ? `+${delta90.toFixed(1)}%` : `${delta90.toFixed(1)}%`,
-        deltaVsYesterday: deltaYest >= 0 ? `+${deltaYest.toFixed(1)}%` : `${deltaYest.toFixed(1)}%`,
+        // 2026-10-19 (round-2 consolidation): the unit suffix "%" → "pts". These are
+        // probability-POINT changes (the published trajectory file, the home page's
+        // "+33.0 pts in 90 days" and the net90DeltaBadge on this same card all use
+        // "pts"); rendering them as "%" read as a relative move that is ~2.5× too small.
+        deltaVs90d: delta90 >= 0 ? `+${delta90.toFixed(1)} pts` : `${delta90.toFixed(1)} pts`,
+        deltaVsYesterday: deltaYest >= 0 ? `+${deltaYest.toFixed(1)} pts` : `${deltaYest.toFixed(1)} pts`,
       };
     }
 
@@ -370,10 +411,19 @@ export function ProbabilityGauge({
   // Dynamic drift relative to yesterday's 24h run
   const yesterdayPoint = trajectoryPoints[trajectoryPoints.length - 2];
   const currentPoint = trajectoryPoints[trajectoryPoints.length - 1];
-  const yesterdayDeltaNum = currentPoint && yesterdayPoint 
-    ? Math.round((currentPoint.probability - yesterdayPoint.probability) * 10) / 10 
+  const yesterdayDeltaNum = currentPoint && yesterdayPoint
+    ? Math.round((currentPoint.probability - yesterdayPoint.probability) * 10) / 10
     : 0.2;
-  const yesterdayDriftBadge = yesterdayDeltaNum >= 0 ? `+${yesterdayDeltaNum.toFixed(1)}%` : `${yesterdayDeltaNum.toFixed(1)}%`;
+  // 2026-10-19 (round-2 consolidation): "%" → "pts" — a probability-point move, matching the
+  // per-point deltas above and the published trajectory file. As a "%" it read as a relative
+  // change that is ~2.5× too small.
+  const yesterdayDriftBadge = yesterdayDeltaNum >= 0 ? `+${yesterdayDeltaNum.toFixed(1)} pts` : `${yesterdayDeltaNum.toFixed(1)} pts`;
+  // 2026-10-19 (orchestrator ruling): while the trajectory's early rows are seeded
+  // ("backfilled": true), a "vs yesterday" chip would compare the observed print
+  // against a synthetic ~42.7% row and dress a calibration jump up as a daily move.
+  // Suppress it while the previous point is a seed — the 90-day badge above and the
+  // backfill disclosure already carry the honest history.
+  const yesterdayBackfilled = Boolean(yesterdayPoint?.backfilled);
 
   // Net 90-day trajectory delta
   const firstPoint = trajectoryPoints[0];
@@ -449,10 +499,37 @@ export function ProbabilityGauge({
   // Dynamic top drivers from live contributions
   const dynamicDrivers = useMemo(() => {
     if (!currentContributions || currentContributions.length === 0) {
+      // No contributions were supplied: evaluate the base inputs so the driver
+      // list still carries model-derived points rather than stale placeholders.
+      const base = evaluateBubbleModel(initialInputs);
+      const byId = (id: string) => base.contributions.find((c) => c.id === id);
+      const cdsFactor = byId("cds_stress");
+      const valuationFactor = byId("valuation_stretch");
+      const damperFactor = byId("adoption_demand");
+      const liveCds = initialInputs.cds?.currentBps ?? 288;
+      const liveMedianPs = medianPsMultiple(initialInputs);
+      const signed = (pts: number | undefined) =>
+        pts === undefined ? "" : `${pts >= 0 ? "+" : ""}${pts.toFixed(1)} pts`;
       return [
-        { label: "Oracle 5Y CDS (187 bp)", points: "+18.7 pts", type: "risk" as const },
-        { label: "Lab Valuations (34.8× multiple)", points: "+15.3 pts", type: "risk" as const },
-        { label: "Token Price Deflation (40× drop)", points: "-7.2 pts", type: "damper" as const },
+        {
+          label: `Oracle 5Y CDS (${liveCds} bp)`,
+          points: signed(cdsFactor?.earnedPoints) || "+0.0 pts",
+          type: "risk" as const,
+        },
+        {
+          label: `Lab Valuations (${liveMedianPs.toFixed(1)}× multiple)`,
+          points: signed(valuationFactor?.earnedPoints) || "+0.0 pts",
+          type: "risk" as const,
+        },
+        {
+          // 19 Oct 2026 pin: the published input-basis deflation multiple is
+          // 670× (GPT-4 $30/1M input, Mar 2023 → DeepSeek V4.1 Flash
+          // $0.0448/1M, OpenRouter). The live aggregator's intraday rate swings
+          // the raw reading, and a drifted multiple is never published.
+          label: "Token Price Deflation (670× input-basis)",
+          points: signed(damperFactor?.earnedPoints) || "-7.2 pts",
+          type: "damper" as const,
+        },
       ];
     }
     const risks = currentContributions
@@ -476,957 +553,638 @@ export function ProbabilityGauge({
       }));
 
     return [...risks, ...dampers];
-  }, [currentContributions]);
+  }, [currentContributions, initialInputs]);
 
-  // Polymarket Reference Data
+  // Polymarket Reference Data — the odds come from the live 24h crowd sync
+  // (19 Oct 2026: 9.05% on the Dec-2026 contract, 19.5% on the Jun-2027
+  // contract, $9,167,627 traded), not from the static contract table.
+  const crowdInputs = liveInputsData?.crowd;
   const poly2026Market = POLYMARKET_FEATURED_MARKETS[0];
   const poly2027Market = POLYMARKET_FEATURED_MARKETS[1];
-  const polyOdds2026 = poly2026Market?.yesProbabilityPct ?? 7.6;
-  const polyOdds2027 = poly2027Market?.yesProbabilityPct ?? 15.5;
-  const polyVolumeTotal = poly2026Market?.volumeUsd ?? 2443553;
+  const polyOdds2026 = (crowdInputs?.bubble2026Probability ?? 0.0905) * 100;
+  const polyOdds2027 = (crowdInputs?.bubble2027Probability ?? 0.195) * 100;
+  const polyVolumeTotal = crowdInputs?.volumeUsd ?? 9_167_627;
 
   // Divergence calculation between our institutional model and Polymarket crowd
   const divergenceDelta = Math.round((currentProb - polyOdds2026) * 10) / 10;
   const divergenceMultiplier = (currentProb / polyOdds2026).toFixed(1);
 
+  // Flat, ink-first palette for the arc. Token values: the safe / caution /
+  // risk scales from tailwind.config.ts, and the ink ramp for the guarded
+  // band (read from the CSS variable so it follows the theme).
+  const ARC_HEX: Record<BubbleBand, string> = {
+    calm: "#0E9F6E", // safe-500
+    guarded: "rgb(var(--c-ink-subtle))", // --c-ink-subtle
+    elevated: "#B57F0A", // caution-500
+    high: "#D1433C", // risk-500
+    critical: "#B7352F", // risk-600
+  };
+  const arcColor = ARC_HEX[currentBand] ?? ARC_HEX.guarded;
+
+  const fragilityBand =
+    currentFragility > 65 ? "Fragile" : currentFragility >= 35 ? "Moderate" : "Resilient";
+
+  const divergesUp = divergenceDelta > 0;
+  const pricedCount = (currentContributions ?? []).filter((c) => c.reading.coverage > 0).length;
+  const factorCount = (currentContributions ?? []).length;
+
   return (
-    <div className="rounded-2xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 p-4 sm:p-7 space-y-6 transition-all shadow-sm">
-      {/* ── 1. HEADER STRIP, PROVENANCE & CONFIDENCE INTERVALS ──────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-zinc-800">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-bold border shadow-xs ${current.badge}`}>
-            <span className="w-2 h-2 rounded-full bg-current mr-2 animate-pulse" />
+    <div className="card card-flush rounded-lg">
+      {/* ── Provenance strip ───────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-rule px-4 py-2.5 sm:px-6">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className={`pill ${current.pillTone}`}>
+            <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" aria-hidden="true" />
             {current.label}
           </span>
-
-          {/* Institutional Calibration Pill */}
-          <div
-            title="Calibrated daily using verified market feeds, CDS spreads, and SEC filings"
-            className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-lg text-xs font-mono font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/80 shadow-xs"
-          >
-            <span className="relative flex h-2 w-2 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-            </span>
-            <span>Continuous Calibration: Active</span>
-          </div>
-
-          {/* Dynamic drift badge showing delta vs yesterday's 24h run */}
-          <div
-            title="Drift in calculated burst probability relative to yesterday's 24h calibration run"
-            className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 border border-slate-200 dark:border-zinc-700 shadow-xs"
-          >
-            <Activity className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-            <span>{yesterdayDriftBadge} vs yesterday</span>
-          </div>
-
-          <span className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-zinc-300">
-            Horizon: 12 Months
-          </span>
-          <span className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 font-medium">
-            • Coverage: {(baseCoverage * 100).toFixed(0)}% Verified
-          </span>
-        </div>
-
-        {/* Confidence Interval Badge */}
-        <div className="flex items-center gap-2">
-          {probDelta !== 0 && (
-            <span
-              className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-mono font-bold border ${
-                probDelta > 0
-                  ? "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-400 dark:border-rose-900"
-                  : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-900"
-              }`}
-            >
-              {probDelta > 0 ? (
-                <TrendingUp className="w-3.5 h-3.5 mr-1" />
-              ) : (
-                <TrendingDown className="w-3.5 h-3.5 mr-1" />
-              )}
-              {probDelta > 0 ? `+${probDelta}%` : `${probDelta}%`} vs baseline
+          <span className="chip">12-month horizon</span>
+          <span className="chip">Live model</span>
+          {!yesterdayBackfilled && (
+            <span className="chip">
+              <Activity className="h-3 w-3" aria-hidden="true" />
+              {yesterdayDriftBadge} vs yesterday
             </span>
           )}
+          <span className="chip">coverage {Math.round(baseCoverage * 100)}%</span>
+        </div>
 
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 shadow-xs">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-400">
-              90% CI:
+        <div className="flex flex-wrap items-center gap-1.5">
+          {probDelta !== 0 && (
+            <span className={`chip ${probDelta > 0 ? "chip-risk" : "chip-safe"}`}>
+              {probDelta > 0 ? (
+                <TrendingUp className="h-3 w-3" aria-hidden="true" />
+              ) : (
+                <TrendingDown className="h-3 w-3" aria-hidden="true" />
+              )}
+              {probDelta > 0 ? `+${probDelta}` : probDelta} vs baseline
             </span>
-            <span className="font-mono text-xs sm:text-sm font-black text-slate-900 dark:text-white tabular-nums tracking-wide">
-              [{ciLow.toFixed(1)}% – {ciHigh.toFixed(1)}%]
+          )}
+          <span className="chip">
+            <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+            90% CI
+            <span className="num font-semibold text-ink">
+              {ciLow.toFixed(1)}–{ciHigh.toFixed(1)}%
             </span>
-          </div>
+          </span>
         </div>
       </div>
 
-      {/* ── 2. INTERACTIVE WHAT-IF SENSITIVITY LEVERS ("IMPROVE OURS") ───────── */}
-      <div className="bg-slate-50/80 dark:bg-[#0c0c0e] border border-slate-200/90 dark:border-zinc-800/90 rounded-xl p-3.5 sm:p-4 space-y-2.5">
+      {/* ── Scenario levers ────────────────────────────────────────────────── */}
+      <div className="px-4 pt-4 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center space-x-2">
-            <Sliders className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">
-              Interactive Stress Scenarios:
-            </span>
-            <span className="text-[11px] font-mono text-slate-500 dark:text-zinc-400 hidden sm:inline">
-              Test macro interest rate shocks, credit freezes &amp; multiple de-ratings
-            </span>
-          </div>
-
+          <span className="label inline-flex items-center gap-1.5">
+            <Sliders className="h-3.5 w-3.5" aria-hidden="true" />
+            Scenario
+          </span>
           {activeScenarioId !== "baseline" && (
             <button
+              type="button"
               onClick={() => setActiveScenarioId("baseline")}
-              className="inline-flex items-center space-x-1 text-xs font-mono font-semibold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer"
+              className="btn btn-ghost min-h-11 text-ink-muted"
             >
-              <RotateCcw className="w-3 h-3" />
-              <span>Reset to Baseline</span>
+              <RotateCcw className="h-3 w-3" aria-hidden="true" />
+              Reset to baseline
             </button>
           )}
         </div>
 
-        {/* Scenario Pills */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-1">
-          {WHAT_IF_SCENARIOS.map((scen) => {
+        <div className="mt-1.5 grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-6">
+          {whatIfScenarios.map((scen) => {
             const isActive = activeScenarioId === scen.id;
             return (
               <button
                 key={scen.id}
+                type="button"
+                aria-pressed={isActive}
                 onClick={() => setActiveScenarioId(scen.id)}
-                className={`text-left p-2.5 rounded-lg border transition-all text-xs cursor-pointer flex flex-col justify-between ${
+                className={`min-h-11 rounded-sm px-2.5 py-2 text-left text-[13px] leading-tight transition-colors ${
                   isActive
-                    ? "bg-white dark:bg-zinc-800 border-rose-500 dark:border-rose-500 shadow-sm ring-1 ring-rose-500"
-                    : "bg-white/60 dark:bg-zinc-900/60 border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700"
+                    ? "bg-ink text-canvas"
+                    : "border border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"
                 }`}
               >
-                <div className="flex items-center justify-between w-full mb-1">
-                  <span className={`text-[10px] font-mono uppercase tracking-wider font-bold ${
-                    isActive ? "text-rose-600 dark:text-rose-400" : "text-slate-500 dark:text-zinc-500"
-                  }`}>
-                    {scen.tag}
-                  </span>
-                  {isActive && <CheckCircle2 className="w-3 h-3 text-rose-500 shrink-0" />}
-                </div>
-                <span className={`font-semibold line-clamp-1 ${
-                  isActive ? "text-slate-900 dark:text-white font-bold" : "text-slate-700 dark:text-zinc-300"
-                }`}>
-                  {scen.label}
+                <span className={`block font-mono uppercase tracking-[0.12em] ${isActive ? "opacity-70" : "text-ink-faint"}`}>
+                  {scen.tag}
                 </span>
+                <span className="mt-0.5 block font-semibold">{scen.label}</span>
               </button>
             );
           })}
         </div>
 
-        {activeScenarioId !== "baseline" && (
-          <div className="pt-1 flex items-center space-x-2 text-xs font-sans text-slate-600 dark:text-zinc-400">
-            <span className="font-semibold text-slate-800 dark:text-zinc-200">Active Shock:</span>
-            <span>{activeScenario.description}</span>
-          </div>
-        )}
+        <p className="mt-2 text-[14px] text-ink-subtle">
+          <span className="font-semibold text-ink-muted">Active: </span>
+          {activeScenario.description}
+        </p>
       </div>
 
-      {/* ── 3. MAIN GAUGE, RISK BREAKDOWN & 90-DAY SPARKLINE ──────────────────── */}
-      <div className="space-y-6">
-        {/* Top Split: SVG Arc Gauge & Rationale (Left) + 90-Day Trajectory Sparkline (Right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
-          {/* Left Side: SVG Arc Visualization + Main Score */}
-          <div className="lg:col-span-7 bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-center gap-6 shadow-sm">
-          {/* Modern SVG Arc Gauge */}
-          <div className="relative shrink-0 flex flex-col items-center justify-center">
+      {/* ── Gauge, trajectory, drivers ─────────────────────────────────────── */}
+      <div className="mt-4 grid grid-cols-1 gap-3 px-4 pb-4 sm:px-6 lg:grid-cols-12">
+        <div className="flex flex-col items-center gap-5 rounded-md border border-rule p-4 sm:flex-row sm:items-center lg:col-span-7">
+          {/* Arc gauge */}
+          <div className="shrink-0">
             <svg
-              className="overflow-visible w-[250px] h-[150px] sm:w-[290px] sm:h-[170px]"
-              viewBox="0 0 320 170"
+              className="w-[252px] max-w-full sm:w-[318px]"
+              viewBox="0 0 320 178"
+              role="img"
+              aria-label={`Burst probability ${currentProb.toFixed(1)} percent. 90 percent confidence interval ${ciLow.toFixed(1)} to ${ciHigh.toFixed(1)} percent.`}
             >
-              <defs>
-                {/* Color Gradients */}
-                <linearGradient id="gauge-gradient-critical" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#f59e0b" />
-                  <stop offset="50%" stopColor="#f43f5e" />
-                  <stop offset="100%" stopColor="#e11d48" />
-                </linearGradient>
-
-                <linearGradient id="gauge-gradient-high" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#f59e0b" />
-                  <stop offset="60%" stopColor="#f43f5e" />
-                  <stop offset="100%" stopColor="#fb7185" />
-                </linearGradient>
-
-                <linearGradient id="gauge-gradient-elevated" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#3b82f6" />
-                  <stop offset="50%" stopColor="#f59e0b" />
-                  <stop offset="100%" stopColor="#ea580c" />
-                </linearGradient>
-
-                <linearGradient id="gauge-gradient-guarded" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#10b981" />
-                  <stop offset="70%" stopColor="#3b82f6" />
-                  <stop offset="100%" stopColor="#6366f1" />
-                </linearGradient>
-
-                <linearGradient id="gauge-gradient-calm" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#059669" />
-                  <stop offset="50%" stopColor="#10b981" />
-                  <stop offset="100%" stopColor="#34d399" />
-                </linearGradient>
-              </defs>
-
-              {/* Background Track Arc */}
               <path
                 d="M 48 140 A 112 112 0 0 1 272 140"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="15"
+                strokeWidth="14"
                 strokeLinecap="round"
-                className="text-slate-100 dark:text-zinc-800"
+                className="text-surface-3"
               />
-
-              {/* 90% Confidence Interval Shaded Arc Band Overlay */}
               <path
                 d={ciArcPath}
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="20"
-                strokeLinecap="round"
-                className="text-slate-300/40 dark:text-white/20 pointer-events-none"
-                style={{
-                  filter: "drop-shadow(0 0 4px rgba(255,255,255,0.25))",
-                  transition: "d 0.8s ease-in-out",
-                }}
+                strokeWidth="14"
+                strokeLinecap="butt"
+                className="text-rule-strong"
               />
-
-              {/* Active Clean Filled Arc */}
               <path
                 d="M 48 140 A 112 112 0 0 1 272 140"
                 fill="none"
-                stroke={`url(#${current.gradientId})`}
-                strokeWidth="15"
+                strokeWidth="14"
                 strokeLinecap="round"
                 strokeDasharray={arcLength}
                 strokeDashoffset={activeOffset}
                 style={{
-                  transition: "stroke-dashoffset 0.8s ease-in-out",
+                  stroke: arcColor,
+                  transition: "stroke-dashoffset 0.6s ease-in-out",
                 }}
               />
-
-              {/* Arc Boundary Tick Marks */}
-              {[
-                { pct: 0, label: "0" },
-                { pct: 25, label: "25" },
-                { pct: 45, label: "45" },
-                { pct: 65, label: "65" },
-                { pct: 80, label: "80" },
-                { pct: 100, label: "100" },
-              ].map((tick) => {
-                const tickTheta = (Math.PI * tick.pct) / 100;
+              {[0, 25, 45, 65, 80, 100].map((pct) => {
+                const tickTheta = (Math.PI * pct) / 100;
                 const innerR = 124;
-                const outerR = 132;
-                const x1 = cx - innerR * Math.cos(tickTheta);
-                const y1 = cy - innerR * Math.sin(tickTheta);
-                const x2 = cx - outerR * Math.cos(tickTheta);
-                const y2 = cy - outerR * Math.sin(tickTheta);
+                const outerR = 131;
                 return (
                   <line
-                    key={tick.pct}
-                    x1={x1}
-                    y1={y1}
-                    x2={x2}
-                    y2={y2}
+                    key={pct}
+                    x1={cx - innerR * Math.cos(tickTheta)}
+                    y1={cy - innerR * Math.sin(tickTheta)}
+                    x2={cx - outerR * Math.cos(tickTheta)}
+                    y2={cy - outerR * Math.sin(tickTheta)}
                     stroke="currentColor"
-                    strokeWidth="1.5"
-                    className="text-slate-300 dark:text-zinc-700"
+                    strokeWidth="1"
+                    className="text-rule-strong"
                   />
                 );
               })}
-
-              {/* Pointer Thumb on Arc */}
               <circle
                 cx={thumbX}
                 cy={thumbY}
-                r="8.5"
-                fill="#ffffff"
-                stroke={currentProb >= 65 ? "#f43f5e" : currentProb >= 45 ? "#f59e0b" : "#3b82f6"}
-                strokeWidth="3.5"
-                className="shadow-lg"
+                r="7"
+                strokeWidth="3"
                 style={{
-                  filter: `drop-shadow(0 0 8px ${current.glowColor})`,
-                  transition: "cx 0.8s ease-in-out, cy 0.8s ease-in-out",
+                  fill: "rgb(var(--c-canvas))",
+                  stroke: arcColor,
+                  transition: "cx 0.6s ease-in-out, cy 0.6s ease-in-out",
                 }}
               />
-
-              {/* Inner Percentage Display */}
               <text
                 x={cx}
-                y={cy - 12}
+                y={cy - 14}
                 textAnchor="middle"
-                className="font-mono font-black text-5xl fill-slate-900 dark:fill-white tabular-nums tracking-tighter"
+                className="num fill-ink text-[44px] font-bold"
               >
                 {currentProb.toFixed(1)}%
               </text>
               <text
                 x={cx}
-                y={cy + 14}
+                y={cy + 10}
                 textAnchor="middle"
-                className="font-sans font-extrabold text-xs uppercase tracking-widest fill-slate-600 dark:fill-zinc-400"
+                className="fill-ink-faint font-sans text-[13px] uppercase tracking-[0.18em]"
               >
-                12-Mo Burst Odds
+                12-month burst odds
               </text>
             </svg>
           </div>
 
-          {/* Probability Details & Macro Rationale */}
-          <div className="space-y-3.5 text-left min-w-0 flex-1">
-            <div>
-              <span className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white block">
-                Composite Bubble Stress
-              </span>
-              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-1">
-                <span className={`text-xs sm:text-sm font-bold flex items-center space-x-1 ${
-                  net90DeltaNum >= 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
-                }`}>
-                  {net90DeltaNum >= 0 ? (
-                    <TrendingUp className="w-4 h-4 shrink-0 text-rose-500" />
-                  ) : (
-                    <TrendingDown className="w-4 h-4 shrink-0 text-emerald-500" />
-                  )}
-                  <span>{net90DeltaBadge} in last 90 days</span>
-                </span>
-                <span className="text-slate-300 dark:text-zinc-700 hidden sm:inline">•</span>
-                <span className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-zinc-400 font-mono">
-                  Composite: {currentComposite.toFixed(1)} / 100
-                </span>
-              </div>
-            </div>
-
-            <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-sans">
-              {current.desc} Driven by Oracle 5Y CDS widening to 187 bp (+131%), 2026 enterprise multiples, 
-              and $228.1B in verified debt &amp; credit commitments — offset by 40× token price deflation.
+          {/* Why it sits there */}
+          <div className="min-w-0 flex-1">
+            <span className="label">Composite stress score</span>
+            <p className="num mt-0.5 text-2xl font-bold text-ink">
+              {currentComposite.toFixed(1)}
+              <span className="text-sm font-normal text-ink-faint"> / 100</span>
             </p>
-
-            {/* Provenance Badges */}
-            <div className="pt-1 flex flex-wrap items-center gap-2 text-[11px] font-mono text-slate-500 dark:text-zinc-400">
-              <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-zinc-850 border border-slate-200 dark:border-zinc-750">
-                Band: <strong className="text-slate-900 dark:text-white uppercase">{currentBand}</strong>
-              </span>
-              <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-zinc-850 border border-slate-200 dark:border-zinc-750">
-                90% CI: <strong className="text-slate-900 dark:text-white">[{ciLow.toFixed(1)}% – {ciHigh.toFixed(1)}%]</strong>
-              </span>
-              <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-zinc-850 border border-slate-200 dark:border-zinc-750 hidden sm:inline">
-                Macro: <strong className="text-slate-900 dark:text-white">5.10% US10Y</strong>
-              </span>
-            </div>
+            <p
+              className={`mt-1 inline-flex items-center gap-1 text-[14px] font-medium ${
+                net90DeltaNum >= 0 ? "text-risk-600 dark:text-risk-300" : "text-safe-600 dark:text-safe-300"
+              }`}
+            >
+              {net90DeltaNum >= 0 ? (
+                <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
+              ) : (
+                <TrendingDown className="h-3.5 w-3.5" aria-hidden="true" />
+              )}
+              {net90DeltaBadge} over 90 days
+            </p>
+            <p className="mt-2.5 text-sm leading-relaxed text-ink-muted">{current.desc}</p>
+            <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[14px] text-ink-faint">
+              <div className="flex gap-1.5">
+                <dt>band</dt>
+                <dd className="num font-semibold uppercase text-ink-muted">{currentBand}</dd>
+              </div>
+              <div className="flex gap-1.5">
+                <dt>fragility</dt>
+                <dd className="num font-semibold text-ink-muted">
+                  {currentFragility}/100 · {fragilityBand.toLowerCase()}
+                </dd>
+              </div>
+              <div className="flex gap-1.5">
+                <dt>priced</dt>
+                <dd className="num font-semibold text-ink-muted">
+                  {pricedCount}/{factorCount} factors
+                </dd>
+              </div>
+            </dl>
           </div>
         </div>
 
-        {/* Right Side: Interactive 90-Day Trajectory Sparkline & Dynamic Drivers */}
-        <div className="lg:col-span-5 bg-slate-50 dark:bg-[#09090b] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-zinc-200 uppercase tracking-wider block">
-                90-Day Risk Trajectory
-              </span>
-              <span className="text-[11px] text-slate-500 dark:text-zinc-400 font-mono">
-                Hover points for historical snapshots
-              </span>
-            </div>
-            <div className="text-right">
-              <span className="text-xs sm:text-sm font-extrabold text-rose-600 dark:text-rose-400 font-mono block">
-                {net90DeltaBadge}
-              </span>
-              <span className="text-[10px] text-slate-500 dark:text-zinc-400 font-mono">
-                net trajectory
-              </span>
-            </div>
+        {/* 90-day trajectory + active drivers */}
+        <div className="panel rounded-md lg:col-span-5">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="label">90-day trajectory</span>
+            <span className="num text-sm font-semibold text-ink">{net90DeltaBadge}</span>
           </div>
 
-          {/* Interactive SVG Sparkline with Hover Tooltip */}
-          <div className="relative bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-3">
-            <div className="flex flex-wrap items-center justify-between pb-2 mb-1.5 border-b border-slate-100 dark:border-zinc-800/80 text-xs font-mono gap-1">
-              <div className="flex items-center space-x-1.5">
-                <Clock className="w-3.5 h-3.5 text-slate-400 dark:text-zinc-500 shrink-0" />
-                <span className="font-bold text-slate-800 dark:text-zinc-200">
-                  {activePoint.date}
-                </span>
-                <span className="text-[10px] text-slate-500 dark:text-zinc-400">
-                  ({activePoint.dayLabel})
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="font-bold text-slate-700 dark:text-zinc-300">
-                  Score: {activePoint.compositeScore.toFixed(1)}
-                </span>
-                <span className="text-rose-600 dark:text-rose-400 font-black">
-                  {activePoint.probability.toFixed(1)}%
-                </span>
-                <span className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400">
-                  ({activePoint.deltaVs90d} vs 90d ago)
-                </span>
-              </div>
+          <div className="mt-2 rounded-sm border border-rule bg-canvas p-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 border-b border-rule pb-1.5 text-[14px] text-ink-faint">
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className="h-3 w-3" aria-hidden="true" />
+                <span className="num font-semibold text-ink">{activePoint.date}</span>
+                <span>({activePoint.dayLabel})</span>
+              </span>
+              <span className="num flex items-center gap-2">
+                <span>score {activePoint.compositeScore.toFixed(1)}</span>
+                <span className="font-semibold text-ink">{activePoint.probability.toFixed(1)}%</span>
+                <span>{activePoint.deltaVs90d}</span>
+              </span>
             </div>
 
             <svg
-              className="w-full h-[95px] overflow-visible cursor-crosshair"
+              className="h-[84px] w-full cursor-crosshair overflow-visible"
               viewBox={`0 0 ${sparkWidth} ${sparkHeight}`}
               preserveAspectRatio="none"
               onMouseMove={handleSvgMouseMove}
               onMouseLeave={() => setHoveredPointIndex(null)}
+              role="img"
+              aria-label="Bubble probability over the last 90 days"
             >
-              <defs>
-                <linearGradient id="sparkline-gradient" x1="0%" y1="0%" x2="0%" y2="1">
-                  <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-
-              <path d={sparklineArea} fill="url(#sparkline-gradient)" />
               <path
                 d={sparklinePath}
                 fill="none"
-                stroke="#f43f5e"
-                strokeWidth="2.5"
+                strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
+                style={{ stroke: arcColor }}
               />
-
-              {/* Hover vertical tracking line */}
               {hoveredPointIndex !== null && activeSparkPoint && (
                 <line
                   x1={activeSparkPoint.x}
                   y1={paddingTop}
                   x2={activeSparkPoint.x}
                   y2={sparkHeight - paddingBottom}
-                  stroke="#f43f5e"
-                  strokeWidth="1.5"
+                  strokeWidth="1"
                   strokeDasharray="2 2"
-                  className="opacity-80"
+                  vectorEffect="non-scaling-stroke"
+                  style={{ stroke: arcColor }}
                 />
               )}
-
-              {/* Milestone Dots (90d ago, 60d ago, 30d ago, Yesterday, Current) */}
               {[0, 30, 60, trajectoryPoints.length - 2, trajectoryPoints.length - 1].map((idx) => {
                 const pt = sparkPoints[idx];
                 if (!pt) return null;
-                const isHovered = hoveredPointIndex === idx;
                 const isLast = idx === trajectoryPoints.length - 1;
+                const isActive = hoveredPointIndex === idx;
                 return (
-                  <g key={pt.date + idx} className="pointer-events-none">
-                    <circle
-                      cx={pt.x}
-                      cy={pt.y}
-                      r={isHovered ? "7" : isLast ? "5.5" : "4"}
-                      fill={isHovered ? "#f43f5e" : isLast ? "#f43f5e" : "#71717a"}
-                      className="transition-all duration-150"
-                    />
-                    <circle
-                      cx={pt.x}
-                      cy={pt.y}
-                      r={isHovered ? "3.5" : isLast ? "2.5" : "1.8"}
-                      fill="#ffffff"
-                    />
-                  </g>
+                  <circle
+                    key={`${pt.date}-${idx}`}
+                    cx={pt.x}
+                    cy={pt.y}
+                    r={isActive ? 4 : isLast ? 3 : 2}
+                    style={{
+                      fill: isActive || isLast ? arcColor : "rgb(var(--c-ink-faint))",
+                    }}
+                    className="pointer-events-none"
+                  />
                 );
               })}
-
-              {/* Active Hover Dot if hovering between milestone dots */}
-              {hoveredPointIndex !== null && activeSparkPoint && ![0, 30, 60, trajectoryPoints.length - 2, trajectoryPoints.length - 1].includes(hoveredPointIndex) && (
-                <g className="pointer-events-none">
-                  <circle cx={activeSparkPoint.x} cy={activeSparkPoint.y} r="6.5" fill="#f43f5e" />
-                  <circle cx={activeSparkPoint.x} cy={activeSparkPoint.y} r="3" fill="#ffffff" />
-                </g>
-              )}
             </svg>
 
-            {/* Milestone Jump Buttons */}
-            <div className="flex justify-between text-[11px] font-mono font-semibold text-slate-500 dark:text-zinc-400 pt-1.5 border-t border-slate-100 dark:border-zinc-800/80">
+            <div className="mt-1 flex justify-between border-t border-rule pt-1 text-[14px] text-ink-faint">
               {[
-                { label: "90d ago", idx: 0, date: trajectoryPoints[0]?.date },
-                { label: "60d ago", idx: 30, date: trajectoryPoints[30]?.date },
-                { label: "30d ago", idx: 60, date: trajectoryPoints[60]?.date },
-                { label: "Yesterday", idx: trajectoryPoints.length - 2, date: trajectoryPoints[trajectoryPoints.length - 2]?.date },
-                { label: "Current", idx: trajectoryPoints.length - 1, date: trajectoryPoints[trajectoryPoints.length - 1]?.date },
+                { label: "90d", idx: 0 },
+                { label: "60d", idx: 30 },
+                { label: "30d", idx: 60 },
+                { label: "Yesterday", idx: trajectoryPoints.length - 2 },
+                { label: "Current", idx: trajectoryPoints.length - 1 },
               ].map((milestone) => (
                 <button
                   key={milestone.label}
+                  type="button"
                   onClick={() => setHoveredPointIndex(milestone.idx)}
                   onMouseEnter={() => setHoveredPointIndex(milestone.idx)}
                   onMouseLeave={() => setHoveredPointIndex(null)}
-                  title={`${milestone.label}: ${milestone.date}`}
-                  className={`transition-colors cursor-pointer text-[10px] sm:text-[11px] ${
+                  className={`num min-h-8 px-1 ${
                     hoveredPointIndex === milestone.idx
-                      ? "text-rose-600 dark:text-rose-400 font-black"
-                      : milestone.label === "Current"
-                      ? "text-slate-900 dark:text-zinc-200 font-bold"
-                      : "hover:text-slate-800 dark:hover:text-zinc-200"
+                      ? "font-semibold text-ink"
+                      : "hover:text-ink"
                   }`}
                 >
                   {milestone.label}
                 </button>
               ))}
             </div>
+
+            {/* Provenance of the line above — never let a seeded path read as
+                recorded history. */}
+            <p className="mt-1.5 border-t border-rule pt-1.5 text-[13px] leading-relaxed text-ink-subtle">
+              {usingFallbackTrajectory
+                ? "Fallback trajectory: a seeded model path (38.6% → 71.6%) shown because the recorded history file is unavailable — not recorded market history."
+                : backfilledPointCount > 0
+                ? `First ${backfilledPointCount} points backfilled from seed, live points thereafter.`
+                : "Source: the 24h pipeline trajectory history (trajectory-history.json)."}
+            </p>
           </div>
 
-          {/* Dynamic Upward & Downward Risk Drivers */}
-          <div className="pt-2 border-t border-slate-200 dark:border-zinc-800 space-y-2.5">
-            <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-zinc-200 block">
-              Active Model Drivers:
-            </span>
-            <div className="space-y-2 text-xs sm:text-sm">
-              {dynamicDrivers.map((driver, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between text-slate-800 dark:text-zinc-200 bg-white dark:bg-[#121214] p-2 rounded-lg border border-slate-200/60 dark:border-zinc-800/80"
-                >
-                  <span className="flex items-center space-x-2 font-medium">
+          <div className="mt-3 border-t border-rule pt-2.5">
+            <span className="label">Active drivers</span>
+            <ul className="mt-1.5 space-y-1.5">
+              {dynamicDrivers.map((driver) => (
+                <li key={driver.label} className="flex items-center justify-between gap-2">
+                  <span className="flex min-w-0 items-center gap-2 text-[14px] text-ink-muted">
                     <span
-                      className={`w-2 h-2 rounded-full shrink-0 ${
-                        driver.type === "damper"
-                          ? "bg-emerald-500"
-                          : idx === 0
-                          ? "bg-rose-500"
-                          : "bg-amber-500"
+                      className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                        driver.type === "damper" ? "bg-safe-500" : "bg-risk-500"
                       }`}
+                      aria-hidden="true"
                     />
                     <span className="truncate">{driver.label}</span>
                   </span>
-                  <span
-                    className={`font-mono font-bold shrink-0 ${
-                      driver.type === "damper"
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : idx === 0
-                        ? "text-rose-600 dark:text-rose-400"
-                        : "text-amber-600 dark:text-amber-400"
-                    }`}
-                  >
+                  <span className={`num shrink-0 text-[14px] font-semibold ${driver.type === "damper" ? "text-safe-600" : "text-risk-600"}`}>
                     {driver.points}
                   </span>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         </div>
       </div>
 
-      {/* Financial Fragility Index (FFI) Full-Width Score Meter */}
-      <div className="bg-slate-50/90 dark:bg-[#121214] border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-2.5 shadow-xs">
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-          <span className="font-bold text-slate-800 dark:text-zinc-200 flex items-center space-x-1.5">
-            <ShieldAlert className="w-4 h-4 text-amber-500 shrink-0" />
-            <span>Financial Fragility Index (FFI):</span>
-            <span className="font-mono font-black text-amber-600 dark:text-amber-400 text-sm">
+      {/* ── Fragility meter + cross-validation ─────────────────────────────── */}
+      <div className="grid grid-cols-1 gap-3 px-4 pb-4 sm:px-6 lg:grid-cols-12">
+        <div className="rounded-md border border-rule p-3.5 lg:col-span-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <span className="label">Financial fragility index</span>
+            <span className="num text-sm font-semibold text-ink">
               {currentFragility}/100
+              <span className="ml-2 text-[13px] font-normal uppercase tracking-[0.12em] text-ink-faint">
+                {fragilityBand}
+              </span>
             </span>
-          </span>
-          <span className="font-mono font-bold text-rose-600 dark:text-rose-400 text-xs uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-rose-500/10 border border-rose-500/20">
-            High Vulnerability
-          </span>
+          </div>
+          <div className="mt-2 h-1.5 w-full bg-surface-3">
+            <div
+              className="h-1.5 bg-risk-500 transition-all duration-500"
+              style={{ width: `${Math.min(100, Math.max(0, currentFragility))}%` }}
+            />
+          </div>
+          <div className="mt-1 flex justify-between text-[14px] text-ink-faint">
+            <span>Resilient &lt;35</span>
+            <span>Moderate 35–65</span>
+            <span>Fragile &gt;65</span>
+          </div>
         </div>
-        <div className="relative h-2.5 w-full bg-slate-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+
+        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-rule bg-rule sm:grid-cols-3 lg:col-span-7 lg:grid-cols-5">
           <div
-            className="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-500 rounded-full transition-all duration-500"
-            style={{ width: `${Math.min(100, Math.max(0, currentFragility))}%` }}
-          />
-        </div>
-        <div className="flex justify-between text-[11px] font-mono text-slate-500 dark:text-zinc-400">
-          <span>Resilient (&lt;35)</span>
-          <span>Moderate (35–65)</span>
-          <span className="text-rose-600 dark:text-rose-400 font-bold">Fragile (&gt;65)</span>
-        </div>
+            title={`Merton (1974) distance-to-default: ${quantitativeData.mertonDD.toFixed(2)} standard deviations. Default probability ${quantitativeData.mertonProb.toFixed(1)}%. ${quantitativeData.mertonInterpretation}`}
+            className="bg-surface p-2.5"
+          >
+            <dt className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">Big Tech solvency</dt>
+            <dd className="num mt-0.5 text-sm font-semibold text-ink">{quantitativeData.mertonDD.toFixed(2)}σ</dd>
+          </div>
+          <div
+            title={`Altman Z''-score ${quantitativeData.altmanScore.toFixed(2)} (${quantitativeData.altmanZone}). Above 2.6 is the safe zone.`}
+            className="bg-surface p-2.5"
+          >
+            <dt className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">Balance sheet</dt>
+            <dd className="num mt-0.5 text-sm font-semibold text-ink">{quantitativeData.altmanScore.toFixed(2)}</dd>
+          </div>
+          <div
+            title={`Minsky fragility index ${quantitativeData.minskyIndex.toFixed(1)} (${quantitativeData.minskyRegime}). Ponzi-funded share ${quantitativeData.minskyPonziShare.toFixed(1)}%.`}
+            className="bg-surface p-2.5"
+          >
+            <dt className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">How AI is funded</dt>
+            <dd className="num mt-0.5 text-sm font-semibold text-ink">{quantitativeData.minskyIndex.toFixed(1)}</dd>
+          </div>
+          <div
+            title={`Shiller excess CAPE yield ${quantitativeData.shillerECY.toFixed(2)}% (${quantitativeData.shillerStatus}). Earnings yield minus the real 10-year Treasury yield.`}
+            className="bg-surface p-2.5"
+          >
+            <dt className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">Stocks vs bonds</dt>
+            <dd className="num mt-0.5 text-sm font-semibold text-ink">
+              {quantitativeData.shillerECY >= 0 ? "+" : ""}
+              {quantitativeData.shillerECY.toFixed(2)}%
+            </dd>
+          </div>
+          <div
+            title="Monte Carlo stress test. In 95% of simulated futures, the score stays under this level."
+            className="col-span-2 bg-surface p-2.5 sm:col-span-2 lg:col-span-1"
+          >
+            <dt className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">Worst 5% of futures</dt>
+            <dd className="num mt-0.5 text-sm font-semibold text-ink">{quantitativeData.var95.toFixed(1)}%</dd>
+          </div>
+        </dl>
       </div>
 
-      {/* Quantitative Financial Models Cross-Validation Strip (5 Institutional Pillars - Full Width) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-center text-xs font-mono">
-        {/* 1. Merton DD */}
-        <div
-          title={`Merton (1974) Distance-to-Default: ${quantitativeData.mertonDD.toFixed(2)}σ. Default prob: ${quantitativeData.mertonProb.toFixed(1)}%. In plain English: Can big tech pay its bills? Yes. Microsoft, Google, Meta, Apple, and Amazon generate $668B+ operating cash flow and near-zero default risk.`}
-          className="p-3 sm:p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between space-y-1.5 shadow-xs"
-        >
-          <span className="text-[11px] text-slate-500 dark:text-zinc-400 block font-sans font-medium">Big Tech Solvency</span>
-          <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">{quantitativeData.mertonDD.toFixed(2)}σ</span>
-          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block font-semibold">0% Default Risk</span>
-        </div>
-
-        {/* 2. Altman Z'' */}
-        <div
-          title={`Altman Z''-Score: ${quantitativeData.altmanScore.toFixed(2)} (${quantitativeData.altmanZone}). In plain English: Balance Sheet Health Check. Scores above 2.6 mean companies are completely safe from bankruptcy.`}
-          className="p-3 sm:p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between space-y-1.5 shadow-xs"
-        >
-          <span className="text-[11px] text-slate-500 dark:text-zinc-400 block font-sans font-medium">Balance Sheet</span>
-          <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">{quantitativeData.altmanScore.toFixed(2)}</span>
-          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block font-semibold">Safe Zone (&gt;2.6)</span>
-        </div>
-
-        {/* 3. Minsky Fragility Index */}
-        <div
-          title={`Minsky Fragility Index: ${quantitativeData.minskyIndex.toFixed(1)} (${quantitativeData.minskyRegime} / Ponzi Debt Share: ${quantitativeData.minskyPonziShare.toFixed(1)}%). In plain English: 60% funded by cash, 27% by loans that must be rolled over, and 13% relies on new funding.`}
-          className="p-3 sm:p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between space-y-1.5 shadow-xs"
-        >
-          <span className="text-[11px] text-slate-500 dark:text-zinc-400 block font-sans font-medium">How AI is Funded</span>
-          <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">{quantitativeData.minskyIndex.toFixed(1)}/100</span>
-          <span className="text-[10px] text-amber-600 dark:text-amber-400 block font-semibold">60% Cash, 13% Loans</span>
-        </div>
-
-        {/* 4. Shiller Excess CAPE Yield */}
-        <div
-          title={`Robert Shiller Excess CAPE Yield: ${quantitativeData.shillerECY >= 0 ? `+${quantitativeData.shillerECY.toFixed(2)}%` : `${quantitativeData.shillerECY.toFixed(2)}%`} (${quantitativeData.shillerStatus}). In plain English: Stocks vs Bonds. When safe bonds pay 5.1%, tech stocks are expensive.`}
-          className="p-3 sm:p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between space-y-1.5 shadow-xs"
-        >
-          <span className="text-[11px] text-slate-500 dark:text-zinc-400 block font-sans font-medium">Stock vs 5.1% Bond</span>
-          <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
-            {quantitativeData.shillerECY >= 0 ? `+${quantitativeData.shillerECY.toFixed(2)}%` : `${quantitativeData.shillerECY.toFixed(2)}%`}
-          </span>
-          <span className="text-[10px] text-amber-600 dark:text-amber-400 block font-semibold">Tech Stock Premium Tight</span>
-        </div>
-
-        {/* 5. Monte Carlo 25k VaR 95% */}
-        <div
-          title={`25,000-Path Monte Carlo Simulation: In plain English: We ran 25,000 what-if futures on our computers. In 95% of tests, risk stays under 77%.`}
-          className="col-span-2 sm:col-span-1 p-3 sm:p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 transition-all hover:border-slate-300 dark:hover:border-zinc-700 cursor-help flex flex-col justify-between space-y-1.5 shadow-xs"
-        >
-          <span className="text-[11px] text-slate-500 dark:text-zinc-400 block font-sans font-medium">25k Stress Tests</span>
-          <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">{quantitativeData.var95.toFixed(1)}%</span>
-          <span className="text-[10px] text-rose-600 dark:text-rose-400 block font-semibold">Worst 5% Stress Cap</span>
-        </div>
-      </div>
-
-      {/* Non-Finance Plain English Guide Toggle Button & Accordion (Full Width) */}
-      <div className="pt-1">
+      {/* ── Plain-English disclosure ────────────────────────────────────────── */}
+      <div className="px-4 pb-4 sm:px-6">
         <button
           type="button"
           onClick={() => setShowPlainEnglishGuide(!showPlainEnglishGuide)}
-          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all text-left cursor-pointer ${
-            showPlainEnglishGuide
-              ? "bg-amber-500/15 border border-amber-500/30"
-              : "bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/20"
-          }`}
+          aria-expanded={showPlainEnglishGuide}
+          className="flex min-h-11 w-full items-center justify-between gap-3 rounded-sm border border-rule px-3 py-2 text-left hover:border-rule-strong"
         >
-          <div className="flex items-center space-x-2.5 min-w-0">
-            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
-            <div className="min-w-0 truncate">
-              <span className="text-xs sm:text-sm font-bold text-amber-900 dark:text-amber-200 block truncate">
-                💡 Plain English Guide: What does this mean without complex financial math?
-              </span>
-              <span className="text-[11px] text-amber-800/70 dark:text-amber-300/70 font-sans block truncate">
-                Why big tech won&apos;t go broke, where real debt risk lives, and how to read {currentProb.toFixed(1)}% odds
-              </span>
-            </div>
-          </div>
-          <div className="shrink-0 text-amber-700 dark:text-amber-400 font-mono text-xs font-bold flex items-center space-x-1 ml-3">
-            <span>{showPlainEnglishGuide ? "Hide Guide" : "Explain In Plain English"}</span>
-            {showPlainEnglishGuide ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </div>
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold text-ink">In plain English</span>
+            <span className="block text-[14px] text-ink-muted">
+              What {currentProb.toFixed(1)}% actually means, in four lines
+            </span>
+          </span>
+          <span className="shrink-0 text-ink-faint">
+            {showPlainEnglishGuide ? (
+              <ChevronUp className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <ChevronDown className="h-4 w-4" aria-hidden="true" />
+            )}
+          </span>
         </button>
 
         {showPlainEnglishGuide && (
-          <div className="mt-3 p-5 rounded-2xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 space-y-4 shadow-sm">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              {/* Card 1 */}
-              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800/80 space-y-1.5">
-                <span className="font-bold text-slate-900 dark:text-white flex items-center space-x-2">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-                  <span>1. What does {currentProb.toFixed(1)}% odds mean?</span>
-                </span>
-                <p className="text-slate-600 dark:text-zinc-300 leading-relaxed font-sans text-xs">
-                  Think of driving 85 mph on a highway in heavy rain. It doesn&apos;t guarantee an accident, but your margin for error is thin. Big tech has tons of cash, but borrowing is ramping up fast. If real AI revenues don&apos;t surge, spending will have to slam on the brakes.
+          <div className="notice mt-2">
+            <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
+              <div>
+                <p className="font-semibold text-ink">What does {currentProb.toFixed(1)}% mean?</p>
+                <p className="mt-1 leading-relaxed text-ink-muted">
+                  A chance, not a date. It asks whether AI financing breaks within a year. Roughly half
+                  of the tracked evidence currently points that way.
                 </p>
               </div>
-
-              {/* Card 2 */}
-              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800/80 space-y-1.5">
-                <span className="font-bold text-slate-900 dark:text-white flex items-center space-x-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                  <span>2. Can Big Tech go bankrupt? (Merton: {quantitativeData.mertonDD.toFixed(1)}σ)</span>
-                </span>
-                <p className="text-slate-600 dark:text-zinc-300 leading-relaxed font-sans text-xs">
-                  <strong>No. Default risk is near zero.</strong> Unlike the 2000 Dot-Com crash where startups had zero revenue, Microsoft, Google, Meta, Apple, and Amazon generate over $668B in annual operating cash flow ($400B+ net accounting profits) from search, cloud, phones, and enterprise software, retaining $260B+ in free cash flow even after record $485B GPU datacenter capex. Their debt solvency is fortress-grade.
+              <div>
+                <p className="font-semibold text-ink">Can the big names go bankrupt?</p>
+                <p className="mt-1 leading-relaxed text-ink-muted">
+                  Unlikely. They fund spending from cash flow. Merton distance to default sits at{" "}
+                  {quantitativeData.mertonDD.toFixed(1)} standard deviations, Altman at{" "}
+                  {quantitativeData.altmanScore.toFixed(1)}.
                 </p>
               </div>
-
-              {/* Card 3 */}
-              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800/80 space-y-1.5">
-                <span className="font-bold text-slate-900 dark:text-white flex items-center space-x-2">
-                  <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
-                  <span>3. So where is the real risk?</span>
-                </span>
-                <p className="text-slate-600 dark:text-zinc-300 leading-relaxed font-sans text-xs">
-                  Over $228 billion of new GPU data centers are funded on debt. AI startups trade at high multiples to their revenue. If businesses don&apos;t pay hundreds of billions for AI software, that borrowed money can&apos;t be easily refinanced, leading to a sharp freeze in AI spending.
+              <div>
+                <p className="font-semibold text-ink">Where is the real risk?</p>
+                <p className="mt-1 leading-relaxed text-ink-muted">
+                  With the borrowers, not the buyers. Much of the data-center build-out is on loans
+                  that must be repaid whether or not customers keep paying.
                 </p>
               </div>
-
-              {/* Card 4 */}
-              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800/80 space-y-1.5">
-                <span className="font-bold text-slate-900 dark:text-white flex items-center space-x-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
-                  <span>4. Why are our odds higher than Polymarket ({currentProb.toFixed(1)}% vs 9.6%)?</span>
-                </span>
-                <p className="text-slate-600 dark:text-zinc-300 leading-relaxed font-sans text-xs">
-                  Polymarket retail bettors are looking for an official crash event in 2026. Our model monitors the underlying financial plumbing — high 5.1% bond yields, rising debt insurance, and massive capex burns. It acts as an early warning thermometer.
+              <div>
+                <p className="font-semibold text-ink">Why is this above the crowd?</p>
+                <p className="mt-1 leading-relaxed text-ink-muted">
+                  A betting contract settles on a dated, headline crash. This model tracks the
+                  financing itself: spreads, rates, debt and pipeline.
                 </p>
               </div>
             </div>
           </div>
         )}
       </div>
-    </div>
 
-      {/* ── 4. POLYMARKET PROBABILITY & SPREAD MODULE (DIRECTLY UNDER CALCULATOR) ── */}
-      <div className="pt-6 border-t-2 border-slate-200 dark:border-zinc-800 space-y-4">
-        {/* Module Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-1">
-            <div className="flex items-center space-x-2">
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-black uppercase tracking-wider bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border border-blue-300 dark:border-blue-800">
-                <Coins className="w-3 h-3 mr-1 text-blue-600 dark:text-blue-400" />
-                Prediction Market Consensus
-              </span>
-              <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold flex items-center space-x-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Live Verified Feed</span>
-              </span>
-            </div>
-            <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Polymarket Crowd Probability vs. Our Structural Credit Model
-            </h3>
-          </div>
-
+      {/* ── Crowd comparison ────────────────────────────────────────────────── */}
+      <div className="border-t border-rule px-4 py-4 sm:px-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 className="text-base font-semibold tracking-[-0.02em] text-ink">Crowd odds, for contrast</h3>
           <a
             href={`https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:hover:bg-blue-900/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800/80 transition-colors shadow-xs"
+            className="inline-flex min-h-11 items-center gap-1 text-[13px] text-ink-muted underline underline-offset-2 hover:text-ink"
           >
-            <span>Trade on Polymarket (r={POLYMARKET_REFERRAL_CODE})</span>
-            <ExternalLink className="w-3 h-3" />
+            Polymarket event
           </a>
         </div>
 
-        {/* 3-Way Comparative Cards: Model vs Polymarket vs Divergence */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
-          {/* Card 1: Our Model */}
-          <div className="bg-slate-50 dark:bg-[#0c0c0e] border border-slate-200 dark:border-zinc-800 rounded-xl p-4 sm:p-5 space-y-3 flex flex-col justify-between">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
-                  Our Structural Model
-                </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300 font-bold">
-                  Credit Risk
-                </span>
-              </div>
-              <div className="flex items-baseline space-x-2">
-                <span className="font-mono text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-                  {currentProb.toFixed(1)}%
-                </span>
-                <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400">
-                  12-Mo Burst Odds
-                </span>
-              </div>
-              <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
-                Audited debt structure: Oracle CDS at 187bp, $228.1B debt facilities, and 54.8% capex-to-OCF coverage.
-              </p>
+        <div className="mt-2 grid grid-cols-1 gap-px overflow-hidden rounded-md border border-rule bg-rule sm:grid-cols-3">
+          <div className="bg-surface p-3.5">
+            <p className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">This model</p>
+            <p className="num mt-1 text-2xl font-bold text-ink">{currentProb.toFixed(1)}%</p>
+            <p className="num mt-1 text-[14px] text-ink-faint">
+              CI {ciLow.toFixed(1)}–{ciHigh.toFixed(1)}% · fragility {currentFragility}
+            </p>
+          </div>
+          <div className="bg-surface p-3.5">
+            <p className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">Crowd contract, 2026</p>
+            <p className="num mt-1 text-2xl font-bold text-ink">{polyOdds2026.toFixed(1)}%</p>
+            <p className="num mt-1 text-[14px] text-ink-faint">
+              ${(polyVolumeTotal / 1e6).toFixed(2)}M traded · {polyOdds2027.toFixed(1)}% on the 2027 contract
+            </p>
+          </div>
+          <div className="bg-surface p-3.5">
+            <p className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">Gap</p>
+            <p
+              className={`num mt-1 text-2xl font-bold ${
+                divergesUp ? "text-caution-600 dark:text-caution-300" : "text-safe-600 dark:text-safe-300"
+              }`}
+            >
+              {divergenceDelta > 0 ? "+" : ""}
+              {divergenceDelta.toFixed(1)} pts
+            </p>
+            <p className="num mt-1 text-[14px] text-ink-faint">{divergenceMultiplier}× the crowd reading</p>
+          </div>
+        </div>
+
+        <div className="mt-3 space-y-2.5">
+          <div>
+            <div className="flex justify-between text-[14px] text-ink-muted">
+              <span>This model, 12-month burst odds</span>
+              <span className="num font-semibold text-ink">{currentProb.toFixed(1)}%</span>
             </div>
-            <div className="pt-2 border-t border-slate-200 dark:border-zinc-800/80 flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-zinc-400">
-              <span>90% CI: [{ciLow.toFixed(1)}% – {ciHigh.toFixed(1)}%]</span>
-              <span className="text-rose-600 dark:text-rose-400 font-semibold">Fragility: {currentFragility}/100</span>
+            <div className="mt-1 h-1.5 w-full bg-surface-3">
+              <div
+                className="h-1.5 bg-risk-500 transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.max(0, currentProb))}%` }}
+              />
             </div>
           </div>
-
-          {/* Card 2: Polymarket 2026 Live Odds */}
-          <div className="bg-slate-50 dark:bg-[#0c0c0e] border border-slate-200 dark:border-zinc-800 rounded-xl p-4 sm:p-5 space-y-3 flex flex-col justify-between">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
-                  Polymarket Consensus
-                </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-950/70 dark:text-blue-300 font-bold">
-                  Dec 31, 2026
-                </span>
-              </div>
-              <div className="flex items-baseline space-x-2">
-                <span className="font-mono text-3xl sm:text-4xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
-                  {polyOdds2026.toFixed(1)}%
-                </span>
-                <span className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400">
-                  YES (${(polyOdds2026 / 100).toFixed(3)})
-                </span>
-              </div>
-              <p className="text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
-                Crowd odds on contract: &quot;AI Bubble Burst in 2026?&quot; ($2.44M volume across 16 active liquidity pools).
-              </p>
+          <div>
+            <div className="flex justify-between text-[14px] text-ink-muted">
+              <span>Crowd contract, same question</span>
+              <span className="num font-semibold text-ink">{polyOdds2026.toFixed(1)}%</span>
             </div>
-            <div className="pt-2 border-t border-slate-200 dark:border-zinc-800/80 flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-zinc-400">
-              <span>2027 Odds: {polyOdds2027.toFixed(1)}% YES</span>
-              <span className="text-blue-600 dark:text-blue-400 font-semibold">${(polyVolumeTotal / 1e6).toFixed(2)}M Traded</span>
-            </div>
-          </div>
-
-          {/* Card 3: Divergence & Alpha Spread */}
-          <div className="bg-gradient-to-br from-amber-500/10 via-rose-500/10 to-transparent dark:from-amber-950/30 dark:via-rose-950/30 dark:to-[#0c0c0e] border border-amber-300/70 dark:border-amber-800/60 rounded-xl p-4 sm:p-5 space-y-3 flex flex-col justify-between">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider flex items-center space-x-1">
-                  <Scale className="w-3.5 h-3.5" />
-                  <span>Model Divergence Spread</span>
-                </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 font-bold">
-                  {divergenceMultiplier}× Multiple
-                </span>
-              </div>
-              <div className="flex items-baseline space-x-2">
-                <span className="font-mono text-3xl sm:text-4xl font-black text-amber-600 dark:text-amber-400 tracking-tight">
-                  {divergenceDelta > 0 ? `+${divergenceDelta.toFixed(1)}%` : `${divergenceDelta.toFixed(1)}%`}
-                </span>
-                <span className="text-xs font-semibold text-slate-600 dark:text-zinc-300">
-                  Alpha Spread
-                </span>
-              </div>
-              <p className="text-xs text-slate-700 dark:text-zinc-300 font-sans leading-relaxed">
-                Our credit model prices risk <strong className="font-bold">{divergenceMultiplier}× higher</strong> than Polymarket retail crowds. Retail prices consumer hype; our model prices $228.1B in debt covenants and hardware depreciation.
-              </p>
-            </div>
-            <div className="pt-2 border-t border-amber-200 dark:border-amber-900/50 flex items-center justify-between text-[11px] font-mono text-amber-700 dark:text-amber-400">
-              <span>Arbitrage Window Active</span>
-              <span className="font-bold">Model &gt; Crowd Odds</span>
+            <div className="mt-1 h-1.5 w-full bg-surface-3">
+              <div
+                className="h-1.5 bg-ink-subtle transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.max(0, polyOdds2026))}%` }}
+              />
             </div>
           </div>
         </div>
 
-        {/* Visual Dual Odds Comparison Meter */}
-        <div className="bg-slate-50 dark:bg-[#0c0c0e] border border-slate-200 dark:border-zinc-800 rounded-xl p-4 space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono font-semibold text-slate-600 dark:text-zinc-400">
-            <span>Visual Probability Comparison:</span>
-            <div className="flex items-center space-x-4">
-              <span className="flex items-center space-x-1.5 text-rose-600 dark:text-rose-400 font-bold">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-                <span>Our Credit Model ({currentProb.toFixed(1)}%)</span>
-              </span>
-              <span className="flex items-center space-x-1.5 text-blue-600 dark:text-blue-400 font-bold">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                <span>Polymarket 2026 ({polyOdds2026.toFixed(1)}%)</span>
-              </span>
-            </div>
-          </div>
+        <p className="mt-3 max-w-3xl text-[14px] leading-relaxed text-ink-subtle">
+          The two measure different things. A betting contract needs a dated, visible trigger. This
+          model reads the financing year round, so it can sit above the crowd for months without
+          either being wrong. Referral links below ({POLYMARKET_REFERRAL_CODE}) go to Polymarket; the
+          site earns a fee on trades opened there.
+        </p>
 
-          <div className="space-y-2">
-            {/* Our Model Bar */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-[11px] font-mono">
-                <span className="text-slate-700 dark:text-zinc-300 font-bold">Our Model (12-Mo Structural Default / Burst):</span>
-                <span className="text-rose-600 dark:text-rose-400 font-bold">{currentProb.toFixed(1)}%</span>
-              </div>
-              <div className="h-3 w-full bg-slate-200 dark:bg-zinc-800 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-amber-500 to-rose-500 rounded-full transition-all duration-700"
-                  style={{ width: `${Math.min(100, Math.max(0, currentProb))}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Polymarket Crowd Bar */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-[11px] font-mono">
-                <span className="text-slate-700 dark:text-zinc-300 font-bold">Polymarket Retail Crowd (Dec 31, 2026 Expiry):</span>
-                <span className="text-blue-600 dark:text-blue-400 font-bold">{polyOdds2026.toFixed(1)}%</span>
-              </div>
-              <div className="h-3 w-full bg-slate-200 dark:bg-zinc-800 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-700"
-                  style={{ width: `${Math.min(100, Math.max(0, polyOdds2026))}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Polymarket Contract Direct Actions with Referral r=AIbubble */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-          {/* Contract 1: 2026 Contract */}
-          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col justify-between space-y-3">
-            <div>
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-mono text-slate-500 dark:text-zinc-400">Dec 31, 2026 Expiry</span>
-                <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">$2.44M Vol</span>
-              </div>
-              <h4 className="font-bold text-sm text-slate-900 dark:text-white">
-                AI Industry Downturn by Dec 31, 2026
-              </h4>
-              <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1">
-                Resolves YES if NVDA/SOXX crash 40-50% or OpenAI/Anthropic face restructuring.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
+        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="rounded-md border border-rule p-3">
+            <p className="num text-[14px] text-ink-faint">Dec 31, 2026 expiry</p>
+            <p className="mt-0.5 text-sm font-semibold text-ink">
+              {poly2026Market?.title ?? "AI Bubble Burst in 2026?"}
+            </p>
+            <p className="mt-1 text-[14px] text-ink-muted">
+              Resolves YES on a defined equity or lab-restructuring trigger.
+            </p>
+            <div className="mt-2 flex gap-2">
               <a
                 href={poly2026Market.tradeYesUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center space-x-1 py-2 px-3 rounded-lg text-xs font-mono font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer shadow-xs"
+                className="btn min-h-11 flex-1 text-[13px]"
               >
-                <span>Buy YES ({polyOdds2026.toFixed(1)}¢)</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
+                YES {polyOdds2026.toFixed(1)}¢
               </a>
               <a
                 href={poly2026Market.tradeNoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center space-x-1 py-2 px-3 rounded-lg text-xs font-mono font-bold bg-slate-800 hover:bg-slate-900 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white transition-colors cursor-pointer shadow-xs"
+                className="btn min-h-11 flex-1 text-[13px]"
               >
-                <span>Buy NO ({(100 - polyOdds2026).toFixed(1)}¢)</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
+                NO {(100 - polyOdds2026).toFixed(1)}¢
               </a>
             </div>
           </div>
-
-          {/* Contract 2: 2027 Contract */}
-          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col justify-between space-y-3">
-            <div>
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-mono text-slate-500 dark:text-zinc-400">June 30, 2027 Expiry</span>
-                <span className="font-mono font-bold text-blue-600 dark:text-blue-400">High Yield</span>
-              </div>
-              <h4 className="font-bold text-sm text-slate-900 dark:text-white">
-                AI Bubble Burst by June 30, 2027
-              </h4>
-              <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1">
-                Longer horizon capturing hyperscaler capex exhaustion and debt repayment defaults.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
-              <a
-                href={poly2027Market.tradeYesUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center space-x-1 py-2 px-3 rounded-lg text-xs font-mono font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer shadow-xs"
-              >
-                <span>Buy YES ({polyOdds2027.toFixed(1)}¢)</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </a>
-              <a
-                href={`https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center space-x-1 py-2 px-3 rounded-lg text-xs font-mono font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer shadow-xs"
-              >
-                <span>Trade 2027 ↗</span>
-              </a>
-            </div>
+          <div className="rounded-md border border-rule p-3">
+            <p className="num text-[14px] text-ink-faint">June 30, 2027 expiry</p>
+            <p className="mt-0.5 text-sm font-semibold text-ink">
+              {poly2027Market?.title ?? "AI Bubble Burst by June 30, 2027?"}
+            </p>
+            <p className="mt-1 text-[14px] text-ink-muted">
+              A wider window, currently priced at {polyOdds2027.toFixed(1)}% YES.
+            </p>
+            <a
+              href={`https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn mt-2 min-h-11 w-full text-[13px]"
+            >
+              Open both contracts
+            </a>
           </div>
-        </div>
-
-        {/* Affiliate Disclosure & Direct Referral Banner */}
-        <div className="bg-slate-50 dark:bg-zinc-900/60 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-sans text-slate-600 dark:text-zinc-400">
-          <div className="flex items-center space-x-2">
-            <Zap className="w-4 h-4 text-amber-500 shrink-0" />
-            <span>
-              Trade AI bubble prediction contracts on Polymarket with referral tag <strong className="font-mono text-slate-900 dark:text-white">r={POLYMARKET_REFERRAL_CODE}</strong> for instant liquidity and fee rebates.
-            </span>
-          </div>
-          <a
-            href={`https://polymarket.com/?r=${POLYMARKET_REFERRAL_CODE}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 text-blue-600 dark:text-blue-400 hover:underline font-mono font-bold flex items-center space-x-1"
-          >
-            <span>Open Polymarket</span>
-            <ExternalLink className="w-3 h-3" />
-          </a>
         </div>
       </div>
     </div>

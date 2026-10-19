@@ -23,6 +23,41 @@ import {
   FileCode,
 } from "lucide-react";
 import { AdSlot } from "@/components/AdSlot";
+import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
+import latestModel from "@/data/latest-model.json";
+
+/**
+ * Canonical site origin — the same expression the root layout uses for
+ * metadata, canonical URLs, the sitemap and robots.txt. NEXT_PUBLIC_* values
+ * are inlined at build time, so this resolves in the browser bundle too.
+ */
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://aicapitaltracker.com";
+
+/**
+ * The documented sample response is generated from the SAME inputs the
+ * /api/v1/model route uses (src/data/live-inputs.json via DEFAULT_MODEL_INPUTS),
+ * so the reference can never drift from the endpoint. The route is force-static:
+ * the payload is rebuilt on deploy from the last 24-hour sync, it is not a live
+ * feed. `generatedAt` carries the published pipeline snapshot timestamp
+ * (src/data/latest-model.json).
+ */
+const liveModel = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
+
+const liveTopContributions = liveModel.contributions
+  .filter((c) => c.kind === "risk")
+  .sort((a, b) => b.earnedPoints - a.earnedPoints)
+  .slice(0, 3)
+  .map((c) => ({
+    id: c.id,
+    label: c.label,
+    weightPct: c.weightPct,
+    earnedPoints: c.earnedPoints,
+    reading: {
+      score: c.reading.score,
+      reading: c.reading.reading,
+      coverage: c.reading.coverage,
+    },
+  }));
 
 interface EndpointDoc {
   id: string;
@@ -39,58 +74,36 @@ interface EndpointDoc {
 const ENDPOINTS: EndpointDoc[] = [
   {
     id: "model",
-    name: "Live Bubble Probability & Factors",
+    name: "Daily Snapshot: Bubble Probability & Factors",
     method: "GET",
     path: "/api/v1/model",
-    badge: "Core Model Engine",
-    description: "Returns the 12-month empirical bubble burst probability, composite stress score (0–100), 90% confidence interval, financial fragility index, systemic contagion synergy, and breakdown of all 9 factor contributions.",
+    badge: "Rebuilt On Deploy",
+    description: "Returns the 12-month empirical bubble burst probability, composite stress score (0–100), 90% confidence interval, financial fragility index, systemic contagion synergy, and breakdown of all 9 factor contributions. The route is force-static: the payload is a daily snapshot rebuilt on deploy from the last 24-hour sync, not a live feed. The sample below is that daily snapshot; use the Live Response tab for the exact wire format.",
     defaultQuery: "",
     params: [
-      { name: "format", type: "string", required: false, defaultVal: "full", desc: "Response verbosity: 'full' includes factor details; 'summary' returns top-level probability only." },
+      { name: "format", type: "string", required: false, defaultVal: "full", desc: "Response verbosity. The current build always returns the full payload; 'summary' is accepted and ignored (forward-compatible)." },
     ],
     sampleResponse: {
       success: true,
       data: {
-        burstProbability: 68.4,
-        compositeScore: 61.2,
-        band: "high",
-        confidenceInterval: [59.1, 76.8],
-        fragilityIndex: 74,
-        systemicContagionPoints: 3.4,
-        coverage: 1.0,
-        horizonMonths: 12,
+        burstProbability: liveModel.burstProbability,
+        compositeScore: liveModel.compositeScore,
+        band: liveModel.band,
+        confidenceInterval: liveModel.confidenceInterval,
+        fragilityIndex: liveModel.fragilityIndex,
+        systemicContagionPoints: liveModel.systemicContagionPoints,
+        coverage: liveModel.coverage,
+        horizonMonths: liveModel.horizonMonths,
         macroIndicators: {
-          us10yYieldPct: 5.10,
-          cpiInflationYoY: 2.9,
-          fedFundsRatePct: 4.75,
-          annualDebtVelocityUsd: 85000000000,
-          totalTrackedDebtUsd: 228072500000
+          us10yYieldPct: DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct,
+          cpiInflationYoY: DEFAULT_MODEL_INPUTS.macro?.cpiInflationYoY,
+          fedFundsRatePct: DEFAULT_MODEL_INPUTS.macro?.fedFundsRatePct,
+          annualDebtVelocityUsd: DEFAULT_MODEL_INPUTS.aiDebt?.annualDebtIssuanceUsd,
+          totalTrackedDebtUsd: DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd
         },
-        topDriverIds: ["cds_stress", "debt_reliance", "valuation_stretch"],
-        contributions: [
-          {
-            id: "cds_stress",
-            label: "Credit stress (CDS spreads)",
-            weightPct: 18,
-            earnedPoints: 14.8,
-            reading: { score: 0.82, reading: "CDS 187bp vs 81bp baseline (+131% widening)", coverage: 1 }
-          },
-          {
-            id: "valuation_stretch",
-            label: "Private valuation stretch",
-            weightPct: 16,
-            earnedPoints: 10.2,
-            reading: { score: 0.64, reading: "Median price/sales across tracked labs: 28.5×", coverage: 1 }
-          },
-          {
-            id: "debt_reliance",
-            label: "Debt reliance & issuance pace",
-            weightPct: 14,
-            earnedPoints: 9.9,
-            reading: { score: 0.71, reading: "Borrowed money = 8.0% ($228.1B verified across 25 facilities); Velocity: $85.0B/yr", coverage: 1 }
-          }
-        ],
-        generatedAt: "2026-10-18T17:15:00.000Z"
+        topDriverIds: liveModel.topDriverIds,
+        contributions: liveTopContributions,
+        generatedAt: latestModel.timestamp
       }
     }
   },
@@ -99,7 +112,7 @@ const ENDPOINTS: EndpointDoc[] = [
     name: "Verified Deal Ledger",
     method: "GET",
     path: "/api/v1/deals",
-    badge: "$2.86T Superstructure",
+    badge: "$2.87T Superstructure",
     description: "Queries verified capital commitments and debt facilities from the AI capital ledger. Supports full-text search, category tagging, debt isolation, and pagination.",
     defaultQuery: "?limit=2&category=Borrowed",
     params: [
@@ -117,14 +130,14 @@ const ENDPOINTS: EndpointDoc[] = [
       limit: 2,
       totalPages: 85,
       summary: {
-        totalDisclosedUsd: 2858307802026,
-        totalDebtUsd: 228072500000,
-        debtSharePct: 7.98
+        totalDisclosedUsd: 2872873160000,
+        totalDebtUsd: 214890400000,
+        debtSharePct: 7.5
       },
       deals: [
         {
-          id: "deal-anthropic-broadcom-2026",
-          date: "2026-10-14",
+          id: "deal-002",
+          date: "28 Sep 2026",
           entity: "Anthropic",
           counterparty: "Broadcom",
           amountUsd: 42000000000,
@@ -132,19 +145,19 @@ const ENDPOINTS: EndpointDoc[] = [
           structure: "Convertible Note & TPU Underwriting",
           hasDebt: true,
           verifiedSource: "Form S-1 Confidential Filing & Indenture Disclosures",
-          summary: "Anthropic secures $42B convertible debt facility from Broadcom underwriting 5-year $125.2B custom TPU compute lease."
+          summary: "Anthropic's S-1 prospectus revealed Broadcom agreed to lend Anthropic up to $42.0B in convertible notes, funding roughly one-third of Anthropic's five-year, $125.2B TPU compute lease commitment."
         },
         {
-          id: "deal-coreweave-ddtl4",
-          date: "2026-09-28",
+          id: "deal-018",
+          date: "24 Mar 2026",
           entity: "CoreWeave",
-          counterparty: "Blackstone & Magnetar Syndicate",
+          counterparty: "Blackstone Credit & Insurance + JPMorgan, Morgan Stanley, MUFG",
           amountUsd: 8500000000,
           category: "Borrowed",
           structure: "Delayed Draw Term Loan (DDTL 4.0)",
           hasDebt: true,
           verifiedSource: "Credit Agreement Filed with SEC",
-          summary: "CoreWeave closes $8.5B delayed draw credit facility collateralized by NVIDIA Blackwell GPU clusters."
+          summary: "CoreWeave closes an $8.5B investment-grade delayed draw credit facility collateralized by GPU compute contracts."
         }
       ]
     }
@@ -209,8 +222,12 @@ const ENDPOINTS: EndpointDoc[] = [
     name: "Intelligence Wire & Market Filings",
     method: "GET",
     path: "/api/v1/news",
-    badge: "Live Regulatory Wire",
-    description: "Streams verified market intelligence, Form 8-K/S-1 regulatory filings, debt syndication announcements, and CDS repricing events updated in real time.",
+    // 2026-10-19 (round-2 consolidation): the badge claimed a LIVE wire updated "in real time".
+    // /api/v1/news serves src/data/live-news.json — the same dated daily snapshot the /news page
+    // renders, written once by the 00:00 UTC ingestion run. Relabelled to say what it actually is.
+    badge: "Daily Regulatory Wire",
+    description:
+      "Serves the daily research snapshot: verified market intelligence, Form 8-K/S-1 regulatory filings, debt syndication announcements, and CDS repricing events collected by the 00:00 UTC ingestion run. The payload is a dated snapshot (src/data/live-news.json), refreshed once per day — it is not a real-time feed, and the endpoint never invents a fresher headline.",
     defaultQuery: "",
     params: [
       { name: "category", type: "string", required: false, desc: "Filter by topic: 'Debt & Credit', 'Frontier Labs', 'Hyperscalers', 'Silicon & Power'" },
@@ -235,14 +252,14 @@ const ENDPOINTS: EndpointDoc[] = [
         },
         {
           id: "news-2",
-          title: "Oracle 5-Year CDS Default Swaps Widen to 187bps as Fixed-Income Investors Price Hyperscaler Debt Burden",
+          title: "Oracle 5-Year CDS Default Swaps Widen to 288bps as Fixed-Income Investors Price Hyperscaler Debt Burden",
           publisher: "Bloomberg Markets",
           link: "https://www.bloomberg.com/news/articles/2026-10-18/oracle-cds-spreads-debt-saturation",
           publishedAt: "2026-10-18T16:46:40.000Z",
           timeAgo: "42m ago",
           category: "Debt & Credit",
           impact: "Material Filing",
-          summary: "Credit default swap insurance on Oracle senior notes trades at multi-year peak of 187 basis points (+131% increase), tracking $48B in GPU infrastructure debt guarantees."
+          summary: "Credit default swap insurance on Oracle senior notes trades at a record 288 basis points (record close Oct 15, 2026; +256% vs the 81bp baseline), tracking $130.1B of total Oracle borrowings (10-K, FY2026 year-end)."
         }
       ]
     }
@@ -253,7 +270,7 @@ const ENDPOINTS: EndpointDoc[] = [
     method: "GET",
     path: "/api/v1/sync",
     badge: "24h Pipeline Protocol",
-    description: "Delivers live operational telemetry, execution health, data freshness, and ingestion audit logs for the autonomous 24-hour quantitative pipeline. Monitors real-time pipeline status across OpenRouter, Polymarket, Yahoo Finance, and SEC EDGAR.",
+    description: "Delivers live operational telemetry, execution health, data freshness, and ingestion audit logs for the autonomous 24-hour quantitative pipeline. Reports the state of the OpenRouter, Polymarket, Yahoo Finance, and SEC EDGAR feeds; the ingestion cycle itself runs once a day at 00:00 UTC.",
     defaultQuery: "",
     params: [
       { name: "limit", type: "integer", required: false, defaultVal: "5", desc: "Number of historical 24h cron execution audit logs to return (max: 30)." },
@@ -276,7 +293,7 @@ const ENDPOINTS: EndpointDoc[] = [
             name: "OpenRouter Public Models Pricing API",
             endpoint: "https://openrouter.ai/api/v1/models",
             status: "ONLINE",
-            metric: "25x token deflation multiple vs early-2023 GPT-4 benchmark",
+            metric: "670× token deflation multiple vs early-2023 GPT-4 input benchmark ($30 → $0.0448 per 1M input, OpenRouter live Oct 19 2026)",
             target: "Real-demand damper (-10 pts max)"
           },
           {
@@ -284,7 +301,7 @@ const ENDPOINTS: EndpointDoc[] = [
             name: "Polymarket Gamma Events API",
             endpoint: "https://gamma-api.polymarket.com/events",
             status: "ONLINE",
-            metric: "10.3% 2026 bubble burst odds ($9.14M active volume across 16 markets)",
+            metric: "9.05% 2026 bubble burst odds ($9.17M active volume across 16 markets)",
             target: "Crowd consensus risk factor"
           },
           {
@@ -292,7 +309,7 @@ const ENDPOINTS: EndpointDoc[] = [
             name: "Yahoo Finance ORCL Market Stream",
             endpoint: "https://query1.finance.yahoo.com/v8/finance/chart/ORCL",
             status: "ONLINE",
-            metric: "187 bps Oracle 5Y CDS proxy anchor",
+            metric: "288 bps Oracle 5Y CDS proxy anchor (record close Oct 15 2026, vs 81bp baseline)",
             target: "Fixed-income credit thermometer"
           },
           {
@@ -308,16 +325,22 @@ const ENDPOINTS: EndpointDoc[] = [
             name: "Verified Primary Capital Ledger",
             endpoint: "src/data/deals.json",
             status: "ONLINE",
-            metric: "169 facilities ($2.86T volume, 8.0% debt share)",
+            metric: "169 deals ($2.87T volume, 7.5% debt share, 24 debt facilities)",
             target: "Deterministic balance sheet aggregates"
           }
         ],
         recalibrated_models: [
-          "Merton Structural Distance-to-Default (5.37σ, default prob: 0%)",
+          "Merton Structural Distance-to-Default (5.13σ, default prob: 0%)",
           "Altman Z''-Score Tech Classifier (8.41 Safe Zone)",
-          "Sornette LPPLS Bubble Singularity (59.1% hazard, critical window: Q4 2026 - Q2 2027)",
-          "25,000-Path Monte Carlo Cholesky Copula (VaR95 80.1%, VaR99 83.4%)"
+          "Sornette LPPLS Bubble Singularity (81.5% hazard, critical window: Q4 2026 - Q2 2027)",
+          // 2026-10-19 (round-2 consolidation): VaR95 80.6% → 80.5% and VaR99 82.8% → 82.7% —
+          // the published values in src/data/latest-model.json. The old pair was the pre-rebaseline
+          // calibration (stale by 0.1 pt each way).
+          "25,000-Path Monte Carlo Cholesky Copula (VaR95 80.5%, VaR99 82.7%)"
         ],
+        // DATED HISTORY — these are the values each past sync actually recorded
+        // (19 Oct 2026 00:57Z and 18 Oct 2026 21:38Z). They are intentionally NOT
+        // restated to the current calibration: this block is the audit record.
         recent_sync_history: [
           {
             timestamp: "2026-10-19T00:57:21.595Z",
@@ -349,17 +372,17 @@ function highlightJsonToHtml(json: any): string {
   return escaped.replace(
     /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
     (match) => {
-      let cls = "text-sky-600 dark:text-sky-400"; // number
+      let cls = "text-ink"; // number
       if (/^"/.test(match)) {
         if (/:$/.test(match)) {
-          cls = "text-indigo-600 dark:text-indigo-400 font-semibold"; // key
+          cls = "text-ink font-semibold"; // key
         } else {
-          cls = "text-emerald-700 dark:text-emerald-400"; // string
+          cls = "text-safe-700"; // string
         }
       } else if (/true|false/.test(match)) {
-        cls = "text-purple-600 dark:text-purple-400 font-bold"; // boolean
+        cls = "text-caution-700 font-bold"; // boolean
       } else if (/null/.test(match)) {
-        cls = "text-slate-400 dark:text-zinc-500 italic"; // null
+        cls = "text-ink-faint italic"; // null
       }
       return `<span class="${cls}">${match}</span>`;
     }
@@ -414,10 +437,10 @@ export default function ApiDocsPage() {
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
-  const fullUrl = `https://aicapitaltracker.org${activeEndpoint.path}${queryInput}`;
+  const fullUrl = `${SITE_URL}${activeEndpoint.path}${queryInput}`;
 
   const getCurlCommand = () => {
-    return `curl -X GET "${fullUrl}" \\\n  -H "Accept: application/json"`;
+    return `curl -X GET "${fullUrl}" \\\n -H "Accept: application/json"`;
   };
 
   const getCodeSnippet = () => {
@@ -447,102 +470,80 @@ print(data)`;
     ? responseJson
     : activeEndpoint.sampleResponse;
 
-  return (
-    <div className="space-y-10">
-      {/* Top Banner Ad */}
-      <AdSlot format="leaderboard" />
+return (
+    <div className="section-sm">
+      {/* Top banner ad */}
+      <AdSlot placementId="api-docs-top" />
 
-      {/* Header */}
-      <div className="pb-6 border-b border-slate-200 dark:border-zinc-800 space-y-4">
-        <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-xs font-mono text-slate-500 dark:text-zinc-400">
-          <Link href="/" className="hover:text-slate-900 dark:hover:text-white transition-colors">
-            Home
-          </Link>
-          <span>/</span>
-          <span className="text-slate-900 dark:text-white font-semibold">API Documentation</span>
-        </nav>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center space-x-2.5 mb-1.5">
-              <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
-                REST v1.2
-              </span>
-              <span className="text-xs font-mono text-slate-500 dark:text-zinc-400">
-                Open Access Protocol
-              </span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              AI Capital Tracker Public API Explorer
-            </h1>
-            <p className="text-sm text-slate-600 dark:text-zinc-300 font-sans mt-1 max-w-2xl leading-relaxed">
-              Programmatic REST access to the quantitative model engine, $2.86T deal ledger, factor formulas, and 
-              live regulatory filings. Sourced directly from audited SEC filings.
-            </p>
-          </div>
-          <div className="flex items-center space-x-3 shrink-0">
-            <div className="flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-mono bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/60 font-semibold shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>{ENDPOINTS.length} Endpoints Active</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Architecture Specs Bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 text-xs font-mono">
-        <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-sm space-y-1">
-          <div className="flex items-center space-x-1.5 text-slate-500 dark:text-zinc-400">
-            <Server className="w-3.5 h-3.5" />
-            <span className="font-semibold uppercase tracking-wider text-[11px]">Architecture</span>
-          </div>
-          <span className="text-slate-900 dark:text-white font-bold text-sm block">REST JSON / CORS</span>
+      {/* Page head */}
+      <header className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <span className="label">API documentation</span>
+          <span className="pill">REST v1.2</span>
+          <span className="pill pill-safe">{ENDPOINTS.length} endpoints, no key</span>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-sm space-y-1">
-          <div className="flex items-center space-x-1.5 text-slate-500 dark:text-zinc-400">
-            <Globe className="w-3.5 h-3.5" />
-            <span className="font-semibold uppercase tracking-wider text-[11px]">Base URL</span>
-          </div>
-          <span className="text-slate-900 dark:text-white font-bold text-sm truncate block font-mono">
-            /api/v1
-          </span>
+        <h1 className="max-w-reading text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+          AI Capital Tracker Public API Explorer
+        </h1>
+
+        <p className="prose prose-lead max-w-reading">
+          Programmatic REST access to the quantitative model engine, $2.87T deal ledger, factor formulas,
+          and live regulatory filings. Sourced directly from audited SEC filings.
+        </p>
+      </header>
+
+      {/* Specs */}
+      <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-rule bg-rule md:grid-cols-4">
+        <div className="bg-surface p-3">
+          <dt className="label flex items-center gap-1.5">
+            <Server className="h-3.5 w-3.5" aria-hidden="true" />
+            Architecture
+          </dt>
+          <dd className="mt-1 text-sm font-semibold text-ink">REST JSON / CORS</dd>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-sm space-y-1">
-          <div className="flex items-center space-x-1.5 text-slate-500 dark:text-zinc-400">
-            <Clock className="w-3.5 h-3.5" />
-            <span className="font-semibold uppercase tracking-wider text-[11px]">Rate Limit (Free)</span>
-          </div>
-          <span className="text-slate-900 dark:text-white font-bold text-sm block">1,000 req / hr</span>
+        <div className="bg-surface p-3">
+          <dt className="label flex items-center gap-1.5">
+            <Globe className="h-3.5 w-3.5" aria-hidden="true" />
+            Base URL
+          </dt>
+          <dd className="num mt-1 truncate text-sm font-semibold text-ink">/api/v1</dd>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 shadow-sm space-y-1">
-          <div className="flex items-center space-x-1.5 text-slate-500 dark:text-zinc-400">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-            <span className="font-semibold uppercase tracking-wider text-[11px]">Authentication</span>
-          </div>
-          <span className="text-emerald-600 dark:text-emerald-400 font-bold text-sm block">None (Open Public)</span>
+        <div className="bg-surface p-3">
+          <dt className="label flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+            Rate limit (free)
+          </dt>
+          <dd className="num mt-1 text-sm font-semibold text-ink">1,000 req / hr</dd>
         </div>
-      </div>
+
+        <div className="bg-surface p-3">
+          <dt className="label flex items-center gap-1.5">
+            <ShieldCheck className="h-3.5 w-3.5 text-safe-700" aria-hidden="true" />
+            Authentication
+          </dt>
+          <dd className="mt-1 text-sm font-semibold text-safe-700">None (open public)</dd>
+        </div>
+      </dl>
 
       {/* Main Interactive Explorer Layout */}
-      <section aria-labelledby="api-endpoints-heading" className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 pb-1">
-          <h2 id="api-endpoints-heading" className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+      <section aria-labelledby="api-endpoints-heading" className="mt-8 space-y-4">
+        <div className="flex flex-col gap-1 border-b border-rule pb-2 sm:flex-row sm:items-baseline sm:justify-between">
+          <h2 id="api-endpoints-heading" className="text-xl font-bold tracking-tight text-ink">
             REST API Endpoints &amp; Interactive Explorer
           </h2>
-          <span className="text-xs font-mono text-slate-500 dark:text-zinc-400">
-            Open JSON API • Free Rate Limits
-          </span>
+          <span className="text-[14px] text-ink-subtle">Open JSON API • Free rate limits</span>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: 4 Endpoint Selector Cards */}
-        <div className="lg:col-span-4 space-y-3">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        {/* Left Column: endpoint selector */}
+        <div className="space-y-3 lg:col-span-4">
           <div className="flex items-center justify-between pb-1">
-            <span className="text-xs font-mono font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider">
+            <span className="text-[13px] font-semibold uppercase tracking-wider text-ink-muted">
               Select API Endpoint
             </span>
-            <span className="text-xs font-mono text-slate-400 dark:text-zinc-500">
+            <span className="text-[14px] font-mono text-ink-faint">
               v1.2
             </span>
           </div>
@@ -554,44 +555,38 @@ print(data)`;
                 <button
                   key={ep.id}
                   onClick={() => selectEndpoint(ep)}
-                  className={`w-full text-left p-4 rounded-xl border transition-all space-y-2 relative overflow-hidden group ${
-                    isSelected
-                      ? "bg-slate-900 text-white dark:bg-[#18181b] dark:text-white border-slate-800 dark:border-zinc-700 shadow-md ring-1 ring-emerald-500/40"
-                      : "bg-white dark:bg-[#121214] border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:border-slate-300 dark:hover:border-zinc-700 shadow-sm"
+                  className={`card w-full space-y-2 text-left transition-colors ${
+                    isSelected ? "!border-ink bg-ink text-canvas" : "hover:border-rule-strong"
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center space-x-2">
+                  <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
+                    <div className="flex min-w-0 items-center gap-2">
                       <span
-                        className={`text-[11px] font-mono px-2 py-0.5 rounded font-black ${
-                          isSelected
-                            ? "bg-emerald-500 text-black"
-                            : "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
+                        className={`chip ${
+                          isSelected ? "bg-canvas text-ink" : "chip-safe"
                         }`}
                       >
                         {ep.method}
                       </span>
-                      <span className="font-mono text-xs sm:text-sm font-bold tracking-tight">
+                      <span className="num truncate text-[14px] font-semibold sm:text-sm">
                         {ep.path}
                       </span>
                     </div>
 
                     <span
-                      className={`text-[10px] font-mono px-1.5 py-0.5 rounded uppercase tracking-wider font-semibold ${
-                        isSelected
-                          ? "bg-white/10 text-zinc-300"
-                          : "bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400"
+                      className={`chip text-[13px] uppercase tracking-wider ${
+                        isSelected ? "bg-canvas text-ink" : ""
                       }`}
                     >
                       {ep.badge}
                     </span>
                   </div>
 
-                  <div className={`text-xs sm:text-sm font-medium ${isSelected ? "text-slate-200 dark:text-zinc-200" : "text-slate-600 dark:text-zinc-400"}`}>
+                  <div className={`text-[14px] font-medium ${isSelected ? "text-canvas" : "text-ink-muted"}`}>
                     {ep.name}
                   </div>
 
-                  <p className={`text-xs line-clamp-2 leading-relaxed font-sans ${isSelected ? "text-slate-300 dark:text-zinc-400" : "text-slate-500 dark:text-zinc-500"}`}>
+                  <p className={`text-[14px] leading-relaxed line-clamp-2 ${isSelected ? "text-canvas/80" : "text-ink-subtle"}`}>
                     {ep.description}
                   </p>
                 </button>
@@ -600,15 +595,15 @@ print(data)`;
           </div>
 
           {/* Quick Copy cURL Shortcut Box */}
-          <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 space-y-2 text-xs">
-            <div className="flex items-center justify-between text-slate-700 dark:text-zinc-300 font-semibold font-mono">
+          <div className="panel space-y-2 text-[14px]">
+            <div className="flex items-center justify-between text-ink-muted font-semibold font-mono">
               <span className="flex items-center space-x-1.5">
-                <Terminal className="w-3.5 h-3.5 text-indigo-500" />
+                <Terminal className="w-3.5 h-3.5 text-ink-muted" />
                 <span>Instant cURL</span>
               </span>
               <button
                 onClick={() => copyToClipboard(getCurlCommand(), "quick-curl")}
-                className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center space-x-1 text-emerald-600 dark:text-emerald-400"
+                className="prose-a flex min-h-11 items-center gap-1"
               >
                 {copiedKey === "quick-curl" ? (
                   <>
@@ -617,14 +612,14 @@ print(data)`;
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3.5 h-3.5" />
+                    <Copy className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>Copy cURL</span>
                   </>
                 )}
               </button>
             </div>
-            <code className="text-[11px] font-mono block bg-slate-100 dark:bg-[#09090b] p-2 rounded border border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-zinc-300 break-all">
-              curl -s https://aicapitaltracker.org{activeEndpoint.path}
+            <code className="prose-mono block break-all text-[14px]">
+              curl -s {SITE_URL}{activeEndpoint.path}
             </code>
           </div>
         </div>
@@ -632,18 +627,18 @@ print(data)`;
         {/* Right Column: Interactive Explorer Console */}
         <div className="lg:col-span-8 space-y-5">
           {/* Endpoint Details & Live Execution Bar */}
-          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 space-y-5 shadow-sm">
+          <div className="card space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
-                  <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                  <span className="chip chip-safe">
                     {activeEndpoint.method}
                   </span>
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                  <h3 className="text-base sm:text-lg font-bold text-ink">
                     {activeEndpoint.name}
                   </h3>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans leading-relaxed">
+                <p className="prose max-w-2xl text-sm">
                   {activeEndpoint.description}
                 </p>
               </div>
@@ -651,16 +646,16 @@ print(data)`;
               {/* Instant Copy cURL Button */}
               <button
                 onClick={() => copyToClipboard(getCurlCommand(), "header-curl")}
-                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 transition-colors shrink-0 border border-slate-200 dark:border-zinc-700"
+                className="btn min-h-11 shrink-0"
               >
                 {copiedKey === "header-curl" ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="text-emerald-600 dark:text-emerald-400">cURL Copied!</span>
+                    <Check className="h-3.5 w-3.5 text-safe-700" aria-hidden="true" />
+                    <span className="text-safe-700">cURL Copied!</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3.5 h-3.5" />
+                    <Copy className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>Copy cURL</span>
                   </>
                 )}
@@ -669,30 +664,30 @@ print(data)`;
 
             {/* Live Fetch Input Bar */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="font-semibold text-slate-700 dark:text-zinc-300">
+              <div className="flex items-center justify-between gap-2 text-[14px]">
+                <span className="font-semibold text-ink-muted">
                   Interactive Request URL &amp; Query Params:
                 </span>
-                <span className="text-slate-400 dark:text-zinc-500">Edit query below</span>
+                <span className="text-ink-subtle">Edit query below</span>
               </div>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <div className="flex-1 flex items-center bg-slate-50 dark:bg-[#09090b] border border-slate-300 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-mono overflow-x-auto shadow-inner">
-                  <span className="text-emerald-600 dark:text-emerald-400 font-black mr-2">GET</span>
-                  <span className="text-slate-400 dark:text-zinc-500">{activeEndpoint.path}</span>
+                <div className="prose-mono flex min-h-11 flex-1 items-center overflow-x-auto px-3.5 py-2.5 text-[13px] sm:text-sm">
+                  <span className="mr-2 font-semibold text-safe-700">GET</span>
+                  <span className="text-ink-faint">{activeEndpoint.path}</span>
                   <input
                     type="text"
                     value={queryInput}
                     onChange={(e) => setQueryInput(e.target.value)}
                     placeholder="?param=value..."
-                    className="flex-1 bg-transparent text-slate-900 dark:text-white focus:outline-none ml-1 font-mono text-xs sm:text-sm min-w-[140px]"
+                    className="num ml-1 min-w-[140px] flex-1 bg-transparent text-[14px] text-ink sm:text-sm"
                   />
                 </div>
 
                 <button
                   onClick={executeLiveRequest}
                   disabled={loading}
-                  className="flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-all disabled:opacity-50 shadow-md shadow-emerald-600/20 shrink-0"
+                  className="btn btn-primary min-h-11 shrink-0 justify-center disabled:opacity-50"
                 >
                   {loading ? (
                     <>
@@ -711,13 +706,13 @@ print(data)`;
 
             {/* Query Parameters Specification */}
             {activeEndpoint.params && activeEndpoint.params.length > 0 && (
-              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
-                <span className="text-xs font-mono font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider block">
+              <div className="space-y-2 pt-2 border-t border-rule">
+                <span className="text-[13px] font-semibold text-ink-muted uppercase tracking-wider block">
                   Request Parameters
                 </span>
-                <div className="border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden text-xs">
+                <div className="overflow-x-auto text-[14px]">
                   <table className="w-full text-left">
-                    <thead className="bg-slate-50 dark:bg-[#09090b] border-b border-slate-200 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 font-mono">
+                    <thead className="bg-surface-2 border-b border-rule text-ink-subtle font-mono">
                       <tr>
                         <th className="p-3">Parameter</th>
                         <th className="p-3">Type</th>
@@ -725,20 +720,20 @@ print(data)`;
                         <th className="p-3">Description</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-mono">
+                    <tbody className="divide-y divide-rule font-mono">
                       {activeEndpoint.params.map((p) => (
-                        <tr key={p.name} className="bg-white dark:bg-[#121214] hover:bg-slate-50 dark:hover:bg-zinc-900/40">
-                          <td className="p-3 font-bold text-slate-900 dark:text-white">
+                        <tr key={p.name} className="bg-surface hover:bg-surface-2 hover:bg-surface-2/40">
+                          <td className="p-3 font-bold text-ink">
                             {p.name}
                             {p.required && (
-                              <span className="ml-1.5 text-[10px] px-1 py-0.5 rounded bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200 dark:border-rose-900">
+                              <span className="ml-1.5 text-ink px-1 py-0.5 rounded bg-risk-50 text-risk-700 bg-risk-50/60 text-risk-600 border border-risk-200 border-risk-500">
                                 Required
                               </span>
                             )}
                           </td>
-                          <td className="p-3 text-slate-500 dark:text-zinc-400">{p.type}</td>
-                          <td className="p-3 text-slate-500 dark:text-zinc-400">{p.defaultVal || "—"}</td>
-                          <td className="p-3 font-sans text-slate-700 dark:text-zinc-300">{p.desc}</td>
+                          <td className="p-3 text-ink-subtle">{p.type}</td>
+                          <td className="p-3 text-ink-subtle">{p.defaultVal || "—"}</td>
+                          <td className="p-3 font-sans text-ink-muted">{p.desc}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -749,83 +744,77 @@ print(data)`;
           </div>
 
           {/* Code Snippets Box (cURL / JavaScript / Python) */}
-          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-[#09090b]">
-              <div className="flex items-center space-x-1.5">
-                {(["curl", "js", "python"] as const).map((lang) => (
-                  <button
-                    key={lang}
-                    onClick={() => setCodeLanguage(lang)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-mono uppercase font-bold transition-all ${
-                      codeLanguage === lang
-                        ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-950 shadow-sm"
-                        : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-                    }`}
-                  >
-                    {lang === "curl" ? "cURL" : lang === "js" ? "Node.js / TS" : "Python 3"}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => copyToClipboard(getCodeSnippet(), "code-snippet")}
-                className="flex items-center space-x-1.5 text-xs font-mono font-bold text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
-              >
-                {copiedKey === "code-snippet" ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="text-emerald-600 dark:text-emerald-400">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>Copy Code</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            <pre className="p-4 sm:p-5 text-xs font-mono text-slate-800 dark:text-zinc-200 overflow-x-auto bg-slate-50/50 dark:bg-[#09090b] leading-relaxed">
-              <code>{getCodeSnippet()}</code>
-            </pre>
-          </div>
-
-          {/* Syntax-Highlighted JSON Response Viewer */}
-          <div className="bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
-            <div className="flex flex-wrap items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-[#09090b] gap-2">
-              <div className="flex items-center space-x-3 text-xs font-mono">
-                {/* View Mode Toggle */}
-                <div className="flex items-center space-x-1 bg-slate-200/60 dark:bg-zinc-800 p-0.5 rounded-lg">
-                  <button
-                    onClick={() => setResponseViewMode("sample")}
-                    className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
-                      responseViewMode === "sample"
-                        ? "bg-white text-slate-900 dark:bg-zinc-900 dark:text-white shadow-xs"
-                        : "text-slate-600 dark:text-zinc-400 hover:text-slate-900"
-                    }`}
-                  >
-                    Sample Response
-                  </button>
-                  <button
-                    onClick={() => setResponseViewMode("live")}
-                    disabled={responseJson === null}
-                    className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
-                      responseViewMode === "live"
-                        ? "bg-white text-slate-900 dark:bg-zinc-900 dark:text-white shadow-xs"
-                        : "text-slate-600 dark:text-zinc-400 disabled:opacity-40"
-                    }`}
-                  >
-                    Live Response {responseJson && "●"}
-                  </button>
+<div className="card card-flush overflow-hidden">
+              <div className="flex items-center justify-between gap-2 border-b border-rule bg-surface-2 px-3 py-2">
+                <div className="flex items-center gap-1">
+                  {(["curl", "js", "python"] as const).map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => setCodeLanguage(lang)}
+                      aria-pressed={codeLanguage === lang}
+                      className={`min-h-11 whitespace-nowrap rounded-lg px-3 py-2 text-[13px] font-semibold uppercase transition-colors ${
+                        codeLanguage === lang ? "bg-ink text-canvas" : "text-ink-muted hover:text-ink"
+                      }`}
+                    >
+                      {lang === "curl" ? "cURL" : lang === "js" ? "Node.js / TS" : "Python 3"}
+                    </button>
+                  ))}
                 </div>
 
+                <button
+                  onClick={() => copyToClipboard(getCodeSnippet(), "code-snippet")}
+                  className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 px-2 text-[13px] font-semibold text-ink-muted hover:text-ink"
+                >
+                  {copiedKey === "code-snippet" ? (
+                    <>
+                      <Check className="h-3.5 w-3.5 text-safe-700" aria-hidden="true" />
+                      <span className="text-safe-700">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span>Copy Code</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <pre className="num overflow-x-auto bg-surface-2 px-3 py-4 text-[14px] leading-relaxed text-ink sm:px-4">
+                <code>{getCodeSnippet()}</code>
+              </pre>
+            </div>
+
+            {/* Syntax-highlighted JSON response viewer */}
+            <div className="card card-flush overflow-hidden">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-rule bg-surface-2 px-3 py-2">
+                <div className="flex flex-wrap items-center gap-3 text-[14px]">
+                  {/* View mode toggle */}
+                  <div className="flex items-center gap-1 rounded-lg border border-rule bg-surface p-0.5">
+                    <button
+                      onClick={() => setResponseViewMode("sample")}
+                      aria-pressed={responseViewMode === "sample"}
+                      className={`min-h-11 whitespace-nowrap rounded-md px-2.5 py-2 text-[13px] font-semibold transition-colors ${
+                        responseViewMode === "sample" ? "bg-ink text-canvas" : "text-ink-muted hover:text-ink"
+                      }`}
+                    >
+                      Sample Response
+                    </button>
+                    <button
+                      onClick={() => setResponseViewMode("live")}
+                      disabled={responseJson === null}
+                      aria-pressed={responseViewMode === "live"}
+                      className={`min-h-11 whitespace-nowrap rounded-md px-2.5 py-2 text-[13px] font-semibold transition-colors disabled:opacity-40 ${
+                        responseViewMode === "live" ? "bg-ink text-canvas" : "text-ink-muted hover:text-ink"
+                      }`}
+                    >
+                      Live Response{responseJson ? " ●" : ""}
+                    </button>
+                  </div>
                 {/* HTTP Status Badge */}
                 {responseViewMode === "live" && statusCode !== null && (
                   <span
-                    className={`px-2 py-0.5 rounded font-bold ${
-                      statusCode >= 200 && statusCode < 300
-                        ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
-                        : "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
+                    className={`chip num ${
+                      statusCode >= 200 && statusCode < 300 ? "chip-safe" : "chip-risk"
                     }`}
                   >
                     HTTP {statusCode} OK
@@ -834,25 +823,23 @@ print(data)`;
 
                 {/* Latency ms Badge */}
                 {responseViewMode === "live" && latencyMs !== null && (
-                  <span className="text-slate-500 dark:text-zinc-400">
-                    ⏱ {latencyMs}ms
-                  </span>
+                  <span className="num text-ink-subtle">{latencyMs}ms latency</span>
                 )}
               </div>
 
               {/* Copy JSON Button */}
               <button
                 onClick={() => copyToClipboard(JSON.stringify(displayedJson, null, 2), "json-payload")}
-                className="flex items-center space-x-1 text-xs font-mono font-bold text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+                className="flex min-h-11 items-center gap-1 text-[13px] font-semibold text-ink-muted hover:text-ink"
               >
                 {copiedKey === "json-payload" ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="text-emerald-600 dark:text-emerald-400">JSON Copied!</span>
+                    <Check className="h-3.5 w-3.5 text-safe-700" aria-hidden="true" />
+                    <span className="text-safe-700">JSON Copied!</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3.5 h-3.5" />
+                    <Copy className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>Copy JSON</span>
                   </>
                 )}
@@ -860,7 +847,7 @@ print(data)`;
             </div>
 
             {/* Highlighted JSON Code Display */}
-            <pre className="p-4 sm:p-5 text-xs font-mono overflow-x-auto max-h-[460px] bg-slate-50/50 dark:bg-[#09090b] leading-relaxed">
+            <pre className="num max-h-[460px] overflow-x-auto bg-surface-2 px-3 py-4 text-[14px] leading-relaxed sm:px-4">
               <code
                 dangerouslySetInnerHTML={{
                   __html: highlightJsonToHtml(displayedJson),
@@ -873,7 +860,7 @@ print(data)`;
       </section>
 
       {/* Bottom Ad */}
-      <AdSlot format="in-feed" />
+      <AdSlot placementId="global-infeed" className="mt-8" />
     </div>
   );
 }

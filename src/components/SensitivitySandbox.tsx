@@ -54,110 +54,159 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
     });
   }, [inputs, currentResult, baselineResult, scenarioName, delta, onStateChange]);
 
-  // Baseline calibration values for diffing & resets
-  const baseCds = DEFAULT_MODEL_INPUTS.cds?.currentBps || 187;
-  const baseDebt = Math.round((DEFAULT_MODEL_INPUTS.ledger?.debtShare ?? 0.07) * 100);
+  // Baseline calibration values for diffing & resets.
+  // 2026-10-19 fact-check sweep: the CDS fallback was the stale 187bp (the live
+  // 5Y Oracle CDS closed at a record 288bp on 15 Oct 2026), the user-growth
+  // fallback was 0.65 (the model input is +50% YoY: 800M Oct 2025 → 1.2B Sep
+  // 2026 weekly users, OpenAI DevDay) and the crowd fallback was 0.54 (the live
+  // Polymarket reading is 9.05% on the 2026 contract).
+  const baseCds = DEFAULT_MODEL_INPUTS.cds?.currentBps || 288;
+  const baseDebt = Math.round((DEFAULT_MODEL_INPUTS.ledger?.debtShare ?? 0.075) * 100);
   const baseUs10y = DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 5.10;
   const baseAnnualDebtB = Math.round((DEFAULT_MODEL_INPUTS.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000) / 1e9);
-  const baseTokenDiscount = DEFAULT_MODEL_INPUTS.adoption?.apiPriceDeclineMultiple || 40;
-  const baseUserGrowth = Math.round((DEFAULT_MODEL_INPUTS.adoption?.annualUserGrowth || 0.65) * 100);
-  const baseOdds = Math.round((DEFAULT_MODEL_INPUTS.crowd?.yesProbability || 0.54) * 100);
+  // The published input-basis deflation multiple is pinned at 670× (GPT-4 $30/1M
+  // input, Mar 2023 → DeepSeek V4.1 Flash $0.0448/1M, OpenRouter, 19 Oct 2026).
+  // The live aggregator's intraday rate swings the raw reading (798× at the
+  // 19 Oct 2026 print on a $0.0376 quote); the damper saturates above 50×, so
+  // the score is identical either way.
+  const baseTokenDiscount = DEFAULT_MODEL_INPUTS.adoption?.apiPriceDeclineMultiple || 670;
+  const baseUserGrowth = Math.round((DEFAULT_MODEL_INPUTS.adoption?.annualUserGrowth || 0.5) * 100);
+  const baseOdds = Math.round((DEFAULT_MODEL_INPUTS.crowd?.yesProbability || 0.0905) * 100);
 
   // Active current values
   const currentCds = inputs.cds?.currentBps || baseCds;
-  const currentDebt = Math.round((inputs.ledger?.debtShare ?? 0.07) * 100);
+  const currentDebt = Math.round((inputs.ledger?.debtShare ?? 0.075) * 100);
   const currentUs10y = inputs.macro?.us10yYieldPct ?? baseUs10y;
   const currentAnnualDebtB = Math.round((inputs.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000) / 1e9);
   const currentTokenDiscount = inputs.adoption?.apiPriceDeclineMultiple || baseTokenDiscount;
-  const currentUserGrowth = Math.round((inputs.adoption?.annualUserGrowth || 0.65) * 100);
-  const currentOdds = Math.round((inputs.crowd?.yesProbability || 0.54) * 100);
+  const currentUserGrowth = Math.round((inputs.adoption?.annualUserGrowth || 0.5) * 100);
+  const currentOdds = Math.round((inputs.crowd?.yesProbability || 0.0905) * 100);
+
+  // 2026-10-19 (round-2 consolidation): the scenario preset set was REBUILT to mirror the
+  // sandbox page's published stress table (src/app/sandbox/page.tsx → stressScenarios), which
+  // is itself recomputed from the live model inputs at render time. The old presets were pinned
+  // to a pre-rebaseline world — CDS 290/235/95bp, debt share 0.20/0.16/0.04, crowd odds
+  // 0.80/0.70/0.28, token deflation 85× — levels that no longer exist on the live inputs and that
+  // never matched the scenarios the page publishes. Live anchors (19 Oct 2026): Oracle 5Y CDS
+  // 288bp (record close Oct 15 2026), ledger debt share 7.5%, median lab P/S 29.4×, token
+  // deflation 670× (input basis), CY2026 hyperscaler capex $725B, crowd odds 9.05%.
+  type PresetId =
+    | "baseline"
+    | "credit_freeze"
+    | "multiple_compression"
+    | "capex_retrenchment"
+    | "soft_landing";
+
+  const PRESET_META: Record<
+    PresetId,
+    { label: string; note: string; icon: React.ReactNode; tone: string }
+  > = {
+    baseline: {
+      label: "Baseline Calibration",
+      note: "Live verified inputs — CDS 288 bp · ledger debt share 7.5% ($214.9B) · median lab P/S 29.4× · token deflation 670× · crowd odds 9.05% · capex $725B.",
+      icon: <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />,
+      tone: "",
+    },
+    credit_freeze: {
+      label: "AI Credit Freeze",
+      note: "Credit freeze — CDS blows out to 400 bp (+112 bp on the live print) and the ledger's borrowed share jumps to 12.0%.",
+      icon: <Flame className="h-3.5 w-3.5 text-risk-700" aria-hidden="true" />,
+      tone: "hover:text-risk-700",
+    },
+    multiple_compression: {
+      label: "Multiple Compression",
+      note: "Multiple compression — median lab price/sales halves to 15.0× (from 29.4×): the 2022-style de-rating of frontier-lab equity.",
+      icon: <TrendingDown className="h-3.5 w-3.5 text-caution-700" aria-hidden="true" />,
+      tone: "hover:text-caution-700",
+    },
+    capex_retrenchment: {
+      label: "Capex Retrenchment",
+      note: "Capex retrenchment — CY2026 hyperscaler capex cut 20% ($725B → $580B) with the matching capex/OCF relief (54.8% → 43.8%).",
+      icon: <Zap className="h-3.5 w-3.5 text-caution-700" aria-hidden="true" />,
+      tone: "hover:text-caution-700",
+    },
+    soft_landing: {
+      label: "Soft Landing",
+      note: "Soft landing — credit normalises to 150 bp (−138 bp), leverage falls to 5.0%, multiples compress to 20.0× and tokens keep getting cheaper (200×).",
+      icon: <ShieldCheck className="h-3.5 w-3.5 text-safe-700" aria-hidden="true" />,
+      tone: "hover:text-safe-700",
+    },
+  };
+
+  const PRESET_ORDER: PresetId[] = [
+    "baseline",
+    "credit_freeze",
+    "multiple_compression",
+    "capex_retrenchment",
+    "soft_landing",
+  ];
+
+  /** Median price/sales across the labs with a verified run-rate (same basis as /api/v1/model). */
+  const medianPsMultiple = (base: BubbleModelInputs): number => {
+    const ps = (base.valuations ?? [])
+      .filter((v) => v.runRateRevenueUsd !== null && (v.runRateRevenueUsd as number) >= 100_000_000)
+      .map((v) => v.valuationUsd / (v.runRateRevenueUsd as number))
+      .sort((a, b) => a - b);
+    if (ps.length === 0) return 29.4; // 19 Oct 2026 canonical live median
+    const mid = Math.floor(ps.length / 2);
+    return ps.length % 2 !== 0 ? ps[mid] : (ps[mid - 1] + ps[mid]) / 2;
+  };
 
   // Preset scenarios handler
-  const applyPreset = (preset: "baseline" | "credit_freeze" | "capex_spike" | "adoption_breakthrough") => {
+  const applyPreset = (preset: PresetId) => {
     setScenarioName(preset);
 
     if (preset === "baseline") {
       setInputs(DEFAULT_MODEL_INPUTS);
-    } else if (preset === "credit_freeze") {
-      setInputs({
-        ...DEFAULT_MODEL_INPUTS,
-        cds: {
-          ...DEFAULT_MODEL_INPUTS.cds!,
-          currentBps: 290,
-        },
-        macro: {
-          ...DEFAULT_MODEL_INPUTS.macro!,
-          us10yYieldPct: 5.25,
-          rateHikeRiskBps: 50,
-          realYield10y: 2.75,
-        },
-        aiDebt: {
-          ...DEFAULT_MODEL_INPUTS.aiDebt!,
-          annualDebtIssuanceUsd: 125_000_000_000,
-          capexToOcfRatio: 0.75,
-        },
-        ledger: {
-          ...DEFAULT_MODEL_INPUTS.ledger!,
-          debtShare: 0.20,
-        },
-        crowd: {
-          ...DEFAULT_MODEL_INPUTS.crowd!,
-          yesProbability: 0.80,
-        },
-      });
-    } else if (preset === "capex_spike") {
-      setInputs({
-        ...DEFAULT_MODEL_INPUTS,
-        cds: {
-          ...DEFAULT_MODEL_INPUTS.cds!,
-          currentBps: 235,
-        },
-        aiDebt: {
-          ...DEFAULT_MODEL_INPUTS.aiDebt!,
-          annualDebtIssuanceUsd: 135_000_000_000,
-          capexToOcfRatio: 0.85,
-          capexToRevenueMultiple: 15.0,
-        },
-        ledger: {
-          ...DEFAULT_MODEL_INPUTS.ledger!,
-          debtShare: 0.16,
-          computeContractShare: 0.38,
-        },
-        crowd: {
-          ...DEFAULT_MODEL_INPUTS.crowd!,
-          yesProbability: 0.70,
-        },
-      });
-    } else if (preset === "adoption_breakthrough") {
-      setInputs({
-        ...DEFAULT_MODEL_INPUTS,
-        cds: {
-          ...DEFAULT_MODEL_INPUTS.cds!,
-          currentBps: 95,
-        },
-        macro: {
-          ...DEFAULT_MODEL_INPUTS.macro!,
-          us10yYieldPct: 3.80,
-          rateHikeRiskBps: 0,
-          realYield10y: 1.50,
-        },
-        adoption: {
-          ...DEFAULT_MODEL_INPUTS.adoption!,
-          apiPriceDeclineMultiple: 85,
-          annualUserGrowth: 1.25,
-          trainingCostBand: "falling",
-        },
-        ledger: {
-          ...DEFAULT_MODEL_INPUTS.ledger!,
-          debtShare: 0.04,
-        },
-        crowd: {
-          ...DEFAULT_MODEL_INPUTS.crowd!,
-          yesProbability: 0.28,
-        },
-      });
+      return;
     }
+
+    const next = JSON.parse(JSON.stringify(DEFAULT_MODEL_INPUTS)) as BubbleModelInputs;
+    const medianPs = medianPsMultiple(DEFAULT_MODEL_INPUTS);
+    /** Rescale every tracked lab valuation so the median P/S hits `targetPs`. */
+    const compressValuations = (targetPs: number) => {
+      const factor = medianPs > 0 ? targetPs / medianPs : 1;
+      next.valuations = (next.valuations || []).map((v) => ({
+        ...v,
+        valuationUsd: v.valuationUsd * factor,
+      }));
+    };
+
+    if (preset === "credit_freeze") {
+      // 2026-10-19 (round-2 consolidation): CDS 290bp → 400bp and debt share 0.20 → 0.12, i.e.
+      // the sandbox page's "Credit Freeze / CDS Blowout" scenario (400bp on top of the live print).
+      next.cds = { ...next.cds!, currentBps: 400 };
+      next.ledger = { ...next.ledger!, debtShare: 0.12 };
+    } else if (preset === "multiple_compression") {
+      // 2026-10-19 (round-2 consolidation): the sandbox page's "Multiple Compression (15×)" row.
+      compressValuations(15);
+    } else if (preset === "capex_retrenchment") {
+      // 2026-10-19 (round-2 consolidation): the sandbox page's "Capex Retrenchment (−20%)" row —
+      // a real 20% cut of the live $725B CY2026 guide ($580B), NOT the old "capex spike" preset
+      // that pushed the build-out the wrong way.
+      next.capex = {
+        ...next.capex!,
+        aggregateCapexUsd: Math.round((next.capex?.aggregateCapexUsd ?? 0) * 0.8),
+      };
+      next.aiDebt = {
+        ...next.aiDebt!,
+        capexToOcfRatio: (next.aiDebt?.capexToOcfRatio ?? 0.548) * 0.8,
+      };
+    } else if (preset === "soft_landing") {
+      // 2026-10-19 (round-2 consolidation): the sandbox page's "Ubiquitous Soft-Landing" row —
+      // credit 150bp, debt share 5.0%, multiples 20×, token deflation 200×.
+      next.cds = { ...next.cds!, currentBps: 150 };
+      next.ledger = { ...next.ledger!, debtShare: 0.05 };
+      compressValuations(20);
+      next.adoption = { ...next.adoption!, apiPriceDeclineMultiple: 200 };
+    }
+
+    setInputs(next);
   };
+
+  const activePreset: PresetId | null = PRESET_ORDER.includes(scenarioName as PresetId)
+    ? (scenarioName as PresetId)
+    : null;
 
   // Individual reset helpers
   const resetCds = () => {
@@ -219,102 +268,78 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
   const bandStyles: Record<string, { label: string; badge: string; text: string }> = {
     critical: {
       label: "Critical Stress",
-      badge: "bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300 border-rose-300 dark:border-rose-800",
-      text: "text-rose-600 dark:text-rose-400",
+      badge: "bg-risk-50 text-risk-700 border-risk-300",
+      text: "text-risk-700",
     },
     high: {
       label: "High Stress",
-      badge: "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border-rose-200 dark:border-rose-900/80",
-      text: "text-rose-600 dark:text-rose-400",
+      badge: "bg-risk-50 text-risk-700 border-risk-200",
+      text: "text-risk-700",
     },
     elevated: {
       label: "Elevated Risk",
-      badge: "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-200 dark:border-amber-900/80",
-      text: "text-amber-600 dark:text-amber-400",
+      badge: "bg-caution-50 text-caution-700 border-caution-200",
+      text: "text-caution-700",
     },
     guarded: {
       label: "Guarded",
-      badge: "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400 border-blue-200 dark:border-blue-900/80",
-      text: "text-blue-600 dark:text-blue-400",
+      badge: "bg-surface-2 text-ink-muted border-rule",
+      text: "text-ink-muted",
     },
     calm: {
       label: "Low Risk",
-      badge: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/80",
-      text: "text-emerald-600 dark:text-emerald-400",
+      badge: "bg-safe-50 text-safe-700 border-safe-200",
+      text: "text-safe-700",
     },
   };
 
   const activeBand = bandStyles[currentResult.band] || bandStyles.high;
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 p-6 sm:p-8 space-y-7 transition-colors shadow-sm">
+    <div className="card space-y-7">
       {/* Title & Scenario Preset Buttons */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 pb-6 border-b border-slate-200 dark:border-zinc-800">
+      <div className="flex flex-col gap-5 border-b border-rule pb-6 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <div className="flex items-center space-x-2 text-xs font-mono font-bold text-slate-500 dark:text-zinc-400">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span className="uppercase tracking-wider">Institutional Stress Lab</span>
-            <span>•</span>
-            <span>Live Transparent Engine</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="label">Institutional Stress Lab</span>
+            <span className="pill pill-safe">Live Transparent Engine</span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight mt-1">
+          <h2 className="mt-1 text-xl font-bold tracking-tight text-ink">
             Model Sensitivity &amp; Stress Simulator
           </h2>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans mt-1 max-w-2xl leading-relaxed">
+          <p className="prose mt-1 max-w-2xl text-sm">
             Test macroeconomic credit shocks, debt volume surges, token deflation dampers, or prediction crowd sentiment 
             to evaluate immediate non-linear shifts in 12-month burst probability.
           </p>
         </div>
 
-        {/* 4 Required Scenario Preset Buttons */}
-        <div className="flex items-center overflow-x-auto pb-1 max-w-full scrollbar-none gap-2 touch-pan-x sm:flex-wrap">
-          <button
-            onClick={() => applyPreset("baseline")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition-all flex items-center space-x-1.5 border ${
-              scenarioName === "baseline"
-                ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-950 border-slate-900 dark:border-white shadow-sm"
-                : "bg-slate-50 text-slate-700 dark:bg-zinc-900 dark:text-zinc-300 border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800"
-            }`}
-          >
-            <RotateCcw className="w-3 h-3" />
-            <span>Baseline Calibration</span>
-          </button>
-
-          <button
-            onClick={() => applyPreset("credit_freeze")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition-all flex items-center space-x-1.5 border ${
-              scenarioName === "credit_freeze"
-                ? "bg-rose-600 text-white border-rose-600 shadow-sm"
-                : "bg-slate-50 text-slate-700 dark:bg-zinc-900 dark:text-zinc-300 border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-rose-600 dark:hover:text-rose-400"
-            }`}
-          >
-            <Flame className="w-3.5 h-3.5 text-rose-500" />
-            <span>AI Credit Freeze</span>
-          </button>
-
-          <button
-            onClick={() => applyPreset("capex_spike")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition-all flex items-center space-x-1.5 border ${
-              scenarioName === "capex_spike"
-                ? "bg-amber-600 text-white border-amber-600 shadow-sm"
-                : "bg-slate-50 text-slate-700 dark:bg-zinc-900 dark:text-zinc-300 border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-amber-600 dark:hover:text-amber-400"
-            }`}
-          >
-            <Zap className="w-3.5 h-3.5 text-amber-500" />
-            <span>Hyperscaler Capex Spike</span>
-          </button>
-
-          <button
-            onClick={() => applyPreset("adoption_breakthrough")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition-all flex items-center space-x-1.5 border ${
-              scenarioName === "adoption_breakthrough"
-                ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                : "bg-slate-50 text-slate-700 dark:bg-zinc-900 dark:text-zinc-300 border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-emerald-600 dark:hover:text-emerald-400"
-            }`}
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Adoption Breakthrough</span>
-          </button>
+        {/* 5 scenario presets — the same set the sandbox page's stress table publishes.
+            2026-10-19 (round-2 consolidation): the four pre-rebaseline presets were replaced by
+            the five live-anchored scenarios (baseline / credit freeze / multiple compression /
+            capex retrenchment / soft landing). */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center overflow-x-auto pb-1 max-w-full scrollbar-none gap-2 touch-pan-x sm:flex-wrap">
+            {PRESET_ORDER.map((id) => {
+              const meta = PRESET_META[id];
+              const active = scenarioName === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => applyPreset(id)}
+                  aria-pressed={active}
+                  className={`btn min-h-11 cursor-pointer ${active ? "btn-primary" : ""} ${meta.tone}`}
+                >
+                  {meta.icon}
+                  <span>{meta.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          {activePreset && (
+            <p className="max-w-md text-[13px] leading-relaxed text-ink-subtle">
+              {PRESET_META[activePreset].note}
+            </p>
+          )}
         </div>
       </div>
 
@@ -323,14 +348,14 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
         {/* Left Side: 7 Institutional Financial Sliders with Dual Numerical Inputs */}
         <div className="lg:col-span-7 space-y-6">
           {/* Slider 1: Oracle 5Y CDS */}
-          <div className="bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 sm:p-4 space-y-2.5">
-            <div className="flex items-center justify-between text-xs font-mono">
+          <div className="panel space-y-2.5">
+            <div className="flex items-center justify-between text-[14px] font-mono">
               <div className="flex items-center space-x-2">
-                <span className="font-bold text-slate-800 dark:text-zinc-200">
+                <span className="font-bold text-ink">
                   Oracle 5Y CDS Spread (Credit Risk Proxy)
                 </span>
                 {currentCds !== baseCds && (
-                  <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400">
+                  <span className="text-[14px] font-bold text-risk-700">
                     ({currentCds > baseCds ? `+${currentCds - baseCds} bp` : `${currentCds - baseCds} bp`})
                   </span>
                 )}
@@ -347,16 +372,16 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                     setScenarioName("custom");
                     setInputs({ ...inputs, cds: { ...inputs.cds!, currentBps: val } });
                   }}
-                  className="w-16 px-2 py-1 text-right font-mono font-bold text-xs bg-white dark:bg-[#121214] border border-slate-300 dark:border-zinc-700 rounded text-slate-900 dark:text-white"
+                  className="num h-11 w-20 rounded-lg border border-rule-strong bg-surface px-2 text-right text-[14px] font-semibold text-ink"
                 />
-                <span className="text-slate-500 dark:text-zinc-400 font-bold">bp</span>
+                <span className="text-ink-subtle font-bold">bp</span>
                 {currentCds !== baseCds && (
                   <button
                     onClick={resetCds}
                     title="Reset to baseline"
-                    className="p-1 text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                    className="flex h-11 w-11 items-center justify-center rounded-lg text-ink-subtle hover:bg-surface-2 hover:text-ink"
                   >
-                    <RotateCcw className="w-3 h-3" />
+                    <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -365,7 +390,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
             <input
               type="range"
               min="50"
-              max="350"
+              max="400"
               step="5"
               value={currentCds}
               onChange={(e) => {
@@ -373,25 +398,28 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                 setScenarioName("custom");
                 setInputs({ ...inputs, cds: { ...inputs.cds!, currentBps: val } });
               }}
-              className="w-full accent-rose-500 h-2 bg-slate-200 dark:bg-zinc-800 rounded-lg cursor-pointer"
+              className="h-11 w-full cursor-pointer accent-risk-500"
             />
 
-            <div className="flex justify-between text-[11px] font-mono text-slate-500 dark:text-zinc-400">
-              <span>81 bp (2024 Baseline)</span>
-              <span className="font-bold text-slate-700 dark:text-zinc-300">187 bp (Baseline)</span>
-              <span>350 bp (Crisis Spike)</span>
+            {/* 2026-10-19 (round-2 consolidation): range max 350 → 400 and the right-hand label
+                "350 bp (Crisis Spike)" → "400 bp (Credit Freeze)" — the rebuilt credit-freeze
+                preset sets CDS to 400bp, which the old 350bp ceiling could not represent. */}
+            <div className="num flex justify-between text-[14px] text-ink-subtle">
+              <span>81 bp (long-run norm)</span>
+              <span className="font-semibold text-ink-muted">288 bp (Baseline)</span>
+              <span>400 bp (Credit Freeze)</span>
             </div>
           </div>
 
           {/* Slider 2: Debt Share in Deal Ledger */}
-          <div className="bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 sm:p-4 space-y-2.5">
-            <div className="flex items-center justify-between text-xs font-mono">
+          <div className="panel space-y-2.5">
+            <div className="flex items-center justify-between text-[14px] font-mono">
               <div className="flex items-center space-x-2">
-                <span className="font-bold text-slate-800 dark:text-zinc-200">
+                <span className="font-bold text-ink">
                   Debt &amp; Convertible Share in Deal Ledger
                 </span>
                 {currentDebt !== baseDebt && (
-                  <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                  <span className="text-[14px] font-bold text-caution-700">
                     ({currentDebt > baseDebt ? `+${currentDebt - baseDebt}%` : `${currentDebt - baseDebt}%`})
                   </span>
                 )}
@@ -408,16 +436,16 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                     setScenarioName("custom");
                     setInputs({ ...inputs, ledger: { ...inputs.ledger!, debtShare: val / 100 } });
                   }}
-                  className="w-14 px-2 py-1 text-right font-mono font-bold text-xs bg-white dark:bg-[#121214] border border-slate-300 dark:border-zinc-700 rounded text-slate-900 dark:text-white"
+                  className="num h-11 w-16 rounded-lg border border-rule-strong bg-surface px-2 text-right text-[14px] font-semibold text-ink"
                 />
-                <span className="text-slate-500 dark:text-zinc-400 font-bold">%</span>
+                <span className="text-ink-subtle font-bold">%</span>
                 {currentDebt !== baseDebt && (
                   <button
                     onClick={resetDebt}
                     title="Reset to baseline"
-                    className="p-1 text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                    className="flex h-11 w-11 items-center justify-center rounded-lg text-ink-subtle hover:bg-surface-2 hover:text-ink"
                   >
-                    <RotateCcw className="w-3 h-3" />
+                    <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -434,25 +462,25 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                 setScenarioName("custom");
                 setInputs({ ...inputs, ledger: { ...inputs.ledger!, debtShare: val / 100 } });
               }}
-              className="w-full accent-amber-500 h-2 bg-slate-200 dark:bg-zinc-800 rounded-lg cursor-pointer"
+              className="h-11 w-full cursor-pointer accent-caution-500"
             />
 
-            <div className="flex justify-between text-[11px] font-mono text-slate-500 dark:text-zinc-400">
+            <div className="num flex justify-between text-[14px] text-ink-subtle">
               <span>0% (Equity-only)</span>
-              <span className="font-bold text-amber-600 dark:text-amber-400">7.0% ($197B Baseline)</span>
+              <span className="font-bold text-caution-700">7.5% ($214.9B Baseline)</span>
               <span>50% (High Leverage)</span>
             </div>
           </div>
 
           {/* Slider 3: US 10-Year Benchmark Treasury Yield */}
-          <div className="bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 sm:p-4 space-y-2.5">
-            <div className="flex items-center justify-between text-xs font-mono">
+          <div className="panel space-y-2.5">
+            <div className="flex items-center justify-between text-[14px] font-mono">
               <div className="flex items-center space-x-2">
-                <span className="font-bold text-slate-800 dark:text-zinc-200">
+                <span className="font-bold text-ink">
                   US 10-Year Benchmark Treasury Yield (US10Y)
                 </span>
                 {Math.abs(currentUs10y - baseUs10y) > 0.01 && (
-                  <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
+                  <span className="text-[14px] font-bold text-ink-subtle">
                     ({currentUs10y > baseUs10y ? `+${(currentUs10y - baseUs10y).toFixed(2)}%` : `${(currentUs10y - baseUs10y).toFixed(2)}%`})
                   </span>
                 )}
@@ -472,16 +500,16 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                       macro: { ...(inputs.macro || DEFAULT_MODEL_INPUTS.macro!), us10yYieldPct: val },
                     });
                   }}
-                  className="w-16 px-2 py-1 text-right font-mono font-bold text-xs bg-white dark:bg-[#121214] border border-slate-300 dark:border-zinc-700 rounded text-slate-900 dark:text-white"
+                  className="num h-11 w-20 rounded-lg border border-rule-strong bg-surface px-2 text-right text-[14px] font-semibold text-ink"
                 />
-                <span className="text-slate-500 dark:text-zinc-400 font-bold">%</span>
+                <span className="text-ink-subtle font-bold">%</span>
                 {Math.abs(currentUs10y - baseUs10y) > 0.01 && (
                   <button
                     onClick={resetUs10y}
                     title="Reset to baseline"
-                    className="p-1 text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                    className="flex h-11 w-11 items-center justify-center rounded-lg text-ink-subtle hover:bg-surface-2 hover:text-ink"
                   >
-                    <RotateCcw className="w-3 h-3" />
+                    <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -501,25 +529,25 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                   macro: { ...(inputs.macro || DEFAULT_MODEL_INPUTS.macro!), us10yYieldPct: val },
                 });
               }}
-              className="w-full accent-indigo-500 h-2 bg-slate-200 dark:bg-zinc-800 rounded-lg cursor-pointer"
+              className="h-11 w-full cursor-pointer accent-ink"
             />
 
-            <div className="flex justify-between text-[11px] font-mono text-slate-500 dark:text-zinc-400">
+            <div className="num flex justify-between text-[14px] text-ink-subtle">
               <span>3.00% (Accommodative)</span>
-              <span className="font-bold text-indigo-600 dark:text-indigo-400">5.10% (Baseline)</span>
+              <span className="font-bold text-ink-subtle">5.10% (Baseline)</span>
               <span>6.50% (Liquidity Freeze)</span>
             </div>
           </div>
 
           {/* Slider 4: Annual AI Debt Issuance Velocity */}
-          <div className="bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 sm:p-4 space-y-2.5">
-            <div className="flex items-center justify-between text-xs font-mono">
+          <div className="panel space-y-2.5">
+            <div className="flex items-center justify-between text-[14px] font-mono">
               <div className="flex items-center space-x-2">
-                <span className="font-bold text-slate-800 dark:text-zinc-200">
+                <span className="font-bold text-ink">
                   Annual Dedicated AI Debt Issuance Pace
                 </span>
                 {currentAnnualDebtB !== baseAnnualDebtB && (
-                  <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400">
+                  <span className="text-[14px] font-bold text-risk-700">
                     ({currentAnnualDebtB > baseAnnualDebtB ? `+$${currentAnnualDebtB - baseAnnualDebtB}B` : `-$${baseAnnualDebtB - currentAnnualDebtB}B`})
                   </span>
                 )}
@@ -539,16 +567,16 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                       aiDebt: { ...(inputs.aiDebt || DEFAULT_MODEL_INPUTS.aiDebt!), annualDebtIssuanceUsd: val * 1e9 },
                     });
                   }}
-                  className="w-16 px-2 py-1 text-right font-mono font-bold text-xs bg-white dark:bg-[#121214] border border-slate-300 dark:border-zinc-700 rounded text-slate-900 dark:text-white"
+                  className="num h-11 w-20 rounded-lg border border-rule-strong bg-surface px-2 text-right text-[14px] font-semibold text-ink"
                 />
-                <span className="text-slate-500 dark:text-zinc-400 font-bold">$B/yr</span>
+                <span className="text-ink-subtle font-bold">$B/yr</span>
                 {currentAnnualDebtB !== baseAnnualDebtB && (
                   <button
                     onClick={resetAnnualDebt}
                     title="Reset to baseline"
-                    className="p-1 text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                    className="flex h-11 w-11 items-center justify-center rounded-lg text-ink-subtle hover:bg-surface-2 hover:text-ink"
                   >
-                    <RotateCcw className="w-3 h-3" />
+                    <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -568,25 +596,25 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                   aiDebt: { ...(inputs.aiDebt || DEFAULT_MODEL_INPUTS.aiDebt!), annualDebtIssuanceUsd: val * 1e9 },
                 });
               }}
-              className="w-full accent-rose-500 h-2 bg-slate-200 dark:bg-zinc-800 rounded-lg cursor-pointer"
+              className="h-11 w-full cursor-pointer accent-risk-500"
             />
 
-            <div className="flex justify-between text-[11px] font-mono text-slate-500 dark:text-zinc-400">
+            <div className="num flex justify-between text-[14px] text-ink-subtle">
               <span>$10B/yr (Restrained)</span>
-              <span className="font-bold text-rose-600 dark:text-rose-400">$85B/yr (Baseline)</span>
+              <span className="font-bold text-risk-700">$85B/yr (Baseline)</span>
               <span>$150B/yr (Leveraged Surge)</span>
             </div>
           </div>
 
           {/* Slider 5: Token Price Deflation */}
-          <div className="bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 sm:p-4 space-y-2.5">
-            <div className="flex items-center justify-between text-xs font-mono">
+          <div className="panel space-y-2.5">
+            <div className="flex items-center justify-between text-[14px] font-mono">
               <div className="flex items-center space-x-2">
-                <span className="font-bold text-slate-800 dark:text-zinc-200">
+                <span className="font-bold text-ink">
                   Token Inference Cost Reduction (Stabilizing Damper)
                 </span>
                 {currentTokenDiscount !== baseTokenDiscount && (
-                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="text-[14px] font-bold text-safe-700">
                     ({currentTokenDiscount > baseTokenDiscount ? `+${currentTokenDiscount - baseTokenDiscount}×` : `${currentTokenDiscount - baseTokenDiscount}×`})
                   </span>
                 )}
@@ -595,36 +623,40 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                 <input
                   type="number"
                   min="1"
-                  max="120"
+                  max="700"
                   step="1"
                   value={currentTokenDiscount}
                   onChange={(e) => {
-                    const val = Math.max(1, Math.min(120, parseInt(e.target.value, 10) || baseTokenDiscount));
+                    const val = Math.max(1, Math.min(700, parseInt(e.target.value, 10) || baseTokenDiscount));
                     setScenarioName("custom");
                     setInputs({
                       ...inputs,
                       adoption: { ...inputs.adoption!, apiPriceDeclineMultiple: val },
                     });
                   }}
-                  className="w-14 px-2 py-1 text-right font-mono font-bold text-xs bg-white dark:bg-[#121214] border border-slate-300 dark:border-zinc-700 rounded text-slate-900 dark:text-white"
+                  className="num h-11 w-16 rounded-lg border border-rule-strong bg-surface px-2 text-right text-[14px] font-semibold text-ink"
                 />
-                <span className="text-slate-500 dark:text-zinc-400 font-bold">×</span>
+                <span className="text-ink-subtle font-bold">×</span>
                 {currentTokenDiscount !== baseTokenDiscount && (
                   <button
                     onClick={resetTokenDiscount}
                     title="Reset to baseline"
-                    className="p-1 text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                    className="flex h-11 w-11 items-center justify-center rounded-lg text-ink-subtle hover:bg-surface-2 hover:text-ink"
                   >
-                    <RotateCcw className="w-3 h-3" />
+                    <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
                 )}
               </div>
             </div>
 
+            {/* 2026-10-19 (round-2 consolidation): slider ceiling 120×/100× → 700× (and the right
+                label "100× (Mass Commodity)" → "700× (Live Print)") — the LIVE baseline is 670×
+                and the rebuilt soft-landing preset uses 200×, both of which the old ceiling could
+                not represent. The damper itself saturates at 50×; this only widens the control. */}
             <input
               type="range"
               min="1"
-              max="100"
+              max="700"
               step="1"
               value={currentTokenDiscount}
               onChange={(e) => {
@@ -635,25 +667,25 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                   adoption: { ...inputs.adoption!, apiPriceDeclineMultiple: val },
                 });
               }}
-              className="w-full accent-emerald-500 h-2 bg-slate-200 dark:bg-zinc-800 rounded-lg cursor-pointer"
+              className="h-11 w-full cursor-pointer accent-safe-500"
             />
 
-            <div className="flex justify-between text-[11px] font-mono text-slate-500 dark:text-zinc-400">
+            <div className="num flex justify-between text-[14px] text-ink-subtle">
               <span>1× (No Price Drop)</span>
-              <span className="font-bold text-emerald-600 dark:text-emerald-400">40× (Baseline)</span>
-              <span>100× (Mass Commodity)</span>
+              <span className="font-bold text-safe-700">{baseTokenDiscount}× (Baseline)</span>
+              <span>700× (Live Print)</span>
             </div>
           </div>
 
           {/* Slider 6: User Growth */}
-          <div className="bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 sm:p-4 space-y-2.5">
-            <div className="flex items-center justify-between text-xs font-mono">
+          <div className="panel space-y-2.5">
+            <div className="flex items-center justify-between text-[14px] font-mono">
               <div className="flex items-center space-x-2">
-                <span className="font-bold text-slate-800 dark:text-zinc-200">
+                <span className="font-bold text-ink">
                   Annual Consumer &amp; Enterprise User Growth (YoY)
                 </span>
                 {currentUserGrowth !== baseUserGrowth && (
-                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="text-[14px] font-bold text-safe-700">
                     ({currentUserGrowth > baseUserGrowth ? `+${currentUserGrowth - baseUserGrowth}%` : `${currentUserGrowth - baseUserGrowth}%`})
                   </span>
                 )}
@@ -673,16 +705,16 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                       adoption: { ...inputs.adoption!, annualUserGrowth: val / 100 },
                     });
                   }}
-                  className="w-14 px-2 py-1 text-right font-mono font-bold text-xs bg-white dark:bg-[#121214] border border-slate-300 dark:border-zinc-700 rounded text-slate-900 dark:text-white"
+                  className="num h-11 w-16 rounded-lg border border-rule-strong bg-surface px-2 text-right text-[14px] font-semibold text-ink"
                 />
-                <span className="text-slate-500 dark:text-zinc-400 font-bold">%</span>
+                <span className="text-ink-subtle font-bold">%</span>
                 {currentUserGrowth !== baseUserGrowth && (
                   <button
                     onClick={resetUserGrowth}
                     title="Reset to baseline"
-                    className="p-1 text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                    className="flex h-11 w-11 items-center justify-center rounded-lg text-ink-subtle hover:bg-surface-2 hover:text-ink"
                   >
-                    <RotateCcw className="w-3 h-3" />
+                    <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -702,25 +734,25 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                   adoption: { ...inputs.adoption!, annualUserGrowth: val / 100 },
                 });
               }}
-              className="w-full accent-emerald-500 h-2 bg-slate-200 dark:bg-zinc-800 rounded-lg cursor-pointer"
+              className="h-11 w-full cursor-pointer accent-safe-500"
             />
 
-            <div className="flex justify-between text-[11px] font-mono text-slate-500 dark:text-zinc-400">
+            <div className="num flex justify-between text-[14px] text-ink-subtle">
               <span>0% (Stagnant)</span>
-              <span className="font-bold text-emerald-600 dark:text-emerald-400">+65% (Baseline)</span>
+              <span className="font-bold text-safe-700">+{baseUserGrowth}% (Baseline)</span>
               <span>+150% (Exponential)</span>
             </div>
           </div>
 
           {/* Slider 7: Prediction Market Odds */}
-          <div className="bg-slate-50 dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 rounded-xl p-3.5 sm:p-4 space-y-2.5">
-            <div className="flex items-center justify-between text-xs font-mono">
+          <div className="panel space-y-2.5">
+            <div className="flex items-center justify-between text-[14px] font-mono">
               <div className="flex items-center space-x-2">
-                <span className="font-bold text-slate-800 dark:text-zinc-200">
+                <span className="font-bold text-ink">
                   Polymarket Crowd Consensus (Bubble Burst YES Odds)
                 </span>
                 {currentOdds !== baseOdds && (
-                  <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400">
+                  <span className="text-[14px] font-bold text-ink-muted">
                     ({currentOdds > baseOdds ? `+${currentOdds - baseOdds}%` : `${currentOdds - baseOdds}%`})
                   </span>
                 )}
@@ -728,28 +760,28 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
               <div className="flex items-center space-x-1.5">
                 <input
                   type="number"
-                  min="10"
+                  min={1}
                   max="90"
                   step="1"
                   value={currentOdds}
                   onChange={(e) => {
-                    const val = Math.max(10, Math.min(90, parseInt(e.target.value, 10) || baseOdds));
+                    const val = Math.max(1, Math.min(90, parseInt(e.target.value, 10) || baseOdds));
                     setScenarioName("custom");
                     setInputs({
                       ...inputs,
                       crowd: { ...inputs.crowd!, yesProbability: val / 100 },
                     });
                   }}
-                  className="w-14 px-2 py-1 text-right font-mono font-bold text-xs bg-white dark:bg-[#121214] border border-slate-300 dark:border-zinc-700 rounded text-slate-900 dark:text-white"
+                  className="num h-11 w-16 rounded-lg border border-rule-strong bg-surface px-2 text-right text-[14px] font-semibold text-ink"
                 />
-                <span className="text-slate-500 dark:text-zinc-400 font-bold">%</span>
+                <span className="text-ink-subtle font-bold">%</span>
                 {currentOdds !== baseOdds && (
                   <button
                     onClick={resetOdds}
                     title="Reset to baseline"
-                    className="p-1 text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                    className="flex h-11 w-11 items-center justify-center rounded-lg text-ink-subtle hover:bg-surface-2 hover:text-ink"
                   >
-                    <RotateCcw className="w-3 h-3" />
+                    <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -757,7 +789,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
 
             <input
               type="range"
-              min="10"
+              min={1}
               max="90"
               step="1"
               value={currentOdds}
@@ -769,33 +801,34 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                   crowd: { ...inputs.crowd!, yesProbability: val / 100 },
                 });
               }}
-              className="w-full accent-blue-500 h-2 bg-slate-200 dark:bg-zinc-800 rounded-lg cursor-pointer"
+              className="h-11 w-full cursor-pointer accent-ink"
             />
 
-            <div className="flex justify-between text-[11px] font-mono text-slate-500 dark:text-zinc-400">
-              <span>10% (Complacency)</span>
-              <span className="font-bold text-blue-600 dark:text-blue-400">54% (Baseline)</span>
+            {/* 2026-10-19 (round-2 consolidation): the baseline label showed the rounded
+                integer "9%" — the live crowd reading is 9.05% (Polymarket bubble-2026 contract,
+                19 Oct 2026 snapshot), so the label now carries the precise two-decimal value. */}
+            <div className="num flex justify-between text-[14px] text-ink-subtle">
+              <span>1% (Floor)</span>
+              <span className="font-semibold text-ink-muted">
+                {((DEFAULT_MODEL_INPUTS.crowd?.yesProbability ?? 0.0905) * 100).toFixed(2)}% (Baseline)
+              </span>
               <span>90% (Consensus Panic)</span>
             </div>
           </div>
         </div>
 
         {/* Right Side: Live Simulator Result Card with Real-Time Delta Badges */}
-        <div className="lg:col-span-5 bg-slate-50 dark:bg-[#09090b] border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-7 space-y-6 sticky top-6">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-800">
+        <div className="card sticky top-6 space-y-6 lg:col-span-5">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-rule pb-3">
             <div>
-              <span className="text-xs font-mono font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider block">
-                Simulated Burst Probability
-              </span>
-              <span className="text-[11px] font-mono text-slate-500 dark:text-zinc-400">
-                12-Month Real-Time Evaluation
-              </span>
+              <span className="label block">Simulated Burst Probability</span>
+              <span className="text-[14px] text-ink-subtle">12-Month Real-Time Evaluation</span>
             </div>
             <button
               onClick={() => applyPreset("baseline")}
-              className="text-xs font-mono font-bold text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white flex items-center space-x-1.5 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-zinc-800 hover:bg-white dark:hover:bg-zinc-800 transition-colors"
+              className="btn min-h-11 cursor-pointer"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Reset All</span>
             </button>
           </div>
@@ -803,47 +836,43 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
           {/* Primary Simulated Metric & Dynamic Delta Badge */}
           <div className="space-y-3">
             <div className="flex flex-wrap items-baseline gap-3">
-              <span className="font-mono text-6xl sm:text-7xl font-black tracking-tight text-slate-900 dark:text-white tabular-nums">
+              <span className="num text-6xl font-semibold tracking-tight text-ink sm:text-7xl">
                 {currentResult.burstProbability.toFixed(1)}%
               </span>
 
               {/* Dynamic Real-Time Delta Badge */}
               {delta !== 0 ? (
                 <div
-                  className={`inline-flex items-center space-x-1.5 font-mono text-xs sm:text-sm font-black px-3 py-1.5 rounded-xl border shadow-xs ${
-                    delta > 0
-                      ? "bg-rose-50 text-rose-700 dark:bg-rose-950/70 dark:text-rose-300 border-rose-300 dark:border-rose-800"
-                      : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800"
-                  }`}
+                  className={`chip num text-[13px] sm:text-sm ${delta > 0 ? "chip-risk" : "chip-safe"}`}
                 >
                   {delta > 0 ? (
-                    <TrendingUp className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+                    <TrendingUp className="w-4 h-4 text-risk-700 shrink-0" />
                   ) : (
-                    <TrendingDown className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <TrendingDown className="w-4 h-4 text-safe-700 shrink-0" />
                   )}
                   <span>
                     {delta > 0 ? `+${delta.toFixed(1)}% STRESS SURGE` : `${delta.toFixed(1)}% RISK RELIEF`}
                   </span>
                 </div>
               ) : (
-                <div className="inline-flex items-center space-x-1 font-mono text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border border-slate-300 dark:border-zinc-700">
+                <div className="inline-flex items-center space-x-1 font-mono text-[14px] font-bold px-2.5 py-1 rounded-lg bg-surface-2 text-ink-subtle border border-rule-strong">
                   <span>EXACT BASELINE</span>
                 </div>
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 pt-1 text-xs font-mono">
+            <div className="flex flex-wrap items-center gap-2 pt-1 text-[14px] font-mono">
               <span className={`px-2.5 py-0.5 rounded-md font-bold uppercase tracking-wider border ${activeBand.badge}`}>
                 {activeBand.label}
               </span>
-              <span className="text-slate-400 dark:text-zinc-600">•</span>
-              <span className="font-semibold text-slate-700 dark:text-zinc-300">
+              <span className="text-ink-faint">•</span>
+              <span className="font-semibold text-ink-muted">
                 Composite: {currentResult.compositeScore.toFixed(1)} / 100
               </span>
               {currentResult.confidenceInterval && (
                 <>
-                  <span className="text-slate-400 dark:text-zinc-600">•</span>
-                  <span className="text-slate-600 dark:text-zinc-400 font-bold">
+                  <span className="text-ink-faint">•</span>
+                  <span className="text-ink-subtle font-bold">
                     90% CI: [{currentResult.confidenceInterval[0].toFixed(1)}% – {currentResult.confidenceInterval[1].toFixed(1)}%]
                   </span>
                 </>
@@ -853,60 +882,52 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
 
           {/* Visual Shift Bar from Baseline */}
           <div className="space-y-2 pt-1">
-            <div className="flex justify-between text-xs font-mono font-bold text-slate-700 dark:text-zinc-300">
+            <div className="flex justify-between text-[14px] font-mono font-bold text-ink-muted">
               <span>Shift vs Baseline ({baselineResult.burstProbability.toFixed(1)}%)</span>
-              <span className={delta > 0 ? "text-rose-600 dark:text-rose-400" : delta < 0 ? "text-emerald-600 dark:text-emerald-400" : "text-slate-500"}>
+              <span className={delta > 0 ? "text-risk-700" : delta < 0 ? "text-safe-700" : "text-ink-subtle"}>
                 {delta > 0 ? `+${delta.toFixed(1)}% Risk Expansion` : delta < 0 ? `${delta.toFixed(1)}% Risk Compression` : `Calibrated at ${baselineResult.burstProbability.toFixed(1)}%`}
               </span>
             </div>
 
-            <div className="relative h-3 w-full bg-slate-200 dark:bg-zinc-800 rounded-full overflow-hidden border border-slate-300 dark:border-zinc-700 p-0.5">
+            <div className="relative h-3 w-full overflow-hidden rounded-full bg-surface-3 p-0.5">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${
-                  currentResult.burstProbability >= 80
-                    ? "bg-rose-600"
-                    : currentResult.burstProbability >= 65
-                    ? "bg-rose-500"
-                    : currentResult.burstProbability >= 45
-                    ? "bg-amber-500"
-                    : "bg-emerald-500"
-                }`}
+                className={`h-full rounded-full ${currentResult.burstProbability >= 65 ? "bg-risk-500" : currentResult.burstProbability >= 45 ? "bg-caution-500" : "bg-safe-500"}`}
                 style={{ width: `${Math.min(100, Math.max(5, currentResult.burstProbability))}%` }}
               />
             </div>
           </div>
 
           {/* Macro Regime Analytical Commentary */}
-          <div className="p-4 bg-white dark:bg-[#121214] rounded-xl border border-slate-200 dark:border-zinc-800 text-xs text-slate-700 dark:text-zinc-300 leading-relaxed font-sans space-y-2">
-            <div className="flex items-center space-x-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
-              <Info className="w-3.5 h-3.5 text-blue-500" />
+          <div className="panel space-y-2 text-[14px] leading-relaxed text-ink-muted">
+            <div className="flex items-center space-x-1.5 font-mono text-[13px] font-bold uppercase tracking-wider text-ink-subtle">
+              <Info className="h-3.5 w-3.5 text-ink-subtle" aria-hidden="true" />
               <span>Model Regime Transmission Analysis</span>
             </div>
 
             {delta >= 8 ? (
-              <p className="text-rose-600 dark:text-rose-400 font-medium">
-                ⚠️ <strong className="font-bold">Severe Credit Crunch Regime:</strong> Surging CDS spreads and higher debt issuance velocity 
+              <p className="prose text-risk-700">
+                <strong>Severe Credit Crunch Regime:</strong> Surging CDS spreads and higher debt issuance velocity 
                 trigger non-linear systemic refinancing contagion. Annual hyperscaler capex outstrips operating cash flow, 
                 multiplying counterparty default risk across GPU hardware collateral.
               </p>
             ) : delta > 2 ? (
-              <p className="text-amber-600 dark:text-amber-400 font-medium">
-                ⚡ <strong className="font-bold">Elevated Multiple Compression:</strong> Rising interest rates and widening credit spreads 
+              <p className="prose text-caution-700">
+                <strong>Elevated Multiple Compression:</strong> Rising interest rates and widening credit spreads 
                 tighten liquidity conditions for private frontier AI labs, raising financing hurdle rates and putting downward pressure on multiples.
               </p>
             ) : delta <= -8 ? (
-              <p className="text-emerald-600 dark:text-emerald-400 font-medium">
-                ✅ <strong className="font-bold">Structural Adoption Breakthrough:</strong> Massive inference API cost deflation and organic user monetization 
+              <p className="prose text-safe-700">
+                <strong>Structural Adoption Breakthrough:</strong> Massive inference API cost deflation and organic user monetization 
                 rapidly convert heavy infrastructure investments into durable GDP productivity, successfully resolving the capital gap.
               </p>
             ) : delta < -2 ? (
-              <p className="text-emerald-600 dark:text-emerald-400 font-medium">
-                🌿 <strong className="font-bold">Soft Landing Trajectory:</strong> Modest easing in benchmark yields coupled with healthy double-digit 
+              <p className="prose text-safe-700">
+                <strong>Soft Landing Trajectory:</strong> Modest easing in benchmark yields coupled with healthy double-digit 
                 user adoption cushions capital expenditures, stabilizing refinancing markets.
               </p>
             ) : (
               <p>
-                ℹ️ <strong className="font-bold">Empirical Baseline Equilibrium:</strong> Sliders are calibrated to active 
+                <strong>Empirical Baseline Equilibrium:</strong> Sliders are calibrated to active 
                 SEC 10-Q corporate disclosures, ICE benchmark CDS settlement spreads, and verified private debt facilities.
               </p>
             )}

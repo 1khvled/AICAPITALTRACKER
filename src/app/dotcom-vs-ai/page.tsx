@@ -36,10 +36,7 @@ import {
 } from "lucide-react";
 import { AdSlot } from "@/components/AdSlot";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
-import rawDeals from "@/data/deals.json";
-import liveStocksData from "@/data/live-stocks.json";
-import liveModelsData from "@/data/live-models.json";
-import { POLYMARKET_BASE_URL, POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
+import { POLYMARKET_BASE_URL } from "@/data/polymarket-data";
 
 // ============================================================================
 // DATA DEFINITIONS & COMPARISON SCORECARD
@@ -75,14 +72,18 @@ const COMPARISON_METRICS: MetricComparison[] = [
       status: "critical",
     },
     ai2026: {
-      figure: "+$668B+ OCF / +$260B FCF",
-      description: "Top 5 hyperscalers (MSFT, GOOGL, META, AMZN, AAPL) generate >$668B annual cash flow and >$400B net profits, self-funding $485B capex.",
+      // 2026-10-19 fact-check (pass 3): capex basis corrected to $725B guided CY2026 (Jul 2026 calls: AMZN ~$220B,
+      // GOOGL $195–205B, MSFT ~$175B incl. leases, META $130–145B; Forbes Oct 7 2026: "$700–725B"). OCF stays the
+      // tracker-ledger SEC-filings sum (>$668B trailing, 5 companies); Forbes Oct 7 2026: 2026 capex consumes nearly
+      // all big-4 OCF, Amazon 2026 FCF guided negative.
+      figure: "+$668B+ FY OCF vs $725B Capex Guided",
+      description: "Top 5 hyperscalers (MSFT, GOOGL, META, AMZN, AAPL) generate >$668B trailing operating cash flow and >$400B net profits (tracker ledger, SEC filings), but big-4 CY2026 capex is guided at ~$725B (Jul 2026 calls) — Forbes (Oct 7, 2026) reports 2026 capex consuming nearly all four companies' operating cash flow, with Amazon guided to negative FCF.",
       status: "healthy",
     },
     structuralVerdict: "Fortress Balance Sheets vs Zero-Cash Burners",
     riskRating: "Extreme Structural Divergence",
     analyticalTakeaway:
-      "The dot-com bubble burst because startups literally ran out of dollar bills when capital markets froze. In 2026, Big Tech generates enough organic cash flow every 90 days to finance its entire annual AI infrastructure budget without touching debt.",
+      "The dot-com bubble burst because startups literally ran out of dollar bills when capital markets froze. In 2026, Big Tech still generates multi-hundred-billion trailing operating cash flow every year (>$668B cohort, SEC filings) — but Forbes (Oct 7, 2026) reports guided CY2026 capex of ~$725B consuming nearly all big-4 OCF, with the marginal shortfall increasingly funded through $214.9B of tracked AI debt rather than pure organic cash.",
   },
   {
     id: "infra-utilization",
@@ -95,7 +96,11 @@ const COMPARISON_METRICS: MetricComparison[] = [
     },
     ai2026: {
       figure: "82% – 94% GPU Saturation",
-      description: "Frontier H100/H200/B200 GPU clusters operate at peak capacity across hyperscalers and neoclouds, serving 350M+ active weekly users.",
+      // 2026-10-19 fact-check: the stale "350M+ active weekly users" figure is
+      // replaced by OpenAI's own number — 1.2B weekly ChatGPT users, DevDay
+      // 2026 recap, 29 Sep 2026 (openai.com/index/devday-2026-recap: "our
+      // collective 1.2B weekly users"; The Verge, 29 Sep 2026).
+      description: "Frontier H100/H200/B200 GPU clusters operate at peak capacity across hyperscalers and neoclouds, serving 1.2B weekly users (OpenAI DevDay, Sep 29 2026).",
       status: "healthy",
     },
     structuralVerdict: "Real Immediate Demand vs Stranded Physical Assets",
@@ -113,14 +118,14 @@ const COMPARISON_METRICS: MetricComparison[] = [
       status: "critical",
     },
     ai2026: {
-      figure: "$228.1B Tracked Debt (8.0% Share)",
-      description: "Debt is concentrated in asset-backed GPU facilities (CoreWeave $6.5B, Blackstone SPVs) and high-grade corporate bonds (Oracle $82B).",
+      figure: "$214.9B Tracked Debt (7.5% Share)",
+      description: "Debt is concentrated in asset-backed GPU facilities (CoreWeave $25.1B, Blackstone SPVs) and high-grade corporate bonds (Oracle $130.1B).",
       status: "warning",
     },
     structuralVerdict: "Contained to Leveraged Neoclouds & SPVs",
     riskRating: "Moderate Divergence",
     analyticalTakeaway:
-      "Debt is far smaller as a percentage of total tech capitalization (8.0% across our 169 verified deals). However, 3-year GPU depreciation cycles mean debt-financed neoclouds face severe refinancing pinches if spot compute rates fall.",
+      "Debt is far smaller as a percentage of total tech capitalization (7.5% across our 169 verified deals). However, 3-year GPU depreciation cycles mean debt-financed neoclouds face severe refinancing pinches if spot compute rates fall.",
   },
   {
     id: "fed-rates",
@@ -132,8 +137,9 @@ const COMPARISON_METRICS: MetricComparison[] = [
       status: "critical",
     },
     ai2026: {
-      figure: "5.10% US 10Y / 4.75% Fed Funds",
-      description: "US 10-Year yield sits at 5.10% (real yield ~2.70%). Elevated discount rates compress valuations, but corporate credit spreads remain tight at 336 bps.",
+      // FRED Oct 15-16 2026: DGS10 5.10%, T10YIE 2.35% → real 2.75%; FEDFUNDS Sep 2026 3.75% (cut cycle); BAMLH0A0HYM2 323bp (Oct 15)
+      figure: "5.10% US 10Y / 3.75% Fed Funds",
+      description: "US 10-Year yield sits at 5.10% (real yield ~2.75%). Elevated discount rates compress valuations, but corporate credit spreads remain tight at 323 bps.",
       status: "warning",
     },
     structuralVerdict: "Restrictive Hurdle Rate without Sudden Liquidity Shock",
@@ -151,14 +157,20 @@ const COMPARISON_METRICS: MetricComparison[] = [
       status: "critical",
     },
     ai2026: {
-      figure: "$165B Enterprise AI ARR",
-      description: "OpenAI generates $50.0B annualized run-rate, Anthropic targets $47.0B, Databricks $7.0B, Microsoft Copilot and AWS AI deliver tens of billions.",
+      // 2026-10-19 fact-check: "$165B all verified ARR" was unsourced. Sourced named components:
+      // OpenAI ~$50B annualized run-rate (FT/Reuters/Bloomberg, Oct 8-9 2026), Anthropic $65B
+      // run-rate end-July 2026 (Bloomberg/CNBC, Aug 2026; was $47B in May — stale figure removed),
+      // Microsoft AI $37B run-rate (official FY26 Q3 release, Apr 29 2026), Databricks $7B
+      // (Databricks press release, Aug 13 2026). 50+65+37+7 = $159B GROSS of cloud-partner
+      // overlap (Amazon's ~$25B AWS AI disclosure adds more; not de-duplicated anywhere).
+      figure: "$159B+ Reported Enterprise AI ARR",
+      description: "OpenAI runs at ~$50.0B annualized (FT/Reuters, Oct 2026), Anthropic's run-rate passed $65B by end-July 2026 (Bloomberg/CNBC), Microsoft's AI business reached $37.0B (official FY26 Q3), Databricks $7.0B — $159B+ gross of cloud-partner overlap.",
       status: "healthy",
     },
     structuralVerdict: "Real Enterprise Software Utility vs Virtual Eyeballs",
     riskRating: "Extreme Structural Divergence",
     analyticalTakeaway:
-      "Generative AI has achieved the fastest software revenue acceleration in modern history, scaling from zero to $165B+ in commercial enterprise ARR within 42 months.",
+      "Generative AI has achieved the fastest software revenue acceleration in modern history, scaling from zero to $159B+ in reported enterprise ARR within 42 months of the 2023 commercial-API era.",
   },
   {
     id: "equity-multiples",
@@ -189,8 +201,13 @@ const COMPARISON_METRICS: MetricComparison[] = [
       status: "critical",
     },
     ai2026: {
-      figure: "-99.7% Token Deflation (375× Cheaper)",
-      description: "Inference completion costs collapsed from $30.00/1M (GPT-4 in 2023) to $0.08/1M (DeepSeek V4.1 Flash) and $0.50/1M (Claude Haiku 5.5).",
+      // 2026-10-19 fact-check: input-basis recomputation. GPT-4 Mar 2023 input $30/1M; DeepSeek
+      // V4.1 Flash input $0.0448/1M (OpenRouter live; aggregated open-weights serving — DeepSeek
+      // first-party API: $0.15/$0.60 off-peak). 30 / 0.0448 ≈ 669.6 → 670×, i.e. 1 - 1/669.6
+      // from the old $0.08 completion-basis "375×" figure and the stale "$0.50 Haiku 5.5" input claim
+      // (Haiku 5.5 is actually $0.10 in / $0.50 out, Oct 7 2026).
+      figure: "-99.85% Token Deflation (670× Cheaper, Input Basis)",
+      description: "Inference input costs collapsed from $30.00/1M (GPT-4, Mar 2023) to $0.0448/1M (DeepSeek V4.1 Flash) and $0.10/1M input / $0.50 completion (Claude Haiku 5.5, Oct 2026).",
       status: "healthy",
     },
     structuralVerdict: "Massive Margin Expansion for Software Builders",
@@ -227,7 +244,7 @@ export default function DotComVsAiPage() {
   // Interactive Simulator State
   const [simRegime, setSimRegime] = useState<"dotcom2000" | "ai2026" | "creditFreeze">("ai2026");
   const [customFcf, setCustomFcf] = useState<number>(260); // $B
-  const [customDebt, setCustomDebt] = useState<number>(228); // $B
+  const [customDebt, setCustomDebt] = useState<number>(214.9); // $B — ledger totalTrackedDebtUsd
   const [customYield, setCustomYield] = useState<number>(5.10); // %
   const [customDeflation, setCustomDeflation] = useState<number>(60); // x cheaper
 
@@ -253,8 +270,8 @@ export default function DotComVsAiPage() {
         burstProb: 91.4,
         score: 84.2,
         band: "CRITICAL",
-        bandColor: "text-rose-500",
-        badgeColor: "bg-rose-500/10 text-rose-500 border-rose-500/20",
+        bandColor: "text-risk-700",
+        badgeColor: "bg-risk-500/10 text-risk-700 border-risk-300/20",
         mertonDD: "0.85σ",
         altmanZone: "Distress Zone (0.42)",
         interpretation: "Dot-Com 2000 scenario: Negative cash flows, zero software ARR, and 6.50% Fed rate spike make systemic liquidation inevitable.",
@@ -264,8 +281,8 @@ export default function DotComVsAiPage() {
         burstProb: 68.2,
         score: 64.8,
         band: "HIGH STRESS",
-        bandColor: "text-amber-500",
-        badgeColor: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+        bandColor: "text-caution-700",
+        badgeColor: "bg-caution-500/10 text-caution-700 border-caution-300/20",
         mertonDD: "3.20σ",
         altmanZone: "Grey Zone (1.85)",
         interpretation: "Neocloud Credit Freeze scenario: Secondary GPU clouds default on debt facilities; Big Tech absorbs distressed clusters at 40¢ on the dollar.",
@@ -275,7 +292,7 @@ export default function DotComVsAiPage() {
       // Cash flow buffer reduces probability
       const fcfDelta = (customFcf - 260) / 20; // each $20B FCF changes prob by ~1.2%
       // Debt increases risk
-      const debtDelta = (customDebt - 228) / 30; // each $30B debt adds ~1.5%
+      const debtDelta = (customDebt - 214.9) / 30; // each $30B debt adds ~1.5%
       // Yield increases hurdle
       const yieldDelta = (customYield - 5.10) * 4.0; // each 50bps adds 2%
       // Deflation acts as adoption cushion
@@ -285,8 +302,8 @@ export default function DotComVsAiPage() {
       const dynamicScore = Math.min(95, Math.max(20, baselineModel.compositeScore + (dynamicProb - baselineModel.burstProbability) * 0.7));
 
       const band = dynamicProb >= 70 ? "CRITICAL" : dynamicProb >= 50 ? "ELEVATED" : "MODERATE";
-      const bandColor = dynamicProb >= 70 ? "text-rose-500" : dynamicProb >= 50 ? "text-amber-500" : "text-emerald-500";
-      const badgeColor = dynamicProb >= 70 ? "bg-rose-500/10 text-rose-500 border-rose-500/20" : dynamicProb >= 50 ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+      const bandColor = dynamicProb >= 70 ? "text-risk-700" : dynamicProb >= 50 ? "text-caution-700" : "text-safe-700";
+      const badgeColor = dynamicProb >= 70 ? "bg-risk-500/10 text-risk-700 border-risk-300/20" : dynamicProb >= 50 ? "bg-caution-500/10 text-caution-700 border-caution-300/20" : "bg-safe-500/10 text-safe-700 border-safe-300/20";
 
       return {
         burstProb: Number(dynamicProb.toFixed(1)),
@@ -294,152 +311,118 @@ export default function DotComVsAiPage() {
         band,
         bandColor,
         badgeColor,
-        mertonDD: "4.97σ",
+        mertonDD: "5.13σ",
         altmanZone: "Safe Zone (8.41)",
-        interpretation: "2026 Baseline: Massive hyperscaler cash flows protect equity solvency, counterbalancing $228.1B in private debt facilities.",
+        interpretation: "2026 Baseline: Massive hyperscaler cash flows protect equity solvency, counterbalancing $214.9B in private debt facilities.",
       };
     }
   }, [simRegime, customFcf, customDebt, customYield, customDeflation, baselineModel]);
 
   return (
-    <div className="space-y-10 pb-16">
-      {/* Top Sponsored Ad */}
-      <AdSlot format="leaderboard" />
+<div className="section-sm">
+      {/* Top banner ad */}
+      <AdSlot placementId="dotcom-top" />
 
-      {/* Breadcrumb & Live Research Indicator */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-mono pb-2 border-b border-slate-200 dark:border-zinc-800">
-        <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-slate-500 dark:text-zinc-400">
-          <Link href="/" className="hover:text-slate-900 dark:hover:text-white transition-colors">
-            Home
-          </Link>
-          <span>/</span>
-          <span className="text-slate-900 dark:text-white font-semibold">
-            Institutional Research
-          </span>
-          <span>/</span>
-          <span className="text-amber-600 dark:text-amber-400 font-bold">AI Superstructure vs Dot-Com</span>
-        </nav>
-
-        <div className="flex items-center space-x-2 bg-slate-100 dark:bg-zinc-900 px-3 py-1 rounded-full border border-slate-200 dark:border-zinc-800 text-[11px]">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="font-bold text-slate-700 dark:text-zinc-300">OCTOBER 19, 2026:</span>
-          <span className="text-slate-500 dark:text-zinc-400 font-medium">Live Macro &amp; SEC Filing Synthesis</span>
-        </div>
-      </div>
-
-      {/* Hero Header */}
-      <div className="space-y-4">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-mono font-bold uppercase tracking-wider">
-          <Flame className="w-3.5 h-3.5" />
-          <span>Episodic Market History &amp; Structural Architecture</span>
+      {/* Page head */}
+      <header className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <span className="label">2000 vs 2026</span>
+          <span className="pill">Episodic market history</span>
+          <span className="num text-[14px] text-ink-faint">OCTOBER 19, 2026 - macro &amp; SEC filing synthesis</span>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+        <h1 className="max-w-reading text-3xl font-bold tracking-tight text-ink sm:text-4xl">
           AI Superstructure (2026) vs. Dot-Com Bubble (2000)
         </h1>
 
-        <p className="text-base sm:text-lg text-slate-600 dark:text-zinc-400 max-w-4xl font-sans leading-relaxed">
-          A quantitative macroeconomic investigation contrasting the 1999–2000 telecom crash against the 2026 generative AI deployment supercycle. Why <strong className="text-slate-900 dark:text-white">$668B in organic hyperscaler cash flows</strong> shields public equities, but <strong className="text-amber-500">$228.1B in debt-financed GPU neoclouds</strong> exhibits classic dot-com telecom refinancing fragility.
+        <p className="prose prose-lead max-w-reading">
+          A quantitative macroeconomic investigation contrasting the 1999–2000 telecom crash against the
+          2026 generative AI deployment supercycle. Why{" "}
+          <strong className="text-ink">$668B in organic hyperscaler cash flows</strong> shields public
+          equities, but <strong className="text-caution-700">$214.9B in debt-financed GPU neoclouds</strong>{" "}
+          exhibits classic dot-com telecom refinancing fragility.
         </p>
+      </header>
 
-        {/* 3 Core Analytical Pillars */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3">
-          <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] shadow-xs space-y-2">
-            <div className="flex items-center space-x-2 text-emerald-600 dark:text-emerald-400 text-xs font-mono font-bold">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>THE FORTRESS SOLVENCY CUSHION</span>
-            </div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-              +$668B Hyperscaler Cash Flows
-            </h3>
-            <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
-              Unlike 2000 dot-coms that burnt -$15B annually with zero profits, Microsoft, Google, Meta, Amazon, and Apple produce <span className="font-bold text-slate-900 dark:text-white">$400B+ net profit</span> and <span className="font-bold text-slate-900 dark:text-white">$260B+ retained FCF</span>, self-funding $485B capex organically.
-            </p>
-          </div>
+      {/* Three analytical pillars */}
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="card space-y-2">
+          <p className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-safe-700" aria-hidden="true" />
+            <span className="label">THE FORTRESS SOLVENCY CUSHION</span>
+          </p>
+          <h2 className="text-[15px] font-semibold text-ink">
+            +$668B+ Hyperscaler Cash Flows vs $725B Guided Capex
+          </h2>
+          <p className="prose text-[14px]">
+            {/* 2026-10-19 fact-check: capex basis corrected $485B → $725B guided CY2026 (Jul 2026 calls); "self-funding organically" re-scoped per Forbes Oct 7 2026 (capex ≈ nearly all big-4 OCF, Amazon 2026 FCF guided negative). MSFT FY26 OCF $182.9B (Alpha Vantage / SEC filer data). */}
+            Unlike 2000 dot-coms that burnt -$15B annually with zero profits, Microsoft, Google, Meta, Amazon, and Apple still produce <span className="font-semibold text-ink">&gt;$668B trailing OCF</span> and <span className="font-semibold text-ink">$400B+ net profit</span> (tracker ledger, SEC filings) — but <span className="font-semibold text-ink">$725B of guided CY2026 capex</span> plus $140B in power/depreciation now consumes nearly all of it (Forbes, Oct 7 2026), with Amazon guided to negative FCF in 2026.
+          </p>
+        </div>
 
-          <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] shadow-xs space-y-2">
-            <div className="flex items-center space-x-2 text-amber-500 text-xs font-mono font-bold">
-              <AlertTriangle className="w-4 h-4" />
-              <span>THE 1999 CLEC REFINANCE TRAP</span>
-            </div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-              $228.1B Private GPU Debt Risk
-            </h3>
-            <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
-              The real fragility resides in secondary GPU cloud providers (CoreWeave $6.5B debt, Crusoe $3.4B JV) mirroring 1999 Competitive Local Exchange Carriers (CLECs) whose physical assets depreciated faster than loan amortizations.
-            </p>
-          </div>
+        <div className="card space-y-2">
+          <p className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-caution-700" aria-hidden="true" />
+            <span className="label">THE 1999 CLEC REFINANCE TRAP</span>
+          </p>
+          <h2 className="text-[15px] font-semibold text-ink">$214.9B Private GPU Debt Risk</h2>
+          <p className="prose text-[14px]">
+            The real fragility resides in secondary GPU cloud providers (CoreWeave $25.1B debt, Crusoe $3.4B
+            JV) mirroring 1999 Competitive Local Exchange Carriers (CLECs) whose physical assets
+            depreciated faster than loan amortizations.
+          </p>
+        </div>
 
-          <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] shadow-xs space-y-2">
-            <div className="flex items-center space-x-2 text-teal-600 dark:text-teal-400 text-xs font-mono font-bold">
-              <Zap className="w-4 h-4" />
-              <span>REAL HARDWARE UTILIZATION</span>
-            </div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-              85%+ Saturation vs 5% Dark Fiber
-            </h3>
-            <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
-              Telecom carriers laid 39M miles of dark fiber that stayed unlit for a decade. Frontier GPU clusters run at peak utilization while token costs have deflated <span className="font-bold text-teal-500">375×</span>, unlocking $165B in commercial software ARR.
-            </p>
-          </div>
+        <div className="card space-y-2">
+          <p className="flex items-center gap-2">
+            <Zap className="h-4 w-4 text-ink-subtle" aria-hidden="true" />
+            <span className="label">REAL HARDWARE UTILIZATION</span>
+          </p>
+          <h2 className="text-[15px] font-semibold text-ink">85%+ Saturation vs 5% Dark Fiber</h2>
+          <p className="prose text-[14px]">
+            Telecom carriers laid 39M miles of dark fiber that stayed unlit for a decade. Frontier GPU
+            clusters run at peak utilization while token input costs have deflated up to{" "}
+            <span className="font-semibold text-ink">670×</span> (input-basis; Mar 2023 GPT-4 $30/1M →
+            DeepSeek V4.1 Flash $0.0448/1M), powering $159B+ of reported enterprise ARR.
+          </p>
         </div>
       </div>
 
-      {/* Interactive Navigation Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-zinc-800 pb-3">
-        <div className="flex items-center space-x-1.5 p-1 rounded-xl bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
-          <button
-            onClick={() => setActiveTab("scorecard")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-              activeTab === "scorecard"
-                ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs"
-                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-            }`}
-          >
-            Scorecard Matrix (8 Metrics)
-          </button>
-          <button
-            onClick={() => setActiveTab("clec-parallel")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-              activeTab === "clec-parallel"
-                ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs"
-                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-            }`}
-          >
-            The Neocloud &ldquo;CLEC&rdquo; Parallel
-          </button>
-          <button
-            onClick={() => setActiveTab("cashflows")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-              activeTab === "cashflows"
-                ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs"
-                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-            }`}
-          >
-            Cash Flows &amp; Dark Fiber
-          </button>
-          <button
-            onClick={() => setActiveTab("simulator")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-              activeTab === "simulator"
-                ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs"
-                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-            }`}
-          >
-            Regime Simulator
-          </button>
+      {/* Section tabs — 44px targets */}
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-b border-rule pb-3">
+        <div className="-mx-1 flex items-center gap-1 overflow-x-auto px-1 pb-1 scrollbar-none">
+          {(
+            [
+              { id: "scorecard", label: "Scorecard Matrix (8 Metrics)" },
+              { id: "clec-parallel", label: "The Neocloud “CLEC” Parallel" },
+              { id: "cashflows", label: "Cash Flows & Dark Fiber" },
+              { id: "simulator", label: "Regime Simulator" },
+            ] as const
+          ).map(({ id, label }) => (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              aria-pressed={activeTab === id}
+              className={`min-h-11 shrink-0 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${
+                activeTab === id
+                  ? "border-ink bg-ink text-canvas"
+                  : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
-        {/* Live Polymarket Referral Badge */}
+        {/* Prediction-market link */}
         <a
           href={POLYMARKET_BASE_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60 text-xs font-mono font-bold hover:bg-indigo-100 transition-all"
+          className="btn min-h-11 whitespace-nowrap"
         >
-          <Zap className="w-3.5 h-3.5 fill-current text-indigo-500" />
           <span>Hedge Bubble Risk on Polymarket</span>
-          <ArrowUpRight className="w-3.5 h-3.5 ml-0.5" />
+          <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
         </a>
       </div>
 
@@ -448,7 +431,7 @@ export default function DotComVsAiPage() {
         <div className="space-y-6">
           {/* Category Filter Chips & Search Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-1.5 text-xs font-mono">
+            <div className="-mx-1 flex flex-wrap items-center gap-1.5 px-1">
               {[
                 { id: "all", label: "All Dimensions" },
                 { id: "cashflows", label: "Cash Flows" },
@@ -460,10 +443,10 @@ export default function DotComVsAiPage() {
                 <button
                   key={c.id}
                   onClick={() => setSelectedCategory(c.id)}
-                  className={`px-2.5 py-1 rounded-lg transition-all ${
+                  className={`min-h-11 shrink-0 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${
                     selectedCategory === c.id
-                      ? "bg-slate-900 dark:bg-zinc-700 text-white font-bold"
-                      : "bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-800"
+                      ? "border-ink bg-ink text-canvas"
+                      : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"
                   }`}
                 >
                   {c.label}
@@ -472,13 +455,13 @@ export default function DotComVsAiPage() {
             </div>
 
             <div className="relative w-full sm:w-64">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-subtle" aria-hidden="true" />
               <input
                 type="text"
                 placeholder="Filter metrics & takeaways..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 font-mono"
+                className="min-h-11 w-full rounded-lg border border-rule bg-surface py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink-faint"
               />
             </div>
           </div>
@@ -488,26 +471,26 @@ export default function DotComVsAiPage() {
             {filteredMetrics.map((m) => (
               <div
                 key={m.id}
-                className="p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] space-y-4 shadow-xs hover:border-slate-300 dark:hover:border-zinc-700 transition-all"
+                className="card space-y-4 shadow-xs hover:border-rule-strong transition-colors"
               >
                 {/* Metric Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-zinc-800">
+                <div className="flex flex-col gap-2 border-b border-rule pb-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="space-y-0.5">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+                    <span className="text-[13px] font-semibold uppercase tracking-wider text-ink-subtle">
                       {m.category.toUpperCase()}
                     </span>
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    <h3 className="text-base sm:text-lg font-bold text-ink">
                       {m.title}
                     </h3>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     <span
-                      className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                      className={`text-[13px] font-semibold px-2 py-0.5 rounded-full border ${
                         m.riskRating === "Extreme Structural Divergence"
-                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                          ? "bg-safe-500/10 text-safe-700 border-safe-300/20"
                           : m.riskRating === "Moderate Divergence"
-                          ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
-                          : "bg-indigo-500/10 text-indigo-500 border-indigo-500/20"
+                          ? "bg-caution-500/10 text-caution-700 border-caution-300/20"
+                          : "bg-surface-3/10 text-ink-muted border-rule/20"
                       }`}
                     >
                       {m.riskRating}
@@ -515,88 +498,60 @@ export default function DotComVsAiPage() {
                   </div>
                 </div>
 
-                {/* Side-by-Side Comparison Columns */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Dot-Com 2000 Column */}
-                  <div className="p-4 rounded-xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 space-y-2">
-                    <div className="flex items-center justify-between text-xs font-mono">
-                      <span className="font-bold text-rose-700 dark:text-rose-400 flex items-center space-x-1">
-                        <TrendingDown className="w-3.5 h-3.5" />
+{/* Side-by-side comparison columns */}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {/* Dot-Com 2000 column */}
+                  <div className="panel space-y-2 border-l-2 border-l-risk-500">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="flex items-center gap-1 text-[14px] font-semibold text-risk-700">
+                        <TrendingDown className="h-3.5 w-3.5" aria-hidden="true" />
                         <span>1999–2000 DOT-COM BUBBLE</span>
                       </span>
-                      <span className="px-1.5 py-0.2 rounded bg-rose-200/60 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 text-[10px] font-bold">
-                        HISTORICAL CRASH
-                      </span>
+                      <span className="chip chip-risk">HISTORICAL CRASH</span>
                     </div>
-                    <div className="text-xl sm:text-2xl font-black text-rose-900 dark:text-rose-200 font-mono">
+                    <div className="num text-xl font-semibold text-risk-700 sm:text-2xl">
                       {m.dotcom2000.figure}
                     </div>
-                    <p className="text-xs text-rose-800/80 dark:text-rose-300/80 leading-relaxed font-sans">
-                      {m.dotcom2000.description}
-                    </p>
+                    <p className="prose text-[14px]">{m.dotcom2000.description}</p>
                   </div>
 
-                  {/* AI 2026 Column */}
+                  {/* AI 2026 column */}
                   <div
-                    className={`p-4 rounded-xl border space-y-2 ${
-                      m.ai2026.status === "healthy"
-                        ? "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40"
-                        : "bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/40"
+                    className={`panel space-y-2 border-l-2 ${
+                      m.ai2026.status === "healthy" ? "border-l-safe-500" : "border-l-caution-500"
                     }`}
                   >
-                    <div className="flex items-center justify-between text-xs font-mono">
-                      <span
-                        className={`font-bold flex items-center space-x-1 ${
-                          m.ai2026.status === "healthy"
-                            ? "text-emerald-700 dark:text-emerald-400"
-                            : "text-amber-700 dark:text-amber-400"
-                        }`}
-                      >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="flex items-center gap-1 text-[14px] font-semibold text-ink">
                         {m.ai2026.status === "healthy" ? (
-                          <TrendingUp className="w-3.5 h-3.5" />
+                          <TrendingUp className="h-3.5 w-3.5 text-safe-700" aria-hidden="true" />
                         ) : (
-                          <AlertTriangle className="w-3.5 h-3.5" />
+                          <AlertTriangle className="h-3.5 w-3.5 text-caution-700" aria-hidden="true" />
                         )}
                         <span>2025–2026 AI SUPERSTRUCTURE</span>
                       </span>
-                      <span
-                        className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
-                          m.ai2026.status === "healthy"
-                            ? "bg-emerald-200/60 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200"
-                            : "bg-amber-200/60 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200"
-                        }`}
-                      >
+                      <span className={`chip ${m.ai2026.status === "healthy" ? "chip-safe" : "chip-caution"}`}>
                         {m.ai2026.status === "healthy" ? "SOLVENT BUFFER" : "CREDIT WATCH"}
                       </span>
                     </div>
                     <div
-                      className={`text-xl sm:text-2xl font-black font-mono ${
-                        m.ai2026.status === "healthy"
-                          ? "text-emerald-900 dark:text-emerald-200"
-                          : "text-amber-900 dark:text-amber-200"
+                      className={`num text-xl font-semibold sm:text-2xl ${
+                        m.ai2026.status === "healthy" ? "text-safe-700" : "text-caution-700"
                       }`}
                     >
                       {m.ai2026.figure}
                     </div>
-                    <p
-                      className={`text-xs leading-relaxed font-sans ${
-                        m.ai2026.status === "healthy"
-                          ? "text-emerald-800/80 dark:text-emerald-300/80"
-                          : "text-amber-800/80 dark:text-amber-300/80"
-                      }`}
-                    >
-                      {m.ai2026.description}
-                    </p>
+                    <p className="prose text-[14px]">{m.ai2026.description}</p>
                   </div>
                 </div>
 
                 {/* Structural Verdict & Analytical Takeaway */}
-                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 space-y-1">
-                  <div className="flex items-center space-x-2 text-xs font-mono font-bold text-slate-900 dark:text-white">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <div className="panel space-y-1">
+                  <div className="flex items-center space-x-2 text-[14px] font-semibold text-ink">
+                    <span className="w-1.5 h-1.5 rounded-full bg-safe-500" />
                     <span>STRUCTURAL VERDICT: {m.structuralVerdict}</span>
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed font-sans pl-3.5">
+                  <p className="prose pl-3.5 text-[14px]">
                     {m.analyticalTakeaway}
                   </p>
                 </div>
@@ -609,32 +564,28 @@ export default function DotComVsAiPage() {
       {/* TAB 2: THE NEOCLOUD "CLEC" PARALLEL (Deep Dive) */}
       {activeTab === "clec-parallel" && (
         <div className="space-y-6">
-          <div className="p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] space-y-6">
+          <div className="card space-y-6">
             <div>
-              <span className="text-xs font-mono text-amber-500 font-bold uppercase tracking-wider">
-                FINANCIAL ANATOMY · EPISODIC CASE STUDY
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
+              <span className="label">FINANCIAL ANATOMY · EPISODIC CASE STUDY</span>
+              <h2 className="mt-1 text-2xl font-bold tracking-tight text-ink">
                 The Neocloud &ldquo;CLEC&rdquo; Parallel (1999 vs 2026)
               </h2>
-              <p className="text-sm text-slate-600 dark:text-zinc-400 mt-2 font-sans leading-relaxed">
+              <p className="prose mt-2 max-w-3xl text-sm">
                 While Microsoft, Alphabet, and Meta resemble sovereign digital utilities with massive balance sheet equity, the secondary GPU compute cloud providers exhibit structural mechanics almost identical to the 1999 Competitive Local Exchange Carriers (CLECs).
               </p>
             </div>
 
             {/* Side-by-side Historical Breakdown */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-              <div className="p-5 rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50/40 dark:bg-rose-950/20 space-y-3">
-                <div className="flex items-center justify-between text-xs font-mono text-rose-600 dark:text-rose-400 font-bold">
-                  <span>THE 1999 CLEC BOOM &amp; COLLAPSE</span>
-                  <span className="px-2 py-0.5 rounded bg-rose-200/60 dark:bg-rose-900/60 text-rose-900 dark:text-rose-200">
-                    Winstar · Teligent · Covad
-                  </span>
+              <div className="panel space-y-3 border-l-2 border-l-risk-500">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="label">THE 1999 CLEC BOOM &amp; COLLAPSE</span>
+                  <span className="chip">Winstar · Teligent · Covad</span>
                 </div>
-                <h4 className="text-base font-bold text-slate-900 dark:text-white">
+                <h4 className="text-base font-semibold text-ink">
                   Debt-Funded Local Fiber Loops
                 </h4>
-                <ul className="space-y-2 text-xs text-slate-700 dark:text-zinc-300 leading-relaxed list-disc pl-4 font-sans">
+                <ul className="prose-ul text-[14px]">
                   <li>
                     <strong>Vendor Financing:</strong> Equipment makers (Lucent, Nortel) lent billions directly to CLECs to buy their switching gear.
                   </li>
@@ -647,17 +598,15 @@ export default function DotComVsAiPage() {
                 </ul>
               </div>
 
-              <div className="p-5 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-amber-50/40 dark:bg-amber-950/20 space-y-3">
-                <div className="flex items-center justify-between text-xs font-mono text-amber-600 dark:text-amber-400 font-bold">
-                  <span>THE 2026 GPU NEOCLOUD SUPERSTRUCTURE</span>
-                  <span className="px-2 py-0.5 rounded bg-amber-200/60 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200">
-                    CoreWeave · Crusoe · Lambda
-                  </span>
+              <div className="panel space-y-3 border-l-2 border-l-caution-500">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="label">THE 2026 GPU NEOCLOUD SUPERSTRUCTURE</span>
+                  <span className="chip chip-caution">CoreWeave · Crusoe · Lambda</span>
                 </div>
-                <h4 className="text-base font-bold text-slate-900 dark:text-white">
+                <h4 className="text-base font-semibold text-ink">
                   Asset-Backed GPU Facilities
                 </h4>
-                <ul className="space-y-2 text-xs text-slate-700 dark:text-zinc-300 leading-relaxed list-disc pl-4 font-sans">
+                <ul className="prose-ul text-[14px]">
                   <li>
                     <strong>Compute Collateral:</strong> Neoclouds pledge NVIDIA H100/H200/B200 servers as collateral to private debt syndicates (Blackstone, Coatue, Carlyle, Blue Owl).
                   </li>
@@ -665,37 +614,37 @@ export default function DotComVsAiPage() {
                     <strong>Depreciation Drag:</strong> High-performance GPUs lose 60–75% of their economic value within 36 months as next-gen Blackwell and Rubin architectures ship.
                   </li>
                   <li>
-                    <strong>Refinancing Hurdle:</strong> With $228.1B in tracked debt across the ecosystem, any softening in compute rental spot rates ($2.15/GPU-hr) impairs loan-to-value ratios, creating refinancing pressure.
+                    <strong>Refinancing Hurdle:</strong> With $214.9B in tracked debt across the ecosystem, any softening in compute rental spot rates ($2.15/GPU-hr) impairs loan-to-value ratios, creating refinancing pressure.
                   </li>
                 </ul>
               </div>
             </div>
 
             {/* Institutional Neocloud Debt Breakdown */}
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 space-y-3">
-              <h4 className="text-xs font-mono font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+            <div className="panel space-y-3">
+              <h4 className="text-[13px] font-semibold text-ink uppercase tracking-wider">
                 Institutional Verified Debt Exposure in Secondary Compute Tier
               </h4>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
-                <div className="p-3 rounded-lg bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 space-y-1">
-                  <span className="text-slate-500">CoreWeave Debt</span>
-                  <div className="text-base font-bold text-slate-900 dark:text-white">$6.5B+</div>
-                  <span className="text-[10px] text-amber-500">Blackstone / Coatue SPV</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[14px] font-mono">
+                <div className="rounded-lg border border-rule bg-surface p-3 space-y-1">
+                  <span className="text-ink-subtle">CoreWeave Debt</span>
+                  <div className="num text-base font-semibold text-ink">$25.1B</div>
+                  <span className="text-caution-700">Blackstone / Coatue SPV</span>
                 </div>
-                <div className="p-3 rounded-lg bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 space-y-1">
-                  <span className="text-slate-500">Crusoe Energy JV</span>
-                  <div className="text-base font-bold text-slate-900 dark:text-white">$3.4B</div>
-                  <span className="text-[10px] text-amber-500">Blue Owl Capital Facility</span>
+                <div className="rounded-lg border border-rule bg-surface p-3 space-y-1">
+                  <span className="text-ink-subtle">Crusoe Energy JV</span>
+                  <div className="num text-base font-semibold text-ink">$3.4B</div>
+                  <span className="text-caution-700">Blue Owl Capital Facility</span>
                 </div>
-                <div className="p-3 rounded-lg bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 space-y-1">
-                  <span className="text-slate-500">Oracle AI Debt</span>
-                  <div className="text-base font-bold text-slate-900 dark:text-white">$82.0B</div>
-                  <span className="text-[10px] text-slate-400">Senior Unsecured (187bp CDS)</span>
+                <div className="rounded-lg border border-rule bg-surface p-3 space-y-1">
+                  <span className="text-ink-subtle">Oracle Borrowings</span>
+                  <div className="num text-base font-semibold text-ink">$130.1B</div>
+                  <span className="text-ink text-ink-faint">Senior Unsecured (288bp CDS)</span>
                 </div>
-                <div className="p-3 rounded-lg bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 space-y-1">
-                  <span className="text-slate-500">Anthropic Debt</span>
-                  <div className="text-base font-bold text-slate-900 dark:text-white">$57.0B</div>
-                  <span className="text-[10px] text-indigo-400">Broadcom Convert &amp; Facility</span>
+                <div className="rounded-lg border border-rule bg-surface p-3 space-y-1">
+                  <span className="text-ink-subtle">Anthropic Debt</span>
+                  <div className="num text-base font-semibold text-ink">$57.0B</div>
+                  <span className="text-ink-muted">Broadcom Convert &amp; Facility</span>
                 </div>
               </div>
             </div>
@@ -706,82 +655,87 @@ export default function DotComVsAiPage() {
       {/* TAB 3: CASH FLOWS & DARK FIBER (Detailed Economic Analysis) */}
       {activeTab === "cashflows" && (
         <div className="space-y-6">
-          <div className="p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] space-y-6">
+          <div className="card space-y-6">
             <div>
-              <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">
+              <span className="text-[13px] font-mono text-safe-700 font-bold uppercase tracking-wider">
                 MACROECONOMIC BALANCE SHEET DECONSTRUCTION
               </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
+              <h2 className="mt-1 text-2xl font-bold tracking-tight text-ink">
                 The Cash Flow Engine: Hyperscaler Solvency vs. 2000 Burn
               </h2>
-              <p className="text-sm text-slate-600 dark:text-zinc-400 mt-2 font-sans leading-relaxed">
+              <p className="prose mt-2 max-w-3xl text-sm">
                 The single most decisive empirical differentiator between 2000 and 2026 is corporate cash generation. In the dot-com era, tech companies burned cash to fund operations. In 2026, tech hyperscalers are the most profitable commercial enterprises in world history.
               </p>
             </div>
 
             {/* Hyperscaler Cash Flow Breakdown Matrix */}
             <div className="space-y-3">
-              <h4 className="text-xs font-mono font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                Hyperscaler FY2025/2026 Cash Flows vs. Capex (SEC 10-K Consensus)
+              <h4 className="text-sm font-semibold text-ink">
+                Hyperscaler Cash Flows vs. Capex (SEC 10-K Consensus)
               </h4>
+              <p className="text-[14px] text-ink-subtle">
+                Basis: FY2025 filed capex and trailing twelve-month operating cash flow, as reported in
+                each company&apos;s SEC filings. These are not the CY2026 guidance figures quoted in the
+                narrative above ($725B guided big-4 capex, Jul 2026 earnings calls).
+              </p>
               <div className="overflow-x-auto">
-                <table className="w-full text-xs font-mono border-collapse">
+                <table className="w-full text-[14px] font-mono border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-200 dark:border-zinc-800 text-left text-slate-500">
+                    <tr className="border-b border-rule text-left text-ink-subtle">
                       <th className="py-2.5 px-3">Company</th>
-                      <th className="py-2.5 px-3">Operating Cash Flow</th>
-                      <th className="py-2.5 px-3">Annual AI Capex</th>
+                      <th className="py-2.5 px-3">Operating Cash Flow (trailing FY)</th>
+                      <th className="py-2.5 px-3">Annual AI Capex (FY2025 filed)</th>
                       <th className="py-2.5 px-3">Retained Free Cash Flow</th>
                       <th className="py-2.5 px-3">Capex / OCF Ratio</th>
                       <th className="py-2.5 px-3">Credit Rating</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60 text-slate-800 dark:text-zinc-200">
-                    <tr className="hover:bg-slate-50 dark:hover:bg-zinc-900/50">
-                      <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white">Microsoft (MSFT)</td>
-                      <td className="py-2.5 px-3 text-emerald-600 dark:text-emerald-400">$136.2B</td>
+                  <tbody className="divide-y divide-rule divide-rule/60 text-ink">
+                    <tr className="hover:bg-surface-2 hover:bg-surface-2">
+                      <td className="py-2.5 px-3 font-bold text-ink">Microsoft (MSFT)</td>
+                      <td className="py-2.5 px-3 text-safe-700">$136.2B</td>
                       <td className="py-2.5 px-3">$80.0B</td>
                       <td className="py-2.5 px-3 font-bold">$56.2B</td>
                       <td className="py-2.5 px-3">58.7%</td>
-                      <td className="py-2.5 px-3"><span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 font-bold">AAA</span></td>
+                      <td className="py-2.5 px-3"><span className="chip chip-safe">AAA</span></td>
                     </tr>
-                    <tr className="hover:bg-slate-50 dark:hover:bg-zinc-900/50">
-                      <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white">Alphabet (GOOGL)</td>
-                      <td className="py-2.5 px-3 text-emerald-600 dark:text-emerald-400">$128.5B</td>
+                    <tr className="hover:bg-surface-2 hover:bg-surface-2">
+                      <td className="py-2.5 px-3 font-bold text-ink">Alphabet (GOOGL)</td>
+                      <td className="py-2.5 px-3 text-safe-700">$128.5B</td>
                       <td className="py-2.5 px-3">$75.0B</td>
                       <td className="py-2.5 px-3 font-bold">$53.5B</td>
                       <td className="py-2.5 px-3">58.4%</td>
-                      <td className="py-2.5 px-3"><span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 font-bold">AA+</span></td>
+                      <td className="py-2.5 px-3"><span className="chip chip-safe">AA+</span></td>
                     </tr>
-                    <tr className="hover:bg-slate-50 dark:hover:bg-zinc-900/50">
-                      <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white">Meta Platforms (META)</td>
-                      <td className="py-2.5 px-3 text-emerald-600 dark:text-emerald-400">$98.4B</td>
+                    <tr className="hover:bg-surface-2 hover:bg-surface-2">
+                      <td className="py-2.5 px-3 font-bold text-ink">Meta Platforms (META)</td>
+                      <td className="py-2.5 px-3 text-safe-700">$98.4B</td>
                       <td className="py-2.5 px-3">$65.0B</td>
                       <td className="py-2.5 px-3 font-bold">$33.4B</td>
                       <td className="py-2.5 px-3">66.1%</td>
-                      <td className="py-2.5 px-3"><span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 font-bold">AA-</span></td>
+                      <td className="py-2.5 px-3"><span className="chip chip-safe">AA-</span></td>
                     </tr>
-                    <tr className="hover:bg-slate-50 dark:hover:bg-zinc-900/50">
-                      <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white">Amazon AWS (AMZN)</td>
-                      <td className="py-2.5 px-3 text-emerald-600 dark:text-emerald-400">$142.0B</td>
+                    <tr className="hover:bg-surface-2 hover:bg-surface-2">
+                      <td className="py-2.5 px-3 font-bold text-ink">Amazon AWS (AMZN)</td>
+                      <td className="py-2.5 px-3 text-safe-700">$142.0B</td>
                       <td className="py-2.5 px-3">$105.0B</td>
                       <td className="py-2.5 px-3 font-bold">$37.0B</td>
                       <td className="py-2.5 px-3">73.9%</td>
-                      <td className="py-2.5 px-3"><span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 font-bold">AA</span></td>
+                      <td className="py-2.5 px-3"><span className="chip chip-safe">AA</span></td>
                     </tr>
-                    <tr className="hover:bg-slate-50 dark:hover:bg-zinc-900/50">
-                      <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white">Apple (AAPL)</td>
-                      <td className="py-2.5 px-3 text-emerald-600 dark:text-emerald-400">$163.0B</td>
+                    <tr className="hover:bg-surface-2 hover:bg-surface-2">
+                      <td className="py-2.5 px-3 font-bold text-ink">Apple (AAPL)</td>
+                      <td className="py-2.5 px-3 text-safe-700">$163.0B</td>
                       <td className="py-2.5 px-3">$35.0B</td>
                       <td className="py-2.5 px-3 font-bold">$128.0B</td>
                       <td className="py-2.5 px-3">21.5%</td>
-                      <td className="py-2.5 px-3"><span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 font-bold">AAA</span></td>
+                      <td className="py-2.5 px-3"><span className="chip chip-safe">AAA</span></td>
                     </tr>
-                    <tr className="bg-slate-100/60 dark:bg-zinc-800/60 font-bold">
-                      <td className="py-2.5 px-3 text-slate-900 dark:text-white">Total Hyperscaler Engine</td>
-                      <td className="py-2.5 px-3 text-emerald-600 dark:text-emerald-400">$668.1B</td>
+                    <tr className="bg-surface-2/60 font-bold">
+                      <td className="py-2.5 px-3 text-ink">Total Hyperscaler Engine</td>
+                      <td className="py-2.5 px-3 text-safe-700">$668.1B</td>
                       <td className="py-2.5 px-3">$360.0B</td>
-                      <td className="py-2.5 px-3 text-emerald-500">+$308.1B</td>
+                      <td className="py-2.5 px-3 text-safe-700">+$308.1B</td>
                       <td className="py-2.5 px-3">53.9% Average</td>
                       <td className="py-2.5 px-3">Fortress Tier</td>
                     </tr>
@@ -791,15 +745,20 @@ export default function DotComVsAiPage() {
             </div>
 
             {/* Telecom Fiber vs GPU Datacenters Deep Dive */}
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 space-y-2">
-              <h4 className="text-xs font-mono font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+            <div className="panel space-y-2">
+              <h4 className="text-[13px] font-semibold text-ink uppercase tracking-wider">
                 The Engineering Truth: Dark Fiber vs. Live GPU Clusters
               </h4>
-              <p className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed font-sans">
+              <p className="text-[14px] text-ink-muted leading-relaxed font-sans">
                 In 2000, laying long-haul fiber optic conduit under roads and oceans was a binary infrastructure bet: once fiber was laid in the ground, it earned zero revenue unless both ends were lit by expensive optical transceivers and consumer broadband demand materialized. Because the average home had a 56k dial-up modem, the bandwidth was utterly unusable, leading to a 95% unlit rate and $2T in asset write-downs.
               </p>
-              <p className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed font-sans pt-1">
-                In 2026, GPU clusters are fundamentally modular and dynamic: compute hours are rented by the second to thousands of software enterprises, universities, defense agencies, and internal product teams. GPU capacity is not stranded under asphalt; it is continuously consuming megawatts to generate tokens for 350M+ users daily.
+              {/* 2026-10-19 fact-check: "350M+ users daily" replaced with
+                  OpenAI's own figure — 1.2B weekly users, DevDay 2026 recap,
+                  29 Sep 2026 (openai.com/index/devday-2026-recap; The Verge,
+                  29 Sep 2026). "daily" is dropped because the new figure is
+                  weekly and the two cannot both stand. */}
+              <p className="prose pt-1 text-[14px]">
+                In 2026, GPU clusters are fundamentally modular and dynamic: compute hours are rented by the second to thousands of software enterprises, universities, defense agencies, and internal product teams. GPU capacity is not stranded under asphalt; it is continuously consuming megawatts to generate tokens for 1.2B weekly users (OpenAI DevDay, Sep 29 2026).
               </p>
             </div>
           </div>
@@ -809,15 +768,13 @@ export default function DotComVsAiPage() {
       {/* TAB 4: INTERACTIVE REGIME SIMULATOR */}
       {activeTab === "simulator" && (
         <div className="space-y-6">
-          <div className="p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] space-y-6">
+          <div className="card space-y-6">
             <div>
-              <span className="text-xs font-mono text-indigo-500 font-bold uppercase tracking-wider">
-                QUANTITATIVE STRESS TESTING TOOL
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
+              <span className="label">QUANTITATIVE STRESS TESTING TOOL</span>
+              <h2 className="mt-1 text-2xl font-bold tracking-tight text-ink">
                 Interactive Regime Simulator: Dot-Com vs. 2026 AI
               </h2>
-              <p className="text-sm text-slate-600 dark:text-zinc-400 mt-2 font-sans leading-relaxed">
+              <p className="prose mt-2 max-w-3xl text-sm">
                 Test the structural mechanics yourself. Switch between historical regime presets or calibrate custom levers for cash flows, private debt, interest rates, and token cost deflation to see real-time shifts in systemic burst probability.
               </p>
             </div>
@@ -826,99 +783,99 @@ export default function DotComVsAiPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <button
                 onClick={() => setSimRegime("ai2026")}
-                className={`p-3.5 rounded-xl border text-left transition-all ${
+                className={`card min-h-11 border-l-4 text-left transition-colors ${
                   simRegime === "ai2026"
-                    ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 shadow-sm"
-                    : "bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 hover:border-slate-300"
+                    ? "border-l-safe-500 bg-surface"
+                    : "bg-surface hover:border-rule-strong"
                 }`}
               >
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">REGIME 1</span>
-                  {simRegime === "ai2026" && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="label">REGIME 1</span>
+                  {simRegime === "ai2026" && <CheckCircle2 className="h-4 w-4 text-safe-700" aria-hidden="true" />}
                 </div>
-                <div className="font-bold text-slate-900 dark:text-white text-sm mt-1">2026 Live Baseline</div>
-                <div className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">$668B OCF · 5.10% US10Y · 60× Defl</div>
+                <p className="mt-1 text-sm font-semibold text-ink">2026 Live Baseline</p>
+                <p className="num mt-0.5 text-[14px] text-ink-subtle">$668B OCF · 5.10% US10Y · 60× Defl</p>
               </button>
 
               <button
                 onClick={() => setSimRegime("dotcom2000")}
-                className={`p-3.5 rounded-xl border text-left transition-all ${
+                className={`card min-h-11 border-l-4 text-left transition-colors ${
                   simRegime === "dotcom2000"
-                    ? "bg-rose-50 dark:bg-rose-950/40 border-rose-500 shadow-sm"
-                    : "bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 hover:border-slate-300"
+                    ? "border-l-risk-500 bg-surface"
+                    : "bg-surface hover:border-rule-strong"
                 }`}
               >
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="font-bold text-rose-600 dark:text-rose-400">REGIME 2</span>
-                  {simRegime === "dotcom2000" && <CheckCircle2 className="w-4 h-4 text-rose-500" />}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="label">REGIME 2</span>
+                  {simRegime === "dotcom2000" && <CheckCircle2 className="w-4 h-4 text-risk-700" />}
                 </div>
-                <div className="font-bold text-slate-900 dark:text-white text-sm mt-1">2000 Dot-Com Peak</div>
-                <div className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">-$15B Burn · 6.50% Rates · Zero ARR</div>
+                <p className="mt-1 text-sm font-semibold text-ink">2000 Dot-Com Peak</p>
+                <p className="num mt-0.5 text-[14px] text-ink-subtle">-$15B Burn · 6.50% Rates · Zero ARR</p>
               </button>
 
               <button
                 onClick={() => setSimRegime("creditFreeze")}
-                className={`p-3.5 rounded-xl border text-left transition-all ${
+                className={`card min-h-11 border-l-4 text-left transition-colors ${
                   simRegime === "creditFreeze"
-                    ? "bg-amber-50 dark:bg-amber-950/40 border-amber-500 shadow-sm"
-                    : "bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 hover:border-slate-300"
+                    ? "border-l-caution-500 bg-surface"
+                    : "bg-surface hover:border-rule-strong"
                 }`}
               >
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="font-bold text-amber-600 dark:text-amber-400">REGIME 3</span>
-                  {simRegime === "creditFreeze" && <CheckCircle2 className="w-4 h-4 text-amber-500" />}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="label">REGIME 3</span>
+                  {simRegime === "creditFreeze" && <CheckCircle2 className="w-4 h-4 text-caution-700" />}
                 </div>
-                <div className="font-bold text-slate-900 dark:text-white text-sm mt-1">Neocloud Credit Freeze</div>
-                <div className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">Secondary Cloud Default · CDS Spike</div>
+                <p className="mt-1 text-sm font-semibold text-ink">Neocloud Credit Freeze</p>
+                <p className="num mt-0.5 text-[14px] text-ink-subtle">Secondary Cloud Default · CDS Spike</p>
               </button>
             </div>
 
             {/* Live Model Output Display */}
-            <div className="p-5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="p-5 rounded-xl border border-rule bg-surface-2 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-1">
-                <span className="text-xs font-mono text-slate-500 dark:text-zinc-400 uppercase font-bold">
+                <span className="label">
                   SIMULATED SYSTEMIC BURST PROBABILITY (12-MONTH HORIZON)
                 </span>
                 <div className="flex items-baseline space-x-3">
-                  <span className={`text-3xl sm:text-4xl font-black font-mono ${simResult.bandColor}`}>
+                  <span className={`num text-3xl font-semibold sm:text-4xl ${simResult.bandColor}`}>
                     {simResult.burstProb}%
                   </span>
-                  <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full border ${simResult.badgeColor}`}>
+                  <span className={`pill ${simResult.badgeColor}`}>
                     {simResult.band}
                   </span>
-                  <span className="text-xs font-mono text-slate-500">
+                  <span className="text-[14px] text-ink-subtle">
                     Score: {simResult.score} / 100
                   </span>
                 </div>
-                <p className="text-xs text-slate-600 dark:text-zinc-300 pt-1 font-sans">
+                <p className="prose pt-1 max-w-2xl text-[14px]">
                   {simResult.interpretation}
                 </p>
               </div>
 
-              <div className="flex items-center space-x-4 border-t md:border-t-0 md:border-l border-slate-200 dark:border-zinc-800 pt-3 md:pt-0 md:pl-5 text-xs font-mono shrink-0">
+              <div className="flex items-center space-x-4 border-t md:border-t-0 md:border-l border-rule pt-3 md:pt-0 md:pl-5 text-[14px] font-mono shrink-0">
                 <div>
-                  <span className="text-slate-500 text-[10px] block">Merton DD</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{simResult.mertonDD}</span>
+                  <span className="text-ink block">Merton DD</span>
+                  <span className="font-bold text-ink">{simResult.mertonDD}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 text-[10px] block">Altman Z&apos;&apos; Zone</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{simResult.altmanZone}</span>
+                  <span className="text-ink block">Altman Z&apos;&apos; Zone</span>
+                  <span className="font-bold text-ink">{simResult.altmanZone}</span>
                 </div>
               </div>
             </div>
 
             {/* Custom Parameter Sliders */}
             <div className="space-y-4 pt-2">
-              <h4 className="text-xs font-mono font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              <h4 className="text-[13px] font-semibold text-ink uppercase tracking-wider">
                 Adjust Custom Macro &amp; Balance Sheet Variables
               </h4>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Slider 1: Retained FCF */}
-                <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] space-y-2">
-                  <div className="flex justify-between text-xs font-mono">
-                    <span className="text-slate-600 dark:text-zinc-300 font-semibold">Hyperscaler Retained FCF Cushion</span>
-                    <span className="font-bold text-emerald-500">${customFcf}B / yr</span>
+                <div className="panel space-y-2">
+                  <div className="flex justify-between gap-2 text-[14px]">
+                    <span className="text-ink-muted font-semibold">Hyperscaler Retained FCF Cushion</span>
+                    <span className="num font-semibold text-safe-700">${customFcf}B / yr</span>
                   </div>
                   <input
                     type="range"
@@ -927,9 +884,9 @@ export default function DotComVsAiPage() {
                     step="10"
                     value={customFcf}
                     onChange={(e) => setCustomFcf(Number(e.target.value))}
-                    className="w-full accent-emerald-500 cursor-pointer"
+                    className="h-11 w-full cursor-pointer accent-safe-500"
                   />
-                  <div className="flex justify-between text-[10px] font-mono text-slate-400">
+                  <div className="num flex justify-between text-[14px] text-ink-subtle">
                     <span>$0 (Zero Buffer)</span>
                     <span>$260B (Current)</span>
                     <span>$400B (High Cash)</span>
@@ -937,32 +894,32 @@ export default function DotComVsAiPage() {
                 </div>
 
                 {/* Slider 2: Private Tracked Debt */}
-                <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] space-y-2">
-                  <div className="flex justify-between text-xs font-mono">
-                    <span className="text-slate-600 dark:text-zinc-300 font-semibold">Tracked Private &amp; Neocloud Debt</span>
-                    <span className="font-bold text-amber-500">${customDebt}B</span>
+                <div className="panel space-y-2">
+                  <div className="flex justify-between gap-2 text-[14px]">
+                    <span className="text-ink-muted font-semibold">Tracked Private &amp; Neocloud Debt</span>
+                    <span className="num font-semibold text-caution-700">${customDebt}B</span>
                   </div>
                   <input
                     type="range"
                     min="100"
                     max="500"
-                    step="10"
+                    step="0.1"
                     value={customDebt}
                     onChange={(e) => setCustomDebt(Number(e.target.value))}
-                    className="w-full accent-amber-500 cursor-pointer"
+                    className="h-11 w-full cursor-pointer accent-caution-500"
                   />
-                  <div className="flex justify-between text-[10px] font-mono text-slate-400">
+                  <div className="num flex justify-between text-[14px] text-ink-subtle">
                     <span>$100B (Low Debt)</span>
-                    <span>$228B (Current)</span>
+                    <span>$214.9B (Current)</span>
                     <span>$500B (High Leverage)</span>
                   </div>
                 </div>
 
                 {/* Slider 3: US 10-Year Yield */}
-                <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] space-y-2">
-                  <div className="flex justify-between text-xs font-mono">
-                    <span className="text-slate-600 dark:text-zinc-300 font-semibold">US 10-Year Treasury Yield</span>
-                    <span className="font-bold text-indigo-500">{customYield.toFixed(2)}%</span>
+                <div className="panel space-y-2">
+                  <div className="flex justify-between gap-2 text-[14px]">
+                    <span className="text-ink-muted font-semibold">US 10-Year Treasury Yield</span>
+                    <span className="num font-semibold text-ink-muted">{customYield.toFixed(2)}%</span>
                   </div>
                   <input
                     type="range"
@@ -971,9 +928,9 @@ export default function DotComVsAiPage() {
                     step="0.10"
                     value={customYield}
                     onChange={(e) => setCustomYield(Number(e.target.value))}
-                    className="w-full accent-indigo-500 cursor-pointer"
+                    className="h-11 w-full cursor-pointer accent-ink"
                   />
-                  <div className="flex justify-between text-[10px] font-mono text-slate-400">
+                  <div className="num flex justify-between text-[14px] text-ink-subtle">
                     <span>3.00% (ZIRP-like)</span>
                     <span>5.10% (Live Today)</span>
                     <span>7.00% (1990s Spike)</span>
@@ -981,24 +938,31 @@ export default function DotComVsAiPage() {
                 </div>
 
                 {/* Slider 4: Token Price Deflation */}
-                <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] space-y-2">
-                  <div className="flex justify-between text-xs font-mono">
-                    <span className="text-slate-600 dark:text-zinc-300 font-semibold">Inference Token Cost Deflation</span>
-                    <span className="font-bold text-teal-500">{customDeflation}× Cheaper</span>
+                <div className="panel space-y-2">
+                  <div className="flex justify-between gap-2 text-[14px]">
+                    <span className="text-ink-muted font-semibold">Inference Token Cost Deflation</span>
+                    <span className="num font-semibold text-safe-700">{customDeflation}× Cheaper</span>
                   </div>
                   <input
                     type="range"
                     min="1"
-                    max="375"
+                    max="700"
                     step="5"
                     value={customDeflation}
                     onChange={(e) => setCustomDeflation(Number(e.target.value))}
-                    className="w-full accent-teal-500 cursor-pointer"
+                    className="h-11 w-full cursor-pointer accent-safe-500"
                   />
-                  <div className="flex justify-between text-[10px] font-mono text-slate-400">
+                  <div className="num flex justify-between text-[14px] text-ink-subtle">
+                    {/*
+                      Fact-checked Oct 19, 2026 (input-basis vs GPT-4 $30/1M):
+                      Haiku 5.5 $0.10 in → 300×; DeepSeek V4.1 Flash $0.0448 in → ~670×.
+                      Slider max raised 375 → 700 so the real input-basis frontier fits.
+                      Default value 60 stays a neutral simulator calibration point for the
+                      deflDelta formula — it is not a model claim.
+                    */}
                     <span>1× (GPT-4 2023)</span>
-                    <span>60× (Haiku 5.5)</span>
-                    <span>375× (DeepSeek Flash)</span>
+                    <span>300× (Haiku 5.5)</span>
+                    <span>670× (DeepSeek V4.1 Flash)</span>
                   </div>
                 </div>
               </div>
@@ -1008,35 +972,35 @@ export default function DotComVsAiPage() {
       )}
 
       {/* Institutional Synthesis & Summary Grid */}
-      <div className="p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-[#09090b] space-y-4">
-        <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+      <div className="p-6 rounded-lg border border-rule bg-surface-2 space-y-4">
+        <h3 className="text-base sm:text-lg font-bold text-ink">
           Institutional Conclusions &amp; Strategic Implications for Capital Allocators
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-600 dark:text-zinc-400 font-sans leading-relaxed">
-          <div className="space-y-1.5 p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800">
-            <strong className="text-slate-900 dark:text-white font-mono block">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[14px] text-ink-muted leading-relaxed">
+          <div className="space-y-1.5 panel">
+            <strong className="text-ink block">
               1. Hyperscalers Are Sovereign Infrastructure Utilities:
             </strong>
-            Unlike the dot-com era where tech leaders had fragile balance sheets, Microsoft, Alphabet, Meta, and Amazon can sustain $485B in annual capex indefinitely out of retained operating profits. An equity bear market in AI does not threaten hyperscaler solvency.
+            Unlike the dot-com era where tech leaders had fragile balance sheets, Microsoft, Alphabet, Meta, and Amazon can still absorb $725B in guided CY2026 capex out of retained operating cash flow — but Forbes (Oct 7, 2026) now reports that capex consumes nearly ALL of big-4 operating cash flow, leaving little slack ($214.9B of tracked AI debt sits at the margin). An equity bear market in AI does not threaten hyperscaler solvency, though the self-funding cushion is materially thinner than in 2025.
           </div>
 
-          <div className="space-y-1.5 p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800">
-            <strong className="text-slate-900 dark:text-white font-mono block">
+          <div className="space-y-1.5 panel">
+            <strong className="text-ink block">
               2. Neoclouds Carry The Credit Risk:
             </strong>
-            The vulnerable link in the capital chain is the secondary GPU cloud provider segment. With $228.1B in private and asset-backed credit and 3-year GPU obsolescence, neoclouds that borrowed heavily at 10–12% yields face debt restructuring if software token prices continue collapsing.
+            The vulnerable link in the capital chain is the secondary GPU cloud provider segment. With $214.9B in private and asset-backed credit and 3-year GPU obsolescence, neoclouds that borrowed heavily at 10–12% yields face debt restructuring if software token prices continue collapsing.
           </div>
 
-          <div className="space-y-1.5 p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800">
-            <strong className="text-slate-900 dark:text-white font-mono block">
+          <div className="space-y-1.5 panel">
+            <strong className="text-ink block">
               3. Token Deflation Is The Software Savior:
             </strong>
-            In 2000, high telecom transit costs choked internet applications. In 2026, 375× token price deflation is accelerating real enterprise productization. Software application companies enjoy rapid margin expansion as inference costs drop to sub-10¢ per million tokens.
+            In 2000, high telecom transit costs choked internet applications. In 2026, 670× token price deflation (input-basis; Mar 2023 GPT-4 $30/1M vs DeepSeek V4.1 Flash $0.0448/1M) is accelerating real enterprise productization. Software application companies enjoy rapid margin expansion as inference input costs drop to sub-5¢ per million tokens (completions ~8¢).
           </div>
 
-          <div className="space-y-1.5 p-3.5 rounded-xl bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800">
-            <strong className="text-slate-900 dark:text-white font-mono block">
+          <div className="space-y-1.5 panel">
+            <strong className="text-ink block">
               4. The Liquidation Outcome:
             </strong>
             If an AI capital correction occurs, it will not result in abandoned datacenters. Rather, Big Tech hyperscalers and sovereign wealth funds will acquire distressed neocloud clusters and private frontier lab assets at 30–50% discounts, further consolidating technological power.
@@ -1044,28 +1008,28 @@ export default function DotComVsAiPage() {
         </div>
 
         {/* Regulatory & Institutional Compliance Disclaimer */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs text-slate-600 dark:text-zinc-400 space-y-2">
-          <div className="flex items-center space-x-2 text-amber-600 dark:text-amber-400 font-mono font-bold uppercase tracking-wider text-[11px]">
-            <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+        <div className="p-4 sm:p-5 rounded-lg bg-caution-500/5 border border-caution-300/20 text-[14px] text-ink-muted space-y-2">
+          <div className="flex items-center space-x-2 text-caution-700 font-mono font-bold uppercase tracking-wider text-ink">
+            <AlertTriangle className="w-4 h-4 text-caution-700 shrink-0" />
             <span>Regulatory Notice — Not Financial Advice</span>
           </div>
-          <p className="leading-relaxed font-sans text-xs text-slate-600 dark:text-zinc-400">
+          <p className="leading-relaxed font-sans text-[14px] text-ink-muted">
             This historical comparative analysis and risk scorecard are provided strictly for educational and quantitative research purposes. Historical bubble dynamics (1998–2002 Dot-Com vs 2024–2026 Generative AI) are empirical approximations based on disclosed financial statements and do not constitute investment advice, financial planning, or securities endorsement.
           </p>
         </div>
 
         {/* Quick Cross-Links */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-zinc-800 text-xs font-mono">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-rule pt-3 text-[14px]">
           <div className="flex items-center space-x-4">
-            <Link href="/ledger" className="text-emerald-600 dark:text-emerald-400 hover:underline flex items-center space-x-1">
-              <span>View 169 Verified Deals ($2.86T)</span>
+            <Link href="/ledger" className="prose-a flex min-h-11 items-center gap-1">
+              <span>View 169 Verified Deals ($2.87T)</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </Link>
-            <Link href="/companies" className="text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white flex items-center space-x-1">
+            <Link href="/companies" className="prose-a flex min-h-11 items-center gap-1">
               <span>Corporate Debt Sheets</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </Link>
-            <Link href="/methodology" className="text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white flex items-center space-x-1">
+            <Link href="/methodology" className="prose-a flex min-h-11 items-center gap-1">
               <span>Minsky &amp; Merton Math</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </Link>
@@ -1075,7 +1039,7 @@ export default function DotComVsAiPage() {
             href={POLYMARKET_BASE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center space-x-1"
+            className="prose-a flex min-h-11 items-center gap-1 font-semibold"
           >
             <span>Trade AI Downturn Odds on Polymarket (r=AIbubble)</span>
             <ExternalLink className="w-3.5 h-3.5" />

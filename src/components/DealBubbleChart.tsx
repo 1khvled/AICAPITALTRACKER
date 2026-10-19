@@ -7,6 +7,7 @@ import {
   CircleDot,
   Calendar,
   Sparkles,
+  X,
   Maximize2,
   ExternalLink,
   ShieldAlert,
@@ -106,82 +107,82 @@ export const CATEGORY_CONFIG: Record<
 > = {
   "Borrowed": {
     name: "Debt & Facilities",
-    pillBg: "bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400 border-rose-200 dark:border-rose-900/60",
-    border: "border-rose-200 dark:border-rose-900/50",
-    tileBg: "bg-rose-50/70 dark:bg-rose-950/30",
-    tileBgHover: "hover:bg-rose-100/80 dark:hover:bg-rose-950/60",
-    badgeBg: "bg-rose-600",
-    textColor: "text-rose-700 dark:text-rose-400",
+    pillBg: "chip chip-risk",
+    border: "border-risk-200",
+    tileBg: "bg-risk-50",
+    tileBgHover: "",
+    badgeBg: "bg-risk-500",
+    textColor: "text-risk-700",
     accentHex: "#ef4444",
   },
   "Bets & rounds": {
     name: "Equity & Strategic Bets",
-    pillBg: "bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-400 border-purple-200 dark:border-purple-900/60",
-    border: "border-purple-200 dark:border-purple-900/50",
-    tileBg: "bg-purple-50/70 dark:bg-purple-950/30",
-    tileBgHover: "hover:bg-purple-100/80 dark:hover:bg-purple-950/60",
-    badgeBg: "bg-purple-600",
-    textColor: "text-purple-700 dark:text-purple-400",
+    pillBg: "chip",
+    border: "border-rule",
+    tileBg: "bg-surface-2",
+    tileBgHover: "",
+    badgeBg: "bg-surface-3",
+    textColor: "text-ink-muted",
     accentHex: "#8b5cf6",
   },
   "Compute contracts": {
     name: "Compute & Cloud Clusters",
-    pillBg: "bg-cyan-50 text-cyan-700 dark:bg-cyan-950/50 dark:text-cyan-400 border-cyan-200 dark:border-cyan-900/60",
-    border: "border-cyan-200 dark:border-cyan-900/50",
-    tileBg: "bg-cyan-50/70 dark:bg-cyan-950/30",
-    tileBgHover: "hover:bg-cyan-100/80 dark:hover:bg-cyan-950/60",
-    badgeBg: "bg-cyan-600",
-    textColor: "text-cyan-700 dark:text-cyan-400",
+    pillBg: "chip",
+    border: "border-rule",
+    tileBg: "bg-surface-2",
+    tileBgHover: "",
+    badgeBg: "bg-surface-3",
+    textColor: "text-ink-muted",
     accentHex: "#06b6d4",
   },
   "Power & land": {
     name: "Power & Clean Energy",
-    pillBg: "bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400 border-amber-200 dark:border-amber-900/60",
-    border: "border-amber-200 dark:border-amber-900/50",
-    tileBg: "bg-amber-50/70 dark:bg-amber-950/30",
-    tileBgHover: "hover:bg-amber-100/80 dark:hover:bg-amber-950/60",
-    badgeBg: "bg-amber-600",
-    textColor: "text-amber-700 dark:text-amber-400",
+    pillBg: "chip chip-caution",
+    border: "border-caution-200",
+    tileBg: "bg-caution-50",
+    tileBgHover: "",
+    badgeBg: "bg-caution-500",
+    textColor: "text-caution-700",
     accentHex: "#f59e0b",
   },
   "Buyouts & mergers": {
     name: "M&A & Buyouts",
-    pillBg: "bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400 border-blue-200 dark:border-blue-900/60",
-    border: "border-blue-200 dark:border-blue-900/50",
-    tileBg: "bg-blue-50/70 dark:bg-blue-950/30",
-    tileBgHover: "hover:bg-blue-100/80 dark:hover:bg-blue-950/60",
-    badgeBg: "bg-blue-600",
-    textColor: "text-blue-700 dark:text-blue-400",
+    pillBg: "chip",
+    border: "border-rule",
+    tileBg: "bg-surface-2",
+    tileBgHover: "",
+    badgeBg: "bg-surface-3",
+    textColor: "text-ink-muted",
     accentHex: "#3b82f6",
   },
   "Big construction": {
     name: "Hyperscale Capex",
-    pillBg: "bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400 border-orange-200 dark:border-orange-900/60",
-    border: "border-orange-200 dark:border-orange-900/50",
-    tileBg: "bg-orange-50/70 dark:bg-orange-950/30",
-    tileBgHover: "hover:bg-orange-100/80 dark:hover:bg-orange-950/60",
-    badgeBg: "bg-orange-600",
-    textColor: "text-orange-700 dark:text-orange-400",
+    pillBg: "chip chip-caution",
+    border: "border-caution-200",
+    tileBg: "bg-caution-50",
+    tileBgHover: "",
+    badgeBg: "bg-caution-500",
+    textColor: "text-caution-700",
     accentHex: "#f97316",
   },
   "Share sales": {
     name: "Secondary Share Sales",
-    pillBg: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/60",
-    border: "border-emerald-200 dark:border-emerald-900/50",
-    tileBg: "bg-emerald-50/70 dark:bg-emerald-950/30",
-    tileBgHover: "hover:bg-emerald-100/80 dark:hover:bg-emerald-950/60",
-    badgeBg: "bg-emerald-600",
-    textColor: "text-emerald-700 dark:text-emerald-400",
+    pillBg: "chip chip-safe",
+    border: "border-safe-200",
+    tileBg: "bg-safe-50",
+    tileBgHover: "",
+    badgeBg: "bg-safe-500",
+    textColor: "text-safe-700",
     accentHex: "#10b981",
   },
   "Other": {
     name: "Ecosystem Deals",
-    pillBg: "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 border-slate-200 dark:border-zinc-700",
-    border: "border-slate-200 dark:border-zinc-800",
-    tileBg: "bg-slate-50/70 dark:bg-zinc-900/30",
-    tileBgHover: "hover:bg-slate-100/80 dark:hover:bg-zinc-900/60",
-    badgeBg: "bg-slate-600",
-    textColor: "text-slate-700 dark:text-zinc-300",
+    pillBg: "bg-surface-2 text-ink-muted border-rule",
+    border: "border-rule",
+    tileBg: "bg-surface-2",
+    tileBgHover: "",
+    badgeBg: "bg-ink",
+    textColor: "text-ink-muted",
     accentHex: "#64748b",
   },
 };
@@ -394,30 +395,30 @@ function InteractiveBubblePod({
   const darker = getDarkerHex(pod.config.accentHex);
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] p-4 space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-zinc-700 transition-all">
-      <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-zinc-800/80">
+    <div className="panel space-y-3 transition-colors hover:border-rule-strong">
+      <div className="flex items-center justify-between pb-2 border-b border-rule">
         <div className="flex items-center space-x-2">
           <span
             className="w-2.5 h-2.5 rounded-full"
             style={{ backgroundColor: pod.config.accentHex }}
           />
-          <span className="font-bold text-slate-900 dark:text-white text-sm">
+          <span className="text-sm font-semibold text-ink">
             {pod.config.name}
           </span>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="text-right font-mono text-xs sm:text-sm">
-            <span className="text-slate-900 dark:text-white font-extrabold">
+          <div className="text-right font-mono text-[14px] sm:text-sm">
+            <span className="num text-ink font-semibold">
               ${(pod.totalUsd / 1e9).toFixed(1)}B
             </span>
-            <span className="text-slate-500 dark:text-zinc-400 ml-1 font-medium text-xs">
+            <span className="text-ink-subtle ml-1 font-medium text-[14px]">
               ({pod.deals.length})
             </span>
           </div>
           <button
             onClick={handleResetPod}
             title="Reset positions in this pod"
-            className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
+            className="flex h-11 w-11 items-center justify-center rounded-lg text-ink-subtle transition-colors hover:bg-surface-2 hover:text-ink"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
@@ -428,7 +429,7 @@ function InteractiveBubblePod({
         <svg
           ref={svgRef}
           viewBox="0 0 300 190"
-          className="w-full h-auto bg-slate-50/60 dark:bg-[#09090b]/60 rounded-lg select-none block touch-none cursor-grab active:cursor-grabbing"
+          className="block h-auto w-full cursor-grab touch-none select-none rounded-lg bg-surface-2 active:cursor-grabbing"
           style={{ minHeight: "170px" }}
           onPointerMove={handlePointerMove}
         >
@@ -479,7 +480,7 @@ function InteractiveBubblePod({
                     stroke={pod.config.accentHex}
                     strokeWidth="2"
                     strokeDasharray="4 3"
-                    className="animate-spin opacity-80"
+                    className="animate-spin opacity-70"
                   />
                 )}
 
@@ -500,7 +501,7 @@ function InteractiveBubblePod({
                     y={b.r >= 26 ? b.y - 2 : b.y + 3.5}
                     textAnchor="middle"
                     fill="#ffffff"
-                    fontSize={b.r >= 26 ? 11 : 9.5}
+                    fontSize={b.r >= 26 ? 13 : 12}
                     fontWeight="800"
                     fontFamily="Geist Mono, monospace"
                     className="pointer-events-none select-none drop-shadow-sm"
@@ -514,7 +515,7 @@ function InteractiveBubblePod({
                     y={b.y + 9}
                     textAnchor="middle"
                     fill={b.deal.is_debt ? "#fca5a5" : "#a7f3d0"}
-                    fontSize={8.5}
+                    fontSize={12}
                     fontWeight="800"
                     fontFamily="Geist Mono, monospace"
                     className="pointer-events-none select-none drop-shadow-sm"
@@ -528,7 +529,7 @@ function InteractiveBubblePod({
         </svg>
 
         <div className="absolute bottom-1.5 right-2 pointer-events-none opacity-40 hover:opacity-80 transition-opacity">
-          <span className="text-[10px] font-mono text-slate-500 dark:text-zinc-400 flex items-center gap-1">
+          <span className="text-[14px] font-mono text-ink-subtle flex items-center gap-1">
             <Hand className="w-2.5 h-2.5" /> Draggable
           </span>
         </div>
@@ -815,30 +816,30 @@ function GravityArena({
     <div className="space-y-3">
       {/* HUD Header Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-1">
-        <div className="flex items-center space-x-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-zinc-300">
-          <Atom className="w-4 h-4 text-purple-500 animate-spin" />
+        <div className="flex items-center space-x-2 text-[14px] sm:text-sm font-semibold text-ink-muted">
+          <Atom className="h-4 w-4 animate-spin text-ink-subtle" aria-hidden="true" />
           <span>Interactive Zero-G Arena: Click &amp; fling any bubble into space!</span>
         </div>
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setIsSimRunning(!isSimRunning)}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700 shadow-sm"
+            className="btn min-h-11"
           >
             {isSimRunning ? (
               <>
-                <Pause className="w-3.5 h-3.5 text-amber-500" />
+                <Pause className="w-3.5 h-3.5 text-caution-700" />
                 <span>Pause Motion</span>
               </>
             ) : (
               <>
-                <Play className="w-3.5 h-3.5 text-emerald-500" />
+                <Play className="w-3.5 h-3.5 text-safe-700" />
                 <span>Resume Motion</span>
               </>
             )}
           </button>
           <button
             onClick={initNodes}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700 shadow-sm"
+            className="btn min-h-11"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Recenter Arena</span>
@@ -847,7 +848,7 @@ function GravityArena({
       </div>
 
       {/* SVG Physics Arena Viewport */}
-      <div className="relative w-full rounded-2xl border border-slate-200 dark:border-zinc-800 bg-[#070709] overflow-hidden shadow-inner">
+      <div className="relative w-full rounded-lg border border-rule bg-[#070709] overflow-hidden shadow-inner">
         <svg
           ref={svgRef}
           viewBox="0 0 1000 560"
@@ -907,7 +908,7 @@ function GravityArena({
                     stroke="#ffffff"
                     strokeWidth="2.5"
                     strokeDasharray="6 4"
-                    className="animate-spin opacity-90"
+                    className="animate-spin opacity-70"
                   />
                 )}
 
@@ -928,10 +929,10 @@ function GravityArena({
                     y={b.r >= 34 ? b.y - 7 : b.y + 4}
                     textAnchor="middle"
                     fill="#ffffff"
-                    fontSize={Math.min(13, Math.max(10, b.r / 3.4))}
+                    fontSize={Math.min(15, Math.max(13, b.r / 3.4))}
                     fontWeight="800"
                     fontFamily="Geist Mono, monospace"
-                    className="pointer-events-none select-none drop-shadow-md"
+                    className="pointer-events-none select-none drop-shadow-sm"
                   >
                     {b.deal.amount_display}
                   </text>
@@ -944,10 +945,10 @@ function GravityArena({
                     textAnchor="middle"
                     fill="#ffffff"
                     opacity="0.95"
-                    fontSize={Math.min(11, Math.max(9, b.r / 4.4))}
+                    fontSize={Math.min(13, Math.max(12, b.r / 4.4))}
                     fontWeight="700"
                     fontFamily="Geist, sans-serif"
-                    className="pointer-events-none select-none drop-shadow-md"
+                    className="pointer-events-none select-none drop-shadow-sm"
                   >
                     {b.deal.title.split(" ")[0]}
                   </text>
@@ -959,10 +960,10 @@ function GravityArena({
                     y={b.y + 17}
                     textAnchor="middle"
                     fill={b.deal.is_debt ? "#fca5a5" : "#a7f3d0"}
-                    fontSize={9}
+                    fontSize={12}
                     fontWeight="800"
                     fontFamily="Geist Mono, monospace"
-                    className="pointer-events-none select-none drop-shadow-md"
+                    className="pointer-events-none select-none drop-shadow-sm"
                   >
                     Prob {computeDealBubbleRisk(b.deal).riskScorePct}%
                   </text>
@@ -973,8 +974,8 @@ function GravityArena({
         </svg>
 
         <div className="absolute bottom-3 left-4 pointer-events-none">
-          <div className="flex items-center space-x-2 text-xs font-mono text-zinc-300 bg-zinc-950 px-3 py-1.5 rounded-lg border border-zinc-800">
-            <Hand className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="flex items-center space-x-2 text-[14px] font-mono text-ink-muted bg-ink px-3 py-1.5 rounded-lg border border-rule">
+            <Hand className="w-3.5 h-3.5 text-safe-700" />
             <span>Fling bubbles to test collision physics • Double click to inspect</span>
           </div>
         </div>
@@ -1192,77 +1193,62 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
   return (
     <div
       ref={containerRef}
-      className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] overflow-hidden transition-colors shadow-sm"
+      className="card card-flush overflow-hidden"
     >
       {/* Top Header Bar & Mode Selector */}
-      <div className="p-5 sm:p-6 border-b border-slate-200 dark:border-zinc-800 space-y-4">
+      <div className="p-5 sm:p-6 border-b border-rule space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <div className="flex items-center space-x-2 text-xs sm:text-sm font-semibold text-slate-600 dark:text-zinc-400 flex-wrap gap-y-1">
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center space-x-1.5">
-                <Sparkles className="w-4 h-4" />
-                <span>Capital Allocation Universe</span>
-              </span>
+            <div className="flex items-center space-x-2 text-[14px] sm:text-sm font-semibold text-ink-subtle flex-wrap gap-y-1">
+              <span className="label">Capital Allocation Universe</span>
               <span>•</span>
-              <span className="text-slate-800 dark:text-zinc-200">100% Verified Disclosures</span>
+              <span className="text-ink">100% Verified Disclosures</span>
               <span>•</span>
-              <span className="text-slate-900 dark:text-white font-extrabold font-tabular">
+              <span className="num text-ink font-semibold">
                 {filteredDeals.length} Deals (${(totalFilteredUsd / 1e12).toFixed(2)}T)
               </span>
               <span>•</span>
-              <span className="text-rose-600 dark:text-rose-400 font-mono font-bold">
+              <span className="num text-[14px] font-semibold text-risk-700">
                 12M Bubble Prob: {liveModelResult.burstProbability.toFixed(1)}% ({liveModelResult.band.toUpperCase()})
               </span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
+            <h2 className="mt-1 text-xl font-bold tracking-tight text-ink sm:text-2xl">
               Institutional Capital Allocation Matrix (Area = Disclosed USD)
             </h2>
           </div>
 
           {/* View Mode Segmented Controls - 2-col on mobile, flex on desktop */}
-          <div className="grid grid-cols-2 sm:flex items-center gap-1 p-1 sm:p-1.5 rounded-xl bg-slate-100 dark:bg-[#09090b] border border-slate-200 dark:border-zinc-800 w-full sm:w-auto">
+          <div className="grid w-full grid-cols-2 items-center gap-1 rounded-lg border border-rule bg-surface-2 p-1 sm:flex sm:w-auto sm:p-1.5">
             <button
               onClick={() => setViewMode("treemap")}
-              className={`flex items-center justify-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
-                viewMode === "treemap"
-                  ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs"
-                  : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
+              aria-pressed={viewMode === "treemap"}
+              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${viewMode === "treemap" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
             >
-              <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 shrink-0" />
+              <LayoutGrid className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>Capital Treemap</span>
             </button>
             <button
               onClick={() => setViewMode("bubbles")}
-              className={`flex items-center justify-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
-                viewMode === "bubbles"
-                  ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs"
-                  : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
+              aria-pressed={viewMode === "bubbles"}
+              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${viewMode === "bubbles" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
             >
-              <CircleDot className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-500 shrink-0" />
+              <CircleDot className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>Bubble Pods</span>
             </button>
             <button
               onClick={() => setViewMode("arena")}
-              className={`flex items-center justify-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
-                viewMode === "arena"
-                  ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs"
-                  : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
+              aria-pressed={viewMode === "arena"}
+              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${viewMode === "arena" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
             >
-              <Atom className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400 shrink-0" />
+              <Atom className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink-muted shrink-0" />
               <span>Gravity Arena</span>
             </button>
             <button
               onClick={() => setViewMode("timeline")}
-              className={`flex items-center justify-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${
-                viewMode === "timeline"
-                  ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs"
-                  : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
+              aria-pressed={viewMode === "timeline"}
+              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${viewMode === "timeline" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
             >
-              <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 shrink-0" />
+              <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-caution-700 shrink-0" />
               <span>Timeline Flow</span>
             </button>
           </div>
@@ -1272,27 +1258,27 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
           {/* Quick Search */}
           <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-subtle" aria-hidden="true" />
             <input
               type="text"
               placeholder="Filter company, project, or amount..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-xl border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-[#09090b] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="min-h-11 w-full rounded-lg border border-rule bg-surface py-2 pl-10 pr-10 text-sm text-ink placeholder:text-ink-faint"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-white font-bold"
+                className="absolute right-1 top-1/2 flex h-11 w-9 -translate-y-1/2 items-center justify-center text-[14px] text-ink-subtle hover:text-ink"
               >
-                ✕
+                <X className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
           </div>
 
           {/* Size Filter Pills with horizontal scroll on mobile */}
-          <div className="flex items-center space-x-1.5 text-xs sm:text-sm overflow-x-auto scrollbar-none pb-0.5 touch-pan-x">
-            <span className="text-xs font-bold text-slate-600 dark:text-zinc-400 mr-1 shrink-0 hidden md:inline">
+          <div className="-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-0.5 text-[14px] scrollbar-none touch-pan-x sm:text-sm">
+            <span className="label mr-1 hidden shrink-0 md:inline">
               Minimum Deal:
             </span>
             {[
@@ -1304,11 +1290,8 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
               <button
                 key={t.id}
                 onClick={() => setMinVolume(t.id as any)}
-                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold whitespace-nowrap transition-all shrink-0 ${
-                  minVolume === t.id
-                    ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-950 shadow-xs"
-                    : "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700"
-                }`}
+                aria-pressed={minVolume === t.id}
+                className={`min-h-11 min-w-11 shrink-0 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${minVolume === t.id ? "border-ink bg-ink text-canvas" : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"}`}
               >
                 {t.label}
               </button>
@@ -1317,14 +1300,11 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
         </div>
 
         {/* Sector Pills Strip */}
-        <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none text-xs sm:text-sm touch-pan-x">
+        <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1 text-[14px] scrollbar-none touch-pan-x sm:text-sm">
           <button
             onClick={() => setSelectedCat("All")}
-            className={`whitespace-nowrap px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-              selectedCat === "All"
-                ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-950 shadow-sm"
-                : "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-zinc-700"
-            }`}
+            aria-pressed={selectedCat === "All"}
+            className={`min-h-11 min-w-11 shrink-0 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${selectedCat === "All" ? "border-ink bg-ink text-canvas" : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"}`}
           >
             All Sectors ({deals.length})
           </button>
@@ -1335,15 +1315,12 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
               <button
                 key={key}
                 onClick={() => setSelectedCat(key)}
-                className={`whitespace-nowrap px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center space-x-2 ${
-                  isSelected
-                    ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-950 shadow-sm"
-                    : "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-zinc-700"
-                }`}
+                aria-pressed={isSelected}
+                className={`flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${isSelected ? "border-ink bg-ink text-canvas" : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"}`}
               >
                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: config.accentHex }} />
                 <span>{config.name}</span>
-                <span className="text-xs opacity-75">({count})</span>
+                <span className="text-[14px] opacity-75">({count})</span>
               </button>
             );
           })}
@@ -1352,33 +1329,33 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
 
       {/* Physics & Drift Controls Bar for Bubble Views */}
       {(viewMode === "bubbles" || viewMode === "arena") && (
-        <div className="px-5 sm:px-6 py-2.5 bg-slate-100/70 dark:bg-zinc-900/60 border-b border-slate-200 dark:border-zinc-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center space-x-2 text-slate-700 dark:text-zinc-300 font-medium">
-            <Hand className="w-4 h-4 text-emerald-500 animate-pulse" />
+        <div className="px-5 sm:px-6 py-2.5 bg-surface-2 border-b border-rule flex flex-wrap items-center justify-between gap-3 text-[14px]">
+          <div className="flex items-center space-x-2 text-ink-muted font-medium">
+            <Hand className="h-4 w-4 text-ink-subtle" aria-hidden="true" />
             <span>Interactive Drag Physics: Drag any bubble to move it and push other deals.</span>
           </div>
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setIsDriftEnabled(!isDriftEnabled)}
-              className="flex items-center space-x-1 px-2.5 py-1 rounded-md font-semibold bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-750 text-slate-800 dark:text-zinc-200 shadow-sm transition-all"
+              className="btn min-h-11 cursor-pointer"
             >
               {isDriftEnabled ? (
                 <>
-                  <Pause className="w-3 h-3 text-amber-500" />
+                  <Pause className="h-3.5 w-3.5 text-caution-700" aria-hidden="true" />
                   <span>Float Drift: ON</span>
                 </>
               ) : (
                 <>
-                  <Play className="w-3 h-3 text-emerald-500" />
+                  <Play className="h-3.5 w-3.5 text-safe-700" aria-hidden="true" />
                   <span>Float Drift: PAUSED</span>
                 </>
               )}
             </button>
             <button
               onClick={() => setResetCounter((c) => c + 1)}
-              className="flex items-center space-x-1 px-2.5 py-1 rounded-md font-semibold bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-750 text-slate-800 dark:text-zinc-200 shadow-sm transition-all"
+              className="btn min-h-11 cursor-pointer"
             >
-              <RotateCcw className="w-3 h-3 text-slate-500" />
+              <RotateCcw className="w-3 h-3 text-ink-subtle" />
               <span>Reset Positions</span>
             </button>
           </div>
@@ -1386,10 +1363,10 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
       )}
 
       {/* Visual Canvas Viewport */}
-      <div className="relative p-3 sm:p-4 bg-slate-50/50 dark:bg-[#09090b] overflow-hidden">
+      <div className="relative overflow-hidden bg-surface-2 p-3 sm:p-4">
         {/* VIEW 1: SQUARIFIED CAPITAL TREEMAP */}
         {viewMode === "treemap" && (
-          <div className="relative w-full overflow-hidden rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#09090b]">
+          <div className="relative w-full overflow-hidden rounded-lg border border-rule bg-surface">
             <svg
               viewBox="0 0 1000 560"
               className="w-full h-auto block select-none"
@@ -1446,10 +1423,10 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                         y={canShowAmount ? tile.y + tile.h / 2 - 5 : tile.y + tile.h / 2 + 4}
                         textAnchor="middle"
                         fill="#ffffff"
-                        fontSize={Math.min(15, Math.max(12, tile.w / 11))}
+                        fontSize={Math.min(15, Math.max(13, tile.w / 11))}
                         fontWeight="800"
                         fontFamily="Geist, sans-serif"
-                        className="pointer-events-none select-none drop-shadow-md"
+                        className="pointer-events-none select-none drop-shadow-sm"
                       >
                         {shortTitle.slice(0, Math.floor(tile.w / 7.5))}
                       </text>
@@ -1461,11 +1438,11 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                         y={tile.y + tile.h / 2 + (canShowTitle ? 13 : 4)}
                         textAnchor="middle"
                         fill="#ffffff"
-                        fontSize={Math.min(14, Math.max(11, tile.w / 12))}
+                        fontSize={Math.min(14, Math.max(13, tile.w / 12))}
                         fontWeight="800"
                         fontFamily="Geist Mono, monospace"
                         opacity={1}
-                        className="pointer-events-none select-none drop-shadow-md"
+                        className="pointer-events-none select-none drop-shadow-sm"
                       >
                         {tile.deal.amount_display}
                       </text>
@@ -1516,18 +1493,18 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
             {timelineColumns.map((col) => (
               <div
                 key={col.key}
-                className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] p-4 space-y-3 shadow-sm flex flex-col justify-between"
+                className="card flex flex-col justify-between gap-3"
               >
-                <div className="pb-2 border-b border-slate-100 dark:border-zinc-800">
+                <div className="pb-2 border-b border-rule">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 dark:text-white text-base">
+                    <span className="num text-base font-semibold text-ink">
                       {col.label}
                     </span>
-                    <span className="text-xs sm:text-sm font-mono font-extrabold text-emerald-600 dark:text-emerald-400">
+                    <span className="text-[14px] sm:text-sm font-mono font-extrabold text-safe-700">
                       ${(col.totalUsd / 1e9).toFixed(1)}B
                     </span>
                   </div>
-                  <span className="text-xs text-slate-600 dark:text-zinc-400 font-medium">
+                  <span className="text-[14px] text-ink-subtle font-medium">
                     {col.deals.length} Sourced Deals
                   </span>
                 </div>
@@ -1543,27 +1520,27 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                         key={deal.id}
                         onClick={() => onSelectDeal(deal)}
                         style={{ opacity }}
-                        className={`p-2.5 rounded-lg border border-slate-100 dark:border-zinc-800/80 bg-slate-50 dark:bg-[#09090b] hover:border-slate-300 dark:hover:border-zinc-700 cursor-pointer transition-all space-y-1`}
+                        className="panel min-h-11 cursor-pointer space-y-1 transition-colors hover:border-rule-strong"
                       >
-                        <div className="flex items-center justify-between text-xs font-mono">
+                        <div className="flex items-center justify-between text-[14px] font-mono">
                           <span
-                            className="px-2.5 py-0.5 rounded font-bold text-white text-xs"
+                            className="px-2.5 py-0.5 rounded font-bold text-ink text-[14px]"
                             style={{ backgroundColor: config.accentHex }}
                           >
                             {deal.amount_display}
                           </span>
-                          <span className="text-slate-500 dark:text-zinc-400 text-xs">
+                          <span className="text-ink-subtle text-[14px]">
                             {deal.announced_date}
                           </span>
                         </div>
-                        <h4 className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-zinc-200 line-clamp-1">
+                        <h4 className="text-[14px] sm:text-sm font-semibold text-ink line-clamp-1">
                           {deal.title}
                         </h4>
                       </div>
                     );
                   })}
                   {col.deals.length > 10 && (
-                    <div className="text-center text-xs font-semibold text-slate-500 dark:text-zinc-400 pt-1">
+                    <div className="text-center text-[14px] font-semibold text-ink-subtle pt-1">
                       + {col.deals.length - 10} more in ledger
                     </div>
                   )}
@@ -1577,41 +1554,35 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
         {hoveredDeal && (() => {
           const riskInfo = computeDealBubbleRisk(hoveredDeal);
           return (
-            <div className="mt-3 p-4 rounded-2xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#121214] shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
+            <div className="card mt-3 flex flex-col items-start justify-between gap-3 text-sm sm:flex-row sm:items-center">
               <div className="space-y-1.5 flex-1">
                 <div className="flex items-center space-x-2.5 flex-wrap gap-y-1">
-                  <span className="font-extrabold text-slate-900 dark:text-white text-base sm:text-lg">
+                  <span className="text-base font-bold text-ink sm:text-lg">
                     {hoveredDeal.title}
                   </span>
-                  <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-900/60 text-sm">
+                  <span className="chip chip-safe num text-sm">
                     {hoveredDeal.amount_display}
                   </span>
                   <span
-                    className={`font-mono text-xs font-bold px-2.5 py-0.5 rounded-md border ${
-                      riskInfo.riskBand === "Critical"
-                        ? "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border-rose-300 dark:border-rose-800"
-                        : riskInfo.riskBand === "High"
-                        ? "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-300 dark:border-amber-800"
-                        : "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400 border-blue-300 dark:border-blue-800"
-                    }`}
+                    className={`chip ${ riskInfo.riskBand === "Critical" ? "chip-risk" : riskInfo.riskBand === "High" ? "chip-caution" : "" }`}
                   >
                     Bubble Exposure: {riskInfo.riskScorePct}% ({riskInfo.riskBand})
                   </span>
-                  <span className="font-mono text-xs text-slate-500 dark:text-zinc-400 font-medium">
+                  <span className="font-mono text-[14px] text-ink-subtle font-medium">
                     {riskInfo.riskImpactDisplay} • {riskInfo.contagionWeight}
                   </span>
                 </div>
-                <p className="text-slate-700 dark:text-zinc-300 text-sm line-clamp-1 font-sans">
+                <p className="text-ink-muted text-sm line-clamp-1 font-sans">
                   {hoveredDeal.description}
                 </p>
               </div>
 
               <button
                 onClick={() => onSelectDeal(hoveredDeal)}
-                className="shrink-0 flex items-center space-x-1.5 px-4 py-2 rounded-xl text-sm font-bold bg-slate-900 text-white dark:bg-white dark:text-zinc-950 hover:opacity-90 transition-opacity shadow-sm"
+                className="btn btn-primary min-h-11 shrink-0"
               >
                 <span>Inspect Disclosure</span>
-                <ArrowRight className="w-4 h-4 ml-1" />
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
           );
@@ -1619,19 +1590,19 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
       </div>
 
       {/* Footer Meta & Stats */}
-      <div className="p-4 sm:p-5 border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] flex flex-col md:flex-row items-center justify-between gap-3">
-        <div className="flex items-center space-x-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-zinc-300">
-          <Layers className="w-4 h-4 text-emerald-500" />
+      <div className="flex flex-col items-center justify-between gap-3 border-t border-rule bg-surface-2 px-4 py-4 md:flex-row">
+        <div className="flex items-center space-x-2 text-[14px] sm:text-sm font-medium text-ink-muted">
+          <Layers className="h-4 w-4 text-ink-subtle" aria-hidden="true" />
           <span>Click any block or bubble to inspect SEC filings &amp; audited disclosures.</span>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm">
-          <span className="px-3 py-1 rounded-lg font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60">
+        <div className="flex flex-wrap items-center gap-2 text-[14px] sm:text-sm">
+          <span className="chip chip-risk">
             {deals.filter((d) => d.is_debt).length} Debt Deals
           </span>
-          <span className="px-3 py-1 rounded-lg font-bold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-900/60">
+          <span className="chip">
             {deals.filter((d) => d.category === "Bets & rounds").length} Equity Rounds
           </span>
-          <span className="px-3 py-1 rounded-lg font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60">
+          <span className="chip chip-safe">
             Total Disclosed: ${(deals.reduce((acc, d) => acc + (d.amount_usd || 0), 0) / 1e12).toFixed(2)}T
           </span>
         </div>

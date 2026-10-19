@@ -109,9 +109,7 @@ const valuationStretch: ModelFactor = {
 
 // ── 3 · DEBT RELIANCE & ISSUANCE VELOCITY ─────────────────────────────────
 // Equity froth burns paper. Borrowing burns real creditors — the 1929/2008
-// ── 3 · DEBT RELIANCE & ISSUANCE VELOCITY ─────────────────────────────────
-// Equity froth burns paper. Borrowing burns real creditors — the 1929/2008
-// channel. Debt+converts share of everything tracked ($228.1B across 25 deals)
+// channel. Debt+converts share of everything tracked ($214.9B across 24 deals)
 // plus annual issuance pace ($85B/yr) and cash debt-service interest load.
 const debtReliance: ModelFactor = {
   id: 'debt_reliance',
@@ -119,14 +117,14 @@ const debtReliance: ModelFactor = {
   kind: 'risk',
   weightPct: 14,
   explain:
-    'Share of tracked AI money that is borrowed (bonds, converts, bank facilities), cumulative debt obligations ($228.1B), and the annualized issuance velocity of GPU-backed debt. Debt transforms valuation froth into systemic solvency risk.',
+    'Share of tracked AI money that is borrowed (bonds, converts, bank facilities), cumulative debt obligations ($214.9B), and the annualized issuance velocity of GPU-backed debt. Debt transforms valuation froth into systemic solvency risk.',
   formula:
     'score = 0.50·ramp(debtShare, 2.5%, 15%) + 0.35·ramp(annualDebtIssuance, $20B, $100B) + 0.15·ramp(totalTrackedDebt, $50B, $250B)',
   compute: (i) => {
     if (!i.ledger) return { score: 0.35, reading: 'Ledger aggregates unavailable', coverage: 0 };
     const s = i.ledger.debtShare;
     const annualDebt = i.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000;
-    const totalDebt = i.aiDebt?.totalTrackedDebtUsd ?? 228_072_500_000;
+    const totalDebt = i.aiDebt?.totalTrackedDebtUsd ?? 214_890_400_000;
     const debtScore = ramp(s, 0.025, 0.15);
     const issuanceScore = ramp(annualDebt, 20_000_000_000, 100_000_000_000);
     const volumeScore = ramp(totalDebt, 50_000_000_000, 250_000_000_000);
@@ -135,7 +133,9 @@ const debtReliance: ModelFactor = {
     const annualB = (annualDebt / 1e9).toFixed(1);
     return {
       score,
-      reading: `Borrowed money = ${(s * 100).toFixed(1)}% ($${totalDebtB}B verified across 20 facilities); Velocity: $${annualB}B/yr`,
+      // 2026-10-19 (pass 11): "20 facilities" → 24 — the ledger carries 24 is_debt records
+      // ($214,890,400,000 verified across 24 debt facilities).
+      reading: `Borrowed money = ${(s * 100).toFixed(1)}% ($${totalDebtB}B verified across 24 facilities); Velocity: $${annualB}B/yr`,
       coverage: 1,
     };
   },
@@ -154,26 +154,35 @@ const macroRatesStress: ModelFactor = {
   formula:
     'score = 0.40·ramp(US10Y, 3.75%, 5.25%) + 0.25·ramp(CPI YoY, 2.0%, 4.5%) + 0.15·ramp(Real Yield, 1.5%, 3.0%) + 0.20·ramp(HY Spread, 250bp, 500bp)',
   compute: (i) => {
+    // 2026-10-19 (pass 11): fallback macro block aligned to the FRED-verified live set in
+    // src/data/live-inputs.json — CPI 2.9 → 3.72 (FRED CPIAUCSL Sep-2026 336.298 vs Sep-2025
+    // 324.245), real 10y 2.70 → 2.75 (DGS10 5.10 − T10YIE 2.35, Oct 15/16 2026), Fed funds
+    // 4.75 → 3.75 (FRED FEDFUNDS Sep-2026 monthly obs — 2026 cut cycle), HY-OAS 328 → 323
+    // (FRED BAMLH0A0HYM2, Oct 15 2026). us02yYieldPct 4.75 is a legacy DGS2 anchor that was NOT
+    // re-verified this session — it is display-only and carries no weight in this factor.
     const m = i.macro ?? {
       us10yYieldPct: 5.10,
       us02yYieldPct: 4.75,
       us10yBaselinePct: 3.75,
-      cpiInflationYoY: 2.9,
-      realYield10y: 2.70,
-      fedFundsRatePct: 4.75,
+      cpiInflationYoY: 3.72,
+      realYield10y: 2.75,
+      fedFundsRatePct: 3.75,
       rateHikeRiskBps: 25,
-      highYieldSpreadBps: 328,
+      highYieldSpreadBps: 323,
       note: 'US Treasury 10Y Benchmark',
     };
     const yieldScore = ramp(m.us10yYieldPct, m.us10yBaselinePct, 5.25);
     const cpiScore = ramp(m.cpiInflationYoY, 2.0, 4.5);
     const realScore = ramp(m.realYield10y, 1.5, 3.0);
-    const hySpread = m.highYieldSpreadBps ?? 328;
+    // 2026-10-19 (pass 11): 328 → 323 (FRED BAMLH0A0HYM2, Oct 15 2026) — same print the note cites.
+    const hySpread = m.highYieldSpreadBps ?? 323;
     const hyScore = ramp(hySpread, 250, 500);
     const score = clamp01(yieldScore * 0.40 + cpiScore * 0.25 + realScore * 0.15 + hyScore * 0.20);
     return {
       score,
-      reading: `US10Y ${m.us10yYieldPct.toFixed(2)}% (neutral ${m.us10yBaselinePct.toFixed(2)}%); CPI ${m.cpiInflationYoY.toFixed(1)}% YoY; HY-OAS ${hySpread}bp; Fed Funds ${m.fedFundsRatePct.toFixed(2)}% (+${m.rateHikeRiskBps}bp hike risk)`,
+      // 2026-10-19 (pass 11): "hike risk" → "stress assumption" — rateHikeRiskBps 25 is a
+      // forward-looking stress parameter, NOT a forecast: 2026 is a Fed CUT cycle (funds 3.75%).
+      reading: `US10Y ${m.us10yYieldPct.toFixed(2)}% (neutral ${m.us10yBaselinePct.toFixed(2)}%); CPI ${m.cpiInflationYoY.toFixed(1)}% YoY; HY-OAS ${hySpread}bp; Fed Funds ${m.fedFundsRatePct.toFixed(2)}% (+${m.rateHikeRiskBps}bp stress assumption)`,
       coverage: 1,
     };
   },
@@ -223,7 +232,11 @@ const velocity: ModelFactor = {
     if (!i.ledger) return { score: 0.35, reading: 'Ledger aggregates unavailable', coverage: 0 };
     const now = new Date();
     const y = now.getUTCFullYear();
-    const yCurr = i.ledger.byYear[y] ?? 769_180_302_026;
+    // 2026-10-19 (pass 11): the fallback is the CURRENT-YEAR disclosed total (ledger.byYear[2026]),
+    // NOT the all-time ledger total — 769,180,302,026 was a stale 2026 YTD figure. Verified:
+    // live-inputs.json ledger.byYear["2026"] = 812,536,300,000 (which is what produces the published
+    // "$975B/yr" annualized pace: 812,536,300,000 ÷ 10 months × 12).
+    const yCurr = i.ledger.byYear[y] ?? 812_536_300_000;
     const elapsed = Math.max(1, Math.min(12, now.getUTCMonth() + 1));
     const annualized = (yCurr / elapsed) * 12;
     const speed = ramp(annualized, 400_000_000_000, 1_200_000_000_000);

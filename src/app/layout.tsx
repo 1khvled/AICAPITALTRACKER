@@ -1,20 +1,31 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { Header } from "@/components/Header";
+import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { MarketTickerTape } from "@/components/MarketTickerTape";
+import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
+import rawDeals from "@/data/deals.json";
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aicapitaltracker.com";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0e11" },
+  ],
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: "AI Capital Tracker — 12-Month Bubble Burst Probability & 169-Deal Ledger",
+    default: "AI Capital Tracker — Will the AI Bubble Burst in the Next 12 Months?",
     template: "%s | AI Capital Tracker",
   },
   description:
-    "Empirical 12-month AI bubble burst probability model converting verified SEC filings, reported CDS spreads, private lab revenues, and token economics into quantifiable financial risk.",
+    "The chance the AI bubble bursts within 12 months, read from filings and daily credit spreads — plus the full ledger of sourced AI deals. No spin.",
   keywords: [
     "AI bubble",
     "AI bubble burst probability",
@@ -43,9 +54,9 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "AI Capital Tracker — 12-Month Bubble Burst Probability & 169-Deal Ledger",
+    title: "AI Capital Tracker — Will the AI Bubble Burst in the Next 12 Months?",
     description:
-      "A receipt-backed empirical model converting verified SEC filings, Oracle CDS spreads, lab revenues, and token economics into an empirical bubble burst probability.",
+      "A receipt-backed model that converts SEC filings, credit default swap spreads, lab revenue and token economics into a 12-month bubble burst probability.",
     url: baseUrl,
     siteName: "AI Capital Tracker",
     locale: "en_US",
@@ -53,9 +64,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AI Capital Tracker — 12-Month Bubble Burst Probability & 169-Deal Ledger",
+    title: "AI Capital Tracker — Will the AI Bubble Burst in the Next 12 Months?",
     description:
-      "Empirical 12-month AI bubble burst probability model converting verified SEC filings and debt commitments into quantifiable financial risk.",
+      "An empirical model that turns SEC filings and debt commitments into a 12-month AI bubble burst probability.",
     creator: "@aicapitaltracker",
   },
   robots: {
@@ -71,11 +82,21 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Applied before first paint so a returning reader never sees a white flash
+ * on the dark terminal chrome. Mirrors ThemeProvider's storage key.
+ */
+const themeBootScript = `(function(){try{var t=localStorage.getItem("theme");document.documentElement.classList.toggle("dark",t!=="light");}catch(e){document.documentElement.classList.add("dark");}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const model = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
+  const dealCount = rawDeals.length;
+  const totalDisclosedUsd = rawDeals.reduce((sum, deal) => sum + (deal.amount_usd || 0), 0);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -87,7 +108,7 @@ export default function RootLayout({
         applicationCategory: "FinanceApplication",
         operatingSystem: "All",
         description:
-          "An open, receipt-backed empirical financial model converting verified SEC filings, credit default swap spreads, lab multiples, and GPU debt facilities into a 12-month bubble burst probability.",
+          "An open, receipt-backed model converting verified SEC filings, credit default swap spreads, lab revenue run-rates and GPU debt facilities into a 12-month bubble burst probability.",
         offers: {
           "@type": "Offer",
           price: "0",
@@ -102,9 +123,8 @@ export default function RootLayout({
       {
         "@type": "Dataset",
         "@id": `${baseUrl}/#dataset`,
-        name: "AI Capital Allocation & Debt Ledger (169 Deals)",
-        description:
-          "Comprehensive database of 169 verified AI infrastructure financings totaling $2.86T, including convertible debt, cloud leases, GPU asset-backed credit facilities, and equity rounds.",
+        name: "AI Capital Allocation & Debt Ledger",
+        description: `Database of ${dealCount} verified AI infrastructure financings totalling $${(totalDisclosedUsd / 1e12).toFixed(2)}T, including convertible debt, cloud leases, GPU asset-backed credit facilities and equity rounds.`,
         url: `${baseUrl}/ledger`,
         creator: {
           "@type": "Organization",
@@ -116,28 +136,38 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@300;400;500;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap"
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          }}
         />
       </head>
-      <body className="min-h-screen bg-[#f8fafc] dark:bg-[#09090b] text-slate-900 dark:text-zinc-100 antialiased font-sans selection:bg-emerald-500 selection:text-black text-base">
+      <body className="min-h-dvh bg-canvas font-sans text-ink antialiased">
         <ThemeProvider>
-          <div className="flex flex-col min-h-screen">
+          <div className="flex min-h-dvh flex-col">
+            <a href="#main" className="skip-link">
+              Skip to content
+            </a>
             <MarketTickerTape />
-            <Header />
-            <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-8">
+            <Navbar burstProbability={model.burstProbability} band={model.band} />
+            <main id="main" className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
               {children}
             </main>
-            <Footer />
+            <Footer
+              burstProbability={model.burstProbability}
+              dealCount={dealCount}
+              totalDisclosedTrillions={(totalDisclosedUsd / 1e12).toFixed(2)}
+            />
           </div>
         </ThemeProvider>
       </body>

@@ -57,7 +57,7 @@
     "status": "Completed",
     "source_type": "SEC / Regulatory Filing",
     "amount_display": "€3B",
-    "amount_usd": 3000000000,
+    "amount_usd": 3488100000,
     "announced_date": "8 Sep 2026",
     "sources_count": 1,
     "description": "Mistral AI raised €3 billion in a Series D at a post-money valuation above €21 billion — per the company, the largest equity fundraising round ever completed by a European technology company. Samsung Electronics led, joined by co-leads Scaleup Europe Fund (managed by EQT) and existing investor PSG Equity; Advent, BlackRock-managed funds and the Grand Duchy of Luxembourg joined as new investors, and existing holders including ASML, Andreessen Horowitz, NVIDIA, Lightspeed, General Catalyst, DST Global, Index Ventures, Salesforce Ventures and Bpifrance participated. The round funds deeper frontier research, expanded infrastructure and accelerated international growth, nearly doubling the €11.7B valuation set by the ASML-led Series C a year earlier.",
@@ -65,7 +65,8 @@
     "is_debt": false,
     "is_compute": false,
     "is_circular": false,
-    "is_mega": false
+    "is_mega": false,
+    "confidence_note": "re-verified 2026-10-19: EUR kept in display; amount_usd corrected from a 1:1 EUR/USD mapping to the announcement-date FX value - EUR/USD 1.1627 on 8 Sep 2026 (exchange-rates.org and exchangerates.org.uk dated history; Investing.com close 1.1625) x EUR 3B = $3,488,100,000 (~$3.49B). The source's own '(about $3.58 billion)' implies 1.1933 - a rate not observed in September 2026 (range 1.1331-1.1638) and inconsistent with the same article's valuation conversion (EUR 21B = about $24.39B -> 1.1614) - so the previously recorded $3.58B was a stale conversion, not the announcement-date value. https://techcrunch.com/2026/09/08/mistral-raises-e3b-as-sovereign-ai-becomes-big-business/"
   },
   {
     "id": "deal-005",
@@ -94,12 +95,13 @@
     "amount_usd": 0,
     "announced_date": "19 Aug 2026",
     "sources_count": 3,
-    "description": "Stripe announced on August 19, 2026 that it agreed to acquire OpenRouter, the largest AI model marketplace and inference gateway, routing 10+ trillion tokens daily across 400+ models and marketed by observers as \\",
+    "description": "Stripe announced on August 19, 2026 that it agreed to acquire OpenRouter, the largest AI model marketplace and inference gateway, routing 10+ trillion tokens daily across 400+ models and marketed by observers as \"the Stripe for LLMs\". Official terms were not disclosed; the New York Times reported a price of about $7.5 billion incl. $1.5 billion for OpenRouter founders (https://www.nytimes.com/2026/08/19/business/stripe-openrouter-ai.html).",
     "year": 2026,
     "is_debt": false,
     "is_compute": false,
     "is_circular": false,
-    "is_mega": false
+    "is_mega": false,
+    "confidence_note": "re-verified 2026-10-19: quote completed; announced officially Aug 19, 2026 with terms undisclosed (CNBC) - https://www.cnbc.com/2026/08/19/stripe-openrouter-fintech-ai-model-marketplace-.html"
   },
   {
     "id": "deal-007",
@@ -184,7 +186,8 @@
     "is_debt": false,
     "is_compute": false,
     "is_circular": false,
-    "is_mega": true
+    "is_mega": true,
+    "confidence_note": "re-verified 2026-10-19: closing confirmed Aug 14, 2026 via SpaceX SEC filing - ~389.3M Class A shares issued to Anysphere holders - https://www.tradingkey.com/analysis/stocks/us-stocks/262114322-spacex-spcx-cursor-acquisition-60-billion-anysphere-starlink-ai-revenue-enterprise-coding-platform-tradingkey"
   },
   {
     "id": "deal-012",
@@ -207,7 +210,7 @@
     "id": "deal-013",
     "title": "Alphabet ~$85B Equity Capital Raise with $10B Berkshire Cornerstone",
     "category": "Bets & rounds",
-    "status": "Announced, not done",
+    "status": "Running",
     "source_type": "Verified Announcement",
     "amount_display": "$85B",
     "amount_usd": 85000000000,
@@ -218,7 +221,8 @@
     "is_debt": false,
     "is_compute": false,
     "is_circular": false,
-    "is_mega": true
+    "is_mega": true,
+    "confidence_note": "re-verified 2026-10-19: announced $80B on Jun 1, 2026; upsized/priced to $84.75B on Jun 2, 2026 incl. the $10B Berkshire private placement, grew to ~$90B with underwriters' options exercised in full; the $40B ATM program sells onward from Q3 2026 - https://www.sec.gov/Archives/edgar/data/1652044/000119312526251733/d160205dfwp.htm ; https://s206.q4cdn.com/479360582/files/doc_news/2026/Jun/03/attachments/Alphabet-Pricing-Press-Release_2026-06-03.pdf ; https://www.clearygottlieb.com/news-and-insights/news-listing/alphabet-in-80-billion-equity-offerings-jun-2026"
   },
   {
     "id": "deal-014",
@@ -261,7 +265,7 @@
     "status": "Signed",
     "source_type": "SEC / Regulatory Filing",
     "amount_display": "$21B",
-    "amount_usd": 2026,
+    "amount_usd": 21000000000,
     "announced_date": "9 Apr 2026",
     "sources_count": 2,
     "description": "Expansion of the Meta-CoreWeave relationship recorded separately from the September 2025 $14.2B order form (20000000-0000-0000-0000-000000000115): per CoreWeave’s Form 8-K, Meta entered a new order form on March 31, 2026 under the same December 2023 master services agreement, initially committing approximately $21 billion for dedicated AI cloud capacity — inclusive of new capacity through December 20, 2032 and the exercise of an existing option for additional capacity through April 10, 2032. The dedicated capacity spans multiple locations and includes some of the first deployments of the NVIDIA Vera Rubin platform, scaling Meta’s AI inference workloads.",
@@ -269,7 +273,8 @@
     "is_debt": false,
     "is_compute": true,
     "is_circular": false,
-    "is_mega": false
+    "is_mega": true,
+    "confidence_note": "re-verified 2026-10-19: amount_usd was recorded as 2026 (typo); CoreWeave's April 9, 2026 announcement prices the expanded agreement at approximately $21 billion through December 2032 - https://www.coreweave.com/news/coreweave-and-meta-announce-21-billion-expanded-ai-infrastructure-agreement. is_mega flipped false → true on 2026-10-19 (pass 11): amount_usd $21B ≥ the $10B mega threshold, so the flag now agrees with the pipeline's mega rule (is_mega || amount_usd >= 10B) — flag-only mega count 48 → 49, matching the rule's 49 total; the trailing-365-day count (25) and all ledger totals are unchanged"
   },
   {
     "id": "deal-017",
@@ -383,12 +388,13 @@
     "amount_usd": 250000000000,
     "announced_date": "2 Feb 2026",
     "sources_count": 2,
-    "description": "Elon Musk combined his rocket, satellite-internet and AI empires: SpaceX signed an Agreement and Plan of Merger and Reorganization with X.AI Holdings Corp. (xAI) on January 31, 2026 and completed the all-stock merger on February 2, 2026, announced the same day - making xAI (developer of Grok and owner of the X social platform following the 2025 xAI-X merger) a wholly owned SpaceX subsidiary through a two-step Nevada merger (K2 Merger Sub Inc., then K2 Merger Sub 2 LLC). The transaction valued xAI at approximately $250 billion within a combined company valued around $1 trillion, with the combined entity reported at roughly $1.25 trillion ahead of a planned IPO (Reuters, citing Bloomberg, called it the biggest M&A transaction of all time), positioning the combination to fund Musk's ambitions for data centers in space. The structure was an intended tax-free reorganization (IRC Section 368) that avoided repayment triggers on xAI's debt and shielded SpaceX from xAI legal liabilities, per Reuters' follow-up on completed-deal mechanics. Musk framed the merger as \\",
+    "description": "Elon Musk combined his rocket, satellite-internet and AI empires: SpaceX signed an Agreement and Plan of Merger and Reorganization with X.AI Holdings Corp. (xAI) on January 31, 2026 and completed the all-stock merger on February 2, 2026, announced the same day - making xAI (developer of Grok and owner of the X social platform following the 2025 xAI-X merger) a wholly owned SpaceX subsidiary through a two-step Nevada merger (K2 Merger Sub Inc., then K2 Merger Sub 2 LLC). The transaction valued xAI at approximately $250 billion, bringing the combined company to roughly $1.25 trillion (SpaceX itself valued at about $1 trillion), ahead of a planned IPO that could value it at over $1.5 trillion (Reuters, citing Bloomberg, called it the biggest M&A transaction of all time), positioning the combination to fund Musk's ambitions for data centers in space. The structure was an intended tax-free reorganization (IRC Section 368) that avoided repayment triggers on xAI's debt and shielded SpaceX from xAI legal liabilities, per Reuters' follow-up on completed-deal mechanics. Musk framed the merger as \"the most ambitious, vertically-integrated innovation engine on (and off) Earth, with AI, rockets, space-based internet and X social media\" (SpaceX blog/CNBC).",
     "year": 2026,
     "is_debt": false,
     "is_compute": false,
     "is_circular": false,
-    "is_mega": true
+    "is_mega": true,
+    "confidence_note": "re-verified 2026-10-19: combined-company valuation corrected from ~$1T to ~$1.25T (SpaceX $1T + xAI $250B); largest merger on record per CNBC https://www.cnbc.com/2026/02/03/musk-xai-spacex-biggest-merger-ever.html"
   },
   {
     "id": "deal-024",
@@ -524,7 +530,8 @@
     "is_debt": false,
     "is_compute": false,
     "is_circular": false,
-    "is_mega": false
+    "is_mega": false,
+    "confidence_note": "re-verified 2026-10-19: commitment architecture checks out; partial deployment evidenced - Microsoft recorded a $3.2B gain on its Anthropic stake in FY26 Q4 results (Jul 29, 2026) - https://techcrunch.com/2026/07/29/microsoft-logs-3-2b-from-anthropic-investment-but-openai-was-a-mixed-bag/"
   },
   {
     "id": "deal-032",
@@ -588,6 +595,7 @@
     "announced_date": "3 Nov 2025",
     "sources_count": 2,
     "description": "Alphabet sold approximately $25 billion of bonds in early November 2025 — $17.5 billion of eight-part US dollar notes (3- to 50-year) plus EUR 6.5 billion of euro notes — drawing about $90 billion of USD orders; proceeds support record AI-driven cloud capital expenditures guided at $91-93 billion for 2025. Morgan Stanley was among the lead managers of the US dollar offering alongside Goldman Sachs, HSBC, JPMorgan, Bank of America, Citigroup, and Wells Fargo.",
+    "confidence_note": "fx-audit 2026-10-19: mixed-currency aggregate verified - $17.5B of US dollar notes plus EUR 6.5B of euro notes; ECB reference 1.1514 on 3 Nov 2025 (EUR-Lex C/2025/5649) x EUR 6.5B = $7,484,100,000, so the announced total is $24.98B, consistent with the disclosed 'approximately $25 billion'. amount_usd unchanged. https://eur-lex.europa.eu/legal-content/EN/TXT/PDF?uri=OJ%3AC_202505649",
     "year": 2025,
     "is_debt": true,
     "is_compute": false,
@@ -1009,10 +1017,11 @@
     "status": "Completed",
     "source_type": "SEC / Regulatory Filing",
     "amount_display": "€1.7B",
-    "amount_usd": 1700000000,
+    "amount_usd": 1996480000,
     "announced_date": "9 Sep 2025",
     "sources_count": 1,
     "description": "Mistral AI raised €1.7 billion in a Series C at an €11.7 billion post-money valuation led by ASML (€1.3B, ~11% stake) with NVIDIA, Andreessen Horowitz, DST Global, General Catalyst and others participating, alongside a long-term ASML strategic partnership.",
+    "confidence_note": "fx-audit 2026-10-19: EUR kept in display; amount_usd corrected from a 1:1 EUR/USD mapping (1,700,000,000) to the announcement-date FX value - EUR/USD 1.1744 on 9 Sep 2025 (ECB daily parity via Banque de France, exchange rates daily parities 2025-09-09) x EUR 1.7B = $1,996,480,000 (~$2.0B). https://www.banque-france.fr/en/statistics/rates-and-prices/exchange-rates-daily-parities-2025-09-09",
     "year": 2025,
     "is_debt": false,
     "is_compute": false,
@@ -1093,8 +1102,8 @@
     "category": "Share sales",
     "status": "Completed",
     "source_type": "Verified Press Report",
-    "amount_display": "Not disclosed",
-    "amount_usd": 0,
+    "amount_display": "$6.6B",
+    "amount_usd": 6600000000,
     "announced_date": "15 Aug 2025",
     "sources_count": 2,
     "description": "OpenAI current and former employees sold approximately $6.6 billion of existing shares to a consortium of investors including SoftBank, Thrive Capital, Dragoneer Investment Group, Abu Dhabi's MGX and T. Rowe Price, completing on October 2, 2025 at a $500 billion valuation that made OpenAI the world's most valuable private company. The sale fell short of the over $10 billion (reported as $10.3 billion) of stock OpenAI had authorized for the secondary - which insiders read as a sign of employee confidence and continued investor demand - and, as a pure secondary, OpenAI itself raised no new primary capital. Bloomberg first reported the buyer lineup on August 15, 2025, and the sale adds to SoftBank's position from OpenAI's earlier $40 billion primary round.",
@@ -1102,7 +1111,8 @@
     "is_debt": false,
     "is_compute": false,
     "is_circular": false,
-    "is_mega": false
+    "is_mega": false,
+    "confidence_note": "re-verified 2026-10-19: amount fields were 'Not disclosed'/0 despite a completed, quantified secondary; Bloomberg confirmed completion Oct 2, 2025 at $6.6B / $500B valuation - https://www.bloomberg.com/news/articles/2025-10-02/openai-completes-share-sale-at-record-500-billion-valuation"
   },
   {
     "id": "deal-066",
@@ -1244,18 +1254,19 @@
     "id": "deal-074",
     "title": "CoreWeave's ~$9B All-Stock Acquisition of Core Scientific - Announced July 2025, Rejected by Stockholders and Terminated",
     "category": "Buyouts & mergers",
-    "status": "Announced",
+    "status": "Cancelled",
     "source_type": "SEC / Regulatory Filing",
     "amount_display": "$9B",
     "amount_usd": 9000000000,
     "announced_date": "7 Jul 2025",
     "sources_count": 2,
-    "description": "CoreWeave and Core Scientific signed a definitive agreement on July 7, 2025 under which CoreWeave would acquire Core Scientific in an all-stock transaction: 0.1235 newly issued CoreWeave Class A shares per Core Scientific share, implying a total equity value of approximately $9.0 billion ($20.40 per share, a ~66% premium to the unaffected June 25, 2025 price of $12.30), giving CoreWeave ownership of ~1.3 GW of gross power across Core Scientific's footprint (including ~840 existing gross MW already supporting CoreWeave HPC contracts plus ~500 gross MW of crypto-mining capacity) with 1 GW+ expansion potential, and eliminating over $10 billion of projected 12-year lease overhead. The deal was expected to close in Q4 2025, but activist holder Two Seas Capital (~6.2%, its largest active shareholder) campaigned against the fixed, uncollared exchange-ratio structure and valuation, ISS and Glass Lewis recommended voting no, and on October 30, 2025 Core Scientific stockholders failed to approve the merger - casting 20,752,327 votes for versus 203,451,498 against (with 21,588,639 abstentions) - the rare large AI-era deal killed by a target-side shareholder vote. Pursuant to the merger agreement, Core Scientific terminated it effective immediately the same day; no termination fee was payable by Core Scientific for a pure vote-failure termination; and the company remains independent and Nasdaq-listed (CORZ). The commercial relationship survived the failed deal: CoreWeave remains Core Scientific's anchor HPC colocation customer, and CoreWeave CEO Michael Intrator said \\",
+    "description": "CoreWeave and Core Scientific signed a definitive agreement on July 7, 2025 under which CoreWeave would acquire Core Scientific in an all-stock transaction: 0.1235 newly issued CoreWeave Class A shares per Core Scientific share, implying a total equity value of approximately $9.0 billion ($20.40 per share, a ~66% premium to the unaffected June 25, 2025 price of $12.30), giving CoreWeave ownership of ~1.3 GW of gross power across Core Scientific's footprint (including ~840 existing gross MW already supporting CoreWeave HPC contracts plus ~500 gross MW of crypto-mining capacity) with 1 GW+ expansion potential, and eliminating over $10 billion of projected 12-year lease overhead. The deal was expected to close in Q4 2025, but activist holder Two Seas Capital (~6.2%, its largest active shareholder) campaigned against the fixed, uncollared exchange-ratio structure and valuation, ISS and Glass Lewis recommended voting no, and on October 30, 2025 Core Scientific stockholders failed to approve the merger - casting 20,752,327 votes for versus 203,451,498 against (with 21,588,639 abstentions) - the rare large AI-era deal killed by a target-side shareholder vote. Pursuant to the merger agreement, Core Scientific terminated it effective immediately the same day; no termination fee was payable by Core Scientific for a pure vote-failure termination; and the company remains independent and Nasdaq-listed (CORZ). The commercial relationship survived the failed deal: CoreWeave remains Core Scientific's anchor HPC colocation customer, and CoreWeave CEO Michael Intrator said \"We respect the views of Core Scientific stockholders and look forward to continuing our commercial partnership.\"",
     "year": 2025,
     "is_debt": false,
     "is_compute": false,
     "is_circular": false,
-    "is_mega": false
+    "is_mega": false,
+    "confidence_note": "re-verified 2026-10-19: status corrected to Cancelled - Core Scientific stockholders voted down and terminated the merger on Oct 30, 2025 (20.8M for / 203.5M against) - https://www.reuters.com/business/core-scientific-terminates-9-billion-merger-deal-with-coreweave-2025-10-30 ; https://investors.corescientific.com/news-events/press-releases/detail/124/core-scientific-announces-termination-of-merger-agreement-with-coreweave"
   },
   {
     "id": "deal-075",
@@ -1907,7 +1918,7 @@
     "id": "deal-113",
     "title": "Meta Aborted Nuclear AI Data Center Colocation & Environmental Stoppage",
     "category": "Power & land",
-    "status": "Announced",
+    "status": "Cancelled",
     "source_type": "Verified Press Report",
     "amount_display": "Not disclosed",
     "amount_usd": 0,
@@ -1918,7 +1929,8 @@
     "is_debt": false,
     "is_compute": false,
     "is_circular": false,
-    "is_mega": false
+    "is_mega": false,
+    "confidence_note": "re-verified 2026-10-19: status corrected to Cancelled - Meta abandoned the behind-the-meter nuclear colocation plan in Nov 2024 after the endangered-bee environmental review - https://www.ft.com/content/ed602e09-6c40-4979-aff9-7453ee28406a"
   },
   {
     "id": "deal-114",
@@ -1926,8 +1938,8 @@
     "category": "Power & land",
     "status": "Disputed",
     "source_type": "Verified Announcement",
-    "amount_display": "$650M",
-    "amount_usd": 650000000,
+    "amount_display": "Not disclosed",
+    "amount_usd": 0,
     "announced_date": "1 Nov 2024",
     "sources_count": 1,
     "description": "The Federal Energy Regulatory Commission (FERC) voted 2-1 on November 1, 2024, to reject an amended Interconnection Service Agreement allowing Amazon Web Services to expand its direct behind-the-meter colocation at the Susquehanna nuclear power station from 300 MW to 480 MW following protests by AEP and Exelon over cost-shifting.",
@@ -1935,7 +1947,8 @@
     "is_debt": false,
     "is_compute": false,
     "is_circular": false,
-    "is_mega": false
+    "is_mega": false,
+    "confidence_note": "re-verified 2026-10-19: value basis corrected - the $650M belongs to the separate March 2024 AWS purchase of the Cumulus data center campus (tracked at deal-149), not to the FERC ISA order, which no longer carries the price's debt/total weighting - https://www.spglobal.com/market-intelligence/en/news-insights/articles/2024/3/talen-energy-sells-pa-datacenter-campus-to-amazon-web-services-for-650m-80711401 "
   },
   {
     "id": "deal-115",
@@ -2288,6 +2301,7 @@
     "announced_date": "11 Jun 2024",
     "sources_count": 1,
     "description": "French frontier AI developer Mistral AI raised €600 million (~$640M USD) comprising €468 million in equity and €132 million in debt in a Series B round led by General Catalyst, alongside NVIDIA, Salesforce, and Bpifrance, valuing the company at €5.8 billion.",
+    "confidence_note": "fx-audit 2026-10-19: press-quoted '~$640M' cross-checked - ECB reference 1.0730 on 11 Jun 2024 x EUR 600M = $643,800,000; the source-quoted $640M announcement-day equivalent (-0.6% vs ECB math) is retained, so this is not a 1:1 mapping. https://www.ecb.europa.eu/stats/exchange/eurofxref/shared/pdf/2024/06/20240611.pdf",
     "year": 2024,
     "is_debt": false,
     "is_compute": false,
@@ -2417,7 +2431,7 @@
     "id": "deal-143",
     "title": "OpenAI, Jony Ive & LoveFrom $1.0B+ Stealth AI Hardware Venture (\"io\")",
     "category": "Bets & rounds",
-    "status": "Announced, not done",
+    "status": "Cancelled",
     "source_type": "Verified Announcement",
     "amount_display": "$1B",
     "amount_usd": 1000000000,
@@ -2428,7 +2442,8 @@
     "is_debt": false,
     "is_compute": false,
     "is_circular": false,
-    "is_mega": false
+    "is_mega": false,
+    "confidence_note": "re-verified 2026-10-19: the stealth $1B+ financing initiative never consummated and was superseded when OpenAI acquired io for $6.5B (announced May 21, 2025; merged July 9, 2025; tracked at deal-083) - https://www.reuters.com/business/openai-acquire-jony-ives-hardware-startup-io-products-2025-05-21/ ; https://openai.com/sam-and-jony/"
   },
   {
     "id": "deal-144",
@@ -2547,7 +2562,8 @@
     "is_debt": false,
     "is_compute": false,
     "is_circular": false,
-    "is_mega": true
+    "is_mega": true,
+    "confidence_note": "re-verified 2026-10-19: original sourcing checks out (Bloomberg/Reuters Feb 16, 2024 - https://www.bloomberg.com/news/articles/2024-02-16/masayoshi-son-seeks-to-build-a-100-billion-ai-chip-venture); no evidence the venture was ever funded as such - left as reported plan (Announced)"
   },
   {
     "id": "deal-151",
@@ -2577,6 +2593,7 @@
     "announced_date": "2 Nov 2023",
     "sources_count": 1,
     "description": "Northern Data Group secured a €575 million ($610M USD equivalent) unsecured debt financing facility from Tether Group running through 2030, funding the procurement of NVIDIA H100 supercomputers and data centers for its AI cloud subsidiary Taiga Cloud.",
+    "confidence_note": "fx-audit 2026-10-19: disclosed '$610M USD equivalent' cross-checked - ECB reference 1.0661 on 2 Nov 2023 x EUR 575M = $613,007,500; the source-quoted $610M announcement-day equivalent (-0.5% vs ECB math) is retained, so this is not a 1:1 mapping. https://www.ecb.europa.eu/stats/exchange/eurofxref/shared/pdf/2023/11/20231102.pdf",
     "year": 2023,
     "is_debt": true,
     "is_compute": false,
@@ -2640,11 +2657,12 @@
     "category": "Buyouts & mergers",
     "status": "Completed",
     "source_type": "SEC / Regulatory Filing",
-    "amount_display": "$435M",
-    "amount_usd": 435000000,
+    "amount_display": "€400M",
+    "amount_usd": 447880000,
     "announced_date": "20 Jul 2023",
     "sources_count": 1,
     "description": "Northern Data AG completed the €400 million stock-for-stock contribution-in-kind acquisition of Damoon Limited from Tether, acquiring immediate title to over 10,000 NVIDIA H100 GPUs to seed Taiga Cloud and giving Tether a majority cornerstone equity stake.",
+    "confidence_note": "fx-audit 2026-10-19: display corrected to the disclosed currency (EUR 400M) - the prior '$435M' carried no source in the record; amount_usd corrected from 435,000,000 (implied rate 1.0875) to the announcement-date FX value - ECB reference 1.1197 on 20 Jul 2023 (EUR-Lex 2023/C 256/12) x EUR 400M = $447,880,000 (~$448M). https://eur-lex.europa.eu/legal-content/EN/TXT/PDF?uri=CELEX%3AC2023%2F256%2F12",
     "year": 2023,
     "is_debt": false,
     "is_compute": true,
@@ -2693,14 +2711,15 @@
     "source_type": "SEC / Regulatory Filing",
     "amount_display": "$15B",
     "amount_usd": 15000000000,
-    "announced_date": "04 Oct 2026",
+    "announced_date": "3 Sep 2026",
     "sources_count": 2,
     "description": "Anthropic lined up a $15.0 billion multi-bank revolving credit facility arranged by Morgan Stanley, Goldman Sachs, JPMorgan Chase, and Citigroup ahead of its public market debut. The facility provides liquidity buffers and balance-sheet capacity to manage cash flow against massive compute commitments while bridging to anticipated profitability.",
     "year": 2026,
     "is_debt": true,
     "is_compute": false,
     "is_circular": false,
-    "is_mega": true
+    "is_mega": true,
+    "confidence_note": "re-verified 2026-10-19: announcement date corrected - first reported Aug 18, 2026 as a >$10B facility (https://www.reuters.com/legal/transactional/anthropics-pre-ipo-credit-facility-set-exceed-10-billion-bloomberg-news-reports-2026-08-18/), sized to $15B set-to-finalize per Bloomberg Sep 3, 2026 (https://www.bloomberg.com/news/articles/2026-09-03/anthropic-nears-finalizing-15-billion-pre-ipo-credit-facility)"
   },
   {
     "id": "deal-160",
@@ -2721,32 +2740,34 @@
   },
   {
     "id": "deal-161",
-    "title": "CoreWeave $6.5 Billion Debt Facility Expansion Led by Blackstone, Carlyle & Coatue",
+    "title": "CoreWeave Debt Facility Expansion (no new debt - restates the existing Blackstone-led facility)",
     "category": "Borrowed",
     "status": "Completed",
-    "source_type": "Verified Announcement",
-    "amount_display": "$6.5B",
-    "amount_usd": 6500000000,
+    "source_type": "SEC / Regulatory Filing",
+    "amount_display": "Expansion of existing $7.5B facility (no new debt)",
+    "amount_usd": 0,
     "announced_date": "15 Jan 2026",
-    "sources_count": 3,
-    "description": "CoreWeave expanded its existing borrowing facility to $6.5 billion in an asset-backed debt syndicate co-led by Blackstone, Carlyle, and Coatue Management, alongside participation from BlackRock, DigitalBridge, and Fidelity. The facility is directly collateralized by CoreWeave's contracted enterprise cloud fleet of NVIDIA Blackwell B200 and H100 GPU clusters, cementing private credit's role in financing specialized AI compute buildouts.",
+    "sources_count": 2,
+    "description": "Adjudicated 2026-10-19: CoreWeave's Q2 2026 Form 10-Q debt note (filed Aug 12, 2026) enumerates every instrument on the balance sheet at June 30, 2026 - DDTL 1.0 ($1,300M), DDTL 2.0 ($3,190M), DDTL 2.1 ($3,000M), DDTL 3.0 ($2,215M), DDTL 5.0 ($1,101M), 2030/2031/2032 senior notes (incl. EUR 2,000M notes), 2031/2032 convertible notes, OEM and software-license financing ($4,220M) and the Magnetar loan - with H1 2026 issuances limited to DDTL 4.0 ($8.5B capacity, March), the 2031 9.75% notes ($2.75B, April), the 2032 converts ($4.0B, April), DDTL 5.0 ($3.1B, May), the 2032 9.625% notes ($1.25B, June) and the 2032 EUR notes (June). No January 2026 facility and no $6.5B CoreWeave debt instrument appears in that note, and the syndicated lender set named in the prior version of this record (Blackstone, Carlyle, Coatue, BlackRock, DigitalBridge) duplicates the May 2024 $7.5B Blackstone-led facility already tracked at deal-138. The record's own wording - an expansion of an existing borrowing facility - confirms it restates existing CoreWeave borrowing capacity rather than raising new money, so amount_usd is set to 0 to keep the ledger's debt total free of the double count.",
     "year": 2026,
-    "is_debt": true,
+    "is_debt": false,
     "is_compute": true,
     "is_circular": false,
-    "is_mega": false
+    "is_mega": false,
+    "confidence_note": "re-verified 2026-10-19: double-count adjudication (panel flag) - CoreWeave's Q2 2026 10-Q Note 10 - Debt (SEC crwv-20260630.htm, filed Aug 12 2026) shows recourse debt of $31,405M and non-recourse $3,663M at Jun 30 2026 with no January 2026 facility and no $6.5B instrument; the only CoreWeave 2026 issuances are DDTL 4.0 (Mar, $8.5B capacity, $2.9B drawn), DDTL 5.0 (May, $3.1B), 2031 9.75% notes (Apr, $2.75B), 2032 converts (Apr, $4.0B), 2032 9.625% notes (Jun, $1.25B) and 2032 EUR notes (Jun, EUR 2.0B). The ledger books committed facility sizes, so the residual gap vs the 10-Q is undrawn capacity (DDTL 4.0 $8.5B vs $2.9B drawn). Relabelled as an expansion of the existing facility with amount_usd 0 (and is_debt false) so the debt total no longer double-counts it; the Jan 15 2026 date itself could not be verified. Sources: https://www.sec.gov/Archives/edgar/data/1769628/000176962826000366/crwv-20260630.htm ; https://www.blackstone.com/news/press/coreweave-secures-7-5-billion-debt-financing-facility-led-by-blackstone-and-magnetar"
   },
   {
     "id": "deal-162",
-    "title": "Vantage Data Centers $9.2 Billion Equity & Debt Expansion Syndicate Led by DigitalBridge & Silver Lake",
-    "category": "Power & land",
-    "status": "Completed",
+    "title": "Vantage Data Centers $2.4 Billion Debt Facility Arranged by Ares Management",
+    "category": "Borrowed",
+    "status": "Signed",
     "source_type": "Verified Announcement",
-    "amount_display": "$9.2B",
-    "amount_usd": 9200000000,
-    "announced_date": "11 Feb 2026",
-    "sources_count": 2,
-    "description": "Vantage Data Centers secured a $9.2 billion equity and debt financing syndicate co-led by DigitalBridge and Silver Lake to fund multi-gigawatt hyperscale AI datacenter campus construction across North America and Europe. The facility funds high-voltage electrical substations, liquid-cooling retrofits, and shell infrastructure for tier-1 hyperscalers and frontier AI laboratories.",
+    "amount_display": "$2.4B",
+    "amount_usd": 2400000000,
+    "announced_date": "10 Feb 2026",
+    "sources_count": 5,
+    "description": "Ares Management Corporation announced on February 10, 2026 that certain of its funds arranged a $2.4 billion debt facility for Vantage Data Centers, used to refinance existing indebtedness and support the development, construction and operation of data centers across Vantage's North America portfolio (17 campuses, 4 GW+ of IT load, ~100% leased to hyperscale customers). Ares holds approximately $1.6 billion of the commitment and funded approximately $330 million at closing.",
+    "confidence_note": "re-verified 2026-10-19: this record previously restated deal-132's June 2024 $9.2B DigitalBridge/Silver Lake equity raise as a separate February 2026 event - no independent 2026 $9.2B raise exists in press (the only $9.2B DigitalBridge/Silver Lake transaction is the June 2024 round tracked at deal-132); the verified February 2026 Vantage financing is the $2.4B Ares debt facility. Recast to the verified event (deal-114-style double-count removal). Sources: Ares IR 2026-02-10 https://ir.ares.com/news/ares-arranges-dollar24-billion-debt-facility-to-vantage-data-centers/c5a34084-ddb2-48c4-af66-db5c60c5c961 ; Bloomberg 2026-02-10 https://www.bloomberg.com/news/articles/2026-02-10/ares-lands-2-4-billion-loan-deal-for-vantage-data-centers ; Data Center Dynamics 2026-02-11 https://www.datacenterdynamics.com/en/news/ares-arranges-24bn-in-funding-for-vantage-data-centers/",
     "year": 2026,
     "is_debt": true,
     "is_compute": false,
@@ -2823,15 +2844,16 @@
   },
   {
     "id": "deal-167",
-    "title": "Mistral AI €1.5 Billion ($1.65B) Convertible Note & GPU Compute Facility with European Consortium",
+    "title": "Mistral AI €1.5 Billion ($1.77B) Convertible Note & GPU Compute Facility with European Consortium",
     "category": "Borrowed",
     "status": "Completed",
     "source_type": "Verified Announcement",
     "amount_display": "€1.5B",
-    "amount_usd": 1650000000,
+    "amount_usd": 1767900000,
     "announced_date": "16 Apr 2026",
     "sources_count": 2,
     "description": "Mistral AI secured a €1.5 billion ($1.65 billion) structured convertible note and dedicated GPU compute facility arranged with ASML and a sovereign European infrastructure consortium. The facility provides debt financing and hardware allocations to build sovereign European AI training superclusters ahead of frontier reasoning model milestones.",
+    "confidence_note": "fx-audit 2026-10-19: EUR kept in display; amount_usd corrected from the inline quoted $1,650,000,000 (implied rate ~1.10, a 2023-24 level that no longer applied) to the announcement-date FX value - EUR/USD 1.1786 on 16 Apr 2026 (exchange-rates.org daily history) x EUR 1.5B = $1,767,900,000 (~$1.77B). The source's own '$1.65 billion' parenthetical is left in the description as the reported figure. https://www.exchange-rates.org/exchange-rate-history/eur-usd-2026-04-16",
     "year": 2026,
     "is_debt": true,
     "is_compute": true,

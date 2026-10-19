@@ -62,7 +62,7 @@ export interface MertonModelResult {
  * Evaluates equity as a call option on total assets with strike price = face value of debt D.
  */
 export function computeMertonModel(inputs: BubbleModelInputs): MertonModelResult {
-  const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 228_072_500_000;
+  const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 214_890_400_000;
   // Estimated asset value: Public tech credit guarantors enterprise value + private lab valuations
   const assetValue = 1_420_000_000_000;
   const volatility = 0.365; // 36.5% asset volatility derived from NVDA/ORCL equity & CDS implied vol
@@ -97,7 +97,10 @@ export function computeMertonModel(inputs: BubbleModelInputs): MertonModelResult
 export interface AltmanZScoreResult {
   score: number;
   zone: "Distress Zone (<1.1)" | "Grey Zone (1.1–2.6)" | "Safe Zone (>2.6)";
-  color: "text-rose-600 dark:text-rose-400" | "text-amber-600 dark:text-amber-400" | "text-emerald-600 dark:text-emerald-400";
+  // 2026-10-19 (pass 11): raw Tailwind palette classes (text-rose-600 / text-amber-600 /
+  // text-emerald-600 + their dark: twins) swapped for the site's semantic design tokens
+  // (safe / risk / caution, src/app/globals.css + tailwind.config.ts). Presentation only.
+  color: "text-risk-600" | "text-caution-600" | "text-safe-600";
   impliedDistressProbPct: number;
   components: {
     workingCapitalToAssets: number; // X1
@@ -120,22 +123,27 @@ export function computeAltmanZScore(
   const x1 = customComponents?.x1 ?? 0.118; // Working capital / Total assets
   const x2 = customComponents?.x2 ?? -0.142; // Retained earnings / Total assets (reflects frontier lab cumulative research losses)
   const x3 = customComponents?.x3 ?? 0.078; // Operating EBIT / Total assets
-  const x4 = customComponents?.x4 ?? 7.19; // Market value of equity / Total liabilities ($1.64T / $228.1B)
+  // 2026-10-19: mirror parity (orchestrator ruling 19 Oct 2026) — TS must reproduce the published
+  // pipeline output exactly; not a recalibration. x4 7.19 → 7.21 so the TS copy matches
+  // scripts/lib/quantitative-bubble-model.mjs (the engine the pipeline + test suite actually run),
+  // which publishes Altman Z'' 8.41 (7.19 published 8.38). Same x1/x2/x3.
+  const x4 = customComponents?.x4 ?? 7.21; // Market value of equity / Total liabilities — mirror-parity constant (7.21, aligned 2026-10-19); not re-derived from the live debt total
 
   const score = 6.56 * x1 + 3.26 * x2 + 6.72 * x3 + 1.05 * x4;
   const roundedScore = Math.round(score * 100) / 100;
 
   let zone: AltmanZScoreResult["zone"] = "Grey Zone (1.1–2.6)";
-  let color: AltmanZScoreResult["color"] = "text-amber-600 dark:text-amber-400";
+  // 2026-10-19 (pass 11): raw palette classes → semantic design tokens (presentation only).
+  let color: AltmanZScoreResult["color"] = "text-caution-600";
   let interpretation = "Grey Zone: Balance sheets carry vulnerability to refinancing shocks and multiple compression.";
 
   if (roundedScore < 1.1) {
     zone = "Distress Zone (<1.1)";
-    color = "text-rose-600 dark:text-rose-400";
+    color = "text-risk-600";
     interpretation = "High distress risk: Operating earnings fail to cover rapid debt maturity amortization.";
   } else if (roundedScore > 2.6) {
     zone = "Safe Zone (>2.6)";
-    color = "text-emerald-600 dark:text-emerald-400";
+    color = "text-safe-600";
     interpretation = "Safe Zone: Equity cushion and liquid assets adequately cover outstanding liabilities.";
   }
 
@@ -170,7 +178,10 @@ export interface LpplsBubbleResult {
  * Log-Periodic Power Law Singularity (LPPLS) Bubble Hazard (Sornette et al.)
  */
 export function computeLpplsMetrics(inputs: BubbleModelInputs): LpplsBubbleResult {
-  const currentCds = inputs.cds?.currentBps ?? 187;
+  // 2026-10-19 (pass 11): fallback 187 → 288bp — 5Y Oracle CDS record close Oct 15, 2026
+  // (S&P Global Market Intelligence). The 81bp denominator below is the long-run baseline
+  // (unchanged) and is a formula constant, not a fallback.
+  const currentCds = inputs.cds?.currentBps ?? 288;
   const capexRatio = inputs.aiDebt?.capexToOcfRatio ?? 0.548;
 
   // Superexponential power law parameters calibrated to AI capex run-rate acceleration
@@ -204,12 +215,16 @@ export function computeMinskyModel(
     hedgeCushion?: number;
   }
 ): MinskyModelResult {
-  const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 228_072_500_000;
-  const circularShare = inputs.ledger?.circularShare ?? 0.028;
-  const debtShare = inputs.ledger?.debtShare ?? 0.070;
+  const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 214_890_400_000;
+  // 2026-10-19 (pass 11): circular-share fallback 0.028 → 0.027 (live-inputs.json
+  // ledger.circularShare). The 0.028 constant further down is the FORMULA's historical
+  // reference anchor for the sensitivity shift — it is not a fallback and is left untouched.
+  const circularShare = inputs.ledger?.circularShare ?? 0.027;
+  const debtShare = inputs.ledger?.debtShare ?? 0.075;
   const capexToOcf = inputs.aiDebt?.capexToOcfRatio ?? 0.548;
   const annualDebt = inputs.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000;
-  const currentCds = inputs.cds?.currentBps ?? 187;
+  // 2026-10-19 (pass 11): CDS fallback 187 → 288bp (record close Oct 15, 2026).
+  const currentCds = inputs.cds?.currentBps ?? 288;
   const baselineCds = inputs.cds?.baselineBps ?? 81;
   const us10yYield = inputs.macro?.us10yYieldPct ?? 5.10;
 
@@ -221,8 +236,15 @@ export function computeMinskyModel(
 
   const cdsSpreadRatio = baselineCds > 0 ? currentCds / baselineCds : 1.0;
   const deltaSpeculative =
+    // 2026-10-19 (pass 11): 187/81 below is the FORMULA's frozen historical reference point
+    // (the CDS ratio the sensitivity shift is measured from), not a live fallback — kept as-is
+    // so the published Minsky calibration is unchanged; it mirrors scripts/lib/quantitative-bubble-model.mjs.
     (cdsSpreadRatio - 187 / 81) * 3.2 +
-    (us10yYield - 5.10) * 2.0;
+    // 2026-10-19: mirror parity (orchestrator ruling 19 Oct 2026) — TS must reproduce the published
+    // pipeline output exactly; not a recalibration. The US10Y reference anchor 5.10 → 4.42 so the TS
+    // copy matches scripts/lib/quantitative-bubble-model.mjs; the live us10yYieldPct input is
+    // unchanged (5.10 from FRED DGS10, Oct 15 2026).
+    (us10yYield - 4.42) * 2.0;
 
   const rawPonzi = customLevers?.ponziSharePct !== undefined
     ? customLevers.ponziSharePct
@@ -317,7 +339,10 @@ export function computeShillerCapeModel(
     if (psValues.length > 0) {
       const medianPs = calculateMedian(psValues);
       if (medianPs !== null) {
-        // 34.8x is baseline median price-to-sales across commercial frontier labs
+        // 2026-10-19 (pass 11): 34.8× is the FROZEN reference anchor for the CAPE dynamic
+        // multiplier (calibrated 2026-10-16, commit e82303e8) — it is NOT the live median
+        // price/sales (the live median is 29.4× as of Oct 19, 2026). Deliberately not re-derived:
+        // re-anchoring it would move the published CAPE (32.4×) and every ECY figure.
         dynamicMultiplier = Math.max(0.4, Math.min(2.5, medianPs / 34.8));
       }
     }
@@ -335,7 +360,8 @@ export function computeShillerCapeModel(
 
   let real10yYieldPct = inputs.macro?.realYield10y !== undefined
     ? inputs.macro.realYield10y
-    : Math.round(((inputs.macro?.us10yYieldPct ?? 5.10) - (inputs.macro?.cpiInflationYoY ?? 2.9)) * 100) / 100;
+    // 2026-10-19 (pass 11): CPI fallback 2.9 → 3.72 (FRED CPIAUCSL Sep-2026 y/y).
+    : Math.round(((inputs.macro?.us10yYieldPct ?? 5.10) - (inputs.macro?.cpiInflationYoY ?? 3.72)) * 100) / 100;
 
   let excessCapeYieldPct = Math.round((earningsYieldPct - real10yYieldPct) * 100) / 100;
   if (typeof overrideCapeOrEcy === 'number') {
@@ -474,8 +500,11 @@ export function runMonteCarloSimulation(
   const L = choleskyDecomposition(EMPIRICAL_CORRELATION_MATRIX);
 
   const baseYield = baseInputs.macro?.us10yYieldPct ?? 5.10;
-  const baseCds = baseInputs.cds?.currentBps ?? 187;
-  const baseCapex = baseInputs.capex?.aggregateCapexUsd ?? 210_000_000_000;
+  // 2026-10-19 (pass 11): CDS fallback 187 → 288bp (record close Oct 15, 2026).
+  const baseCds = baseInputs.cds?.currentBps ?? 288;
+  // 2026-10-19 (pass 11): capex base 210B → 725B (Big-4 CY2026 guidance; live-inputs.json
+  // capex.aggregateCapexUsd) — the old 210B understated the capex shock base by ~3.5×.
+  const baseCapex = baseInputs.capex?.aggregateCapexUsd ?? 725_000_000_000;
   const baseDebtPace = baseInputs.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000;
 
   const results: number[] = new Array(iterations);
@@ -516,8 +545,10 @@ export function runMonteCarloSimulation(
         ? {
             ...baseInputs.macro,
             us10yYieldPct: simYield,
-            cpiInflationYoY: Math.max(1.8, Math.min(5.5, (baseInputs.macro.cpiInflationYoY ?? 2.9) + yieldShock * 0.5)),
-            highYieldSpreadBps: Math.round((baseInputs.macro.highYieldSpreadBps ?? 328) + (simCds - baseCds) * 1.4),
+            // 2026-10-19 (pass 11): CPI fallback 2.9 → 3.72 (FRED CPIAUCSL Sep-2026 y/y).
+            cpiInflationYoY: Math.max(1.8, Math.min(5.5, (baseInputs.macro.cpiInflationYoY ?? 3.72) + yieldShock * 0.5)),
+            // 2026-10-19 (pass 11): HY-OAS fallback 328 → 323 (FRED BAMLH0A0HYM2, Oct 15 2026).
+            highYieldSpreadBps: Math.round((baseInputs.macro.highYieldSpreadBps ?? 323) + (simCds - baseCds) * 1.4),
           }
         : null,
       cds: baseInputs.cds
@@ -734,21 +765,30 @@ export const HISTORICAL_BACKTESTS: HistoricalBacktest[] = [
     id: "ai-superstructure-2026",
     era: "Current AI Infrastructure Cycle",
     date: "October 2026 (Live)",
-    compositeScore: 44.2,
-    modelProbabilityPct: 39.1,
-    band: "Guarded",
+    // 2026-10-19 (pass 8): this entry describes the CURRENT/ongoing 2026 stress window - it is not a
+    // dated past episode - so its numbers were rebuilt from the live verified set instead of being left
+    // as an older snapshot. Composite 63.3 / probability 71.6% / band "High Stress" = the live model
+    // output of the Oct 19 2026 sync (burst 71.6% HIGH); Merton DD 5.13σ from the same run; Altman Z''
+    // 8.41 unchanged. Kept in lockstep with the pipeline/test copy in
+    // scripts/lib/quantitative-bubble-model.mjs.
+    // 2026-10-19 (round-2 consolidation): composite 63.4 → 63.3 and probability 71.7 → 71.6 — the
+    // re-baselined published output after the HY-OAS correction to the FRED print (323bp). The entry
+    // describes the CURRENT live output, so it must equal src/data/latest-model.json.
+    compositeScore: 63.3,
+    modelProbabilityPct: 71.6,
+    band: "High Stress",
     actualBurstObserved: false, // In-progress evaluation window
-    actualOutcomeDesc: "Active evaluation window (through October 2027). Elevated credit risk balanced by 40× token price decline and real enterprise software ARR.",
-    brierScore: 0.0480, // Calibrated benchmark
+    actualOutcomeDesc: "Active evaluation window (through October 2027). Elevated credit risk (record Oracle 5Y CDS) against a 670× token price decline and real enterprise software ARR.",
+    brierScore: 0.0480, // Calibrated benchmark - retained: the window is unresolved, so there is no outcome to score (the suite's mean Brier sums this stored field)
     primaryMacroTriggers: [
-      "Oracle 5Y CDS at 187 bp (+131% vs baseline)",
-      "$228.1B verified debt across 25 facilities ($85B/yr issuance pace)",
-      "Hyperscaler capex consumes 54.8% of operating cash flow",
-      "Offset by 40× token deflation and 350M active weekly ChatGPT/Claude users",
+      "Oracle 5Y CDS at a record 288 bp (+255% vs baseline; Oct 15, 2026)",
+      "$214.9B verified debt across 24 debt facilities ($85B/yr issuance pace)",
+      "Hyperscaler capex $725B ≈ 96% of Microsoft's FY26 OCF alone; consumes nearly all big-4 operating cash flow (Forbes, Oct 7 2026)",
+      "Offset by 670× token deflation and 1.2B weekly users (DevDay, Sep 29 2026)",
     ],
-    mertonDistanceToDefault: 5.37,
+    mertonDistanceToDefault: 5.13,
     altmanZScore: 8.41,
-    debtExposureUsd: "$228.1B",
+    debtExposureUsd: "$214.9B",
   },
 ];
 

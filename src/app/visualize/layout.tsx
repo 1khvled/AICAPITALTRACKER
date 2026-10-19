@@ -1,26 +1,24 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Visual Charts & Bubble Dynamics — Sensitivity Curves, Capex Gap & Multiples",
+  title: "Charts — capex gap, valuations, token deflation and credit spreads",
   description:
-    "Interactive quantitative visualizations of the AI capital bubble: nonlinear burst probability sensitivity curves, hyperscaler capex vs enterprise revenue gap, capital composition distributions, and AI lab valuation multiples.",
+    "The same numbers the site reports, drawn: the hyperscaler capex gap, frontier lab multiples, inference price deflation and the Oracle credit spread.",
   keywords: [
+    "AI capex chart",
+    "hyperscaler capex gap",
+    "AI lab valuation multiples",
+    "inference token price deflation",
+    "Oracle credit default swap chart",
     "AI bubble charts",
-    "AI capex gap visualization",
-    "hyperscaler capex chart",
-    "OpenAI valuation multiple",
-    "Anthropic revenue multiple",
-    "AI sensitivity curves",
-    "GPU depreciation risk chart",
-    "AI credit contagion visualizer",
   ],
   alternates: {
     canonical: "/visualize",
   },
   openGraph: {
-    title: "Visual Charts & Bubble Dynamics | AI Capital Tracker",
+    title: "Charts | AI Capital Tracker",
     description:
-      "Explore nonlinear sensitivity curves, capex gap trajectories, and lab multiple compression charts tracking systemic AI infrastructure risk.",
+      "Capex against revenue, frontier lab multiples, token price deflation and credit spreads, drawn from the published dataset.",
     url: "/visualize",
     type: "website",
   },

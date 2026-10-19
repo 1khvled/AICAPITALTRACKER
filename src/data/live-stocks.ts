@@ -1,5 +1,19 @@
 import liveStocksData from "./live-stocks.json";
 
+/**
+ * Fallback mirror of live-stocks.json — synced 19 Oct 2026.
+ *
+ * Every market cap below is the value carried in live-stocks.json (the
+ * file the 24h pipeline writes). The caps were refreshed from filing
+ * cover-page share counts × the Oct 16/19 close: AMZN $2.61T → $2.70T,
+ * ORCL $353B → $387.8B, CEG $86.5B → $96.1B, NBIS $35.5B → $45.0B,
+ * SMCI $18.5B → $20.8B, and CRWV $53.2B → $33.9B (adjudicated 19 Oct 2026
+ * per the EDGAR verdict: 551,536,602 shares outstanding, 10-Q cover
+ * 31 Jul 2026, × $61.39; the $53.2B / 866.6M-share figure appears in no
+ * filing). If live-stocks.json ever fails to load, this list must not
+ * reintroduce the rejected numbers.
+ */
+
 export interface StockQuote {
   ticker: string;
   name: string;
@@ -66,7 +80,7 @@ const STATIC_STOCKS: StockQuote[] = [
     athUsd: 287.20,
     drawdownFromAthPct: -13.0,
     role: "AWS Bedrock & Anthropic $8B Strategic Partner",
-    marketCapDisplay: "$2.61T",
+    marketCapDisplay: "$2.70T", // live-stocks.json (19 Oct 2026): 10,786,313,572 sh (10-Q cover 22 Jul 2026) × $250.00
   },
   {
     ticker: "META",
@@ -99,7 +113,7 @@ const STATIC_STOCKS: StockQuote[] = [
     athUsd: 289.24,
     drawdownFromAthPct: -55.7,
     role: "5Y CDS Credit Proxy & GPU Cluster Debt Anchor",
-    marketCapDisplay: "$353B",
+    marketCapDisplay: "$387.8B", // live-stocks.json (19 Oct 2026): 3,023,736,000 sh (10-Q cover 7 Sep 2026) × $128.23
   },
   {
     ticker: "TSM",
@@ -132,7 +146,7 @@ const STATIC_STOCKS: StockQuote[] = [
     athUsd: 141.79,
     drawdownFromAthPct: -56.7,
     role: "Specialized GPU Neocloud & NVIDIA Blackwell Partner",
-    marketCapDisplay: "$53.2B",
+    marketCapDisplay: "$33.9B", // live-stocks.json (19 Oct 2026): 551,536,602 sh (10-Q cover 31 Jul 2026) × $61.39 — the $53.2B figure was adjudicated out
   },
   {
     ticker: "PLTR",
@@ -198,7 +212,7 @@ const STATIC_STOCKS: StockQuote[] = [
     athUsd: 406.04,
     drawdownFromAthPct: -33.2,
     role: "Three Mile Island Nuclear Restart for Microsoft",
-    marketCapDisplay: "$86.5B",
+    marketCapDisplay: "$96.1B", // live-stocks.json (19 Oct 2026): 354,307,379 sh (10-Q cover 31 Jul 2026) × $271.37
   },
   {
     ticker: "VST",
@@ -242,7 +256,7 @@ const STATIC_STOCKS: StockQuote[] = [
     athUsd: 56.60,
     drawdownFromAthPct: -44.1,
     role: "GPU Server Integrator (Polymarket Trigger Risk)",
-    marketCapDisplay: "$18.5B",
+    marketCapDisplay: "$20.8B", // live-stocks.json (19 Oct 2026): 656,965,384 sh (FY2026 10-K cover 31 Jul 2026) × $31.63
   },
   {
     ticker: "NBIS",
@@ -253,7 +267,7 @@ const STATIC_STOCKS: StockQuote[] = [
     athUsd: 299.86,
     drawdownFromAthPct: -44.8,
     role: "AI Neocloud & $17.4B Microsoft Compute Partner",
-    marketCapDisplay: "$35.5B",
+    marketCapDisplay: "$45.0B", // live-stocks.json (19 Oct 2026): 271,855,218 sh (Q2 2026 release) × $165.47
   },
   {
     ticker: "CRWD",
@@ -306,8 +320,8 @@ export const STATIC_MACRO_INDICATORS: MacroIndicator[] = [
     symbol: "US10Y",
     name: "10-Year Treasury Yield",
     valueDisplay: "5.10%",
-    changeDisplay: "+1.0 bps",
-    changePct: 0.20,
+    changeDisplay: "+0.2 bps", // live-stocks.json (19 Oct 2026)
+    changePct: 0.0,
     isRiskPositive: true,
     category: "Treasury & Rates",
     description: "Benchmark risk-free rate pricing long-duration tech discount curves",
@@ -325,9 +339,16 @@ export const STATIC_MACRO_INDICATORS: MacroIndicator[] = [
   {
     symbol: "CPI",
     name: "Headline CPI Inflation",
-    valueDisplay: "2.9% YoY",
-    changeDisplay: "+0.2%",
-    changePct: 7.4,
+    // FRED CPIAUCSL, Sep 2026 y/y: 336.298 vs Sep 2025 324.245 = +3.72% (19 Oct 2026).
+    // The old 2.9% anchor was stale.
+    valueDisplay: "3.72% YoY",
+    // 2026-10-19 (round-2 consolidation): the old changeDisplay "+0.8%" / changePct 28.3 was a
+    // base-effect artifact of the previous published display anchor (2.9% YoY) and read as
+    // "CPI up 28.3%". The prior-year YoY needed for a real period change is NOT verified, so no
+    // percentage is published: the move is stated as the gap to the prior anchor and changePct
+    // is 0. Mirrors src/data/live-stocks.json and scripts/update-data.mjs.
+    changeDisplay: "+0.8pp vs 2.9% anchor",
+    changePct: 0,
     isRiskPositive: true,
     category: "Inflation & Fed",
     description: "Consumer price index measuring inflation stickiness vs 2.0% Fed target",
@@ -335,8 +356,10 @@ export const STATIC_MACRO_INDICATORS: MacroIndicator[] = [
   {
     symbol: "FEDFUNDS",
     name: "Fed Funds Rate",
-    valueDisplay: "4.75%",
-    changeDisplay: "+25bp hike",
+    // FRED FEDFUNDS, Sep 2026 monthly observation = 3.75% (2026 cut cycle). The old
+    // 4.75% "+25bp hike" literal was stale.
+    valueDisplay: "3.75%",
+    changeDisplay: "-100bp cut cycle",
     changePct: 0.0,
     isRiskPositive: true,
     category: "Inflation & Fed",
@@ -346,8 +369,12 @@ export const STATIC_MACRO_INDICATORS: MacroIndicator[] = [
     symbol: "AI-DEBT",
     name: "Annual AI Debt Issuance",
     valueDisplay: "$85.0B/yr",
-    changeDisplay: "+215% YoY",
-    changePct: 215.0,
+    // 2026-10-19 (round-2 consolidation): the old "+215% YoY" / changePct 215.0 had NO source —
+    // no verified 2025 AI debt issuance pace exists in the tracked set, so both the implied 2025
+    // base and the "+$58B" it would imply are unsourced derivations. The derived percentage is
+    // blanked and the badge says plainly that no YoY source exists.
+    changeDisplay: "no YoY source",
+    changePct: 0,
     isRiskPositive: true,
     category: "Credit & Debt",
     description: "Annualized pace of corporate AI bonds, converts & private GPU credit lines",
@@ -355,9 +382,12 @@ export const STATIC_MACRO_INDICATORS: MacroIndicator[] = [
   {
     symbol: "HY-OAS",
     name: "US High Yield Spread",
-    valueDisplay: "328 bps",
-    changeDisplay: "+24 bps",
-    changePct: 7.89,
+    // FRED BAMLH0A0HYM2 = 323bp (15 Oct 2026) — the canonical reading. live-stocks.json
+    // may carry a later intraday print (329bp); do not publish anything but the
+    // dated FRED value here.
+    valueDisplay: "323 bps",
+    changeDisplay: "+6 bps",
+    changePct: 0.4,
     isRiskPositive: true,
     category: "Credit & Debt",
     description: "ICE BofA US High Yield option-adjusted spread measuring junk credit stress",
@@ -365,7 +395,7 @@ export const STATIC_MACRO_INDICATORS: MacroIndicator[] = [
   {
     symbol: "BAA-SPREAD",
     name: "Moody's Baa Corporate Spread",
-    valueDisplay: "182 bps",
+    valueDisplay: "148 bps", // FRED BAA10YM, Sep 2026 observation (live-stocks.json, 19 Oct 2026)
     changeDisplay: "+6 bps",
     changePct: 3.4,
     isRiskPositive: true,
@@ -395,9 +425,9 @@ export const STATIC_MACRO_INDICATORS: MacroIndicator[] = [
   {
     symbol: "VIX",
     name: "CBOE Volatility Index",
-    valueDisplay: "19.99",
-    changeDisplay: "+31.4%",
-    changePct: 31.4,
+    valueDisplay: "18.31", // live-stocks.json (19 Oct 2026)
+    changeDisplay: "-8.4%",
+    changePct: -8.4,
     isRiskPositive: true,
     category: "Credit & Debt",
     description: "Equity market implied volatility and systemic tail-risk sentiment",
@@ -405,6 +435,8 @@ export const STATIC_MACRO_INDICATORS: MacroIndicator[] = [
   {
     symbol: "HYG",
     name: "High Yield Corporate Bond ETF",
+    // Not carried in live-stocks.json (19 Oct 2026) — retained from the Oct 2026
+    // snapshot so the fallback list keeps its shape.
     valueDisplay: "$76.86",
     changeDisplay: "-0.48%",
     changePct: -0.48,

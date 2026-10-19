@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import { MODEL_CALIBRATION, MODEL_FACTORS } from "@/lib/model/factors";
+import latestModel from "@/data/latest-model.json";
 
 export const dynamic = "force-static";
 
@@ -12,9 +13,13 @@ export async function GET() {
     .map((v) => v.valuationUsd / (v.runRateRevenueUsd as number))
     .sort((a, b) => a - b);
   const mid = Math.floor(psValues.length / 2);
+  // 2026-10-19 fact-check: the empty-input fallback was the stale 34.8× median.
+  // The live median across the tracked frontier labs is 29.4× (OpenAI 1.2T/50B,
+  // Anthropic 2.0T/65B, Databricks 190B/7B, xAI 250B/3.2B, Mistral 24B/0.45B,
+  // Scale 29B/1.1B, Cohere 7B/0.25B, Perplexity 20B/0.5B).
   const medianPs =
     psValues.length === 0
-      ? 34.8
+      ? 29.4
       : psValues.length % 2 !== 0
       ? psValues[mid]
       : (psValues[mid - 1] + psValues[mid]) / 2;
@@ -23,7 +28,10 @@ export async function GET() {
     {
       success: true,
       data: {
-        timestamp: new Date().toISOString(),
+        // force-static route: label the response with the PUBLISHED snapshot time, not
+  // the raw build clock, so the API agrees with every page's "as of" stamp
+  // (security audit 10.3).
+  timestamp: latestModel.timestamp,
         model_version: "2.5.0",
         horizon_months: 12,
         burst_probability_pct: Math.round(result.burstProbability * 10) / 10,
@@ -52,20 +60,29 @@ export async function GET() {
           oracle_cds_5y_bps: DEFAULT_MODEL_INPUTS.cds?.currentBps,
           median_lab_ps_multiple: Math.round(medianPs * 10) / 10,
           debt_share_pct: Math.round((DEFAULT_MODEL_INPUTS.ledger?.debtShare || 0) * 1000) / 10,
-          total_tracked_debt_usd: DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 228_072_500_000,
+          total_tracked_debt_usd: DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 214_890_400_000,
           annual_debt_issuance_usd: DEFAULT_MODEL_INPUTS.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000,
           us10y_treasury_yield_pct: DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 5.10,
-          cpi_inflation_yoy_pct: DEFAULT_MODEL_INPUTS.macro?.cpiInflationYoY ?? 2.9,
-          fed_funds_rate_pct: DEFAULT_MODEL_INPUTS.macro?.fedFundsRatePct ?? 4.75,
+          // 2026-10-19 fact-check: the 2.9% / 4.75% / 336bp literals were stale.
+          // CPI 3.72% (FRED CPIAUCSL, Sep 2026 y/y), Fed funds 3.75% (FRED
+          // FEDFUNDS, Sep 2026 monthly obs — 2026 cut cycle), HY OAS 323bp
+          // (FRED BAMLH0A0HYM2, 15 Oct 2026).
+          cpi_inflation_yoy_pct: DEFAULT_MODEL_INPUTS.macro?.cpiInflationYoY ?? 3.72,
+          fed_funds_rate_pct: DEFAULT_MODEL_INPUTS.macro?.fedFundsRatePct ?? 3.75,
           rate_hike_risk_bps: DEFAULT_MODEL_INPUTS.macro?.rateHikeRiskBps ?? 25,
-          high_yield_spread_bps: DEFAULT_MODEL_INPUTS.macro?.highYieldSpreadBps ?? 336,
+          high_yield_spread_bps: DEFAULT_MODEL_INPUTS.macro?.highYieldSpreadBps ?? 323,
           capex_to_ocf_ratio_pct: Math.round((DEFAULT_MODEL_INPUTS.aiDebt?.capexToOcfRatio ?? 0.548) * 1000) / 10,
           gpu_depreciation_drag_usd: DEFAULT_MODEL_INPUTS.aiDebt?.gpuDepreciationDragUsd ?? 38_500_000_000,
           capex_to_fcf_ratio:
             DEFAULT_MODEL_INPUTS.capex?.aggregateCapexUsd && DEFAULT_MODEL_INPUTS.capex?.aggregateFcfUsd
               ? Math.round((DEFAULT_MODEL_INPUTS.capex.aggregateCapexUsd / DEFAULT_MODEL_INPUTS.capex.aggregateFcfUsd) * 100) / 100
-              : 1.14,
+              : 2.79, // $725B guided CY2026 capex / $260B trailing-FY FCF
+          // The model input is the live aggregator's reading, which swings with the
+          // intraday DeepSeek V4.1 Flash input rate ($0.0344–$0.0448 per 1M).
+          // 2026-10-19 pin: 670× input-basis (GPT-4 $30/1M → $0.0448/1M) is the
+          // canonical published multiple — the drifted multiple is never published.
           token_price_decline_multiple: DEFAULT_MODEL_INPUTS.adoption?.apiPriceDeclineMultiple,
+          token_price_decline_multiple_pinned: 670,
           polymarket_yes_probability: DEFAULT_MODEL_INPUTS.crowd?.yesProbability,
         },
       },

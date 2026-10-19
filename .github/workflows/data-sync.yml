@@ -1,0 +1,125 @@
+name: data-sync
+
+on:
+  schedule:
+    # 00:00 UTC daily — matches the site's public claim "collected once per day at 00:00 UTC"
+    - cron: '0 0 * * *'
+  workflow_dispatch: # manual run for testing / backfills
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-sync
+  cancel-in-progress: false # a slow run must finish; a second run waits instead of overlapping
+
+jobs:
+  sync:
+    name: Refresh market data & quantitative model
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true # keep the token so the run can push the refreshed data
+
+      # Fail-fast secret guard — runs BEFORE any data fetch so a misconfigured repo
+      # never burns upstream API quota and never writes a half-refreshed artifact.
+      - name: Verify required API secrets are configured
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+        run: |
+          missing=()
+          for var in FRED_API_KEY ALPHA_VANTAGE_API_KEY FINNHUB_API_KEY; do
+            if [ -z "${!var}" ]; then missing+=("$var"); fi
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Missing required repository secret(s): ${missing[*]}"
+            echo "Add them under Settings -> Secrets and variables -> Actions (repository secrets):"
+            echo "https://github.com/${{ github.repository }}/settings/secrets/actions"
+            echo "Secret names: FRED_API_KEY, ALPHA_VANTAGE_API_KEY, FINNHUB_API_KEY"
+            exit 1
+          fi
+          echo "All required API secrets are present."
+
+      # Keys live ONLY in .env.local (git-ignored via `.env*.local`). Values are never
+      # echoed — they are written straight from the masked environment.
+      - name: Write .env.local from secrets
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+        run: |
+          umask 077
+          {
+            printf 'FRED_API_KEY=%s\n' "$(printf '%s' "$FRED_API_KEY" | tr -d '\r\n')"
+            printf 'ALPHA_VANTAGE_API_KEY=%s\n' "$(printf '%s' "$ALPHA_VANTAGE_API_KEY" | tr -d '\r\n')"
+            printf 'FINNHUB_API_KEY=%s\n' "$(printf '%s' "$FINNHUB_API_KEY" | tr -d '\r\n')"
+          } > .env.local
+          echo "Wrote .env.local (3 keys, values masked)"
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run data pipeline (fetch + model + write)
+        id: pipeline
+        run: npm run update-data
+
+      - name: Verify quantitative algorithm test suite
+        run: npm test
+
+      - name: Commit refreshed data
+        id: data
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A src/data
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No data changes detected in this cycle."
+          else
+            git diff --cached --name-only > changed-files.txt
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git commit -m "data-sync: daily refresh ($(date -u +%Y-%m-%d)) [skip ci]"
+          fi
+
+      - name: Push refreshed data
+        if: steps.data.outputs.changed == 'true'
+        run: |
+          branch="${GITHUB_REF_NAME:-master}"
+          git push origin "HEAD:${branch}"
+          echo "Pushed refreshed data to ${branch}"
+
+      - name: Data sync summary
+        if: always()
+        run: |
+          {
+            echo "## data-sync — $(date -u '+%Y-%m-%d %H:%M UTC')"
+            echo ""
+            if [ "${{ steps.pipeline.outcome }}" != "success" ]; then
+              echo "**Pipeline failed** (\`${{ steps.pipeline.outcome }}\`) — no data was committed or pushed. See the failing step log above."
+            elif [ -s changed-files.txt ]; then
+              echo "**Changed files** (committed and pushed):"
+              echo ""
+              echo '```'
+              cat changed-files.txt
+              echo '```'
+            else
+              echo "**No data changes** — the refreshed artifacts were byte-identical to the committed baseline, so nothing was committed."
+            fi
+            echo ""
+            if [ -f src/data/latest-model.json ]; then
+              node -e 'const m=require("./src/data/latest-model.json");console.log("- Burst probability: **"+m.burstProbability+"%** (`"+String(m.band||"").toUpperCase()+"` band, composite "+m.compositeScore+"/100)");console.log("- Monte Carlo 25k median: **"+m.monteCarlo.medianProbabilityPct+"%** · 95% VaR "+m.monteCarlo.valueAtRisk95Pct+"% · 99% CVaR "+m.monteCarlo.conditionalValueAtRisk99Pct+"%");' || true
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

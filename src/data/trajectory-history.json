@@ -9,13 +9,14 @@
     "mertonDD": 5.82,
     "altmanZ": 8.8,
     "var95": 72,
-    "deltaVs90d": "+0.0%",
+    "deltaVs90d": "+0.0 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 155,
+    "cdsOracleBps": 203,
     "polymarketProb": 0.055,
     "volumeUsd": 3205000,
-    "tokenDeflation": 25,
-    "us10yYield": 4.7
+    "tokenDeflation": 670,
+    "us10yYield": 4.7,
+    "backfilled": true
   },
   {
     "dayIndex": 1,
@@ -27,13 +28,14 @@
     "mertonDD": 5.81,
     "altmanZ": 8.8,
     "var95": 72.1,
-    "deltaVs90d": "+0.2%",
+    "deltaVs90d": "+0.2 pts",
     "deltaVsYesterday": "+0.2%",
-    "cdsOracleBps": 156,
+    "cdsOracleBps": 204,
     "polymarketProb": 0.056,
     "volumeUsd": 3273867,
-    "tokenDeflation": 25,
-    "us10yYield": 4.7
+    "tokenDeflation": 670,
+    "us10yYield": 4.7,
+    "backfilled": true
   },
   {
     "dayIndex": 2,
@@ -45,13 +47,14 @@
     "mertonDD": 5.81,
     "altmanZ": 8.8,
     "var95": 72.2,
-    "deltaVs90d": "+0.3%",
+    "deltaVs90d": "+0.3 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 156,
+    "cdsOracleBps": 205,
     "polymarketProb": 0.056,
     "volumeUsd": 3342475,
-    "tokenDeflation": 25,
-    "us10yYield": 4.71
+    "tokenDeflation": 670,
+    "us10yYield": 4.71,
+    "backfilled": true
   },
   {
     "dayIndex": 3,
@@ -63,13 +66,14 @@
     "mertonDD": 5.8,
     "altmanZ": 8.8,
     "var95": 72.3,
-    "deltaVs90d": "+0.4%",
+    "deltaVs90d": "+0.4 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 156,
+    "cdsOracleBps": 206,
     "polymarketProb": 0.057,
     "volumeUsd": 3410679,
-    "tokenDeflation": 25,
-    "us10yYield": 4.71
+    "tokenDeflation": 670,
+    "us10yYield": 4.71,
+    "backfilled": true
   },
   {
     "dayIndex": 4,
@@ -81,13 +85,14 @@
     "mertonDD": 5.79,
     "altmanZ": 8.8,
     "var95": 72.4,
-    "deltaVs90d": "+0.4%",
+    "deltaVs90d": "+0.4 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 157,
+    "cdsOracleBps": 207,
     "polymarketProb": 0.057,
     "volumeUsd": 3478359,
-    "tokenDeflation": 25,
-    "us10yYield": 4.72
+    "tokenDeflation": 670,
+    "us10yYield": 4.72,
+    "backfilled": true
   },
   {
     "dayIndex": 5,
@@ -99,13 +104,14 @@
     "mertonDD": 5.79,
     "altmanZ": 8.8,
     "var95": 72.5,
-    "deltaVs90d": "+0.5%",
+    "deltaVs90d": "+0.5 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 157,
+    "cdsOracleBps": 208,
     "polymarketProb": 0.058,
     "volumeUsd": 3545430,
-    "tokenDeflation": 25,
-    "us10yYield": 4.72
+    "tokenDeflation": 670,
+    "us10yYield": 4.72,
+    "backfilled": true
   },
   {
     "dayIndex": 6,
@@ -117,13 +123,14 @@
     "mertonDD": 5.78,
     "altmanZ": 8.79,
     "var95": 72.5,
-    "deltaVs90d": "+0.5%",
+    "deltaVs90d": "+0.5 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 158,
+    "cdsOracleBps": 209,
     "polymarketProb": 0.058,
     "volumeUsd": 3611851,
-    "tokenDeflation": 25,
-    "us10yYield": 4.73
+    "tokenDeflation": 670,
+    "us10yYield": 4.73,
+    "backfilled": true
   },
   {
     "dayIndex": 7,
@@ -135,13 +142,14 @@
     "mertonDD": 5.77,
     "altmanZ": 8.79,
     "var95": 72.6,
-    "deltaVs90d": "+0.6%",
+    "deltaVs90d": "+0.6 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 158,
+    "cdsOracleBps": 210,
     "polymarketProb": 0.059,
     "volumeUsd": 3677626,
-    "tokenDeflation": 25,
-    "us10yYield": 4.73
+    "tokenDeflation": 670,
+    "us10yYield": 4.73,
+    "backfilled": true
   },
   {
     "dayIndex": 8,
@@ -153,13 +161,14 @@
     "mertonDD": 5.76,
     "altmanZ": 8.78,
     "var95": 72.6,
-    "deltaVs90d": "+0.6%",
+    "deltaVs90d": "+0.6 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 158,
+    "cdsOracleBps": 211,
     "polymarketProb": 0.059,
     "volumeUsd": 3742805,
-    "tokenDeflation": 25,
-    "us10yYield": 4.74
+    "tokenDeflation": 670,
+    "us10yYield": 4.74,
+    "backfilled": true
   },
   {
     "dayIndex": 9,
@@ -171,13 +180,14 @@
     "mertonDD": 5.75,
     "altmanZ": 8.78,
     "var95": 72.6,
-    "deltaVs90d": "+0.6%",
+    "deltaVs90d": "+0.6 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 158,
+    "cdsOracleBps": 212,
     "polymarketProb": 0.059,
     "volumeUsd": 3807484,
-    "tokenDeflation": 25,
-    "us10yYield": 4.74
+    "tokenDeflation": 670,
+    "us10yYield": 4.74,
+    "backfilled": true
   },
   {
     "dayIndex": 10,
@@ -189,13 +199,14 @@
     "mertonDD": 5.74,
     "altmanZ": 8.77,
     "var95": 72.6,
-    "deltaVs90d": "+0.6%",
+    "deltaVs90d": "+0.6 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 159,
+    "cdsOracleBps": 213,
     "polymarketProb": 0.06,
     "volumeUsd": 3871793,
-    "tokenDeflation": 25,
-    "us10yYield": 4.74
+    "tokenDeflation": 670,
+    "us10yYield": 4.74,
+    "backfilled": true
   },
   {
     "dayIndex": 11,
@@ -207,13 +218,14 @@
     "mertonDD": 5.74,
     "altmanZ": 8.76,
     "var95": 72.6,
-    "deltaVs90d": "+0.6%",
+    "deltaVs90d": "+0.6 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 159,
+    "cdsOracleBps": 214,
     "polymarketProb": 0.06,
     "volumeUsd": 3935889,
-    "tokenDeflation": 25,
-    "us10yYield": 4.75
+    "tokenDeflation": 670,
+    "us10yYield": 4.75,
+    "backfilled": true
   },
   {
     "dayIndex": 12,
@@ -225,13 +237,14 @@
     "mertonDD": 5.73,
     "altmanZ": 8.75,
     "var95": 72.6,
-    "deltaVs90d": "+0.6%",
+    "deltaVs90d": "+0.6 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 159,
+    "cdsOracleBps": 214,
     "polymarketProb": 0.06,
     "volumeUsd": 3999947,
-    "tokenDeflation": 25,
-    "us10yYield": 4.75
+    "tokenDeflation": 670,
+    "us10yYield": 4.75,
+    "backfilled": true
   },
   {
     "dayIndex": 13,
@@ -243,13 +256,14 @@
     "mertonDD": 5.72,
     "altmanZ": 8.74,
     "var95": 72.6,
-    "deltaVs90d": "+0.6%",
+    "deltaVs90d": "+0.6 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 159,
+    "cdsOracleBps": 215,
     "polymarketProb": 0.061,
     "volumeUsd": 4064142,
-    "tokenDeflation": 25,
-    "us10yYield": 4.76
+    "tokenDeflation": 670,
+    "us10yYield": 4.76,
+    "backfilled": true
   },
   {
     "dayIndex": 14,
@@ -261,13 +275,14 @@
     "mertonDD": 5.71,
     "altmanZ": 8.73,
     "var95": 72.6,
-    "deltaVs90d": "+0.6%",
+    "deltaVs90d": "+0.6 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 160,
+    "cdsOracleBps": 216,
     "polymarketProb": 0.061,
     "volumeUsd": 4128640,
-    "tokenDeflation": 25,
-    "us10yYield": 4.76
+    "tokenDeflation": 670,
+    "us10yYield": 4.76,
+    "backfilled": true
   },
   {
     "dayIndex": 15,
@@ -279,13 +294,14 @@
     "mertonDD": 5.71,
     "altmanZ": 8.72,
     "var95": 72.6,
-    "deltaVs90d": "+0.6%",
+    "deltaVs90d": "+0.6 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 160,
+    "cdsOracleBps": 217,
     "polymarketProb": 0.062,
     "volumeUsd": 4193585,
-    "tokenDeflation": 25,
-    "us10yYield": 4.77
+    "tokenDeflation": 670,
+    "us10yYield": 4.77,
+    "backfilled": true
   },
   {
     "dayIndex": 16,
@@ -297,13 +313,14 @@
     "mertonDD": 5.7,
     "altmanZ": 8.71,
     "var95": 72.7,
-    "deltaVs90d": "+0.6%",
+    "deltaVs90d": "+0.6 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 160,
+    "cdsOracleBps": 218,
     "polymarketProb": 0.062,
     "volumeUsd": 4259089,
-    "tokenDeflation": 25,
-    "us10yYield": 4.77
+    "tokenDeflation": 670,
+    "us10yYield": 4.77,
+    "backfilled": true
   },
   {
     "dayIndex": 17,
@@ -315,13 +332,14 @@
     "mertonDD": 5.7,
     "altmanZ": 8.71,
     "var95": 72.8,
-    "deltaVs90d": "+0.6%",
+    "deltaVs90d": "+0.6 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 161,
+    "cdsOracleBps": 219,
     "polymarketProb": 0.062,
     "volumeUsd": 4325222,
-    "tokenDeflation": 25,
-    "us10yYield": 4.78
+    "tokenDeflation": 670,
+    "us10yYield": 4.78,
+    "backfilled": true
   },
   {
     "dayIndex": 18,
@@ -333,13 +351,14 @@
     "mertonDD": 5.7,
     "altmanZ": 8.7,
     "var95": 72.8,
-    "deltaVs90d": "+0.7%",
+    "deltaVs90d": "+0.7 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 161,
+    "cdsOracleBps": 220,
     "polymarketProb": 0.063,
     "volumeUsd": 4392009,
-    "tokenDeflation": 25,
-    "us10yYield": 4.78
+    "tokenDeflation": 670,
+    "us10yYield": 4.78,
+    "backfilled": true
   },
   {
     "dayIndex": 19,
@@ -351,13 +370,14 @@
     "mertonDD": 5.69,
     "altmanZ": 8.7,
     "var95": 72.9,
-    "deltaVs90d": "+0.8%",
+    "deltaVs90d": "+0.8 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 161,
+    "cdsOracleBps": 221,
     "polymarketProb": 0.063,
     "volumeUsd": 4459429,
-    "tokenDeflation": 25,
-    "us10yYield": 4.79
+    "tokenDeflation": 670,
+    "us10yYield": 4.79,
+    "backfilled": true
   },
   {
     "dayIndex": 20,
@@ -369,13 +389,14 @@
     "mertonDD": 5.69,
     "altmanZ": 8.69,
     "var95": 73,
-    "deltaVs90d": "+0.8%",
+    "deltaVs90d": "+0.8 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 162,
+    "cdsOracleBps": 222,
     "polymarketProb": 0.064,
     "volumeUsd": 4527416,
-    "tokenDeflation": 25,
-    "us10yYield": 4.79
+    "tokenDeflation": 670,
+    "us10yYield": 4.79,
+    "backfilled": true
   },
   {
     "dayIndex": 21,
@@ -387,13 +408,14 @@
     "mertonDD": 5.69,
     "altmanZ": 8.69,
     "var95": 73.2,
-    "deltaVs90d": "+0.9%",
+    "deltaVs90d": "+0.9 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 162,
+    "cdsOracleBps": 223,
     "polymarketProb": 0.064,
     "volumeUsd": 4595863,
-    "tokenDeflation": 25,
-    "us10yYield": 4.79
+    "tokenDeflation": 670,
+    "us10yYield": 4.79,
+    "backfilled": true
   },
   {
     "dayIndex": 22,
@@ -405,13 +427,14 @@
     "mertonDD": 5.69,
     "altmanZ": 8.69,
     "var95": 73.3,
-    "deltaVs90d": "+1.0%",
+    "deltaVs90d": "+1.0 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 163,
+    "cdsOracleBps": 224,
     "polymarketProb": 0.065,
     "volumeUsd": 4664635,
-    "tokenDeflation": 25,
-    "us10yYield": 4.8
+    "tokenDeflation": 670,
+    "us10yYield": 4.8,
+    "backfilled": true
   },
   {
     "dayIndex": 23,
@@ -423,13 +446,14 @@
     "mertonDD": 5.69,
     "altmanZ": 8.69,
     "var95": 73.4,
-    "deltaVs90d": "+1.1%",
+    "deltaVs90d": "+1.1 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 163,
+    "cdsOracleBps": 225,
     "polymarketProb": 0.065,
     "volumeUsd": 4733577,
-    "tokenDeflation": 25,
-    "us10yYield": 4.8
+    "tokenDeflation": 670,
+    "us10yYield": 4.8,
+    "backfilled": true
   },
   {
     "dayIndex": 24,
@@ -441,13 +465,14 @@
     "mertonDD": 5.69,
     "altmanZ": 8.69,
     "var95": 73.5,
-    "deltaVs90d": "+1.2%",
+    "deltaVs90d": "+1.2 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 164,
+    "cdsOracleBps": 226,
     "polymarketProb": 0.066,
     "volumeUsd": 4802525,
-    "tokenDeflation": 25,
-    "us10yYield": 4.81
+    "tokenDeflation": 670,
+    "us10yYield": 4.81,
+    "backfilled": true
   },
   {
     "dayIndex": 25,
@@ -459,13 +484,14 @@
     "mertonDD": 5.68,
     "altmanZ": 8.69,
     "var95": 73.6,
-    "deltaVs90d": "+1.3%",
+    "deltaVs90d": "+1.3 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 164,
+    "cdsOracleBps": 227,
     "polymarketProb": 0.067,
     "volumeUsd": 4871322,
-    "tokenDeflation": 25,
-    "us10yYield": 4.81
+    "tokenDeflation": 670,
+    "us10yYield": 4.81,
+    "backfilled": true
   },
   {
     "dayIndex": 26,
@@ -477,13 +503,14 @@
     "mertonDD": 5.68,
     "altmanZ": 8.69,
     "var95": 73.6,
-    "deltaVs90d": "+1.3%",
+    "deltaVs90d": "+1.3 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 164,
+    "cdsOracleBps": 228,
     "polymarketProb": 0.067,
     "volumeUsd": 4939826,
-    "tokenDeflation": 25,
-    "us10yYield": 4.82
+    "tokenDeflation": 670,
+    "us10yYield": 4.82,
+    "backfilled": true
   },
   {
     "dayIndex": 27,
@@ -495,13 +522,14 @@
     "mertonDD": 5.68,
     "altmanZ": 8.69,
     "var95": 73.7,
-    "deltaVs90d": "+1.4%",
+    "deltaVs90d": "+1.4 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 165,
+    "cdsOracleBps": 229,
     "polymarketProb": 0.068,
     "volumeUsd": 5007926,
-    "tokenDeflation": 25,
-    "us10yYield": 4.82
+    "tokenDeflation": 670,
+    "us10yYield": 4.82,
+    "backfilled": true
   },
   {
     "dayIndex": 28,
@@ -513,13 +541,14 @@
     "mertonDD": 5.68,
     "altmanZ": 8.69,
     "var95": 73.7,
-    "deltaVs90d": "+1.5%",
+    "deltaVs90d": "+1.5 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 165,
+    "cdsOracleBps": 230,
     "polymarketProb": 0.068,
     "volumeUsd": 5075545,
-    "tokenDeflation": 25,
-    "us10yYield": 4.83
+    "tokenDeflation": 670,
+    "us10yYield": 4.83,
+    "backfilled": true
   },
   {
     "dayIndex": 29,
@@ -531,13 +560,14 @@
     "mertonDD": 5.68,
     "altmanZ": 8.69,
     "var95": 73.7,
-    "deltaVs90d": "+1.5%",
+    "deltaVs90d": "+1.5 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 166,
+    "cdsOracleBps": 231,
     "polymarketProb": 0.069,
     "volumeUsd": 5142650,
-    "tokenDeflation": 25,
-    "us10yYield": 4.83
+    "tokenDeflation": 670,
+    "us10yYield": 4.83,
+    "backfilled": true
   },
   {
     "dayIndex": 30,
@@ -549,13 +579,14 @@
     "mertonDD": 5.67,
     "altmanZ": 8.69,
     "var95": 73.7,
-    "deltaVs90d": "+1.6%",
+    "deltaVs90d": "+1.6 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 166,
+    "cdsOracleBps": 232,
     "polymarketProb": 0.069,
     "volumeUsd": 5209250,
-    "tokenDeflation": 25,
-    "us10yYield": 4.83
+    "tokenDeflation": 670,
+    "us10yYield": 4.83,
+    "backfilled": true
   },
   {
     "dayIndex": 31,
@@ -567,13 +598,14 @@
     "mertonDD": 5.67,
     "altmanZ": 8.68,
     "var95": 73.7,
-    "deltaVs90d": "+1.6%",
+    "deltaVs90d": "+1.6 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 166,
+    "cdsOracleBps": 233,
     "polymarketProb": 0.069,
     "volumeUsd": 5275399,
-    "tokenDeflation": 25,
-    "us10yYield": 4.84
+    "tokenDeflation": 670,
+    "us10yYield": 4.84,
+    "backfilled": true
   },
   {
     "dayIndex": 32,
@@ -585,13 +617,14 @@
     "mertonDD": 5.67,
     "altmanZ": 8.68,
     "var95": 73.7,
-    "deltaVs90d": "+1.6%",
+    "deltaVs90d": "+1.6 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 167,
+    "cdsOracleBps": 234,
     "polymarketProb": 0.07,
     "volumeUsd": 5341188,
-    "tokenDeflation": 25,
-    "us10yYield": 4.84
+    "tokenDeflation": 670,
+    "us10yYield": 4.84,
+    "backfilled": true
   },
   {
     "dayIndex": 33,
@@ -603,13 +636,14 @@
     "mertonDD": 5.66,
     "altmanZ": 8.67,
     "var95": 73.7,
-    "deltaVs90d": "+1.7%",
+    "deltaVs90d": "+1.7 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 167,
+    "cdsOracleBps": 235,
     "polymarketProb": 0.07,
     "volumeUsd": 5406738,
-    "tokenDeflation": 25,
-    "us10yYield": 4.85
+    "tokenDeflation": 670,
+    "us10yYield": 4.85,
+    "backfilled": true
   },
   {
     "dayIndex": 34,
@@ -621,13 +655,14 @@
     "mertonDD": 5.65,
     "altmanZ": 8.67,
     "var95": 73.7,
-    "deltaVs90d": "+1.7%",
+    "deltaVs90d": "+1.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 167,
+    "cdsOracleBps": 235,
     "polymarketProb": 0.071,
     "volumeUsd": 5472189,
-    "tokenDeflation": 25,
-    "us10yYield": 4.85
+    "tokenDeflation": 670,
+    "us10yYield": 4.85,
+    "backfilled": true
   },
   {
     "dayIndex": 35,
@@ -639,13 +674,14 @@
     "mertonDD": 5.65,
     "altmanZ": 8.66,
     "var95": 73.8,
-    "deltaVs90d": "+1.7%",
+    "deltaVs90d": "+1.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 168,
+    "cdsOracleBps": 236,
     "polymarketProb": 0.071,
     "volumeUsd": 5537691,
-    "tokenDeflation": 25,
-    "us10yYield": 4.86
+    "tokenDeflation": 670,
+    "us10yYield": 4.86,
+    "backfilled": true
   },
   {
     "dayIndex": 36,
@@ -657,13 +693,14 @@
     "mertonDD": 5.64,
     "altmanZ": 8.65,
     "var95": 73.8,
-    "deltaVs90d": "+1.7%",
+    "deltaVs90d": "+1.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 168,
+    "cdsOracleBps": 237,
     "polymarketProb": 0.071,
     "volumeUsd": 5603389,
-    "tokenDeflation": 25,
-    "us10yYield": 4.86
+    "tokenDeflation": 670,
+    "us10yYield": 4.86,
+    "backfilled": true
   },
   {
     "dayIndex": 37,
@@ -675,13 +712,14 @@
     "mertonDD": 5.63,
     "altmanZ": 8.64,
     "var95": 73.8,
-    "deltaVs90d": "+1.7%",
+    "deltaVs90d": "+1.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 168,
+    "cdsOracleBps": 238,
     "polymarketProb": 0.072,
     "volumeUsd": 5669412,
-    "tokenDeflation": 25,
-    "us10yYield": 4.87
+    "tokenDeflation": 670,
+    "us10yYield": 4.87,
+    "backfilled": true
   },
   {
     "dayIndex": 38,
@@ -693,13 +731,14 @@
     "mertonDD": 5.62,
     "altmanZ": 8.63,
     "var95": 73.9,
-    "deltaVs90d": "+1.8%",
+    "deltaVs90d": "+1.8 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 168,
+    "cdsOracleBps": 239,
     "polymarketProb": 0.072,
     "volumeUsd": 5735860,
-    "tokenDeflation": 25,
-    "us10yYield": 4.87
+    "tokenDeflation": 670,
+    "us10yYield": 4.87,
+    "backfilled": true
   },
   {
     "dayIndex": 39,
@@ -711,13 +750,14 @@
     "mertonDD": 5.61,
     "altmanZ": 8.62,
     "var95": 74,
-    "deltaVs90d": "+1.8%",
+    "deltaVs90d": "+1.8 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 169,
+    "cdsOracleBps": 240,
     "polymarketProb": 0.073,
     "volumeUsd": 5802800,
-    "tokenDeflation": 25,
-    "us10yYield": 4.88
+    "tokenDeflation": 670,
+    "us10yYield": 4.88,
+    "backfilled": true
   },
   {
     "dayIndex": 40,
@@ -729,13 +769,14 @@
     "mertonDD": 5.6,
     "altmanZ": 8.61,
     "var95": 74.1,
-    "deltaVs90d": "+1.9%",
+    "deltaVs90d": "+1.9 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 169,
+    "cdsOracleBps": 241,
     "polymarketProb": 0.073,
     "volumeUsd": 5870257,
-    "tokenDeflation": 25,
-    "us10yYield": 4.88
+    "tokenDeflation": 670,
+    "us10yYield": 4.88,
+    "backfilled": true
   },
   {
     "dayIndex": 41,
@@ -747,13 +788,14 @@
     "mertonDD": 5.6,
     "altmanZ": 8.61,
     "var95": 74.2,
-    "deltaVs90d": "+2.0%",
+    "deltaVs90d": "+2.0 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 170,
+    "cdsOracleBps": 242,
     "polymarketProb": 0.074,
     "volumeUsd": 5938209,
-    "tokenDeflation": 25,
-    "us10yYield": 4.88
+    "tokenDeflation": 670,
+    "us10yYield": 4.88,
+    "backfilled": true
   },
   {
     "dayIndex": 42,
@@ -765,13 +807,14 @@
     "mertonDD": 5.59,
     "altmanZ": 8.6,
     "var95": 74.3,
-    "deltaVs90d": "+2.0%",
+    "deltaVs90d": "+2.0 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 170,
+    "cdsOracleBps": 243,
     "polymarketProb": 0.074,
     "volumeUsd": 6006595,
-    "tokenDeflation": 25,
-    "us10yYield": 4.89
+    "tokenDeflation": 670,
+    "us10yYield": 4.89,
+    "backfilled": true
   },
   {
     "dayIndex": 43,
@@ -783,13 +826,14 @@
     "mertonDD": 5.58,
     "altmanZ": 8.59,
     "var95": 74.4,
-    "deltaVs90d": "+2.1%",
+    "deltaVs90d": "+2.1 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 171,
+    "cdsOracleBps": 244,
     "polymarketProb": 0.075,
     "volumeUsd": 6075312,
-    "tokenDeflation": 25,
-    "us10yYield": 4.89
+    "tokenDeflation": 670,
+    "us10yYield": 4.89,
+    "backfilled": true
   },
   {
     "dayIndex": 44,
@@ -801,13 +845,14 @@
     "mertonDD": 5.57,
     "altmanZ": 8.59,
     "var95": 74.5,
-    "deltaVs90d": "+2.2%",
+    "deltaVs90d": "+2.2 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 171,
+    "cdsOracleBps": 245,
     "polymarketProb": 0.075,
     "volumeUsd": 6144228,
-    "tokenDeflation": 25,
-    "us10yYield": 4.9
+    "tokenDeflation": 670,
+    "us10yYield": 4.9,
+    "backfilled": true
   },
   {
     "dayIndex": 45,
@@ -819,13 +864,14 @@
     "mertonDD": 5.56,
     "altmanZ": 8.58,
     "var95": 74.6,
-    "deltaVs90d": "+2.3%",
+    "deltaVs90d": "+2.3 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 171,
+    "cdsOracleBps": 246,
     "polymarketProb": 0.076,
     "volumeUsd": 6213189,
-    "tokenDeflation": 25,
-    "us10yYield": 4.9
+    "tokenDeflation": 670,
+    "us10yYield": 4.9,
+    "backfilled": true
   },
   {
     "dayIndex": 46,
@@ -837,13 +883,14 @@
     "mertonDD": 5.56,
     "altmanZ": 8.58,
     "var95": 74.7,
-    "deltaVs90d": "+2.4%",
+    "deltaVs90d": "+2.4 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 172,
+    "cdsOracleBps": 247,
     "polymarketProb": 0.076,
     "volumeUsd": 6282034,
-    "tokenDeflation": 25,
-    "us10yYield": 4.91
+    "tokenDeflation": 670,
+    "us10yYield": 4.91,
+    "backfilled": true
   },
   {
     "dayIndex": 47,
@@ -855,13 +902,14 @@
     "mertonDD": 5.55,
     "altmanZ": 8.58,
     "var95": 74.8,
-    "deltaVs90d": "+2.5%",
+    "deltaVs90d": "+2.5 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 172,
+    "cdsOracleBps": 248,
     "polymarketProb": 0.077,
     "volumeUsd": 6350601,
-    "tokenDeflation": 25,
-    "us10yYield": 4.91
+    "tokenDeflation": 670,
+    "us10yYield": 4.91,
+    "backfilled": true
   },
   {
     "dayIndex": 48,
@@ -873,13 +921,14 @@
     "mertonDD": 5.55,
     "altmanZ": 8.58,
     "var95": 74.8,
-    "deltaVs90d": "+2.5%",
+    "deltaVs90d": "+2.5 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 173,
+    "cdsOracleBps": 249,
     "polymarketProb": 0.078,
     "volumeUsd": 6418748,
-    "tokenDeflation": 25,
-    "us10yYield": 4.92
+    "tokenDeflation": 670,
+    "us10yYield": 4.92,
+    "backfilled": true
   },
   {
     "dayIndex": 49,
@@ -891,13 +940,14 @@
     "mertonDD": 5.54,
     "altmanZ": 8.58,
     "var95": 74.9,
-    "deltaVs90d": "+2.6%",
+    "deltaVs90d": "+2.6 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 173,
+    "cdsOracleBps": 250,
     "polymarketProb": 0.078,
     "volumeUsd": 6486358,
-    "tokenDeflation": 25,
-    "us10yYield": 4.92
+    "tokenDeflation": 670,
+    "us10yYield": 4.92,
+    "backfilled": true
   },
   {
     "dayIndex": 50,
@@ -909,13 +959,14 @@
     "mertonDD": 5.54,
     "altmanZ": 8.58,
     "var95": 74.9,
-    "deltaVs90d": "+2.7%",
+    "deltaVs90d": "+2.7 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 173,
+    "cdsOracleBps": 251,
     "polymarketProb": 0.078,
     "volumeUsd": 6553352,
-    "tokenDeflation": 25,
-    "us10yYield": 4.92
+    "tokenDeflation": 670,
+    "us10yYield": 4.92,
+    "backfilled": true
   },
   {
     "dayIndex": 51,
@@ -927,13 +978,14 @@
     "mertonDD": 5.54,
     "altmanZ": 8.58,
     "var95": 74.9,
-    "deltaVs90d": "+2.7%",
+    "deltaVs90d": "+2.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 174,
+    "cdsOracleBps": 252,
     "polymarketProb": 0.079,
     "volumeUsd": 6619694,
-    "tokenDeflation": 25,
-    "us10yYield": 4.93
+    "tokenDeflation": 670,
+    "us10yYield": 4.93,
+    "backfilled": true
   },
   {
     "dayIndex": 52,
@@ -945,13 +997,14 @@
     "mertonDD": 5.54,
     "altmanZ": 8.58,
     "var95": 74.9,
-    "deltaVs90d": "+2.7%",
+    "deltaVs90d": "+2.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 174,
+    "cdsOracleBps": 253,
     "polymarketProb": 0.079,
     "volumeUsd": 6685394,
-    "tokenDeflation": 25,
-    "us10yYield": 4.93
+    "tokenDeflation": 670,
+    "us10yYield": 4.93,
+    "backfilled": true
   },
   {
     "dayIndex": 53,
@@ -963,13 +1016,14 @@
     "mertonDD": 5.54,
     "altmanZ": 8.58,
     "var95": 74.9,
-    "deltaVs90d": "+2.7%",
+    "deltaVs90d": "+2.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 174,
+    "cdsOracleBps": 254,
     "polymarketProb": 0.08,
     "volumeUsd": 6750508,
-    "tokenDeflation": 25,
-    "us10yYield": 4.94
+    "tokenDeflation": 670,
+    "us10yYield": 4.94,
+    "backfilled": true
   },
   {
     "dayIndex": 54,
@@ -981,13 +1035,14 @@
     "mertonDD": 5.54,
     "altmanZ": 8.58,
     "var95": 74.9,
-    "deltaVs90d": "+2.7%",
+    "deltaVs90d": "+2.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 175,
+    "cdsOracleBps": 255,
     "polymarketProb": 0.08,
     "volumeUsd": 6815134,
-    "tokenDeflation": 25,
-    "us10yYield": 4.94
+    "tokenDeflation": 670,
+    "us10yYield": 4.94,
+    "backfilled": true
   },
   {
     "dayIndex": 55,
@@ -999,13 +1054,14 @@
     "mertonDD": 5.53,
     "altmanZ": 8.58,
     "var95": 74.9,
-    "deltaVs90d": "+2.7%",
+    "deltaVs90d": "+2.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 175,
+    "cdsOracleBps": 256,
     "polymarketProb": 0.08,
     "volumeUsd": 6879409,
-    "tokenDeflation": 25,
-    "us10yYield": 4.95
+    "tokenDeflation": 670,
+    "us10yYield": 4.95,
+    "backfilled": true
   },
   {
     "dayIndex": 56,
@@ -1017,13 +1073,14 @@
     "mertonDD": 5.53,
     "altmanZ": 8.57,
     "var95": 74.9,
-    "deltaVs90d": "+2.7%",
+    "deltaVs90d": "+2.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 175,
+    "cdsOracleBps": 256,
     "polymarketProb": 0.081,
     "volumeUsd": 6943491,
-    "tokenDeflation": 25,
-    "us10yYield": 4.95
+    "tokenDeflation": 670,
+    "us10yYield": 4.95,
+    "backfilled": true
   },
   {
     "dayIndex": 57,
@@ -1035,13 +1092,14 @@
     "mertonDD": 5.53,
     "altmanZ": 8.57,
     "var95": 74.9,
-    "deltaVs90d": "+2.7%",
+    "deltaVs90d": "+2.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 175,
+    "cdsOracleBps": 257,
     "polymarketProb": 0.081,
     "volumeUsd": 7007556,
-    "tokenDeflation": 25,
-    "us10yYield": 4.96
+    "tokenDeflation": 670,
+    "us10yYield": 4.96,
+    "backfilled": true
   },
   {
     "dayIndex": 58,
@@ -1053,13 +1111,14 @@
     "mertonDD": 5.53,
     "altmanZ": 8.56,
     "var95": 75,
-    "deltaVs90d": "+2.7%",
+    "deltaVs90d": "+2.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 176,
+    "cdsOracleBps": 258,
     "polymarketProb": 0.082,
     "volumeUsd": 7071779,
-    "tokenDeflation": 25,
-    "us10yYield": 4.96
+    "tokenDeflation": 670,
+    "us10yYield": 4.96,
+    "backfilled": true
   },
   {
     "dayIndex": 59,
@@ -1071,13 +1130,14 @@
     "mertonDD": 5.53,
     "altmanZ": 8.56,
     "var95": 75.1,
-    "deltaVs90d": "+2.7%",
+    "deltaVs90d": "+2.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 176,
+    "cdsOracleBps": 259,
     "polymarketProb": 0.082,
     "volumeUsd": 7136324,
-    "tokenDeflation": 25,
-    "us10yYield": 4.97
+    "tokenDeflation": 670,
+    "us10yYield": 4.97,
+    "backfilled": true
   },
   {
     "dayIndex": 60,
@@ -1089,13 +1149,14 @@
     "mertonDD": 5.53,
     "altmanZ": 8.55,
     "var95": 75.2,
-    "deltaVs90d": "+2.7%",
+    "deltaVs90d": "+2.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 176,
+    "cdsOracleBps": 260,
     "polymarketProb": 0.082,
     "volumeUsd": 7201331,
-    "tokenDeflation": 25,
-    "us10yYield": 4.97
+    "tokenDeflation": 670,
+    "us10yYield": 4.97,
+    "backfilled": true
   },
   {
     "dayIndex": 61,
@@ -1107,13 +1168,14 @@
     "mertonDD": 5.52,
     "altmanZ": 8.54,
     "var95": 75.3,
-    "deltaVs90d": "+2.7%",
+    "deltaVs90d": "+2.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 177,
+    "cdsOracleBps": 261,
     "polymarketProb": 0.083,
     "volumeUsd": 7266907,
-    "tokenDeflation": 25,
-    "us10yYield": 4.97
+    "tokenDeflation": 670,
+    "us10yYield": 4.97,
+    "backfilled": true
   },
   {
     "dayIndex": 62,
@@ -1125,13 +1187,14 @@
     "mertonDD": 5.52,
     "altmanZ": 8.53,
     "var95": 75.4,
-    "deltaVs90d": "+2.8%",
+    "deltaVs90d": "+2.8 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 177,
+    "cdsOracleBps": 262,
     "polymarketProb": 0.083,
     "volumeUsd": 7333119,
-    "tokenDeflation": 25,
-    "us10yYield": 4.98
+    "tokenDeflation": 670,
+    "us10yYield": 4.98,
+    "backfilled": true
   },
   {
     "dayIndex": 63,
@@ -1143,13 +1206,14 @@
     "mertonDD": 5.52,
     "altmanZ": 8.52,
     "var95": 75.5,
-    "deltaVs90d": "+2.8%",
+    "deltaVs90d": "+2.8 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 177,
+    "cdsOracleBps": 263,
     "polymarketProb": 0.084,
     "volumeUsd": 7399984,
-    "tokenDeflation": 25,
-    "us10yYield": 4.98
+    "tokenDeflation": 670,
+    "us10yYield": 4.98,
+    "backfilled": true
   },
   {
     "dayIndex": 64,
@@ -1161,13 +1225,14 @@
     "mertonDD": 5.51,
     "altmanZ": 8.51,
     "var95": 75.6,
-    "deltaVs90d": "+2.9%",
+    "deltaVs90d": "+2.9 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 178,
+    "cdsOracleBps": 264,
     "polymarketProb": 0.084,
     "volumeUsd": 7467477,
-    "tokenDeflation": 25,
-    "us10yYield": 4.99
+    "tokenDeflation": 670,
+    "us10yYield": 4.99,
+    "backfilled": true
   },
   {
     "dayIndex": 65,
@@ -1179,13 +1244,14 @@
     "mertonDD": 5.5,
     "altmanZ": 8.5,
     "var95": 75.7,
-    "deltaVs90d": "+2.9%",
+    "deltaVs90d": "+2.9 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 178,
+    "cdsOracleBps": 265,
     "polymarketProb": 0.085,
     "volumeUsd": 7535525,
-    "tokenDeflation": 25,
-    "us10yYield": 4.99
+    "tokenDeflation": 670,
+    "us10yYield": 4.99,
+    "backfilled": true
   },
   {
     "dayIndex": 66,
@@ -1197,13 +1263,14 @@
     "mertonDD": 5.5,
     "altmanZ": 8.5,
     "var95": 75.8,
-    "deltaVs90d": "+3.0%",
+    "deltaVs90d": "+3.0 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 178,
+    "cdsOracleBps": 266,
     "polymarketProb": 0.085,
     "volumeUsd": 7604019,
-    "tokenDeflation": 25,
-    "us10yYield": 5
+    "tokenDeflation": 670,
+    "us10yYield": 5,
+    "backfilled": true
   },
   {
     "dayIndex": 67,
@@ -1215,13 +1282,14 @@
     "mertonDD": 5.49,
     "altmanZ": 8.49,
     "var95": 75.9,
-    "deltaVs90d": "+3.1%",
+    "deltaVs90d": "+3.1 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 179,
+    "cdsOracleBps": 267,
     "polymarketProb": 0.086,
     "volumeUsd": 7672820,
-    "tokenDeflation": 25,
-    "us10yYield": 5
+    "tokenDeflation": 670,
+    "us10yYield": 5,
+    "backfilled": true
   },
   {
     "dayIndex": 68,
@@ -1233,13 +1301,14 @@
     "mertonDD": 5.48,
     "altmanZ": 8.48,
     "var95": 75.9,
-    "deltaVs90d": "+3.2%",
+    "deltaVs90d": "+3.2 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 179,
+    "cdsOracleBps": 268,
     "polymarketProb": 0.086,
     "volumeUsd": 7741771,
-    "tokenDeflation": 25,
-    "us10yYield": 5.01
+    "tokenDeflation": 670,
+    "us10yYield": 5.01,
+    "backfilled": true
   },
   {
     "dayIndex": 69,
@@ -1251,13 +1320,14 @@
     "mertonDD": 5.47,
     "altmanZ": 8.48,
     "var95": 76,
-    "deltaVs90d": "+3.3%",
+    "deltaVs90d": "+3.3 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 180,
+    "cdsOracleBps": 269,
     "polymarketProb": 0.087,
     "volumeUsd": 7810709,
-    "tokenDeflation": 25,
-    "us10yYield": 5.01
+    "tokenDeflation": 670,
+    "us10yYield": 5.01,
+    "backfilled": true
   },
   {
     "dayIndex": 70,
@@ -1269,13 +1339,14 @@
     "mertonDD": 5.46,
     "altmanZ": 8.47,
     "var95": 76,
-    "deltaVs90d": "+3.4%",
+    "deltaVs90d": "+3.4 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 180,
+    "cdsOracleBps": 270,
     "polymarketProb": 0.087,
     "volumeUsd": 7879477,
-    "tokenDeflation": 25,
-    "us10yYield": 5.01
+    "tokenDeflation": 670,
+    "us10yYield": 5.01,
+    "backfilled": true
   },
   {
     "dayIndex": 71,
@@ -1287,13 +1358,14 @@
     "mertonDD": 5.46,
     "altmanZ": 8.47,
     "var95": 76,
-    "deltaVs90d": "+3.4%",
+    "deltaVs90d": "+3.4 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 181,
+    "cdsOracleBps": 271,
     "polymarketProb": 0.088,
     "volumeUsd": 7947938,
-    "tokenDeflation": 25,
-    "us10yYield": 5.02
+    "tokenDeflation": 670,
+    "us10yYield": 5.02,
+    "backfilled": true
   },
   {
     "dayIndex": 72,
@@ -1305,13 +1377,14 @@
     "mertonDD": 5.45,
     "altmanZ": 8.47,
     "var95": 76,
-    "deltaVs90d": "+3.5%",
+    "deltaVs90d": "+3.5 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 181,
+    "cdsOracleBps": 272,
     "polymarketProb": 0.088,
     "volumeUsd": 8015984,
-    "tokenDeflation": 25,
-    "us10yYield": 5.02
+    "tokenDeflation": 670,
+    "us10yYield": 5.02,
+    "backfilled": true
   },
   {
     "dayIndex": 73,
@@ -1323,13 +1396,14 @@
     "mertonDD": 5.44,
     "altmanZ": 8.47,
     "var95": 76,
-    "deltaVs90d": "+3.6%",
+    "deltaVs90d": "+3.6 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 181,
+    "cdsOracleBps": 273,
     "polymarketProb": 0.089,
     "volumeUsd": 8083542,
-    "tokenDeflation": 25,
-    "us10yYield": 5.03
+    "tokenDeflation": 670,
+    "us10yYield": 5.03,
+    "backfilled": true
   },
   {
     "dayIndex": 74,
@@ -1341,13 +1415,14 @@
     "mertonDD": 5.43,
     "altmanZ": 8.47,
     "var95": 76,
-    "deltaVs90d": "+3.6%",
+    "deltaVs90d": "+3.6 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 182,
+    "cdsOracleBps": 274,
     "polymarketProb": 0.089,
     "volumeUsd": 8150585,
-    "tokenDeflation": 25,
-    "us10yYield": 5.03
+    "tokenDeflation": 670,
+    "us10yYield": 5.03,
+    "backfilled": true
   },
   {
     "dayIndex": 75,
@@ -1359,13 +1434,14 @@
     "mertonDD": 5.42,
     "altmanZ": 8.47,
     "var95": 76,
-    "deltaVs90d": "+3.6%",
+    "deltaVs90d": "+3.6 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 182,
+    "cdsOracleBps": 275,
     "polymarketProb": 0.09,
     "volumeUsd": 8217127,
-    "tokenDeflation": 25,
-    "us10yYield": 5.04
+    "tokenDeflation": 670,
+    "us10yYield": 5.04,
+    "backfilled": true
   },
   {
     "dayIndex": 76,
@@ -1377,13 +1453,14 @@
     "mertonDD": 5.42,
     "altmanZ": 8.47,
     "var95": 76,
-    "deltaVs90d": "+3.7%",
+    "deltaVs90d": "+3.7 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 182,
+    "cdsOracleBps": 276,
     "polymarketProb": 0.09,
     "volumeUsd": 8283228,
-    "tokenDeflation": 25,
-    "us10yYield": 5.04
+    "tokenDeflation": 670,
+    "us10yYield": 5.04,
+    "backfilled": true
   },
   {
     "dayIndex": 77,
@@ -1395,13 +1472,14 @@
     "mertonDD": 5.41,
     "altmanZ": 8.47,
     "var95": 76.1,
-    "deltaVs90d": "+3.7%",
+    "deltaVs90d": "+3.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 183,
+    "cdsOracleBps": 277,
     "polymarketProb": 0.091,
     "volumeUsd": 8348981,
-    "tokenDeflation": 25,
-    "us10yYield": 5.05
+    "tokenDeflation": 670,
+    "us10yYield": 5.05,
+    "backfilled": true
   },
   {
     "dayIndex": 78,
@@ -1413,13 +1491,14 @@
     "mertonDD": 5.4,
     "altmanZ": 8.47,
     "var95": 76.1,
-    "deltaVs90d": "+3.7%",
+    "deltaVs90d": "+3.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 183,
+    "cdsOracleBps": 277,
     "polymarketProb": 0.091,
     "volumeUsd": 8414511,
-    "tokenDeflation": 25,
-    "us10yYield": 5.05
+    "tokenDeflation": 670,
+    "us10yYield": 5.05,
+    "backfilled": true
   },
   {
     "dayIndex": 79,
@@ -1431,13 +1510,14 @@
     "mertonDD": 5.4,
     "altmanZ": 8.47,
     "var95": 76.2,
-    "deltaVs90d": "+3.7%",
+    "deltaVs90d": "+3.7 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 183,
+    "cdsOracleBps": 278,
     "polymarketProb": 0.091,
     "volumeUsd": 8479961,
-    "tokenDeflation": 25,
-    "us10yYield": 5.06
+    "tokenDeflation": 670,
+    "us10yYield": 5.06,
+    "backfilled": true
   },
   {
     "dayIndex": 80,
@@ -1449,13 +1529,14 @@
     "mertonDD": 5.39,
     "altmanZ": 8.47,
     "var95": 76.2,
-    "deltaVs90d": "+3.8%",
+    "deltaVs90d": "+3.8 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 184,
+    "cdsOracleBps": 279,
     "polymarketProb": 0.092,
     "volumeUsd": 8545479,
-    "tokenDeflation": 25,
-    "us10yYield": 5.06
+    "tokenDeflation": 670,
+    "us10yYield": 5.06,
+    "backfilled": true
   },
   {
     "dayIndex": 81,
@@ -1467,13 +1548,14 @@
     "mertonDD": 5.39,
     "altmanZ": 8.46,
     "var95": 76.3,
-    "deltaVs90d": "+3.8%",
+    "deltaVs90d": "+3.8 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 184,
+    "cdsOracleBps": 280,
     "polymarketProb": 0.092,
     "volumeUsd": 8611209,
-    "tokenDeflation": 25,
-    "us10yYield": 5.06
+    "tokenDeflation": 670,
+    "us10yYield": 5.06,
+    "backfilled": true
   },
   {
     "dayIndex": 82,
@@ -1485,13 +1567,14 @@
     "mertonDD": 5.39,
     "altmanZ": 8.46,
     "var95": 76.4,
-    "deltaVs90d": "+3.8%",
+    "deltaVs90d": "+3.8 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 184,
+    "cdsOracleBps": 281,
     "polymarketProb": 0.093,
     "volumeUsd": 8677278,
-    "tokenDeflation": 25,
-    "us10yYield": 5.07
+    "tokenDeflation": 670,
+    "us10yYield": 5.07,
+    "backfilled": true
   },
   {
     "dayIndex": 83,
@@ -1503,13 +1586,14 @@
     "mertonDD": 5.39,
     "altmanZ": 8.46,
     "var95": 76.5,
-    "deltaVs90d": "+3.8%",
+    "deltaVs90d": "+3.8 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 185,
+    "cdsOracleBps": 282,
     "polymarketProb": 0.093,
     "volumeUsd": 8743783,
-    "tokenDeflation": 25,
-    "us10yYield": 5.07
+    "tokenDeflation": 670,
+    "us10yYield": 5.07,
+    "backfilled": true
   },
   {
     "dayIndex": 84,
@@ -1521,13 +1605,14 @@
     "mertonDD": 5.38,
     "altmanZ": 8.45,
     "var95": 76.6,
-    "deltaVs90d": "+3.9%",
+    "deltaVs90d": "+3.9 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 185,
+    "cdsOracleBps": 283,
     "polymarketProb": 0.094,
     "volumeUsd": 8810785,
-    "tokenDeflation": 25,
-    "us10yYield": 5.08
+    "tokenDeflation": 670,
+    "us10yYield": 5.08,
+    "backfilled": true
   },
   {
     "dayIndex": 85,
@@ -1539,13 +1624,14 @@
     "mertonDD": 5.38,
     "altmanZ": 8.44,
     "var95": 76.8,
-    "deltaVs90d": "+4.0%",
+    "deltaVs90d": "+4.0 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 185,
+    "cdsOracleBps": 284,
     "polymarketProb": 0.094,
     "volumeUsd": 8878303,
-    "tokenDeflation": 25,
-    "us10yYield": 5.08
+    "tokenDeflation": 670,
+    "us10yYield": 5.08,
+    "backfilled": true
   },
   {
     "dayIndex": 86,
@@ -1557,13 +1643,14 @@
     "mertonDD": 5.38,
     "altmanZ": 8.43,
     "var95": 76.9,
-    "deltaVs90d": "+4.0%",
+    "deltaVs90d": "+4.0 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 186,
+    "cdsOracleBps": 285,
     "polymarketProb": 0.095,
     "volumeUsd": 8946311,
-    "tokenDeflation": 25,
-    "us10yYield": 5.09
+    "tokenDeflation": 670,
+    "us10yYield": 5.09,
+    "backfilled": true
   },
   {
     "dayIndex": 87,
@@ -1575,13 +1662,14 @@
     "mertonDD": 5.38,
     "altmanZ": 8.42,
     "var95": 77,
-    "deltaVs90d": "+4.1%",
+    "deltaVs90d": "+4.1 pts",
     "deltaVsYesterday": "+0.1%",
-    "cdsOracleBps": 186,
+    "cdsOracleBps": 286,
     "polymarketProb": 0.095,
     "volumeUsd": 9014743,
-    "tokenDeflation": 25,
-    "us10yYield": 5.09
+    "tokenDeflation": 670,
+    "us10yYield": 5.09,
+    "backfilled": true
   },
   {
     "dayIndex": 88,
@@ -1593,30 +1681,32 @@
     "mertonDD": 5.38,
     "altmanZ": 8.41,
     "var95": 77,
-    "deltaVs90d": "+4.1%",
+    "deltaVs90d": "+4.1 pts",
     "deltaVsYesterday": "+0.0%",
-    "cdsOracleBps": 187,
+    "cdsOracleBps": 287,
     "polymarketProb": 0.096,
     "volumeUsd": 9083491,
-    "tokenDeflation": 25,
-    "us10yYield": 5.1
+    "tokenDeflation": 670,
+    "us10yYield": 5.1,
+    "backfilled": true
   },
   {
     "dayIndex": 89,
     "date": "2026-10-19",
     "dayLabel": "Current",
-    "probability": 45.5,
-    "burstProbability": 45.5,
-    "compositeScore": 53.4,
-    "mertonDD": 4.97,
+    "probability": 71.6,
+    "burstProbability": 71.6,
+    "compositeScore": 63.3,
+    "mertonDD": 5.13,
     "altmanZ": 8.41,
-    "var95": 78.5,
-    "deltaVs90d": "+4.0%",
-    "deltaVsYesterday": "+0.2%",
-    "cdsOracleBps": 187,
-    "polymarketProb": 0.1005,
-    "volumeUsd": 9166472,
-    "tokenDeflation": 60,
-    "us10yYield": 5.1
+    "var95": 80.5,
+    "deltaVs90d": "+33.0 pts",
+    "deltaVsYesterday": "+28.9 pts",
+    "cdsOracleBps": 288,
+    "polymarketProb": 0.0905,
+    "volumeUsd": 9167627,
+    "tokenDeflation": 670,
+    "us10yYield": 5.1,
+    "backfilled": false
   }
 ]

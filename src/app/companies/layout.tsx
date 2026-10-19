@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
+import { COMPANIES, companyStats, formatUsd } from "./_components/companyData";
+
+/**
+ * Route metadata, computed from the profile table so the count and totals can
+ * never go stale.
+ */
+const stats = companyStats();
+const biggest = [...COMPANIES].sort((a, b) => b.totalVolumeUsd - a.totalVolumeUsd).slice(0, 3);
 
 export const metadata: Metadata = {
-  title: "Corporate AI Debt Exposure & Counterparty Matrix — 20 Profiling Entities",
-  description:
-    "Audited debt breakdowns, balance sheet leverage ratios, valuation multiples, and circular counterparty financing networks across Anthropic, OpenAI, Oracle, CoreWeave, Blackstone, and NVIDIA.",
+  title: `AI company debt and circularity — ${stats.count} profiles (${formatUsd(stats.totalDebtUsd)} debt)`,
+  description: `Debt, committed capital, valuation multiples and circular counterparty links across ${stats.count} AI companies. ${formatUsd(stats.totalVolumeUsd)} committed, ${formatUsd(stats.totalDebtUsd)} borrowed.`,
   keywords: [
     "Anthropic debt breakdown",
     "Oracle AI debt obligations",
@@ -17,9 +24,10 @@ export const metadata: Metadata = {
     canonical: "/companies",
   },
   openGraph: {
-    title: "Corporate AI Debt Exposure & Counterparty Matrix | AI Capital Tracker",
-    description:
-      "Audited debt breakdowns, leverage ratios, and circular financing mapping across the foundational companies carrying the $2.86T AI superstructure.",
+    title: `AI company debt and circularity — ${stats.count} profiles | AI Capital Tracker`,
+    description: `Debt facilities, valuation multiples and circular financing links across ${biggest
+      .map((c) => c.name)
+      .join(", ")} and the rest of the AI supply chain.`,
     url: "/companies",
     type: "website",
   },

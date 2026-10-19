@@ -1,23 +1,23 @@
 {
   "cds": {
-    "currentBps": 187,
+    "currentBps": 288,
     "baselineBps": 81,
-    "priorBps": 155,
+    "priorBps": 203,
     "otherBps": 135,
-    "note": "Reuters & ICE Fixed Income 5Y USD CDS on Oracle (AI debt anchor), as of Sep-Oct 2026"
+    "note": "5Y USD CDS on Oracle (AI debt anchor): 288bp = record-high close Oct 15 2026 (S&P Global Market Intelligence); 261bp a week earlier (Oct 8); priorBps 203bp = Jul 20-24 2026 print (ICE). baseline 81bp = long-run norm assumption. S&P cut ORCL to BBB- on Jul 9 2026"
   },
   "valuations": [
     {
       "company": "OpenAI",
-      "valuationUsd": 950000000000,
+      "valuationUsd": 1200000000000,
       "runRateRevenueUsd": 50000000000,
-      "note": "Oct 2026 funding benchmark ($852B closed post-money, targeting $1.0T–$1.4T, $50.0B annualized run-rate ARR reported by Newcomer & Financial Press)"
+      "note": "Rounds in talks at >$1.2T post-money (Bloomberg, Sep 16 2026); $950B matched no report; last closed benchmark $852B Series G post-money (Mar 2026, Reuters); The Information Sep 29 2026: $30B pre-IPO raise targeting ~$1.4T. Annualized run-rate ~$50.0B end-Sep 2026 on OpenAI's own basis excluding cloud-partner gross-up (FT first / CNBC / Reuters, Oct 8 2026; the widely-reported $70B was a partner-comparable methodology)"
     },
     {
       "company": "Anthropic",
       "valuationUsd": 2000000000000,
-      "runRateRevenueUsd": 47000000000,
-      "note": "Oct 2026 pre-IPO banker valuation target ($2.0T debut target / $965B Series H post-money, $47.0B annualized ARR propelled by Claude Code, $57B Broadcom convert & syndicate debt/credit facilities)"
+      "runRateRevenueUsd": 65000000000,
+      "note": "Oct 2026 IPO debut target at ~$2.0T (prospectus out Sep 2026; The Information Sep 12 2026, Guardian Sep 29 2026); $965B Series H closed post-money May 2026 (Reuters). Annualized ARR topped $65B by end-July 2026 — up from $47B in May and ~$9B end-2025, >40% via AWS/Microsoft/Google Cloud channels (Bloomberg/CNBC/Reuters, Aug 17 2026), guiding to ~$100B by year-end (Reuters Oct 2026)"
     },
     {
       "company": "Databricks",
@@ -26,10 +26,10 @@
       "note": "Coatue-led strategic round Aug 2026 ($190B valuation, $7B revenue run-rate reported)"
     },
     {
-      "company": "SpaceX / xAI",
+      "company": "xAI merger value (Feb 2026 all-stock)",
       "valuationUsd": 250000000000,
-      "runRateRevenueUsd": 500000000,
-      "note": "Consolidated inside SpaceX (Nasdaq: SPCX, $2.05T live public market cap following June 2026 IPO); xAI Colossus supercluster asset valued at $250B on $500M ARR"
+      "runRateRevenueUsd": 3200000000,
+      "note": "Consolidated inside SpaceX (Nasdaq: SPCX, $2.05T live public market cap following the June 2026 IPO); this $250B is xAI's merger value in the Feb 2026 all-stock SpaceX/xAI combination (deal-023) and is distinct from the SPCX public cap. xAI revenue $3.2B FY2025 per the SpaceX S-1 (operating loss $6.36B; $2.62B in 2024); AI segment revenue $2.56B in Q2 2026 (+247% YoY) and $3.38B in H1 2026 per the SpaceX Q2 2026 earnings release (SEC 8-K)"
     },
     {
       "company": "Mistral AI",
@@ -63,28 +63,28 @@
     }
   ],
   "ledger": {
-    "totalDisclosedUsd": 2858307802026,
+    "totalDisclosedUsd": 2872873160000,
     "byYear": {
-      "2023": 26345000000,
-      "2024": 295235000000,
-      "2025": 1732497500000,
-      "2026": 804230302026
+      "2023": 26357880000,
+      "2024": 294585000000,
+      "2025": 1739393980000,
+      "2026": 812536300000
     },
-    "debtTotal": 228072500000,
-    "debtShare": 0.08,
-    "computeContractShare": 0.28,
-    "top10Share": 0.641,
+    "debtTotal": 214890400000,
+    "debtShare": 0.075,
+    "computeContractShare": 0.283,
+    "top10Share": 0.638,
     "circularShare": 0.027,
-    "announcedShare": 0.124,
-    "megaCountLast12m": 48,
-    "daysSinceLastMega": 14,
+    "announcedShare": 0.101,
+    "megaCountLast12m": 25,
+    "daysSinceLastMega": 21,
     "count": 169
   },
   "crowd": {
-    "yesProbability": 0.1005,
-    "volumeUsd": 9166472.425098006,
-    "bubble2026Probability": 0.1005,
-    "bubble2027Probability": 0.19,
+    "yesProbability": 0.0905,
+    "volumeUsd": 9167626.861022005,
+    "bubble2026Probability": 0.0905,
+    "bubble2027Probability": 0.195,
     "activeContractsCount": 16,
     "markets": [
       {
@@ -102,9 +102,9 @@
         "question": "AI bubble burst in 2026?",
         "slug": "ai-industry-downturn-by-december-31-2026-857",
         "eventSlug": "ai-bubble-burst-by",
-        "yesProbabilityPct": 10.1,
-        "noProbabilityPct": 90,
-        "volumeUsd": 2479938,
+        "yesProbabilityPct": 9.1,
+        "noProbabilityPct": 91,
+        "volumeUsd": 2481049,
         "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
       },
       {
@@ -122,8 +122,8 @@
         "question": "AI bubble burst by June 30, 2027?",
         "slug": "ai-bubble-burst-by-june-30-2027",
         "eventSlug": "ai-bubble-burst-by",
-        "yesProbabilityPct": 19,
-        "noProbabilityPct": 81,
+        "yesProbabilityPct": 19.5,
+        "noProbabilityPct": 80.5,
         "volumeUsd": 34563,
         "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
       },
@@ -204,7 +204,7 @@
         "eventSlug": "openai-ipo-by",
         "yesProbabilityPct": 33.5,
         "noProbabilityPct": 66.5,
-        "volumeUsd": 5057,
+        "volumeUsd": 5058,
         "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
       },
       {
@@ -214,7 +214,7 @@
         "eventSlug": "openai-announces-it-has-achieved-agi-before-2027",
         "yesProbabilityPct": 8.5,
         "noProbabilityPct": 91.5,
-        "volumeUsd": 331472,
+        "volumeUsd": 331515,
         "referralUrl": "https://polymarket.com/event/openai-announces-it-has-achieved-agi-before-2027?r=AIbubble"
       },
       {
@@ -223,7 +223,7 @@
         "slug": "openai-1t-ipo-before-2027",
         "eventSlug": "openai-1t-ipo-before-2027",
         "yesProbabilityPct": 2.4,
-        "noProbabilityPct": 97.6,
+        "noProbabilityPct": 97.7,
         "volumeUsd": 317063,
         "referralUrl": "https://polymarket.com/event/openai-1t-ipo-before-2027?r=AIbubble"
       },
@@ -232,8 +232,8 @@
         "question": "Anthropic acquired before 2027?",
         "slug": "anthropic-acquired-before-2027",
         "eventSlug": "anthropic-acquired-before-2027",
-        "yesProbabilityPct": 2.4,
-        "noProbabilityPct": 97.7,
+        "yesProbabilityPct": 2.6,
+        "noProbabilityPct": 97.4,
         "volumeUsd": 30586,
         "referralUrl": "https://polymarket.com/event/anthropic-acquired-before-2027?r=AIbubble"
       },
@@ -253,37 +253,80 @@
     "note": "Live Polymarket sync across 6 active AI prediction events (Volume: $9.17M)"
   },
   "adoption": {
-    "topProductUsers": 350000000,
-    "annualUserGrowth": 0.65,
-    "apiPriceDeclineMultiple": 60,
+    "topProductUsers": 1200000000,
+    "annualUserGrowth": 0.5,
+    "apiPriceDeclineMultiple": 670,
     "trainingCostBand": "rising",
-    "note": "Public API rate cards, OpenAI DevDay statements, Anthropic pricing logs"
+    "note": "OpenAI DevDay Sep 29 2026: ChatGPT 1.2B weekly users (900M Feb 2026, 800M Oct 2025, official WAU series) → +50% YoY. API deflation: GPT-4 $30/1M input (Mar 2023) → DeepSeek V4.1 Flash $0.0448/1M input (OpenRouter live Oct 19 2026) = 670×, input basis. INTRADAY DISCLOSURE (2026-10-19): the verified $0.0448/1M print was used; live aggregator spot for the same base row was observed swinging $0.0344–$0.0448/1M on Oct 19, 2026, so the published 670× multiple is pinned to the verified print and is therefore CONSERVATIVE (the low end would imply ~873×)."
   },
   "capex": {
-    "aggregateCapexUsd": 485000000000,
+    "aggregateCapexUsd": 725000000000,
     "aggregateFcfUsd": 260000000000,
-    "note": "Microsoft, Alphabet, Meta, Amazon, Apple FY2025/2026 SEC 10-K/10-Q consensus: $668B+ operating cash flow, $485B capex, $260B retained FCF"
+    "note": "Big-4 hyperscaler CY2026 capex guidance (Jul 2026 calls): Amazon ~$220B cash capex, Alphabet $195–205B, Microsoft ~$175B incl. finance leases, Meta $130–145B → ~$725B guided (Forbes Oct 7 2026: $700–725B; Coatue Aug 11 2026: ~$733B). Apple excluded from this basis; FCF figure is trailing FY and flagged for CY2026 refresh"
   },
   "macro": {
     "us10yYieldPct": 5.1,
     "us10yBaselinePct": 3.75,
-    "cpiInflationYoY": 2.9,
-    "fedFundsRatePct": 4.75,
+    "cpiInflationYoY": 3.72,
+    "fedFundsRatePct": 3.75,
     "rateHikeRiskBps": 25,
-    "realYield10y": 2.7,
-    "highYieldSpreadBps": 336,
-    "note": "Live Yahoo Finance ^TNX & ICE BofA High Yield rate stream"
+    "realYield10y": 2.75,
+    "highYieldSpreadBps": 323,
+    "note": "FRED-verified Oct 19 2026: US10Y 5.10% (DGS10, Oct 15); 10y breakeven 2.35% (T10YIE, Oct 16) → real 10y 2.75%; CPI +3.72% YoY (CPIAUCSL Sep 2026); Fed funds 3.75% (FEDFUNDS Sep 2026 — cut cycle); US HY OAS 323bp (BAMLH0A0HYM2, Oct 15 2026)"
   },
   "aiDebt": {
     "annualDebtIssuanceUsd": 85000000000,
-    "totalTrackedDebtUsd": 228072500000,
+    "totalTrackedDebtUsd": 214890400000,
     "capexToOcfRatio": 0.548,
     "gpuDepreciationDragUsd": 38500000000,
     "capexToRevenueMultiple": 8.75,
     "note": "SEC 10-Q Capex vs OCF synthesis & private debt facilities"
   },
+  "_verified": {
+    "verified_at": "2026-10-19",
+    "verified_by": "data fact-checker pass 2 hand-verification; values mirrored into this script by pass 3 so syncs preserve them",
+    "corrections": [
+      "adoption.apiPriceDeclineMultiple 60 → 670 (INPUT basis: GPT-4 $30/1M Mar 2023 → DeepSeek V4.1 Flash $0.0448/1M input, OpenRouter live Oct 19 2026; recomputed each sync as 30 ÷ deepseek-v4.1-flash promptPerM, clamped 25–7000)",
+      "adoption.topProductUsers 350,000,000 → 1,200,000,000 (ChatGPT weekly users, OpenAI DevDay Sep 29 2026; 900M Feb 2026, 800M Oct 2025)",
+      "adoption.annualUserGrowth 0.65 → 0.5 (800M Oct 2025 → 1.2B Sep 2026 ≈ +50%)",
+      "valuations.OpenAI.runRateRevenueUsd stays 50,000,000,000, re-sourced (FT/CNBC/Reuters Oct 8 2026, own basis; the $70B report was a partner-gross-up) — valuationUsd 950,000,000,000 → 1,200,000,000,000 (Bloomberg Sep 16 2026: talks at >$1.2T; $950B matched no report)",
+      "valuations.Anthropic.runRateRevenueUsd 47,000,000,000 → 65,000,000,000 (Bloomberg/CNBC/Reuters Aug 17 2026: $65B ARR end-July, up from $47B in May; Reuters Oct 2026: guiding ~$100B year-end)",
+      "capex.aggregateCapexUsd 485,000,000,000 → 725,000,000,000 (Big-4 CY2026 guidance, Jul 2026 calls: AMZN ~$220B, GOOGL $195–205B, MSFT ~$175B incl. leases, META $130–145B; Forbes Oct 7 2026 $700–725B; Coatue Aug 11 2026 ~$733B)",
+      "macro.cpiInflationYoY 2.9 → 3.72 (FRED CPIAUCSL Sep 2026 336.298 vs Sep 2025 324.245)",
+      "macro.fedFundsRatePct 4.75 → 3.75 (FRED FEDFUNDS monthly obs, Sep 2026 — 2026 cut cycle)",
+      "macro.highYieldSpreadBps 336 → 323 (FRED BAMLH0A0HYM2, Oct 15 2026)",
+      "macro.highYieldSpreadBps 329 → 323 (pass 11, 2026-10-19: the published level was still the HYG-inverse proxy value; the note already cited the FRED print — the value now matches the note and the LEVEL is fetched directly from FRED BAMLH0A0HYM2 by the pipeline, with the HYG proxy demoted to the ticker row's change display only)",
+      "macro.realYield10y 2.7 → 2.75 (DGS10 5.10 − T10YIE 2.35, Oct 15/16 2026)",
+      "macro.us10yYieldPct 5.1 stays (FRED DGS10 Oct 15 2026 confirms)",
+      "ledger.daysSinceLastMega 14 (hardcoded literal) → 21 (derived each sync: whole days from the newest mega-class announcement to the sync date, UTC; newest = deal-002 Anthropic & Broadcom $42.0B convertible note, 28 Sep 2026)",
+      "ledger.megaCountLast12m 49 (all-time count of mega-class deals) → 25 (derived each sync: mega-class deals with announced_date inside the 365 days ending on the sync date)",
+      "live-models.json: benchmark $30/$60 restored (seed had $30/$30), max_deflation 670× input-basis, per-row sources + verified release dates seeded",
+      "cds.currentBps 187 → 288 (5Y Oracle CDS record close Oct 15 2026 — S&P Global Market Intelligence via securitasglobal.com; 261bp a week earlier Oct 8; CNBC Oct 19 quotes ~295bp intraday after a brief 300bp print). cds.priorBps 155 → 203 = the 90-day-ago print (Jul 20-24 2026, ICE data; Reuters Jul 29 quoted ~200bp, late-July prints 212-215bp). baselineBps 81 unchanged (long-run norm). S&P cut ORCL to BBB- on Jul 9 2026",
+      "valuations \"SpaceX / xAI\" → \"xAI merger value (Feb 2026 all-stock)\"; runRateRevenueUsd 500,000,000 → 3,200,000,000 (xAI FY2025 revenue $3.2B per the SpaceX S-1, operating loss $6.36B; AI segment revenue $2.56B in Q2 2026 per the SpaceX Q2 2026 earnings release). valuationUsd $250B unchanged — it is xAI’s merger value, distinct from SPCX’s $2.05T public cap",
+      "live-stocks market caps refreshed from filing cover-page share counts × Oct 16/19 close: AMZN $2.61T → $2.70T; ORCL $353B → $387.8B; CEG $86.5B → $96.1B; NBIS $35.5B → $45.0B; SMCI $18.5B → $20.8B; CRWV $53.2B → $33.9B (adjudicated 2026-10-19 per V3’s EDGAR verdict: 551,536,602 shares outstanding, 10-Q cover Jul 31 2026, EDGAR 0001769628-26-000366, × $61.39; the $53.2B/866.6M-share figure appears in no filing — the Sep 17 2026 35M-share ATM is undrawn capacity). Share counts now carried per ticker as sharesOutstanding",
+      "deals.json deal-161 ($6.5B CoreWeave \"debt facility expansion\") adjudicated a double count: amount_usd 6,500,000,000 → 0 and is_debt false, relabelled as an expansion of the existing $7.5B Blackstone-led facility — CoreWeave’s Q2 2026 10-Q Note 10 - Debt lists no January 2026 facility and no $6.5B instrument",
+      "deals.json deal-167 title \"(1.65B)\" → \"(1.77B)\" to match the verified €1.5B × 1.1786 announcement-date FX",
+      "quantitative.ts episode trigger string \"350M active weekly ChatGPT/Claude users\" → \"1.2B weekly users (DevDay, Sep 29 2026)\" — descriptive string only, not a model input",
+      "ledger debt re-bundled 2026-10-19: aiDebt.totalTrackedDebtUsd 228,072,500,000 → 214,890,400,000 and ledger.debtShare 0.080 → 0.075 (24 is_debt records) after the deal-161 double-count removal ($6.5B CoreWeave facility, amount_usd 0) and the deal-162 recast to the verified $2.4B Ares facility; ledger.totalDisclosedUsd 2,858,307,802,026 → 2,872,873,160,000 (169 deals, 2,872,873,160,000 recomputed from deals.json)",
+      "adoption.apiPriceDeclineMultiple 798 → 670 (pass 11, 2026-10-19: the published value had drifted onto the aggregator's lower $0.0376/1M quote, contradicting the row's own note/source ($0.0448/1M, OpenRouter live Oct 19 2026). Pinned to the verified print: 30 ÷ 0.0448 ≈ 670× (input basis, −99.85%). The live aggregator spot was observed swinging $0.0344–$0.0448/1M on Oct 19, 2026 — the pinned value is the conservative end of that observed range)",
+      "deals.json deal-016 (Meta-CoreWeave $21B AI cloud capacity expansion, 9 Apr 2026) is_mega false → true (pass 11, 2026-10-19: amount_usd $21B ≥ the $10B mega threshold, so the flag now agrees with the pipeline's mega rule — is_mega || amount_usd >= 10B. Flag-only mega count 48 → 49, matching the rule's 49; the trailing-365-day mega count stays 25 and the 169-deal / $2,872,873,160,000 ledger totals are unchanged)"
+    ],
+    "integrity_notes": [
+      "2026-10-19: deals.json mid-pass clobber investigated — no scheduled task writes the repo (schtasks checked), update-data.mjs has no deals.json write path; cause attributed to concurrent agent editing; pre-commit integrity re-verification added to checklist"
+    ],
+    "inspected_and_stayed": [
+      "cds 288/81/203/135bp (5Y Oracle CDS — record close Oct 15 2026 per S&P Global Market Intelligence; 203bp = the 90-day-ago print Jul 20-24 2026 (ICE); 81bp = long-run norm baseline; 135bp = other AI-exposed borrower. The pre-verification 187/81/155/135 set was superseded on Oct 19, 2026 — the numbers above are the verified ones)",
+      "aiDebt.totalTrackedDebtUsd 214,890,400,000 and annualDebtIssuanceUsd 85,000,000,000 (ledger pipeline outputs)",
+      "aiDebt.capexToOcfRatio 0.548 and capexToRevenueMultiple 8.75 (derived fields — basis needs owner review after capex basis change)",
+      "capex.aggregateFcfUsd 260,000,000,000 (trailing FY basis — flagged unverified for CY2026 in the capex note)",
+      "macro.rateHikeRiskBps 25 and us10yBaselinePct 3.75 (forward-looking stress-model assumptions, not observations)",
+      "macro.us02yYieldPct 4.75 (legacy DGS2 anchor — not re-verified Oct 19 2026; display-only, carries no model weight)",
+      "valuations Databricks/SpaceX-xAI/Mistral/Scale/Cohere/Perplexity/SSI rows (note-aligned, no contradicting live source this session)",
+      "ledger & crowd objects (regenerated by the pipeline; Polymarket 9.05% bubble-2026 odds re-verified live — the earlier 10.1% line was superseded by the Oct 19 2026 13:27 UTC sync)"
+    ]
+  },
   "meta": {
-    "last_synced_at": "2026-10-19T08:49:58.296Z",
+    "last_synced_at": "2026-10-19T13:27:47.367Z",
     "sync_mode": "autonomous_24h_telemetry",
     "sources": [
       "Federal Reserve Economic Data (FRED) St. Louis API (DGS10, DGS2, BAMLH0A0HYM2, FEDFUNDS)",

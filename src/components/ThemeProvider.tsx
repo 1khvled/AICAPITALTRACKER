@@ -16,26 +16,33 @@ const ThemeContext = createContext<ThemeContextType>({
   setTheme: () => {},
 });
 
+/**
+ * Reads the class the pre-paint boot script in the root layout already put on
+ * <html>, so the first client render agrees with what the user actually sees.
+ * The provider deliberately renders no wrapper element: the theme lives on
+ * <html>, which is also what Tailwind's `dark:` variants key off.
+ */
+function readDocumentTheme(): Theme {
+  if (typeof document === "undefined") return "dark";
+  return document.documentElement.classList.contains("dark") ? "dark" : "light";
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("dark");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Check saved theme or system preference
-    const saved = localStorage.getItem("theme") as Theme | null;
-    const initialTheme: Theme = saved ? saved : "dark";
-    setThemeState(initialTheme);
-    if (initialTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    setThemeState(readDocumentTheme());
     setMounted(true);
   }, []);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem("theme", newTheme);
+    try {
+      localStorage.setItem("theme", newTheme);
+    } catch {
+      // storage-blocked browsers (private-mode configs) throw out of the click handler
+    }
     if (newTheme === "dark") {
       document.documentElement.classList.add("dark");
     } else {
@@ -49,9 +56,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
-      <div className={theme === "dark" ? "dark" : ""}>
-        {children}
-      </div>
+      {children}
     </ThemeContext.Provider>
   );
 }

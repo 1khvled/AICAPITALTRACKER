@@ -50,7 +50,11 @@ export const POLYMARKET_HISTORICAL_TRENDS: PolymarketHistoryPoint[] = [
   { date: "Sep 2025", aiBubble2026: 9.4, aiBubble2027: 16.8, oracleCdsStress: 34.0, openaiAgiOdds: 10.4, volumeCumulativeMillions: 7.7 },
   { date: "Jan 2026", aiBubble2026: 8.9, aiBubble2027: 16.2, oracleCdsStress: 36.2, openaiAgiOdds: 9.8, volumeCumulativeMillions: 8.1 },
   { date: "May 2026", aiBubble2026: 8.1, aiBubble2027: 15.9, oracleCdsStress: 37.8, openaiAgiOdds: 9.1, volumeCumulativeMillions: 8.4 },
-  { date: "Oct 2026 (Live)", aiBubble2026: 7.6, aiBubble2027: 15.5, oracleCdsStress: 38.0, openaiAgiOdds: 8.5, volumeCumulativeMillions: 8.9 },
+  // 2026-10-19 (round-2 consolidation): the live end-point of this series was 7.6% / 15.5% /
+  // $8.9M — the pre-rebaseline crowd reading. It now matches the published snapshot in
+  // src/data/live-inputs.json: 9.05% on the Dec-2026 bubble contract, 19.5% on the Jun-2027
+  // contract, $9,167,627 traded ($9.2M) across 16 active markets.
+  { date: "Oct 2026 (Live)", aiBubble2026: 9.05, aiBubble2027: 19.5, oracleCdsStress: 38.0, openaiAgiOdds: 8.5, volumeCumulativeMillions: 9.2 },
 ];
 
 export const POLYMARKET_FEATURED_MARKETS: PolymarketMarket[] = [
@@ -61,12 +65,15 @@ export const POLYMARKET_FEATURED_MARKETS: PolymarketMarket[] = [
     category: "Bubble & Downturn",
     slug: "ai-industry-downturn-by-december-31-2026-857",
     eventSlug: "ai-bubble-burst-by",
-    yesProbabilityPct: 7.6,
-    noProbabilityPct: 92.4,
-    yesPriceUsd: 0.076,
-    noPriceUsd: 0.924,
-    volumeUsd: 2443553,
-    liquidityUsd: 55962,
+    // 2026-10-19 (round-2 consolidation): 7.6% / $2,443,553 → the live contract print
+    // (9.1% on this contract; the published blended crowd reading is 9.05%) and $2,481,049
+    // traded — src/data/live-inputs.json crowd.markets, Polymarket snapshot 19 Oct 2026.
+    yesProbabilityPct: 9.1,
+    noProbabilityPct: 90.9,
+    yesPriceUsd: 0.091,
+    noPriceUsd: 0.909,
+    volumeUsd: 2481049,
+    liquidityUsd: 124052,
     endDate: "2027-01-01",
     referralUrl: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
     tradeYesUrl: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}&outcome=Yes`,
@@ -83,12 +90,14 @@ export const POLYMARKET_FEATURED_MARKETS: PolymarketMarket[] = [
     category: "Bubble & Downturn",
     slug: "ai-bubble-burst-by-june-30-2027",
     eventSlug: "ai-bubble-burst-by",
-    yesProbabilityPct: 15.5,
-    noProbabilityPct: 84.5,
-    yesPriceUsd: 0.155,
-    noPriceUsd: 0.845,
-    volumeUsd: 27206,
-    liquidityUsd: 24679,
+    // 2026-10-19 (round-2 consolidation): 15.5% / $27,206 → the live contract print (19.5%)
+    // and $34,563 traded — src/data/live-inputs.json crowd.markets, 19 Oct 2026 snapshot.
+    yesProbabilityPct: 19.5,
+    noProbabilityPct: 80.5,
+    yesPriceUsd: 0.195,
+    noPriceUsd: 0.805,
+    volumeUsd: 34563,
+    liquidityUsd: 1728,
     endDate: "2027-07-01",
     referralUrl: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
     tradeYesUrl: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}&outcome=Yes`,
@@ -115,7 +124,8 @@ export const POLYMARKET_FEATURED_MARKETS: PolymarketMarket[] = [
     referralUrl: `https://polymarket.com/?r=${POLYMARKET_REFERRAL_CODE}`,
     tradeYesUrl: `https://polymarket.com/?r=${POLYMARKET_REFERRAL_CODE}`,
     tradeNoUrl: `https://polymarket.com/?r=${POLYMARKET_REFERRAL_CODE}`,
-    description: "Tracks the primary debt credit proxy for AI hyperscale facilities. Baseline CDS was 81bps; currently trading at 187bps (+131% widening).",
+    // 288bp = live cds.currentBps (Oracle 5Y record close, Oct 15 2026); widening vs the 81bp baseline = +256%
+    description: "Tracks the primary debt credit proxy for AI hyperscale facilities. Baseline CDS was 81bps; currently trading at 288bps (+256% widening).",
     tag: "Debt Anchor",
     resolutionSource: "ICE Fixed Income / Markit CDS Index",
     change24hPct: +1.8,
@@ -181,7 +191,10 @@ export const POLYMARKET_FEATURED_MARKETS: PolymarketMarket[] = [
     referralUrl: `https://polymarket.com/event/openai-1t-ipo-before-2027?r=${POLYMARKET_REFERRAL_CODE}`,
     tradeYesUrl: `https://polymarket.com/event/openai-1t-ipo-before-2027?r=${POLYMARKET_REFERRAL_CODE}&outcome=Yes`,
     tradeNoUrl: `https://polymarket.com/event/openai-1t-ipo-before-2027?r=${POLYMARKET_REFERRAL_CODE}&outcome=No`,
-    description: "Evaluates whether market willingness to value frontier model labs at $1T+ persists under current 42× P/S multiples.",
+    // 2026-10-19 (round-2 consolidation): "current 42× P/S multiples" → 29.4× — the published
+    // median price/sales across the commercial frontier labs (src/data/latest-model.json and
+    // /api/v1/model, 19 Oct 2026). The 42× figure predated the re-baselined lab set.
+    description: "Evaluates whether market willingness to value frontier model labs at $1T+ persists under current 29.4× P/S multiples.",
     tag: "Valuation Stretch",
     resolutionSource: "Nasdaq / NYSE First Day Close",
     change24hPct: 0.0,

@@ -1,145 +1,85 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { NewsItem } from "@/app/api/v1/news/route";
+import type { NewsItem } from "@/app/api/v1/news/route";
 import {
   Newspaper,
   RefreshCw,
   Clock,
   Search,
   X,
-  CheckCircle2,
   ArrowUpRight,
-  FileText,
 } from "lucide-react";
 
-// Institutional curated wire fallback data
-const INSTITUTIONAL_WIRE: NewsItem[] = [
-  {
-    id: "wire-1",
-    title: "Anthropic Prepares Form S-1 Prospectus Disclosing $11.5B ARR Run-Rate Against $57B In Debt & Compute Facilities",
-    publisher: "Reuters / Yahoo Finance",
-    link: "https://finance.yahoo.com/technology/ai/articles/anthropic-wants-ipo-york-city-120200718.html",
-    publishedAt: new Date(Date.now() - 14 * 60 * 1000).toISOString(),
-    timeAgo: "14m ago",
-    category: "Frontier Labs",
-    impact: "High Impact",
-    summary: "Anthropic confidential prospectus review indicates annualized run-rate expanded to $11.5B, while disclosing $57B in verified debt facilities with Broadcom and syndicated credit lines backing long-term cloud commitments.",
-  },
-  {
-    id: "wire-2",
-    title: "Oracle 5-Year CDS Default Swaps Trade at 187bps (+131% Since 2024) on Hyperscale GPU Debt Guarantees",
-    publisher: "Bloomberg Markets",
-    link: "https://finance.yahoo.com/markets/stocks/articles/oracle-reports-upbeat-q1-tap-120000430.html",
-    publishedAt: new Date(Date.now() - 38 * 60 * 1000).toISOString(),
-    timeAgo: "38m ago",
-    category: "Debt & Credit",
-    impact: "Material Filing",
-    summary: "Fixed income syndicate desks report accelerated demand for credit protection on Oracle senior notes as AI data center capital expenditures consume 54.8% of operating cash flow.",
-  },
-  {
-    id: "wire-3",
-    title: "Spending on AI Is Becoming Almost Impossible for Businesses to Budget",
-    publisher: "The Wall Street Journal",
-    link: "https://finance.yahoo.com/m/517b0e8d-b3ce-30a9-bdaf-3aedfef6c07a/spending-on-ai-is-becoming.html",
-    publishedAt: new Date(Date.now() - 65 * 60 * 1000).toISOString(),
-    timeAgo: "1h ago",
-    category: "General AI",
-    impact: "High Impact",
-    summary: "Enterprise CIOs report escalating token inference costs, ambiguous software ROI, and difficult budget allocations as vendor pricing structures fluctuate.",
-  },
-  {
-    id: "wire-4",
-    title: "Anthropic Eyes Historic $2.0 Trillion IPO Target as OpenAI Nears $1.0 Trillion Milestone on $50B ARR",
-    publisher: "The Wall Street Journal & Reuters",
-    link: "https://finance.yahoo.com/news/anthropic-openai-multi-trillion-valuations-2026",
-    publishedAt: new Date(Date.now() - 110 * 60 * 1000).toISOString(),
-    timeAgo: "2h ago",
-    category: "Frontier Labs",
-    impact: "High Impact",
-    summary: "Investment banks float a $1.8T to $2.0T valuation for Anthropic's public debut following its $965B Series H, while OpenAI approaches a $1.0T valuation benchmark on $50.0B annualized run-rates.",
-  },
-  {
-    id: "wire-5",
-    title: "How Market Bets on Anthropic’s IPO Are Hiding in an AI ETF",
-    publisher: "Barron's / Yahoo Finance",
-    link: "https://finance.yahoo.com/m/e02656f3-fa2c-3d29-8dfb-55022e3cc82e/how-market-bets-on.html",
-    publishedAt: new Date(Date.now() - 170 * 60 * 1000).toISOString(),
-    timeAgo: "3h ago",
-    category: "Frontier Labs",
-    impact: "Market Sentiment",
-    summary: "Specialized tech and thematic ETFs accumulate indirect exposure to top venture-backed foundation model developers ahead of expected 2027 liquidity windows.",
-  },
-  {
-    id: "wire-6",
-    title: "CoreWeave Isn't The Only Sputtering AI Stock — Nor The Worst",
-    publisher: "Investor's Business Daily / Yahoo Finance",
-    link: "https://finance.yahoo.com/m/7400be65-1675-35e1-a62d-17ae6fe9b185/coreweave-isn%27t-the-only.html",
-    publishedAt: new Date(Date.now() - 240 * 60 * 1000).toISOString(),
-    timeAgo: "4h ago",
-    category: "Debt & Credit",
-    impact: "Material Filing",
-    summary: "Specialized neocloud providers face margin compression as secondary GPU market pricing normalizes and multi-billion debt-service maturities draw closer.",
-  },
-  {
-    id: "wire-7",
-    title: "Polymarket Dec 2026 AI Bubble Contract Crosses $9.1M Volume as Resolution Odds Hold Steady at 7.6%",
-    publisher: "CoinDesk / Polymarket",
-    link: "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble",
-    publishedAt: new Date(Date.now() - 310 * 60 * 1000).toISOString(),
-    timeAgo: "5h ago",
-    category: "General AI",
-    impact: "Market Sentiment",
-    summary: "Decentralized prediction order books price a 7.6% probability of an official AI sector downturn by Dec 2026, rising to 15.5% for June 2027 based on hardware and valuation drawdown triggers.",
-  },
-  {
-    id: "wire-8",
-    title: "Global X Launches New ETF Focusing on Large Language Models & Physical AI",
-    publisher: "Business Wire / Yahoo Finance",
-    link: "https://finance.yahoo.com/technology/ai/articles/global-x-launches-etf-focusing-123000430.html",
-    publishedAt: new Date(Date.now() - 410 * 60 * 1000).toISOString(),
-    timeAgo: "7h ago",
-    category: "Silicon & Power",
-    impact: "High Impact",
-    summary: "Asset manager introduces dedicated fund targeting LLM providers, power utilities, and datacenter hardware integrators navigating post-hype consolidation.",
-  },
-];
+/**
+ * The wire renders the DAILY INGESTION SNAPSHOT — src/data/live-news.json —
+ * which the /news page passes in as props (the page header counts the same
+ * array, so the headline can never disagree with the list).
+ *
+ * 19 Oct 2026 honesty rebuild: this component used to ship a hand-written
+ * "institutional wire" of invented headlines with invented publisher
+ * attributions, invented numbers ($11.5B ARR, 187bps CDS, $2.0T/$1.0T
+ * valuations) and links to unrelated or dead URLs. All of it is deleted. Every
+ * headline, publisher, timestamp and link below now comes from the ingestion
+ * snapshot, and every age stamp is computed from the item's own publishedAt
+ * after mount (never from a module-scope clock).
+ */
 
 type TargetCategory = "All" | "Debt Issuance" | "GPU Capex" | "Lab Valuations" | "Fed & Rates";
 
-export function LiveNewsFeed() {
-  const [news, setNews] = useState<NewsItem[]>(INSTITUTIONAL_WIRE);
+/**
+ * Age stamp. `now` is null until the client has mounted, so the server render
+ * and the first client render produce the identical string (no hydration
+ * mismatch) and the relative time only appears once the page is live.
+ */
+// 2026-10-19 security audit 2.1: feed links arrive from upstream JSON. Only https:
+// may become an href — React does not strip javascript: hrefs on its own.
+const safeHref = (url: string): string => (/^https:\/\//i.test(url) ? url : "#");
+
+function formatAge(publishedAt: string, now: number | null, fallback: string): string {
+  if (now === null) return fallback;
+  const ts = Date.parse(publishedAt);
+  if (Number.isNaN(ts)) return fallback;
+  const minutes = Math.max(1, Math.round((now - ts) / 60000));
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.round(hours / 24)}d ago`;
+}
+
+export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
   const [selectedCategory, setSelectedCategory] = useState<TargetCategory>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
+  const [now, setNow] = useState<number | null>(null);
+  // null = use the server snapshot; a populated array = a manual reload.
+  const [reloaded, setReloaded] = useState<NewsItem[] | null>(null);
 
+  const news = reloaded ?? items;
+
+  useEffect(() => {
+    setNow(Date.now());
+  }, []);
+
+  // Reload the same daily snapshot from the API. The endpoint serves the
+  // ingestion file, so this can never fabricate a newer headline — it only
+  // re-reads what the pipeline last wrote.
   const fetchNews = async () => {
     setIsLoading(true);
     try {
       const res = await fetch("/api/v1/news");
       if (res.ok) {
         const data = await res.json();
-        if (data.news && Array.isArray(data.news) && data.news.length > 0) {
-          // Merge API news with our curated institutional wire to ensure maximum density
-          const existingIds = new Set(data.news.map((n: NewsItem) => n.id));
-          const supplementary = INSTITUTIONAL_WIRE.filter((w) => !existingIds.has(w.id));
-          setNews([...data.news, ...supplementary]);
-          setLastRefreshed(new Date());
+        if (Array.isArray(data.news) && data.news.length > 0) {
+          setReloaded(data.news as NewsItem[]);
         }
       }
-    } catch (e) {
-      console.warn("News fetch fallback active:", e);
+    } catch {
+      /* keep the snapshot we already have — a snapshot is never a stream */
     } finally {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchNews();
-    const interval = setInterval(fetchNews, 120000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Helper to map each news item to one of the 4 requested target categories
   const mapToTargetCategory = (item: NewsItem): TargetCategory => {
@@ -255,135 +195,108 @@ export function LiveNewsFeed() {
     return counts;
   }, [news]);
 
+  // Newest publication stamp in the snapshot (the "how fresh is this" label).
+  const snapshotLabel = useMemo(() => {
+    const newest = news.reduce<string | null>(
+      (acc, n) => (n.publishedAt && (!acc || n.publishedAt > acc) ? n.publishedAt : acc),
+      null
+    );
+    if (!newest) return null;
+    const d = new Date(newest);
+    return Number.isNaN(d.getTime())
+      ? null
+      : `${d.toISOString().replace("T", " ").slice(0, 16)} UTC`;
+  }, [news]);
+
   // Helper to render verified source badge with institutional styling
   const renderSourceBadge = (publisher: string) => {
     const pubLower = publisher.toLowerCase();
 
     if (pubLower.includes("bloomberg")) {
-      return (
-        <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-950/80 text-amber-300 border border-amber-700/80 whitespace-nowrap">
-          <CheckCircle2 className="w-3 h-3 text-amber-400" />
-          <span>Bloomberg Markets</span>
-        </span>
-      );
+      return <span className="chip chip-caution">Bloomberg</span>;
     }
     if (pubLower.includes("reuters")) {
-      return (
-        <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-orange-950/80 text-orange-300 border border-orange-700/80 whitespace-nowrap">
-          <CheckCircle2 className="w-3 h-3 text-orange-400" />
-          <span>Reuters Wire</span>
-        </span>
-      );
+      return <span className="chip chip-caution">Reuters</span>;
     }
     if (pubLower.includes("sec") || pubLower.includes("10-q") || pubLower.includes("edgar")) {
-      return (
-        <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-cyan-950/80 text-cyan-300 border border-cyan-700/80 whitespace-nowrap">
-          <FileText className="w-3 h-3 text-cyan-400" />
-          <span>SEC Form 10-Q</span>
-        </span>
-      );
+      return <span className="chip">SEC Form 10-Q</span>;
     }
     if (pubLower.includes("journal") || pubLower.includes("wsj")) {
-      return (
-        <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-900 text-slate-100 border border-slate-700 whitespace-nowrap">
-          <CheckCircle2 className="w-3 h-3 text-white" />
-          <span>Wall Street Journal</span>
-        </span>
-      );
+      return <span className="chip">Wall Street Journal</span>;
     }
     if (pubLower.includes("ft") || pubLower.includes("financial times")) {
-      return (
-        <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-rose-950/80 text-rose-300 border border-rose-700/80 whitespace-nowrap">
-          <CheckCircle2 className="w-3 h-3 text-rose-400" />
-          <span>Financial Times</span>
-        </span>
-      );
+      return <span className="chip chip-risk">Financial Times</span>;
     }
     if (pubLower.includes("polymarket") || pubLower.includes("coindesk")) {
-      return (
-        <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-indigo-950/80 text-indigo-300 border border-indigo-700/80 whitespace-nowrap">
-          <CheckCircle2 className="w-3 h-3 text-indigo-400" />
-          <span>Polymarket Wire</span>
-        </span>
-      );
+      return <span className="chip">Polymarket Wire</span>;
     }
 
-    return (
-      <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-zinc-800 text-zinc-300 border border-zinc-700 whitespace-nowrap">
-        <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-        <span>{publisher}</span>
-      </span>
-    );
+    return <span className="chip">{publisher}</span>;
   };
 
   return (
-    <div className="bg-[#0b0e14] dark:bg-[#090b10] border border-zinc-800 text-zinc-100 rounded-2xl shadow-xl overflow-hidden transition-colors">
-      {/* Institutional Financial News Wire Header */}
-      <div className="bg-[#0d1117] border-b border-zinc-800/90 px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 font-mono text-[11px] font-black uppercase tracking-widest whitespace-nowrap">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>REAL-TIME CAPITAL &amp; DEBT WIRE</span>
-          </div>
-
-          <div className="hidden md:flex items-center space-x-2 text-xs font-mono text-zinc-400">
-            <span className="text-zinc-600">|</span>
-            <span>SEC EDGAR • DOW JONES • REUTERS API</span>
-          </div>
+    <div className="card card-flush overflow-hidden">
+      {/* Wire header — snapshot wording, no pulsing dot */}
+      <div className="flex flex-col gap-3 border-b border-rule px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <span className="pill">RESEARCH WIRE SNAPSHOT</span>
+          <span className="text-[14px] text-ink-subtle">
+            Daily ingestion (00:00 UTC) — a dated snapshot, not a live tape
+          </span>
         </div>
 
-        {/* Refresh & Sync Status */}
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={fetchNews}
-            disabled={isLoading}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-xs font-mono text-zinc-300 transition-colors whitespace-nowrap"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-amber-400" : "text-zinc-400"}`} />
-            <span>{isLoading ? "Syncing Wire..." : "Refresh Feed"}</span>
-          </button>
-        </div>
+        <button onClick={fetchNews} disabled={isLoading} className="btn min-h-11">
+          <RefreshCw
+            className={`h-4 w-4 ${isLoading ? "animate-spin text-caution-700" : ""}`}
+            aria-hidden="true"
+          />
+          <span>{isLoading ? "Reloading..." : "Reload snapshot"}</span>
+        </button>
       </div>
 
-      {/* Title & Filter Bar */}
-      <div className="p-5 sm:p-6 space-y-5 border-b border-zinc-800/60">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      {/* Title & filter bar */}
+      <div className="space-y-4 border-b border-rule px-4 py-4 sm:px-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center space-x-2.5">
-              <Newspaper className="w-6 h-6 text-indigo-400" />
-              <span>AI Capital, Debt &amp; Infrastructure Breaking News</span>
+            <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight text-ink">
+              <Newspaper className="h-5 w-5 text-ink-subtle" aria-hidden="true" />
+              <span>AI Capital, Debt &amp; Infrastructure Coverage</span>
             </h3>
-            <p className="text-xs sm:text-sm text-zinc-400 font-sans mt-1">
-              Verified financial dispatches tracking cloud debt issuances, GPU purchase orders, and frontier lab capitalization.
+            <p className="prose prose-p max-w-2xl text-sm">
+              Publicly reported market coverage on cloud debt issuances, GPU purchase orders, and
+              frontier lab capitalization. Headlines are collected once a day and are reproduced
+              with their original publisher and publication time.
             </p>
           </div>
 
-          {/* Search Input Bar */}
-          <div className="w-full lg:w-80 relative">
-            <div className="relative flex items-center">
-              <Search className="w-4 h-4 text-zinc-500 absolute left-3 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search headlines, issuers (ORCL, Anthropic)..."
-                className="w-full pl-9 pr-8 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-mono text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-2.5 text-zinc-500 hover:text-zinc-300"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
+          {/* Search */}
+          <div className="relative w-full lg:w-80">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-subtle"
+              aria-hidden="true"
+            />
+            <input
+              type="text"
+              aria-label="Search wire dispatches"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search headlines, issuers (ORCL, Anthropic)..."
+              className="min-h-11 w-full rounded-lg border border-rule bg-surface py-2 pl-9 pr-9 text-sm text-ink placeholder:text-ink-faint"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                aria-label="Clear search"
+                className="absolute right-1 top-1/2 flex h-11 w-8 -translate-y-1/2 items-center justify-center text-ink-subtle hover:text-ink"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Clean Category Filter Pills */}
-        <div className="flex items-center justify-between flex-wrap gap-2 pt-1">
-          <div className="flex items-center space-x-2 overflow-x-auto scrollbar-none pb-1">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1 scrollbar-none">
             {categories.map((cat) => {
               const isSelected = selectedCategory === cat;
               const count = categoryCounts[cat] || 0;
@@ -392,18 +305,15 @@ export function LiveNewsFeed() {
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold whitespace-nowrap transition-all border flex items-center space-x-1.5 ${
+                  aria-pressed={isSelected}
+                  className={`flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${
                     isSelected
-                      ? "bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/20"
-                      : "bg-zinc-900 text-zinc-300 border-zinc-800 hover:bg-zinc-800 hover:text-white"
+                      ? "border-ink bg-ink text-canvas"
+                      : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"
                   }`}
                 >
                   <span>{cat}</span>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded ${
-                      isSelected ? "bg-indigo-700 text-indigo-100" : "bg-zinc-800 text-zinc-400"
-                    }`}
-                  >
+                  <span className={`num text-[14px] ${isSelected ? "text-canvas" : "text-ink-subtle"}`}>
                     {count}
                   </span>
                 </button>
@@ -411,20 +321,26 @@ export function LiveNewsFeed() {
             })}
           </div>
 
-          <div className="text-xs font-mono text-zinc-500 whitespace-nowrap">
-            Showing <span className="font-bold text-zinc-300">{filteredNews.length}</span> of{" "}
-            <span className="font-bold text-zinc-300">{news.length}</span> dispatches
-          </div>
+          <p className="text-[14px] text-ink-subtle">
+            Showing <span className="num font-semibold text-ink">{filteredNews.length}</span> of{" "}
+            <span className="num font-semibold text-ink">{news.length}</span> dispatches
+            {snapshotLabel ? (
+              <>
+                {" "}
+                · <span className="num">newest {snapshotLabel}</span>
+              </>
+            ) : null}
+          </p>
         </div>
       </div>
 
-      {/* News Cards Grid */}
-      <div className="p-5 sm:p-6">
+      {/* Dispatches */}
+      <div className="px-4 py-4 sm:px-5">
         {filteredNews.length === 0 ? (
-          <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-8 text-center space-y-3">
-            <Newspaper className="w-8 h-8 text-zinc-600 mx-auto" />
-            <h4 className="text-sm font-bold text-zinc-300 font-mono">No matching wire dispatches</h4>
-            <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+          <div className="panel space-y-3 p-8 text-center">
+            <Newspaper className="mx-auto h-8 w-8 text-ink-faint" aria-hidden="true" />
+            <h4 className="text-sm font-bold text-ink">No matching wire dispatches</h4>
+            <p className="text-[14px] text-ink-muted">
               No headlines match &ldquo;{searchQuery}&rdquo; in category &ldquo;{selectedCategory}&rdquo;.
             </p>
             <button
@@ -432,69 +348,57 @@ export function LiveNewsFeed() {
                 setSearchQuery("");
                 setSelectedCategory("All");
               }}
-              className="text-xs font-mono text-indigo-400 hover:underline pt-2 inline-block"
+              className="btn btn-ghost min-h-11"
             >
               Reset all search filters
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ol className="divide-y divide-rule border-y border-rule">
             {filteredNews.map((item) => {
               const targetCat = mapToTargetCategory(item);
               const isHighImpact = item.impact === "High Impact";
 
               return (
-                <a
-                  key={item.id}
-                  href={item.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group block bg-zinc-900/70 border border-zinc-800/90 rounded-2xl p-5 hover:border-zinc-700 transition-all shadow-sm hover:shadow-md space-y-3.5 hover:bg-zinc-900/90"
-                >
-                  {/* Top Bar: Source Badge + Impact + Timestamp */}
-                  <div className="flex items-center justify-between text-xs font-mono gap-2 flex-wrap">
-                    <div className="flex items-center space-x-2">
-                      {renderSourceBadge(item.publisher)}
-                      {isHighImpact && (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-black uppercase bg-rose-950/80 text-rose-300 border border-rose-800/80 whitespace-nowrap">
-                          HIGH IMPACT
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center space-x-1.5 text-zinc-400 text-xs font-mono whitespace-nowrap">
-                      <Clock className="w-3.5 h-3.5 text-zinc-500" />
-                      <span>{item.timeAgo}</span>
-                    </div>
+                <li key={item.id} className="py-4">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                    {renderSourceBadge(item.publisher)}
+                    {isHighImpact && <span className="chip chip-risk">HIGH IMPACT</span>}
+                    <span className="chip">{targetCat}</span>
+                    <span className="num flex items-center gap-1.5 text-[14px] text-ink-subtle">
+                      <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                      {formatAge(item.publishedAt, now, item.timeAgo)}
+                    </span>
                   </div>
 
-                  {/* Headline */}
-                  <h4 className="text-base sm:text-lg font-bold text-white group-hover:text-indigo-400 transition-colors leading-snug tracking-tight">
-                    {item.title}
-                  </h4>
+                  <a
+                    href={safeHref(item.link)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group mt-1 block min-h-11 py-0.5"
+                  >
+                    <h4 className="text-[15px] font-semibold leading-snug text-ink underline decoration-rule underline-offset-4 group-hover:decoration-ink">
+                      {item.title}
+                    </h4>
+                  </a>
 
-                  {/* Financial Summary */}
                   {item.summary && (
-                    <p className="text-xs sm:text-sm text-zinc-300 font-sans line-clamp-3 leading-relaxed">
-                      {item.summary}
-                    </p>
+                    <p className="prose line-clamp-3 mt-1.5 text-[14px]">{item.summary}</p>
                   )}
 
-                  {/* Bottom Footer with Category Tag and External Read Link */}
-                  <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between text-xs font-mono">
-                    <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 text-[11px] font-semibold whitespace-nowrap">
-                      {targetCat}
-                    </span>
-
-                    <span className="text-indigo-400 font-bold group-hover:text-indigo-300 flex items-center space-x-1 text-xs whitespace-nowrap">
-                      <span>Read Original Filing</span>
-                      <ArrowUpRight className="w-3.5 h-3.5 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </span>
-                  </div>
-                </a>
+                  <a
+                    href={safeHref(item.link)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="prose-a mt-2 inline-flex min-h-11 items-center gap-1 text-[13px] font-semibold"
+                  >
+                    <span>Read the original</span>
+                    <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </a>
+                </li>
               );
             })}
-          </div>
+          </ol>
         )}
       </div>
     </div>

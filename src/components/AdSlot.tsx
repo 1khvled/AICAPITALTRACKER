@@ -1,114 +1,242 @@
-"use client";
+import Script from "next/script";
+import {
+  resolveAdPlacement,
+  legacyPlacementId,
+  type PlacementId,
+} from "@/lib/ads";
 
-import React from "react";
-import { ExternalLink, Zap } from "lucide-react";
-import { POLYMARKET_BASE_URL, POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ * <AdSlot /> — the only ad surface on the site.
+ * ─────────────────────────────────────────────────────────────────────────────
+ * CONTRACT
+ *   <AdSlot placementId="home-leaderboard" className="mt-6" />
+ *
+ *   * `placementId` is a lookup key only. This component has no knowledge of
+ *     which page it is on and never hardcodes placements per page — the
+ *     registry lives in `src/lib/ads.ts`.
+ *   * UNCONFIGURED -> renders NOTHING. No empty box, no reserved gap, no
+ *     console warning. A page with three unconfigured slots is byte-identical
+ *     to a page with none.
+ *   * CONFIGURED (env value present) -> reserves the exact height of the
+ *     format (`.ad-slot--<format>` in globals.css) and then loads the Adsterra
+ *     invocation script client-side with next/script. Reserved space first,
+ *     creative second: zero cumulative layout shift.
+ *   * Slots never throw. A malformed env value is treated as "not configured".
+ *
+ * TWO ZONE SHAPES, PICKED AUTOMATICALLY FROM THE ZONE URL
+ *   /21/<key>  NATIVE BANNER — renders into a container div looked up by id.
+ *              The div is server-rendered (so it exists before any script runs)
+ *              and the invocation script loads after hydration. Container id
+ *              comes from `..._<PLACEMENT>_ID`, else `container-<key>`.
+ *   /22/<key>  CLASSIC BANNER (160x600 etc.) — Adsterra expects an `atOptions`
+ *              global and then calls `document.write('<iframe …>')`.
+ *              document.write in a React-owned document destroys the page, so
+ *              this shape is NEVER loaded with next/script. It renders a nested
+ *              <iframe srcDoc="…"> carrying both snippets; document.write then
+ *              lands in the throwaway child document.
+ *   Detection + id resolution live in `src/lib/ads.ts`.
+ *
+ * DEDUPLICATION
+ *   next/script caches by `src`, so a zone URL configured on two placements can
+ *   only ever execute once per page — the second slot stays empty rather than
+ *   double-rendering. Each slot still owns its own container id.
+ *
+ * HOW TO ENABLE (no code change)
+ *   Paste the Adsterra zone invocation URL into `.env.local`:
+ *
+ *     NEXT_PUBLIC_ADSTERRA_HOME_INFEED_1=https://<host>/21/<zoneKey>
+ *     NEXT_PUBLIC_ADSTERRA_HOME_INFEED_1_ID=container-<zoneKey>
+ *     NEXT_PUBLIC_ADSTERRA_MARKETS_SIDEBAR_MPU=https://<host>/22/<zoneKey>
+ *
+ *   Key rule: `NEXT_PUBLIC_ADSTERRA_` + placement id, uppercased, dashes as
+ *   underscores. Nothing renders until the value exists.
+ *   Kill switch: `NEXT_PUBLIC_ADSTERRA_DISABLED=1`.
+ *
+ * PLACEMENT IDS
+ *   home-leaderboard, home-infeed-1, home-infeed-2,
+ *   ledger-top, ledger-infeed,
+ *   companies-top, companies-infeed,
+ *   markets-top, markets-sidebar-mpu,
+ *   methodology-top, methodology-infeed,
+ *   dotcom-top,
+ *   visualize-top, visualize-infeed,
+ *   sandbox-top, api-docs-top,
+ *   global-leaderboard, global-infeed, global-footer-billboard,
+ *   social-bar (default off)
+ *
+ * RESERVED-HEIGHT CLASSES
+ *   .ad-slot--banner (90px, 50px under 768px)
+ *   .ad-slot--mobile (50px)
+ *   .ad-slot--billboard (100px / 120px / 250px by breakpoint)
+ *   .ad-slot--mpu (250px)
+ *   .ad-slot--banner160 (600px, 160px wide; hidden below xl)
+ *   .ad-slot--native (120px, 160px from 768px)
+ *   .ad-slot--social-bar (fixed 50px bar, opt-in only)
+ *
+ * NOTE ON CASCADE
+ *   The ad-slot rules live in `@layer components` so plain Tailwind utilities
+ *   passed via `className` (e.g. `hidden xl:block`) still win over them.
+ * ---------------------------------------------------------------------------
+ */
 
-interface AdSlotProps {
-  format?: "leaderboard" | "in-feed" | "rectangle" | "banner";
-  slotId?: string;
-  className?: string;
-}
+/** Legacy `format` values kept only so un-migrated pages still typecheck. */
+export type LegacyAdFormat = "leaderboard" | "in-feed" | "rectangle" | "banner";
 
-export function AdSlot({ format = "leaderboard", slotId = "slot-default", className = "" }: AdSlotProps) {
-  if (format === "in-feed") {
-    return (
-      <div className={`p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/80 dark:bg-[#121214] transition-colors shadow-sm ${className}`}>
-        <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-zinc-400 mb-2">
-          <span className="flex items-center space-x-1.5 font-bold text-indigo-600 dark:text-indigo-400">
-            <Zap className="w-3.5 h-3.5 fill-current" />
-            <span className="uppercase tracking-wider">MARKET PARTNER SPOTLIGHT</span>
-          </span>
-          <span className="px-2 py-0.5 rounded bg-slate-200 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-mono text-xs font-semibold">
-            Ref: {POLYMARKET_REFERRAL_CODE}
-          </span>
-        </div>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="space-y-1">
-            <a
-              href={POLYMARKET_BASE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-bold text-base text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center space-x-1.5 transition-colors"
-            >
-              <span>Polymarket: Trade AI Bubble &amp; ORCL Debt Contracts with 0% Gas</span>
-              <ExternalLink className="w-4 h-4 text-slate-400" />
-            </a>
-            <p className="text-sm text-slate-600 dark:text-zinc-300 leading-relaxed font-sans">
-              Instant USDC limit orders on Polygon. Hedge macro AI tech drawdowns, lab IPO timelines, and datacenter credit spread blowouts.
-            </p>
-          </div>
-          <a
-            href={POLYMARKET_BASE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="self-start sm:self-center px-4 py-2 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors whitespace-nowrap shadow-sm"
-          >
-            Open Market ›
-          </a>
-        </div>
-      </div>
-    );
-  }
-
-  if (format === "rectangle") {
-    return (
-      <div className={`w-full max-w-[320px] mx-auto p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] text-center space-y-3 transition-colors shadow-sm ${className}`}>
-        <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-semibold">
-          <span>SPONSORED BRIEF</span>
-          <span className="text-indigo-500 font-bold">PARTNER</span>
-        </div>
-        <div className="rounded-lg bg-slate-50 dark:bg-zinc-900 p-4 border border-slate-100 dark:border-zinc-800/80 space-y-2.5">
-          <div className="w-8 h-8 rounded-md bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto">
-            <Zap className="w-4 h-4 fill-current" />
-          </div>
-          <span className="font-mono text-sm font-bold text-slate-900 dark:text-white block">
-            Hedge AI Macro Risk
-          </span>
-          <p className="text-xs text-slate-600 dark:text-zinc-300 font-sans leading-relaxed">
-            Trade decentralized prediction markets with deep liquidity and zero protocol gas fees.
-          </p>
-          <a
-            href={POLYMARKET_BASE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline pt-1 font-mono"
-          >
-            Trade on Polymarket (Ref: {POLYMARKET_REFERRAL_CODE}) &rarr;
-          </a>
-        </div>
-      </div>
-    );
-  }
-
-  // Default: Leaderboard Banner (Solid, institutional, no wireframe dashed borders)
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ * buildAtOptionsDoc — the `/22/` isolation document.
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Adsterra's classic-banner snippet is two scripts:
+ *
+ *     <script>atOptions = { key: '<zoneKey>', format: 'iframe',
+ *                          height: 600, width: 160, params: {} };</script>
+ *     <script async data-cfasync="false" src="https://<host>/22/<zoneKey>"></script>
+ *
+ * The second one ends in `document.write('<iframe …>')`. Run in the page that
+ * React owns, that replaces the entire document (and React's DOM with it).
+ * So we hand both snippets to a nested iframe instead: the child document
+ * parses the inline `atOptions` assignment first, then fetches and runs the
+ * invocation script, and whatever it writes lands inside the child.
+ *
+ * Everything that could break out of the attribute context is stripped from the
+ * URL — it has already passed `normalizeScriptUrl`, this is belt and braces.
+ */
+export function buildAtOptionsDoc(args: {
+  scriptSrc: string;
+  zoneKey: string;
+  width: number;
+  height: number;
+}): string {
+  const { scriptSrc, zoneKey, width, height } = args;
+  const safeSrc = scriptSrc.replace(/[<>"'`]/g, "");
+  const safeKey = zoneKey.replace(/[^A-Za-z0-9_-]/g, "");
+  const options = JSON.stringify({
+    key: safeKey,
+    format: "iframe",
+    height,
+    width,
+    params: {},
+  });
   return (
-    <div className={`w-full rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] p-3 transition-colors shadow-sm ${className}`}>
-      <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-zinc-400 px-2 pb-1.5">
-        <span className="uppercase tracking-wider font-bold text-slate-600 dark:text-zinc-400">INSTITUTIONAL PARTNER BRIEF</span>
-        <span className="text-indigo-600 dark:text-indigo-400 font-bold">Ref Code: {POLYMARKET_REFERRAL_CODE}</span>
-      </div>
-      <div className="rounded-lg bg-slate-50 dark:bg-zinc-900/70 border border-slate-200/80 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-3 sm:py-2.5 gap-3">
-        <div className="text-left">
-          <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
-            <span>Polymarket AI Prediction Markets &amp; Tech Downside Hedges</span>
-            <span className="text-xs px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 font-mono font-bold">
-              0% Gas
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 font-sans hidden sm:block mt-1">
-            Trade live crowd consensus on the 2026 AI downturn, Oracle CDS spread thresholds, and OpenAI IPO valuations with instant USDC liquidity.
-          </p>
-        </div>
-        <a
-          href={POLYMARKET_BASE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-4 py-2 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors whitespace-nowrap shadow-sm"
-        >
-          Trade Live Odds &rarr;
-        </a>
-      </div>
-    </div>
+    "<!doctype html><html><head><meta charset=\"utf-8\">" +
+    "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">" +
+    "<style>html,body{margin:0;padding:0;background:transparent;overflow:hidden}" +
+    "iframe{border:0;display:block}</style>" +
+    "</head><body>" +
+    `<script>var atOptions=${options};window.atOptions=atOptions;</script>` +
+    `<script async data-cfasync="false" src="${safeSrc}"></script>` +
+    "</body></html>"
   );
 }
+
+export interface AdSlotProps {
+  /**
+   * Stable placement id from `src/lib/ads.ts`. Optional only so that pages
+   * still passing the deprecated `format` / `slotId` pair keep compiling
+   * during the migration.
+   */
+  placementId?: PlacementId | (string & {});
+  /** Extra classes on the reserved-space wrapper. */
+  className?: string;
+  /** @deprecated Pass `placementId` instead. */
+  format?: LegacyAdFormat;
+  /** @deprecated Pass `placementId` instead. */
+  slotId?: string;
+}
+
+export function AdSlot({
+  placementId,
+  className,
+  format,
+  slotId,
+}: AdSlotProps) {
+  const requestedId: string | null =
+    typeof placementId === "string" && placementId.length > 0
+      ? placementId
+      : legacyPlacementId(format, slotId);
+
+  const ad = resolveAdPlacement(requestedId);
+
+  // Not configured -> render nothing at all.
+  if (!ad) return null;
+
+  // A 160x600 skyscraper in a narrow rail is dead space on phones/tablets, so
+  // the slot itself drops out below xl (reserved box and creative stay equal).
+  const isTallRail = ad.format === "banner160";
+
+  const wrapperClass = [
+    ad.slotClassName,
+    isTallRail ? "hidden xl:block" : null,
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const isSocialBar = ad.format === "social-bar";
+
+  // `/22/` zones: no next/script. The invocation script lives inside the
+  // child document so its document.write can never touch the host page.
+  if (ad.isolateInIframe && ad.size && ad.zoneKey) {
+    const { width, height } = ad.size;
+    return (
+      <aside
+        className={wrapperClass}
+        aria-label={ad.label}
+        role="complementary"
+        data-placement={ad.placementId}
+        data-format={ad.format}
+        data-adsterra-pattern={ad.pattern}
+      >
+        <span className="ad-label" aria-hidden="true">
+          Advertisement
+        </span>
+        <div id={ad.containerId} className="ad-slot__frame">
+          <iframe
+            title="Advertisement"
+            srcDoc={buildAtOptionsDoc({
+              scriptSrc: ad.scriptSrc,
+              zoneKey: ad.zoneKey,
+              width,
+              height,
+            })}
+            width={width}
+            height={height}
+            style={{ width, height, border: "0", display: "block", margin: 0 }}
+            scrolling="no"
+            frameBorder={0}
+            marginWidth={0}
+            marginHeight={0}
+            loading="lazy"
+          />
+        </div>
+      </aside>
+    );
+  }
+
+  return (
+    <aside
+      className={wrapperClass}
+      aria-label={ad.label}
+      role="complementary"
+      data-placement={ad.placementId}
+      data-format={ad.format}
+      data-adsterra-pattern={ad.pattern}
+    >
+      <span className="ad-label" aria-hidden="true">
+        Advertisement
+      </span>
+      <div id={ad.containerId} className="ad-slot__frame" />
+      <Script
+        src={ad.scriptSrc}
+        strategy={ad.strategy}
+        async
+        data-cfasync="false"
+        data-adsterra-placement={ad.placementId}
+        id={`${ad.containerId}-loader`}
+        {...(isSocialBar ? { "data-adsterra-social-bar": "1" } : {})}
+      />
+    </aside>
+  );
+}
+
+export default AdSlot;

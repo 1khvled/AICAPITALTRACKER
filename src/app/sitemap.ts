@@ -8,7 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${baseUrl}`,
       lastModified: now,
-      changeFrequency: "hourly",
+      changeFrequency: "daily",
       priority: 1.0,
     },
     {
@@ -38,7 +38,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${baseUrl}/markets`,
       lastModified: now,
-      changeFrequency: "hourly",
+      changeFrequency: "daily",
       priority: 0.9,
     },
     {
@@ -52,6 +52,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/news`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/api`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.6,
     },
     {
       url: `${baseUrl}/api-docs`,

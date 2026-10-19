@@ -1,26 +1,26 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Mathematical Methodology & Factor Calibration — 8-Factor Structural Credit Model",
+  title: "Methodology — how the burst probability is calculated",
   description:
-    "Rigorous quantitative mathematical framework behind the AI Bubble Burst Probability Index. Detailed formulation of the 8 weighted diagnostic factors, systemic contagion exponent, degradation honesty protocol, and empirical calibrations.",
+    "The published weights, formulas, calibration anchors and backtests behind the 12-month AI burst probability, written out in full.",
   keywords: [
     "AI bubble methodology",
-    "credit risk methodology AI",
-    "systemic contagion formula",
-    "Merton structural credit model AI",
+    "bubble probability model",
+    "factor weights",
+    "model backtesting",
+    "Brier score",
     "degradation honesty protocol",
-    "GPU economic lifespan formula",
-    "AI capital model calibration",
-    "hyperscaler debt risk mathematics",
+    "Merton distance to default",
+    "AI credit risk mathematics",
   ],
   alternates: {
     canonical: "/methodology",
   },
   openGraph: {
-    title: "Mathematical Methodology & Factor Calibration | AI Capital Tracker",
+    title: "Methodology | AI Capital Tracker",
     description:
-      "Explore the 8-factor mathematical framework, nonlinear systemic contagion terms, and empirical calibrations underpinning the AI Capital Tracker.",
+      "The weights, formulas, calibration anchors and empirical backtests behind the burst probability.",
     url: "/methodology",
     type: "website",
   },

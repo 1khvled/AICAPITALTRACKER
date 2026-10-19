@@ -1,16 +1,19 @@
 {
-  "last_synced_at": "2026-10-19T08:49:49.678Z",
+  "last_synced_at": "2026-10-19T13:27:39.264Z",
+  "verified_at": "2026-10-19",
   "source": "https://openrouter.ai/api/v1/models",
   "license": "Public OpenRouter Model Catalog (Free / Keyless)",
-  "total_models_available": 471,
+  "total_models_available": 469,
+  "verification_note": "Live OpenRouter fetch Oct 19, 2026 returned 470 model listings (spec preview said 471; live count wins). All prices re-verified against the live keyless API; deflation multiples recomputed on the INPUT-price basis vs GPT-4's $30/1M input (Mar 2023 launch rate, still listed today). GPT-4 input $30/1M, output $60/1M (OpenRouter live + OpenAI Mar 14 2023 launch rate).",
   "benchmark_baseline": {
     "model": "OpenAI GPT-4 Original",
     "release_date": "March 2023",
-    "completion_cost_per_m": 30,
-    "prompt_cost_per_m": 30
+    "prompt_cost_per_m": 30,
+    "completion_cost_per_m": 60,
+    "source": "https://openrouter.ai/api/v1/models (live Oct 19, 2026: gpt-4 prompt $0.00003 / completion $0.00006 per token; launch pricing $30/$60 per OpenAI Mar 2023)"
   },
-  "max_deflation_factor": "375× (DeepSeek V4.1 Flash @ $0.08/1M tokens)",
-  "frontier_reasoning_rate": "$20.00/1M tokens (Claude Opus 5.5)",
+  "max_deflation_factor": "670× input-basis (DeepSeek V4.1 Flash @ $0.0448/1M input, 30 / 0.0448 ≈ 669.6 → -99.85% vs GPT-4 input; completion-basis below-10¢ equivalent $60 → $0.08)",
+  "frontier_reasoning_rate": "$4.00/1M input · $20.00/1M output (Claude Opus 5.5)",
   "models": [
     {
       "id": "anthropic/claude-opus-5.5",
@@ -21,9 +24,10 @@
       "completionPerM": 20,
       "batchCompletionPerM": 10,
       "contextLength": 1000000,
-      "deflationMultiple": "1.5× Cheaper",
-      "releaseDate": "October 2026",
-      "note": "State-of-the-art agentic reasoning engine commanding premium token density"
+      "deflationMultiple": "7.5× Cheaper",
+      "releaseDate": "September 2026",
+      "note": "State-of-the-art agentic reasoning engine commanding premium token density",
+      "source": "https://openrouter.ai/api/v1/models (live Oct 19, 2026: prompt 0.000004 / completion 0.00002 per token; created 2026-09-22 UTC, so release = September 2026, not October)"
     },
     {
       "id": "anthropic/claude-sonnet-5.5",
@@ -34,9 +38,10 @@
       "completionPerM": 10,
       "batchCompletionPerM": 5,
       "contextLength": 1000000,
-      "deflationMultiple": "3.0× Cheaper",
-      "releaseDate": "October 2026",
-      "note": "Industry standard for complex code generation, tool orchestration & reasoning"
+      "deflationMultiple": "15× Cheaper",
+      "releaseDate": "September 2026",
+      "note": "Industry standard for complex code generation, tool orchestration & reasoning",
+      "source": "https://openrouter.ai/api/v1/models (live Oct 19, 2026: prompt 0.000002 / completion 0.00001 per token; created 2026-09-28 UTC)"
     },
     {
       "id": "anthropic/claude-haiku-5.5",
@@ -47,9 +52,10 @@
       "completionPerM": 0.5,
       "batchCompletionPerM": 0.25,
       "contextLength": 1000000,
-      "deflationMultiple": "60× Cheaper",
+      "deflationMultiple": "300× Cheaper",
       "releaseDate": "October 2026",
-      "note": "Sub-second real-time streaming at 50¢ per million completion tokens"
+      "note": "Sub-second real-time streaming at $0.10/1M input and 50¢ per million completion tokens (prompts ≤100k tokens; $0.50/$2.50 above). Released Oct 7, 2026",
+      "source": "https://openrouter.ai/api/v1/models (live Oct 19, 2026); https://www.anthropic.com (Haiku 5.5 announcement Oct 7, 2026, $0.10/$0.50 ≤100k tier)"
     },
     {
       "id": "deepseek/deepseek-v4.1-flash",
@@ -60,9 +66,10 @@
       "completionPerM": 0.08,
       "batchCompletionPerM": 0.04,
       "contextLength": 1048576,
-      "deflationMultiple": "375× Cheaper",
-      "releaseDate": "October 2026",
-      "note": "Architectural MoE cost breakthrough; sub-10¢ per million tokens (-99.7% vs GPT-4)"
+      "deflationMultiple": "670× Cheaper",
+      "releaseDate": "September 2026",
+      "note": "Architectural MoE cost breakthrough; $0.0448/1M input / $0.08/1M completion on aggregated open-weights serving (-99.85% input-basis vs GPT-4). The $0.0448 base-row print is the verified one — the same listing was observed swinging $0.0344–$0.0448/1M intraday on Oct 19, 2026, so the 670× multiple is pinned to the verified print (conservative). DeepSeek's first-party API lists $0.15/$0.60 (cache-miss, off-peak). V4.1 Flash base live Sep 10, 2026; the V4.1 Flash 1017 checkpoint (Oct 17, 2026) is priced higher at $0.30/$1.20",
+      "source": "https://openrouter.ai/api/v1/models (live Oct 19, 2026: prompt 0.0000000448 / completion 0.00000008 per token); https://api-docs.deepseek.com/quick_start/pricing (first-party $0.15/$0.60 off-peak); api-docs DeepSeek-V4.1-Flash 'live September 10, 2026'"
     },
     {
       "id": "google/gemini-4-argon",
@@ -73,9 +80,10 @@
       "completionPerM": 10,
       "batchCompletionPerM": 5,
       "contextLength": 1048576,
-      "deflationMultiple": "3.0× Cheaper",
+      "deflationMultiple": "15× Cheaper",
       "releaseDate": "October 2026",
-      "note": "Frontier multimodal reasoning with 1M context window and native audio/video"
+      "note": "Frontier multimodal reasoning with 1M context window and native audio/video",
+      "source": "https://openrouter.ai/api/v1/models (live Oct 19, 2026: prompt 0.000002 / completion 0.00001 per token; created 2026-10-13 UTC)"
     },
     {
       "id": "google/gemini-3.8-flash",
@@ -86,9 +94,10 @@
       "completionPerM": 4.125,
       "batchCompletionPerM": 2.06,
       "contextLength": 1048576,
-      "deflationMultiple": "7.3× Cheaper",
+      "deflationMultiple": "36× Cheaper",
       "releaseDate": "September 2026",
-      "note": "Fast multimodal throughput with 1M token context capacity"
+      "note": "Fast multimodal throughput with 1M token context capacity; released Sep 2, 2026. OpenRouter's normalized Google rate is $0.825/$4.125 (Google Vertex non-global tier); Google's first-party global introductory list (through Dec 31, 2026) is $0.75/$3.75, rising to $1.50/$7.50 on Jan 1, 2027",
+      "source": "https://openrouter.ai/api/v1/models (live Oct 19, 2026); https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.8 + https://cloud.google.com/gemini-enterprise-agent-platform/generative-ai/pricing (official tiers)"
     },
     {
       "id": "openai/gpt-4o",
@@ -99,9 +108,10 @@
       "completionPerM": 10,
       "batchCompletionPerM": 5,
       "contextLength": 128000,
-      "deflationMultiple": "3.0× Cheaper",
-      "releaseDate": "2024–2026",
-      "note": "Flagship omni multimodal model for general purpose intelligence"
+      "deflationMultiple": "12× Cheaper",
+      "releaseDate": "May 2024",
+      "note": "Flagship omni multimodal model for general purpose intelligence; launched May 13, 2024 at $5/$15 (OpenAI blog), today listed at $2.50/$10",
+      "source": "https://openrouter.ai/api/v1/models (live Oct 19, 2026: prompt 0.0000025 / completion 0.00001 per token); https://openai.com/index/hello-gpt-4o (launch pricing $5/$15, May 13 2024)"
     },
     {
       "id": "openai/gpt-4o-mini",
@@ -112,9 +122,10 @@
       "completionPerM": 0.6,
       "batchCompletionPerM": 0.3,
       "contextLength": 128000,
-      "deflationMultiple": "50× Cheaper",
-      "releaseDate": "2024–2026",
-      "note": "Cost-efficient lightweight intelligence for fast classification and routing"
+      "deflationMultiple": "200× Cheaper",
+      "releaseDate": "July 2024",
+      "note": "Cost-efficient lightweight intelligence for fast classification and routing; launched Jul 18, 2024 at $0.15/$0.60",
+      "source": "https://openrouter.ai/api/v1/models (live Oct 19, 2026: prompt 0.00000015 / completion 0.0000006 per token); https://openai.com/index/gpt-4o-mini (launch pricing $0.15/$0.60, Jul 18 2024)"
     },
     {
       "id": "openai/gpt-6.1-sol-pro",
@@ -125,9 +136,10 @@
       "completionPerM": 10,
       "batchCompletionPerM": 5,
       "contextLength": 1050000,
-      "deflationMultiple": "3.0× Cheaper",
-      "releaseDate": "October 2026",
-      "note": "Next-generation reasoning & orchestration architecture with native tool planning"
+      "deflationMultiple": "15× Cheaper",
+      "releaseDate": "September 2026",
+      "note": "Next-generation reasoning & orchestration architecture with native tool planning; created Sep 29, 2026 per OpenRouter feed",
+      "source": "https://openrouter.ai/api/v1/models (live Oct 19, 2026: prompt 0.000002 / completion 0.00001 per token)"
     },
     {
       "id": "openai/gpt-6-luna",
@@ -138,9 +150,10 @@
       "completionPerM": 0.5,
       "batchCompletionPerM": 0.25,
       "contextLength": 1050000,
-      "deflationMultiple": "60× Cheaper",
-      "releaseDate": "October 2026",
-      "note": "High-speed speculative decoding engine optimized for micro-latency streaming"
+      "deflationMultiple": "300× Cheaper",
+      "releaseDate": "September 2026",
+      "note": "High-speed speculative decoding engine optimized for micro-latency streaming; created Sep 22, 2026 per OpenRouter feed; price matches OpenAI's own $0.10/$0.50 Luna tier",
+      "source": "https://openrouter.ai/api/v1/models (live Oct 19, 2026: prompt 0.0000001 / completion 0.0000005 per token); OpenAI API pricing page (GPT-6 Luna $0.10/$0.50)"
     }
   ]
 }

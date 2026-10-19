@@ -1,81 +1,772 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@300;400;500;600;700;800&display=swap');
+/* ==========================================================================
+   AI CAPITAL TRACKER — GLOBAL STYLESHEET
+   --------------------------------------------------------------------------
+   The whole design system in one file. Everything below is intentional.
+
+   CONTRACT FOR OTHER AGENTS (stable class names — do not rename):
+     .card / .panel / .notice / .pill / .chip / .prose*
+     .section / .section-sm / .section-lg
+     .btn / .btn-primary / .btn-ghost / .label / .num
+     .ad-slot--{banner|mobile|billboard|mpu|banner160|native|social-bar}
+     .skeleton / .skeleton-line
+     .skip-link / .font-tabular / .scrollbar-none / .hairline-t / .hairline-b
+
+   Tailwind semantic tokens (theme-aware, no dark: twin needed):
+     bg-canvas bg-surface bg-surface-2 bg-surface-3
+     text-ink text-ink-muted text-ink-subtle text-ink-faint
+     border-rule border-rule-strong
+     safe-{50..900}  risk-{50..900}  caution-{50..900}
+   ========================================================================== */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ─────────────────────────────────────────────────────────────────────────
+   1. TOKENS
+   Light = white reading canvas. Dark = graphite terminal.
+   ───────────────────────────────────────────────────────────────────────── */
 :root {
-  --background: #f8fafc;
-  --foreground: #09090b;
+  color-scheme: light;
+
+  /* Surfaces */
+  --c-canvas: 255 255 255;
+  --c-surface: 249 250 251;
+  --c-surface-2: 243 245 247;
+  --c-surface-3: 234 237 240;
+
+  /* Ink ramp — AA (4.5:1) verified on canvas/surface/surface-2/surface-3.
+     (2026-10-19 contrast pass: faint 145,152,161 was 2.91:1 on white and
+     subtle 108,116,126 fell to 4.03:1 on surface-3 — both darkened so every
+     ink token clears 4.5:1 at the new 12-14px size floors.) */
+  --c-ink: 12 14 17;
+  --c-ink-muted: 74 82 92;
+  --c-ink-subtle: 84 92 102;
+  --c-ink-faint: 100 108 118;
+
+  /* Hairlines */
+  --c-rule: 226 229 233;
+  --c-rule-strong: 197 204 212;
+
+  /* Support colours */
+  --c-shadow: 16 20 26;
+  --c-focus: 12 14 17;
+  --c-header: 12 14 17; /* terminal chrome */
+  --c-header-ink: 244 245 247;
+  --c-header-rule: 38 42 48;
+  --c-header-muted: 150 157 166;
+
+  /* Section rhythm */
+  --space-section-sm: 2rem;
+  --space-section: 3rem;
+  --space-section-lg: 4rem;
+
+  /* Ad reserved heights (zero CLS). Overridden per format below. */
+  --ad-min-h: 0px;
 }
 
 html.dark {
-  --background: #09090b;
-  --foreground: #f4f4f5;
+  color-scheme: dark;
+
+  --c-canvas: 10 11 13;
+  --c-surface: 17 19 22;
+  --c-surface-2: 23 26 30;
+  --c-surface-3: 32 36 41;
+
+  /* (2026-10-19 contrast pass: faint 111,118,127 was 4.29:1 on canvas /
+     3.40:1 on surface-3 — lifted to 132,139,148 = 5.72 / 5.07 / 4.53.) */
+  --c-ink: 244 245 247;
+  --c-ink-muted: 173 179 187;
+  --c-ink-subtle: 143 150 159;
+  --c-ink-faint: 132 139 148;
+
+  --c-rule: 36 40 46;
+  --c-rule-strong: 58 63 71;
+
+  --c-shadow: 0 0 0;
+  --c-focus: 244 245 247;
+  --c-header: 8 9 11;
+  --c-header-ink: 245 246 248;
+  --c-header-rule: 32 36 41;
+  --c-header-muted: 140 147 156;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   2. BASE
+   ───────────────────────────────────────────────────────────────────────── */
 html {
   font-size: 16px;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem; /* sticky header offset for in-page anchors */
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-size: 1rem; /* Full 16px base size for clear readability */
+  background-color: rgb(var(--c-canvas));
+  color: rgb(var(--c-ink));
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Helvetica Neue", Arial, sans-serif;
+  font-size: 1.0625rem; /* 17px — reading size for plain-language copy */
   line-height: 1.6;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.005em;
+  overflow-x: hidden;
+  min-height: 100dvh;
 }
 
-/* Tabular numbers for clean numeric alignment */
-.font-tabular {
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum' 1, 'zero' 1;
+/* Nothing on this site may cause sideways scroll on a 360px phone. */
+img,
+svg,
+video,
+canvas,
+table {
+  max-width: 100%;
 }
 
-/* Headings crisp letter-spacing and weight */
-h1, h2, h3, h4, h5, h6 {
-  letter-spacing: -0.025em;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 700;
+  letter-spacing: -0.022em;
+  line-height: 1.15;
+  text-wrap: balance;
 }
 
-/* Subtle, clean scrollbar */
+p {
+  text-wrap: pretty;
+}
+
+::selection {
+  background: rgb(var(--c-ink));
+  color: rgb(var(--c-canvas));
+}
+
+/* One focus treatment, applied everywhere, high contrast in both themes. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid rgb(var(--c-focus));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+:where(a, button, input, select, textarea, summary, [tabindex]):focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Hairline scrollbars — present, but quiet. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--c-rule-strong)) transparent;
+}
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+  background: rgb(var(--c-rule-strong));
+  border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgb(var(--c-ink-faint));
 }
 
-html.dark ::-webkit-scrollbar-track {
-  background: #09090b;
+/* ─────────────────────────────────────────────────────────────────────────
+   3. COMPONENTS
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* Skip link — always in the DOM, visible only on keyboard focus. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.625rem 1rem;
+  background: rgb(var(--c-ink));
+  color: rgb(var(--c-canvas));
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
 }
-html.dark ::-webkit-scrollbar-thumb {
-  background: #27272a;
-}
-html.dark ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+.skip-link:focus {
+  left: 0.75rem;
+  top: 0.75rem;
 }
 
-/* Smooth, clean transitions */
-button, a, input, select {
-  transition: all 0.15s ease-in-out;
+/* Section rhythm. */
+.section {
+  padding-block: var(--space-section-sm);
+}
+@media (min-width: 640px) {
+  .section {
+    padding-block: calc(var(--space-section-sm) + 0.5rem);
+  }
+}
+@media (min-width: 1024px) {
+  .section {
+    padding-block: var(--space-section);
+  }
+}
+.section-sm {
+  padding-block: 1rem;
+}
+@media (min-width: 1024px) {
+  .section-sm {
+    padding-block: 1.5rem;
+  }
+}
+.section-lg {
+  padding-block: var(--space-section);
+}
+@media (min-width: 1024px) {
+  .section-lg {
+    padding-block: var(--space-section-lg);
+  }
 }
 
-/* Continuous financial ticker marquee */
+/* Containers — a hairline surface. No shadow, ever. */
+.card {
+  background-color: rgb(var(--c-surface));
+  border: 1px solid rgb(var(--c-rule));
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+.card-flush {
+  padding: 0;
+}
+.card-inset {
+  background-color: rgb(var(--c-canvas));
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgb(var(--c-rule));
+}
+
+/* Panel — a recessed grouping box for dense data (no nesting shadows). */
+.panel {
+  background-color: rgb(var(--c-surface-2));
+  border: 1px solid rgb(var(--c-rule));
+  border-radius: 8px;
+  padding: 1rem;
+}
+.panel-flush {
+  padding: 0;
+}
+
+/* Notice — a ruled callout. Tone via modifier class. */
+.notice {
+  background-color: rgb(var(--c-surface-2));
+  border: 1px solid rgb(var(--c-rule));
+  border-left: 3px solid rgb(var(--c-ink-faint));
+  border-radius: 6px;
+  padding: 0.875rem 1rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+.notice-safe {
+  border-left-color: #0e9f6e;
+  background-color: #eaf7f1;
+}
+.notice-risk {
+  border-left-color: #d1433c;
+  background-color: #fdf0ef;
+}
+.notice-caution {
+  border-left-color: #b57f0a;
+  background-color: #fef8ea;
+}
+html.dark .notice-safe {
+  background-color: rgb(14 159 110 / 0.1);
+}
+html.dark .notice-risk {
+  background-color: rgb(209 67 60 / 0.12);
+}
+html.dark .notice-caution {
+  background-color: rgb(181 127 10 / 0.12);
+}
+.notice-title {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8125rem; /* 13px — was 11px (2026-10-19 size-floor pass) */
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(var(--c-ink-muted));
+}
+
+/* Pill — small status chip, mono, uppercase. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: 1px solid rgb(var(--c-rule));
+  background-color: rgb(var(--c-surface-2));
+  color: rgb(var(--c-ink-muted));
+  border-radius: 999px;
+  padding: 0.125rem 0.5rem;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8125rem; /* 13px — was 11px (2026-10-19 size-floor pass) */
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.pill-safe {
+  color: #0a6648;
+  background-color: #eaf7f1;
+  border-color: #a7dfc5;
+}
+.pill-risk {
+  color: #94271f;
+  background-color: #fdf0ef;
+  border-color: #f6c3bf;
+}
+.pill-caution {
+  color: #7a5506;
+  background-color: #fef8ea;
+  border-color: #f6d88c;
+}
+.pill-ink {
+  color: rgb(var(--c-canvas));
+  background-color: rgb(var(--c-ink));
+  border-color: rgb(var(--c-ink));
+}
+html.dark .pill-safe {
+  color: #6fc9a4;
+  background-color: rgb(14 159 110 / 0.16);
+  border-color: rgb(14 159 110 / 0.42);
+}
+html.dark .pill-risk {
+  color: #ee9c96;
+  background-color: rgb(209 67 60 / 0.16);
+  border-color: rgb(209 67 60 / 0.42);
+}
+html.dark .pill-caution {
+  color: #efc050;
+  background-color: rgb(181 127 10 / 0.16);
+  border-color: rgb(181 127 10 / 0.42);
+}
+html.dark .pill-ink {
+  color: #0b0c0e;
+  background-color: #f4f5f7;
+  border-color: #f4f5f7;
+}
+
+/* Chip — quiet inline tag for categorisation. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: 1px solid rgb(var(--c-rule));
+  background-color: rgb(var(--c-surface));
+  color: rgb(var(--c-ink-muted));
+  border-radius: 6px;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.8125rem; /* 13px — was 12px (2026-10-19 size-floor pass) */
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.chip-safe {
+  color: #0b7f58;
+  border-color: #a7dfc5;
+  background-color: #eaf7f1;
+}
+.chip-risk {
+  color: #b7352f;
+  border-color: #f6c3bf;
+  background-color: #fdf0ef;
+}
+.chip-caution {
+  color: #966a08;
+  border-color: #f6d88c;
+  background-color: #fef8ea;
+}
+html.dark .chip-safe {
+  color: #6fc9a4;
+  border-color: rgb(14 159 110 / 0.42);
+  background-color: rgb(14 159 110 / 0.12);
+}
+html.dark .chip-risk {
+  color: #ee9c96;
+  border-color: rgb(209 67 60 / 0.42);
+  background-color: rgb(209 67 60 / 0.12);
+}
+html.dark .chip-caution {
+  color: #efc050;
+  border-color: rgb(181 127 10 / 0.42);
+  background-color: rgb(181 127 10 / 0.12);
+}
+
+/* Buttons — flat, ruled, high-contrast primary. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid rgb(var(--c-rule-strong));
+  background-color: rgb(var(--c-surface));
+  color: rgb(var(--c-ink));
+  border-radius: 6px;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease,
+    color 120ms ease;
+}
+.btn:hover {
+  background-color: rgb(var(--c-surface-2));
+  border-color: rgb(var(--c-ink-faint));
+}
+.btn-primary {
+  background-color: rgb(var(--c-ink));
+  border-color: rgb(var(--c-ink));
+  color: rgb(var(--c-canvas));
+}
+.btn-primary:hover {
+  background-color: rgb(var(--c-ink-muted));
+  border-color: rgb(var(--c-ink-muted));
+}
+.btn-ghost {
+  background-color: transparent;
+  border-color: transparent;
+  color: rgb(var(--c-ink-muted));
+  padding-inline: 0.5rem;
+}
+.btn-ghost:hover {
+  color: rgb(var(--c-ink));
+  background-color: rgb(var(--c-surface-2));
+  border-color: transparent;
+}
+
+/* Micro label — the editorial "kicker" above a heading. */
+.label {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem; /* 12px — was 11px (2026-10-19 size-floor pass) */
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(var(--c-ink-faint));
+}
+
+/* Numerals — tabular, monospaced, never jittering. */
+.num {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+  letter-spacing: -0.02em;
+}
+/* Default figure size lives in @layer base so it applies ONLY where no
+   utility sets a size (an unlayered rule would beat text-[…] utilities and
+   shrink display numbers). 14px is the data floor. (2026-10-19 size pass) */
+@layer base {
+  .num {
+    font-size: 0.875rem;
+  }
+}
+
+/* Reading column — .prose holds the measure; .prose-* the rhythm. */
+.prose {
+  max-width: 68ch;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: rgb(var(--c-ink-muted));
+}
+.prose-lead {
+  font-size: 1.1875rem;
+  line-height: 1.6;
+  color: rgb(var(--c-ink));
+  letter-spacing: -0.011em;
+}
+.prose-h2 {
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgb(var(--c-ink));
+  letter-spacing: -0.02em;
+}
+.prose-h3 {
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 650;
+  color: rgb(var(--c-ink));
+}
+.prose-p {
+  margin-top: 0.875rem;
+}
+.prose-strong {
+  color: rgb(var(--c-ink));
+  font-weight: 600;
+}
+.prose-a {
+  color: rgb(var(--c-ink));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+.prose-a:hover {
+  text-decoration-thickness: 2px;
+}
+.prose-ul {
+  margin-top: 0.875rem;
+  padding: 0;
+  list-style: none;
+}
+.prose-li {
+  position: relative;
+  padding-left: 1.125rem;
+  margin-top: 0.5rem;
+}
+.prose-li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 6px;
+  height: 1px;
+  background: rgb(var(--c-ink-faint));
+}
+.prose-ol {
+  margin-top: 0.875rem;
+  padding-left: 1.25rem;
+  list-style: decimal;
+}
+.prose-mono {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9375rem;
+  background-color: rgb(var(--c-surface-2));
+  border: 1px solid rgb(var(--c-rule));
+  border-radius: 6px;
+  padding: 0.75rem 0.875rem;
+  overflow-x: auto;
+  color: rgb(var(--c-ink));
+}
+.prose-figure {
+  margin-top: 1.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(var(--c-rule));
+}
+.prose-caption {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: rgb(var(--c-ink-subtle));
+}
+.prose-hr {
+  margin-block: 2rem;
+  border: 0;
+  border-top: 1px solid rgb(var(--c-rule));
+}
+.prose-blockquote {
+  margin-top: 1.5rem;
+  padding-left: 1rem;
+  border-left: 2px solid rgb(var(--c-rule-strong));
+  color: rgb(var(--c-ink-subtle));
+  font-style: normal;
+}
+.prose-table {
+  margin-top: 1.5rem;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+.prose-table th {
+  text-align: left;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem; /* 12px — was 11px (2026-10-19 size-floor pass) */
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgb(var(--c-ink-subtle));
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgb(var(--c-rule-strong));
+}
+.prose-table td {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid rgb(var(--c-rule));
+  color: rgb(var(--c-ink-muted));
+}
+
+/* Skeletons — reserved boxes for loading states. */
+.skeleton {
+  background-color: rgb(var(--c-surface-3));
+  border-radius: 6px;
+  animation: skeletonPulse 1.6s ease-in-out infinite;
+}
+.skeleton-line {
+  height: 0.75rem;
+  width: 100%;
+}
+@keyframes skeletonPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   4. AD SLOTS — reserved space so the ad arriving never shifts the page.
+   The min-height lives on .ad-slot__frame; the label sits outside it.
+
+   These rules sit in @layer components (not raw CSS) so that Tailwind
+   utilities handed to <AdSlot className="…" /> still win — e.g. the
+   `hidden xl:block` used by the 160x600 sidebar rail. Keep new ad-slot
+   rules inside this layer for the same reason.
+   ───────────────────────────────────────────────────────────────────────── */
+@layer components {
+.ad-slot {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  contain: layout paint;
+}
+.ad-label {
+  display: block;
+  text-align: center;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem; /* 12px — was 10px (2026-10-19 size-floor pass) */
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgb(var(--c-ink-faint));
+  padding: 0.5rem 0 0.375rem;
+}
+.ad-slot__frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--ad-min-h);
+  min-width: 0;
+}
+
+/* 728x90 leaderboard; collapses to the 320x50 mobile unit on phones. */
+.ad-slot--banner {
+  --ad-min-h: 90px;
+}
+@media (max-width: 767px) {
+  .ad-slot--banner {
+    --ad-min-h: 50px;
+  }
+}
+
+/* 320x50 mobile unit. */
+.ad-slot--mobile {
+  --ad-min-h: 50px;
+}
+
+/* 970x250 billboard. */
+.ad-slot--billboard {
+  --ad-min-h: 100px;
+}
+@media (min-width: 640px) {
+  .ad-slot--billboard {
+    --ad-min-h: 120px;
+  }
+}
+@media (min-width: 1024px) {
+  .ad-slot--billboard {
+    --ad-min-h: 250px;
+  }
+}
+
+/* 300x250 rectangle. */
+.ad-slot--mpu {
+  --ad-min-h: 250px;
+}
+
+/* 160x600 skyscraper — a fixed rail, so the width is pinned too and the
+   creative can never disagree with its reserved box. */
+.ad-slot--banner160 {
+  --ad-min-h: 600px;
+  width: 160px;
+  max-width: 100%;
+}
+.ad-slot--banner160 .ad-slot__frame {
+  width: 160px;
+  min-height: 600px;
+}
+
+/* Native banner — fluid height, reserved minimum only. */
+.ad-slot--native {
+  --ad-min-h: 120px;
+}
+@media (min-width: 768px) {
+  .ad-slot--native {
+    --ad-min-h: 160px;
+  }
+}
+
+/* Social bar — off by default. Fixed to the bottom edge when enabled. */
+.ad-slot--social-bar {
+  --ad-min-h: 50px;
+  position: fixed;
+  inset: auto 0 0 0;
+  width: 100%;
+  z-index: 60;
+  background-color: rgb(var(--c-canvas));
+  border-top: 1px solid rgb(var(--c-rule));
+}
+.ad-slot--social-bar .ad-label {
+  display: none;
+}
+.has-social-bar {
+  padding-bottom: 50px;
+}
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   5. UTILITIES
+   ───────────────────────────────────────────────────────────────────────── */
+.font-tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.hairline-t {
+  border-top: 1px solid rgb(var(--c-rule));
+}
+.hairline-b {
+  border-bottom: 1px solid rgb(var(--c-rule));
+}
+.hairline {
+  border: 1px solid rgb(var(--c-rule));
+}
+
+.measure-wide {
+  max-width: 76ch;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   6. LEGACY MOTION (deprecated — kept so charts outside this file do not
+      break). The marquee is paused for reduced-motion users and for anyone
+      who hovers it. Remove once chart owners migrate off these classes.
+   ───────────────────────────────────────────────────────────────────────── */
 @keyframes marquee {
   0% {
     transform: translateX(0%);
@@ -94,43 +785,42 @@ button, a, input, select {
   animation-play-state: paused;
 }
 
-/* Organic harmonic floating animations for bubbles */
 @keyframes bubbleFloat1 {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(0px, 0px);
   }
   33% {
-    transform: translate(2.5px, -3px);
+    transform: translate(2px, -2px);
   }
   66% {
     transform: translate(-2px, 2px);
   }
 }
-
 @keyframes bubbleFloat2 {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(0px, 0px);
   }
   40% {
-    transform: translate(-3px, 2.5px);
+    transform: translate(-2px, 2px);
   }
   75% {
     transform: translate(2px, -2px);
   }
 }
-
 @keyframes bubbleFloat3 {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(0px, 0px);
   }
   30% {
-    transform: translate(2px, 3px);
+    transform: translate(2px, 2px);
   }
   70% {
-    transform: translate(-2.5px, -2px);
+    transform: translate(-2px, -2px);
   }
 }
-
 .animate-float-1 {
   animation: bubbleFloat1 4.8s ease-in-out infinite;
   transform-origin: center;
@@ -142,4 +832,45 @@ button, a, input, select {
 .animate-float-3 {
   animation: bubbleFloat3 6.2s ease-in-out infinite;
   transform-origin: center;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   7. MOTION PREFERENCE + PRINT
+   ───────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .animate-marquee {
+    animation: none !important;
+  }
+  .skeleton {
+    animation: none !important;
+  }
+}
+
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 11pt;
+  }
+  header,
+  footer,
+  .ad-slot,
+  .skip-link {
+    display: none !important;
+  }
+  .card,
+  .panel {
+    border-color: #999;
+    background: #fff;
+  }
 }

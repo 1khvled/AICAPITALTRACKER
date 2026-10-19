@@ -1,26 +1,25 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Macro Sensitivity Sandbox — Stress Test US10Y, Capex Spikes & Credit Spreads",
+  title: "Sandbox — stress the model with your own inputs",
   description:
-    "Interactive quantitative stress-testing sandbox. Adjust US10Y treasury yields, core inflation, debt growth rates, circularity dampeners, and hyperscaler capex to observe real-time delta shifts in AI bubble burst probability.",
+    "Move the interest rates, capex, debt share and token deflation sliders and watch the 12-month burst probability move, with the Monte Carlo tail risk beside it.",
   keywords: [
     "AI bubble simulator",
-    "macro stress testing AI",
-    "US10Y yield sensitivity AI",
-    "GPU capex simulator",
-    "AI credit freeze stress test",
-    "hyperscaler debt elasticity",
-    "burst probability sandbox",
-    "AI financial fragility simulator",
+    "macro stress testing",
+    "Treasury yield sensitivity",
+    "debt share scenario",
+    "Minsky fragility model",
+    "Shiller CAPE",
+    "Monte Carlo tail risk",
   ],
   alternates: {
     canonical: "/sandbox",
   },
   openGraph: {
-    title: "Macro Sensitivity & Stress Sandbox | AI Capital Tracker",
+    title: "Sensitivity sandbox | AI Capital Tracker",
     description:
-      "Simulate macro shocks, interest rate shifts, and datacenter debt spikes. Quantify dynamic changes in AI bubble burst probability in real time.",
+      "Stress the model with your own macro inputs and see the probability and the tail risk move together.",
     url: "/sandbox",
     type: "website",
   },

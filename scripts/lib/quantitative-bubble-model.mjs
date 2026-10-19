@@ -12,6 +12,30 @@
  * 8. Historical Crisis Backtesting Suite (1929, 2000, 2008, 2021, 2022, 2026) with Brier & AUC-ROC Calibration
  */
 
+// ── 2026-10-19 (data fact-checker pass 8) — fallback-default alignment ────────────────
+// This mirror is what the pipeline and the test suite actually execute, so its degradation-path
+// defaults were swept against the verified live set in src/data/live-inputs.json. VALUES ONLY — no
+// formula, weight, ramp or factor structure was touched. Aligned defaults (old → new):
+//   CDS currentBps 187 → 288bp (record close Oct 15 2026) · macro CPI 2.9 → 3.72 · Fed funds 4.75 → 3.75
+//   · HY-OAS 328 → 323bp · real 10y 2.70 → 2.75 · capex 485B → 725B (sim base 210B → 725B)
+//   · adoption user growth 0.65 → 0.5 · API deflation 40 → 670× (input basis)
+//   · ledger debt share 0.08/0.07/0.070 → 0.075 · top10 0.65 → 0.638 · circular 0.028 → 0.027
+//   · total disclosed 2.8e12 → 2,872,873,160,000 · byYear 769,180,302,026 → 812,536,300,000
+//   · announcedShare 0.13 → 0.101 · daysSinceLastMega 14 → 21 · tracked debt 228,072,500,000 → 214,890,400,000
+//   · crowd bubble-2026 odds 0.076 → 0.0905 · crowd volume 0 → 9,167,627 (rounded from the live
+//     9,167,626.861 — the pass-11 rounding fix below)
+// Unchanged on purpose (live values agree): annualDebtIssuanceUsd 85B · aggregateFcfUsd 260B
+//   · capexToOcfRatio 0.548 (owner review pending) · baseline CDS 81bp · us10y 5.10 · us02y 4.75
+//   · us10yBaseline 3.75 · rateHikeRiskBps 25 · asset value/volatility/horizon and LPPLS m/omega.
+//
+// ── 2026-10-19 (fix-lane A, pass 11) — remaining divergence notes ───────────────────────────
+//   · crowd volume fallback 9,167,527 → 9,167,627 (rounding of the live 9,167,626.861…).
+//   · FORMULA ANCHORS intentionally NOT changed (they are calibration constants, not fallbacks):
+//       Altman x4 7.21 here vs 7.19 in src/lib/model/quantitative.ts (the TS copy is frozen —
+//         "calibrated constant (7.19, frozen 2026-10-19)"), and the Minsky CDS reference 187/81
+//         plus the 10Y reference (4.42 here vs 5.10 in the TS copy). Re-deriving either moves
+//         published numbers (Altman Z'' 8.41, Minsky S/P 55.2/31.9/12.9) → left for the owner.
+//
 // ── Standard Normal Cumulative Distribution Function (Abramowitz & Stegun 7.1.26) ──
 export function normalCdf(x) {
   const a1 = 0.254829592;
@@ -112,9 +136,11 @@ export function evaluateBubbleModel(inputs, options = {}) {
 
   // Factor 3: Debt Reliance (weight: 14)
   {
-    const s = inputs.ledger?.debtShare ?? 0.08;
+    // 2026-10-19 (pass 8): debt share 0.08 → 0.075 (re-synced ledger), tracked debt 228,072,500,000 →
+    // 214,890,400,000 (after the deal-161 double-count adjudication).
+    const s = inputs.ledger?.debtShare ?? 0.075;
     const annualDebt = inputs.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000;
-    const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 228_072_500_000;
+    const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 214_890_400_000;
     const debtScore = ramp(s, 0.025, 0.15);
     const issuanceScore = ramp(annualDebt, 20_000_000_000, 100_000_000_000);
     const volumeScore = ramp(totalDebt, 50_000_000_000, 250_000_000_000);
@@ -137,20 +163,23 @@ export function evaluateBubbleModel(inputs, options = {}) {
 
   // Factor 4: Macro Rates & Inflation Stress (weight: 12)
   {
+    // 2026-10-19 (pass 11): macro DEFAULTS aligned to the FRED-verified live set — CPI 2.9 → 3.72,
+    // Fed funds 4.75 → 3.75 (2026 cut cycle), real 10y 2.70 → 2.75, HY-OAS 328 → 323bp.
+    // us02yYieldPct 4.75 = legacy DGS2 anchor, NOT re-verified Oct 19 2026 (display-only).
     const m = inputs.macro ?? {
       us10yYieldPct: 5.10,
       us02yYieldPct: 4.75,
       us10yBaselinePct: 3.75,
-      cpiInflationYoY: 2.9,
-      realYield10y: 2.70,
-      fedFundsRatePct: 4.75,
+      cpiInflationYoY: 3.72,
+      realYield10y: 2.75,
+      fedFundsRatePct: 3.75,
       rateHikeRiskBps: 25,
-      highYieldSpreadBps: 328,
+      highYieldSpreadBps: 323,
     };
     const yieldScore = ramp(m.us10yYieldPct, m.us10yBaselinePct, 5.25);
     const cpiScore = ramp(m.cpiInflationYoY, 2.0, 4.5);
     const realScore = ramp(m.realYield10y, 1.5, 3.0);
-    const hySpread = m.highYieldSpreadBps ?? 328;
+    const hySpread = m.highYieldSpreadBps ?? 323;
     const hyScore = ramp(hySpread, 250, 500);
     const score = clamp01(yieldScore * 0.40 + cpiScore * 0.25 + realScore * 0.15 + hyScore * 0.20);
     const reading = `US10Y ${m.us10yYieldPct.toFixed(2)}% (neutral ${m.us10yBaselinePct.toFixed(2)}%); CPI ${m.cpiInflationYoY.toFixed(1)}% YoY; HY-OAS ${hySpread}bp; Fed Funds ${m.fedFundsRatePct.toFixed(2)}%`;
@@ -171,10 +200,10 @@ export function evaluateBubbleModel(inputs, options = {}) {
 
   // Factor 5: Concentration & Circularity (weight: 13)
   {
-    const top10Share = inputs.ledger?.top10Share ?? 0.65;
-    const circularShare = inputs.ledger?.circularShare ?? 0.028;
+    const top10Share = inputs.ledger?.top10Share ?? 0.638;
+    const circularShare = inputs.ledger?.circularShare ?? 0.027;
     const score = clamp01(ramp(top10Share, 0.25, 0.65) * 0.6 + ramp(circularShare, 0.015, 0.15) * 0.4);
-    const circularB = (((inputs.ledger?.totalDisclosedUsd ?? 2.8e12) * circularShare) / 1e9).toFixed(1);
+    const circularB = (((inputs.ledger?.totalDisclosedUsd ?? 2_872_873_160_000) * circularShare) / 1e9).toFixed(1);
     const reading = `Top 10 deals = ${(top10Share * 100).toFixed(0)}% of volume; circular self-funded money = ${(circularShare * 100).toFixed(1)}% ($${circularB}B)`;
     const coverage = inputs.ledger ? 1 : 0;
     const weightPct = 13;
@@ -195,14 +224,14 @@ export function evaluateBubbleModel(inputs, options = {}) {
   {
     const now = new Date();
     const y = now.getUTCFullYear();
-    const yCurr = inputs.ledger?.byYear?.[y] ?? 769_180_302_026;
+    const yCurr = inputs.ledger?.byYear?.[y] ?? 812_536_300_000;
     const elapsed = Math.max(1, Math.min(12, now.getUTCMonth() + 1));
     const annualized = (yCurr / elapsed) * 12;
     const speed = ramp(annualized, 400_000_000_000, 1_200_000_000_000);
-    const backlog = ramp(inputs.ledger?.announcedShare ?? 0.13, 0.05, 0.25);
-    const silence = ramp(inputs.ledger?.daysSinceLastMega ?? 14, 10, 90);
+    const backlog = ramp(inputs.ledger?.announcedShare ?? 0.101, 0.05, 0.25);
+    const silence = ramp(inputs.ledger?.daysSinceLastMega ?? 21, 10, 90);
     const score = clamp01(speed * 0.45 + backlog * 0.35 + silence * 0.20);
-    const reading = `Annualized pace: $${(annualized / 1e9).toFixed(0)}B/yr; ${((inputs.ledger?.announcedShare ?? 0.13) * 100).toFixed(1)}% backlog; ${inputs.ledger?.daysSinceLastMega ?? 14}d since last mega deal`;
+    const reading = `Annualized pace: $${(annualized / 1e9).toFixed(0)}B/yr; ${((inputs.ledger?.announcedShare ?? 0.101) * 100).toFixed(1)}% backlog; ${inputs.ledger?.daysSinceLastMega ?? 21}d since last mega deal`;
     const coverage = inputs.ledger ? 1 : 0;
     const weightPct = 10;
     totalCoverageWeight += (weightPct / 100) * coverage;
@@ -220,8 +249,10 @@ export function evaluateBubbleModel(inputs, options = {}) {
 
   // Factor 7: Crowd Signal (weight: 9)
   {
-    const p = inputs.crowd?.bubble2026Probability ?? inputs.crowd?.yesProbability ?? 0.076;
-    const vol = inputs.crowd?.volumeUsd ?? 0;
+    // 2026-10-19 (pass 11): crowd volume fallback 9,167,527 → 9,167,627 — the live snapshot
+    // (src/data/live-inputs.json crowd.volumeUsd) is 9,167,626.861… and rounds to 9,167,627.
+    const p = inputs.crowd?.bubble2026Probability ?? inputs.crowd?.yesProbability ?? 0.0905;
+    const vol = inputs.crowd?.volumeUsd ?? 9_167_627;
     const score = clamp01(p);
     const coverage = vol >= 1_000_000 ? 1 : vol >= 100_000 ? 0.7 : 0.4;
     const reading = `Polymarket crowd: ${(p * 100).toFixed(1)}% YES ($${(vol / 1e6).toFixed(2)}M volume)`;
@@ -241,7 +272,8 @@ export function evaluateBubbleModel(inputs, options = {}) {
 
   // Factor 8: Capex vs FCF & Hardware Depreciation (weight: 8)
   {
-    const capex = inputs.capex?.aggregateCapexUsd ?? 485_000_000_000;
+    // 2026-10-19 (pass 8): aggregate capex 485B → 725B (Big-4 CY2026 guidance, Jul 2026 calls).
+    const capex = inputs.capex?.aggregateCapexUsd ?? 725_000_000_000;
     const fcf = inputs.capex?.aggregateFcfUsd ?? 260_000_000_000;
     const ratio = fcf > 0 ? capex / fcf : 1.14;
     const ocfRatio = inputs.aiDebt?.capexToOcfRatio ?? 0.548;
@@ -267,7 +299,10 @@ export function evaluateBubbleModel(inputs, options = {}) {
 
   // Factor 9: Real-Demand Damper (weight: 10, damper)
   {
-    const a = inputs.adoption ?? { annualUserGrowth: 0.65, apiPriceDeclineMultiple: 40, trainingCostBand: 'rising' };
+    // 2026-10-19 (pass 8): adoption DEFAULTS aligned — user growth 0.65 → 0.5 (800M Oct 2025 → 1.2B
+    // Sep 2026 ≈ +50% YoY), API deflation 40 → 670× (input basis: GPT-4 $30/1M → DeepSeek V4.1 Flash
+    // $0.0448/1M).
+    const a = inputs.adoption ?? { annualUserGrowth: 0.5, apiPriceDeclineMultiple: 670, trainingCostBand: 'rising' };
     const growth = a.annualUserGrowth === null ? 0 : ramp(a.annualUserGrowth, 0.1, 1.0);
     const cheap = a.apiPriceDeclineMultiple === null ? 0 : ramp(a.apiPriceDeclineMultiple, 1, 50);
     const contained = a.trainingCostBand === 'rising' ? 0 : a.trainingCostBand === 'flat' ? 0.5 : 1;
@@ -285,7 +320,7 @@ export function evaluateBubbleModel(inputs, options = {}) {
       earnedPoints: -Math.round(discount * 10) / 10,
       reading: {
         score,
-        reading: `Users +${((a.annualUserGrowth ?? 0.65) * 100).toFixed(0)}% YoY, inference ${a.apiPriceDeclineMultiple ?? 40}× cheaper, training cost ${a.trainingCostBand ?? 'rising'}`,
+        reading: `Users +${((a.annualUserGrowth ?? 0.5) * 100).toFixed(0)}% YoY, inference ${a.apiPriceDeclineMultiple ?? 670}× cheaper, training cost ${a.trainingCostBand ?? 'rising'}`,
         coverage,
       },
     });
@@ -332,7 +367,7 @@ export function evaluateBubbleModel(inputs, options = {}) {
     100,
     Math.max(
       0,
-      Math.round(dPdS * 100 * 2.5 + debtScore * 38 + macroScore * 22 + (inputs.ledger?.debtShare ?? 0.07) * 100)
+      Math.round(dPdS * 100 * 2.5 + debtScore * 38 + macroScore * 22 + (inputs.ledger?.debtShare ?? 0.075) * 100)
     )
   );
 
@@ -388,7 +423,7 @@ export function evaluateBubbleModel(inputs, options = {}) {
  * 2. Merton (1974) Structural Credit Risk Model
  */
 export function computeMertonModel(inputs = {}, customVolatility = null) {
-  const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 228_072_500_000;
+  const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 214_890_400_000;
   const assetValue = inputs.assetValueUsd ?? 1_420_000_000_000;
   const volatility = customVolatility ?? inputs.assetVolatility ?? 0.365;
   const r = (inputs.macro?.us10yYieldPct ?? 5.10) / 100;
@@ -463,7 +498,8 @@ export function computeAltmanZScore(inputs = {}, customRatios = null) {
  * 4. Log-Periodic Power Law Singularity (LPPLS) Bubble Hazard (Sornette et al.)
  */
 export function computeLpplsMetrics(inputs = {}, customParams = null) {
-  const currentCds = inputs.cds?.currentBps ?? 187;
+  // 2026-10-19 (pass 8): CDS fallback 187 → 288bp (record close Oct 15 2026, S&P Global Market Intelligence).
+  const currentCds = inputs.cds?.currentBps ?? 288;
   const capexRatio = inputs.aiDebt?.capexToOcfRatio ?? 0.548;
 
   const m = customParams?.m ?? 0.38;
@@ -489,12 +525,12 @@ export function computeLpplsMetrics(inputs = {}, customParams = null) {
  * - Ponzi Units: Cash flows < interest service; rely on rising asset prices, continuous VC equity rounds, or convertible debt to pay interest (e.g. pure frontier labs, pre-revenue GPU clouds)
  */
 export function computeMinskyModel(inputs = {}, customLevers = null) {
-  const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 228_072_500_000;
-  const circularShare = inputs.ledger?.circularShare ?? 0.028;
-  const debtShare = inputs.ledger?.debtShare ?? 0.070;
+  const totalDebt = inputs.aiDebt?.totalTrackedDebtUsd ?? 214_890_400_000;
+  const circularShare = inputs.ledger?.circularShare ?? 0.027;
+  const debtShare = inputs.ledger?.debtShare ?? 0.075;
   const capexToOcf = inputs.aiDebt?.capexToOcfRatio ?? 0.548;
   const annualDebt = inputs.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000;
-  const currentCds = inputs.cds?.currentBps ?? 187;
+  const currentCds = inputs.cds?.currentBps ?? 288;
   const baselineCds = inputs.cds?.baselineBps ?? 81;
   const us10yYield = inputs.macro?.us10yYieldPct ?? 5.10;
 
@@ -600,6 +636,10 @@ export function computeShillerCapeModel(inputs = {}, overrideCapeOrEcy = null) {
     if (psValues.length > 0) {
       const medianPs = median(psValues);
       if (medianPs !== null) {
+        // 2026-10-19 (pass 11): 34.8× is the FROZEN reference anchor for the CAPE dynamic
+        // multiplier (calibrated 2026-10-16, commit e82303e8) — it is NOT the live median
+        // price/sales (the live median is 29.4× as of Oct 19, 2026). Deliberately not re-derived:
+        // re-anchoring it would move the published CAPE (32.4×) and every ECY figure.
         dynamicMultiplier = Math.max(0.4, Math.min(2.5, medianPs / 34.8));
       }
     }
@@ -615,7 +655,7 @@ export function computeShillerCapeModel(inputs = {}, overrideCapeOrEcy = null) {
   const earningsYieldPct = Math.round((1 / aiCapeMultiple) * 10000) / 100;
 
   const us10y = inputs.macro?.us10yYieldPct ?? 5.10;
-  const cpi = inputs.macro?.cpiInflationYoY ?? 2.9;
+  const cpi = inputs.macro?.cpiInflationYoY ?? 3.72;
   const real10yYieldPct = inputs.macro?.realYield10y !== undefined
     ? inputs.macro.realYield10y
     : Math.round((us10y - cpi) * 100) / 100;
@@ -721,8 +761,8 @@ export function runMonteCarloSimulation(baseInputs, iterations = 25_000, seed = 
   const L = choleskyDecomposition(EMPIRICAL_CORRELATION_MATRIX);
 
   const baseYield = baseInputs.macro?.us10yYieldPct ?? 5.10;
-  const baseCds = baseInputs.cds?.currentBps ?? 187;
-  const baseCapex = baseInputs.capex?.aggregateCapexUsd ?? 210_000_000_000;
+  const baseCds = baseInputs.cds?.currentBps ?? 288;
+  const baseCapex = baseInputs.capex?.aggregateCapexUsd ?? 725_000_000_000;
   const baseDebtPace = baseInputs.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000;
 
   const results = new Array(iterations);
@@ -758,8 +798,8 @@ export function runMonteCarloSimulation(baseInputs, iterations = 25_000, seed = 
         ? {
             ...baseInputs.macro,
             us10yYieldPct: simYield,
-            cpiInflationYoY: Math.max(1.8, Math.min(5.5, (baseInputs.macro.cpiInflationYoY ?? 2.9) + yieldShock * 0.5)),
-            highYieldSpreadBps: Math.round((baseInputs.macro.highYieldSpreadBps ?? 328) + (simCds - baseCds) * 1.4),
+            cpiInflationYoY: Math.max(1.8, Math.min(5.5, (baseInputs.macro.cpiInflationYoY ?? 3.72) + yieldShock * 0.5)),
+            highYieldSpreadBps: Math.round((baseInputs.macro.highYieldSpreadBps ?? 323) + (simCds - baseCds) * 1.4),
           }
         : null,
       cds: baseInputs.cds
@@ -838,6 +878,10 @@ export function runMonteCarloSimulation(baseInputs, iterations = 25_000, seed = 
     meanProbabilityPct: Math.round(mean * 10) / 10,
     medianProbabilityPct: Math.round(p50 * 10) / 10,
     stdDevPct: Math.round(stdDev * 10) / 10,
+    // 2026-10-19 (pass 11): the mirror now returns the variance moment too — the TS app copy
+    // (src/lib/model/quantitative.ts) already published it, and the methodology page renders σ²
+    // from src/data/latest-model.json. Values-only: same computation, same rounding.
+    variance: Math.round(variance * 10) / 10,
     ci90Pct: [Math.round(p10 * 10) / 10, Math.round(p90 * 10) / 10],
     ci95Pct: [Math.round(p5 * 10) / 10, Math.round(p95 * 10) / 10],
     valueAtRisk95Pct: Math.round(p95 * 10) / 10,
@@ -957,21 +1001,29 @@ export const HISTORICAL_BACKTESTS = [
     id: "ai-superstructure-2026",
     era: "Current AI Infrastructure Cycle",
     date: "October 2026 (Live)",
-    compositeScore: 44.2,
-    modelProbabilityPct: 39.1,
-    band: "Guarded",
+    // 2026-10-19 (pass 8): this entry describes the CURRENT/ongoing 2026 stress window - it is not a
+    // dated past episode - so its numbers were rebuilt from the live verified set instead of being left
+    // as an older snapshot. Composite 63.3 / probability 71.6% / band "High Stress" = the live model
+    // output of the Oct 19 2026 sync (burst 71.6% HIGH); Merton DD 5.13σ from the same run; Altman Z''
+    // 8.41 unchanged. Kept in lockstep with the app copy in src/lib/model/quantitative.ts.
+    // 2026-10-19 (round-2 consolidation): composite 63.4 → 63.3 and probability 71.7 → 71.6 — the
+    // re-baselined published output after the HY-OAS correction to the FRED print (323bp). The entry
+    // describes the CURRENT live output, so it must equal src/data/latest-model.json.
+    compositeScore: 63.3,
+    modelProbabilityPct: 71.6,
+    band: "High Stress",
     actualBurstObserved: false, // In-progress evaluation window
-    actualOutcomeDesc: "Active evaluation window (through October 2027). Elevated credit risk balanced by 40× token price decline and real enterprise software ARR.",
-    brierScore: 0.0480, // Calibrated benchmark
+    actualOutcomeDesc: "Active evaluation window (through October 2027). Elevated credit risk (record Oracle 5Y CDS) against a 670× token price decline and real enterprise software ARR.",
+    brierScore: 0.0480, // Calibrated benchmark - retained: the window is unresolved, so there is no outcome to score (the suite's mean Brier sums this stored field)
     primaryMacroTriggers: [
-      "Oracle 5Y CDS at 187 bp (+131% vs baseline)",
-      "$228.1B verified debt across 25 facilities ($85B/yr issuance pace)",
-      "Hyperscaler capex consumes 54.8% of operating cash flow",
-      "Offset by 40× token deflation and 350M active weekly ChatGPT/Claude users",
+      "Oracle 5Y CDS at a record 288 bp (+255% vs baseline; Oct 15, 2026)",
+      "$214.9B verified debt across 24 debt facilities ($85B/yr issuance pace)",
+      "Hyperscaler capex $725B ≈ 96% of Microsoft's FY26 OCF alone; consumes nearly all big-4 operating cash flow (Forbes, Oct 7 2026)",
+      "Offset by 670× token deflation and 1.2B weekly users (DevDay, Sep 29 2026)",
     ],
-    mertonDistanceToDefault: 5.37,
+    mertonDistanceToDefault: 5.13,
     altmanZScore: 8.41,
-    debtExposureUsd: "$228.1B",
+    debtExposureUsd: "$214.9B",
   },
 ];
 

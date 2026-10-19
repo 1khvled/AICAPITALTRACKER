@@ -81,7 +81,9 @@ export interface AdoptionInput {
   annualUserGrowth: number | null;
   /**
    * How many times cheaper inference API tokens are today vs early-2023 for a
-   * frontier-class task (e.g. 40 = "40× cheaper"), null if unreported.
+   * frontier-class task (e.g. 670 = "670× cheaper" — GPT-4's $30/1M input at
+   * Mar 2023 launch vs $0.0448/1M on DeepSeek V4.1 Flash, OpenRouter Oct 19 2026),
+   * null if unreported.
    */
   apiPriceDeclineMultiple: number | null;
   /** Direction of frontier training cost at the edge (reliably costly = frothy arms race). */
@@ -100,19 +102,23 @@ export interface CapexInput {
 export interface MacroInputs {
   /** 10-Year US Treasury benchmark yield (%), e.g. 5.10 */
   us10yYieldPct: number;
-  /** 2-Year US Treasury benchmark yield (%), e.g. 4.75 */
+  /** 2-Year US Treasury benchmark yield (%), e.g. 4.75 (legacy DGS2 anchor, not re-verified Oct 19 2026) */
   us02yYieldPct?: number;
   /** Baseline yield considered neutral/calm (%), e.g. 3.75 */
   us10yBaselinePct: number;
-  /** Year-over-year headline CPI inflation (%), e.g. 2.9 */
+  /** Year-over-year headline CPI inflation (%), e.g. 3.72 (FRED CPIAUCSL, Sep 2026) */
   cpiInflationYoY: number;
-  /** Upper bound of Federal Funds Effective Rate (%), e.g. 4.75 */
+  /** Effective Federal Funds Rate (%), e.g. 3.75 (FRED FEDFUNDS, Sep 2026 — 2026 cut cycle) */
   fedFundsRatePct: number;
-  /** Market-implied 12-month rate hike / tightening risk spread (bps), e.g. 25 */
+  /**
+   * Forward-looking rate STRESS PARAMETER (bps), e.g. 25 — NOT a forecast of a hike:
+   * 2026 is a Fed cut cycle (funds 3.75%). Rendered as a stress assumption, never as
+   * "hike risk".
+   */
   rateHikeRiskBps: number;
-  /** 10-Year TIPS Real Yield (%), e.g. 2.70 */
+  /** 10-Year TIPS Real Yield (%), e.g. 2.75 (DGS10 5.10 − T10YIE 2.35, Oct 15/16 2026) */
   realYield10y: number;
-  /** US High Yield Option-Adjusted Spread (bps), e.g. 336 */
+  /** US High Yield Option-Adjusted Spread (bps), e.g. 323 (FRED BAMLH0A0HYM2, Oct 15 2026) */
   highYieldSpreadBps?: number;
   /** Sector or asset cyclically adjusted P/E multiple override */
   capeMultiple?: number;
@@ -150,7 +156,7 @@ export type FactorKind = 'risk' | 'damper';
 export interface FactorReading {
   /** Normalized factor score, 0 (calm) → 1 (extreme). */
   score: number;
-  /** Human explanation of the current reading, e.g. "Oracle CDS 187bp vs 81bp baseline". */
+  /** Human explanation of the current reading, e.g. "Oracle CDS 288bp vs 81bp baseline". */
   reading: string;
   /** 0-1: how fully this factor could be computed from supplied inputs. */
   coverage: number;

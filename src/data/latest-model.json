@@ -1,20 +1,20 @@
 {
-  "timestamp": "2026-10-19T08:49:58.641Z",
+  "timestamp": "2026-10-19T14:27:39.620Z",
   "model_version": "2.5.0",
-  "burstProbability": 45.5,
-  "compositeScore": 53.4,
-  "band": "elevated",
+  "burstProbability": 71.6,
+  "compositeScore": 63.3,
+  "band": "high",
   "coverage": 1.1,
   "confidenceInterval": [
-    40,
-    51.2
+    64.7,
+    77.5
   ],
-  "fragilityIndex": 53,
-  "systemicContagionPoints": 4.7,
+  "fragilityIndex": 52,
+  "systemicContagionPoints": 7,
   "topDriverIds": [
     "cds_stress",
-    "debt_reliance",
-    "concentration_circularity"
+    "macro_rates",
+    "debt_reliance"
   ],
   "contributions": [
     {
@@ -22,10 +22,10 @@
       "label": "Credit stress (CDS spreads)",
       "kind": "risk",
       "weightPct": 18,
-      "earnedPoints": 10.4,
+      "earnedPoints": 18,
       "reading": {
-        "score": 0.5780246913580247,
-        "reading": "CDS 187bp vs 81bp baseline (231% of baseline; prior 155bp)",
+        "score": 1,
+        "reading": "CDS 288bp vs 81bp baseline (356% of baseline; prior 203bp)",
         "coverage": 1
       }
     },
@@ -34,10 +34,10 @@
       "label": "Private valuation stretch",
       "kind": "risk",
       "weightPct": 16,
-      "earnedPoints": 8,
+      "earnedPoints": 6.6,
       "reading": {
-        "score": 0.5,
-        "reading": "Median price/sales across commercial frontier labs: 34.0×",
+        "score": 0.4112426035502959,
+        "reading": "Median price/sales across commercial frontier labs: 29.4×",
         "coverage": 1
       }
     },
@@ -46,10 +46,10 @@
       "label": "Debt reliance & issuance pace",
       "kind": "risk",
       "weightPct": 14,
-      "earnedPoints": 8.9,
+      "earnedPoints": 8.5,
       "reading": {
-        "score": 0.637929375,
-        "reading": "Borrowed money = 8.0% ($228.1B verified); Velocity: $85.0B/yr",
+        "score": 0.6080428,
+        "reading": "Borrowed money = 7.5% ($214.9B verified); Velocity: $85.0B/yr",
         "coverage": 1
       }
     },
@@ -58,10 +58,10 @@
       "label": "Macro interest rates & inflation (US10Y)",
       "kind": "risk",
       "weightPct": 12,
-      "earnedPoints": 7.7,
+      "earnedPoints": 8.6,
       "reading": {
-        "score": 0.6387999999999999,
-        "reading": "US10Y 5.10% (neutral 3.75%); CPI 2.9% YoY; HY-OAS 336bp; Fed Funds 4.75%",
+        "score": 0.7153999999999999,
+        "reading": "US10Y 5.10% (neutral 3.75%); CPI 3.7% YoY; HY-OAS 323bp; Fed Funds 3.75%",
         "coverage": 1
       }
     },
@@ -70,10 +70,10 @@
       "label": "Concentration & circular money",
       "kind": "risk",
       "weightPct": 13,
-      "earnedPoints": 8.1,
+      "earnedPoints": 8,
       "reading": {
-        "score": 0.6220555555555556,
-        "reading": "Top 10 deals = 64% of volume; circular self-funded money = 2.7% ($77.2B)",
+        "score": 0.6175555555555555,
+        "reading": "Top 10 deals = 64% of volume; circular self-funded money = 2.7% ($77.6B)",
         "coverage": 1
       }
     },
@@ -82,10 +82,10 @@
       "label": "Funding velocity & pipeline",
       "kind": "risk",
       "weightPct": 10,
-      "earnedPoints": 4.6,
+      "earnedPoints": 4.4,
       "reading": {
-        "score": 0.45735545386755005,
-        "reading": "Annualized pace: $965B/yr; 12.4% backlog; 14d since last mega deal",
+        "score": 0.44021200250000003,
+        "reading": "Annualized pace: $975B/yr; 10.1% backlog; 21d since last mega deal",
         "coverage": 1
       }
     },
@@ -94,10 +94,10 @@
       "label": "Crowd odds (prediction markets)",
       "kind": "risk",
       "weightPct": 9,
-      "earnedPoints": 0.9,
+      "earnedPoints": 0.8,
       "reading": {
-        "score": 0.1005,
-        "reading": "Polymarket crowd: 10.1% YES ($9.17M volume)",
+        "score": 0.0905,
+        "reading": "Polymarket crowd: 9.0% YES ($9.17M volume)",
         "coverage": 1
       }
     },
@@ -106,10 +106,10 @@
       "label": "Capex vs free cash flow & hardware depreciation",
       "kind": "risk",
       "weightPct": 8,
-      "earnedPoints": 6.2,
+      "earnedPoints": 6.6,
       "reading": {
-        "score": 0.7724395604395605,
-        "reading": "Hyperscaler capex = 1.87× of FCF (54.8% OCF; $38.5B/yr GPU amortization drag)",
+        "score": 0.8262857142857144,
+        "reading": "Hyperscaler capex = 2.79× of FCF (54.8% OCF; $38.5B/yr GPU amortization drag)",
         "coverage": 1
       }
     },
@@ -118,20 +118,20 @@
       "label": "Real-use damper",
       "kind": "damper",
       "weightPct": 10,
-      "earnedPoints": -6.1,
+      "earnedPoints": -5.2,
       "reading": {
-        "score": 0.6055555555555556,
-        "reading": "Users +65% YoY, inference 60× cheaper, training cost rising",
+        "score": 0.5222222222222223,
+        "reading": "Users +50% YoY, inference 670× cheaper, training cost rising",
         "coverage": 1
       }
     }
   ],
   "merton": {
-    "distanceToDefault": 4.97,
+    "distanceToDefault": 5.13,
     "defaultProbabilityPct": 0,
     "structuralSpreadBps": 0,
     "assetValueUsd": 1420000000000,
-    "totalDebtUsd": 228072500000,
+    "totalDebtUsd": 214890400000,
     "interpretation": "Asset value cushions debt comfortably (Distance-to-Default > 3.0σ)."
   },
   "altman": {
@@ -144,100 +144,101 @@
     "superExponentialExponent": 0.38,
     "angularFrequency": 6.36,
     "estimatedCriticalWindow": "Q4 2026 – Q2 2027",
-    "crashHazardRatePct": 59.1,
+    "crashHazardRatePct": 81.5,
     "interpretation": "Superexponential capital commitment growth with accelerating log-periodic Capex-to-FCF oscillations, placing critical singularity window in early 2027."
   },
   "minsky": {
-    "hedgeSharePct": 59.2,
-    "speculativeSharePct": 27.9,
+    "hedgeSharePct": 55.2,
+    "speculativeSharePct": 31.9,
     "ponziSharePct": 12.9,
-    "minskyFragilityIndex": 59.4,
+    "minskyFragilityIndex": 65.6,
     "currentRegime": "Speculative Transition",
-    "refinancingFreezeProbabilityPct": 14.1,
+    "refinancingFreezeProbabilityPct": 19.6,
     "breakdown": {
-      "hedgeDebtUsd": 135018920000,
-      "speculativeDebtUsd": 63632227500,
-      "ponziDebtUsd": 29421352500
+      "hedgeDebtUsd": 118619500800,
+      "speculativeDebtUsd": 68550037600,
+      "ponziDebtUsd": 27720861600
     },
-    "interpretation": "Speculative Transition: 27.9% of debt requires continuous market rollover, and 12.9% relies on equity subsidies. While hyperscalers remain Hedge units (59.2%), peripheral cloud providers and foundation labs face a 14.1% probability of refinancing freeze.",
-    "fragilityIndex": 59.4,
+    "interpretation": "Speculative Transition: 31.9% of debt requires continuous market rollover, and 12.9% relies on equity subsidies. While hyperscalers remain Hedge units (55.2%), peripheral cloud providers and foundation labs face a 19.6% probability of refinancing freeze.",
+    "fragilityIndex": 65.6,
     "regime": "Speculative Transition",
     "ponziDebtSharePct": 12.9
   },
   "shillerCape": {
-    "aiCapeMultiple": 37.5,
+    "aiCapeMultiple": 32.4,
     "historicalMedianCape": 17.2,
-    "earningsYieldPct": 2.67,
-    "real10yYieldPct": 2.7,
-    "excessCapeYieldPct": -0.03,
+    "earningsYieldPct": 3.09,
+    "real10yYieldPct": 2.75,
+    "excessCapeYieldPct": 0.34,
     "equityRiskPremiumBand": "Compressed (<1.5%)",
     "equityRiskPremiumStatus": "Compressed (<1.5%)",
-    "interpretation": "Excess CAPE Yield of +-0.03% is in the Compressed band (<1.5%), indicating that AI and mega-cap tech equities offer a wafer-thin risk premium over real Treasuries (2.70%). Tech valuation multiples (CAPE 37.5x vs historical median 17.2x) leave negligible safety margin against interest rate or earnings growth disappointments."
+    "interpretation": "Excess CAPE Yield of +0.34% is in the Compressed band (<1.5%), indicating that AI and mega-cap tech equities offer a wafer-thin risk premium over real Treasuries (2.75%). Tech valuation multiples (CAPE 32.4x vs historical median 17.2x) leave negligible safety margin against interest rate or earnings growth disappointments."
   },
   "monteCarlo": {
     "iterationsCount": 25000,
-    "meanProbabilityPct": 47.1,
-    "medianProbabilityPct": 47.5,
-    "stdDevPct": 21.8,
+    "meanProbabilityPct": 65.9,
+    "medianProbabilityPct": 71.4,
+    "stdDevPct": 14.6,
+    "variance": 213.3,
     "ci90Pct": [
-      18.1,
-      76.1
+      42.2,
+      79
     ],
     "ci95Pct": [
-      15.3,
-      78.5
+      33.8,
+      80.5
     ],
-    "valueAtRisk95Pct": 78.5,
-    "conditionalValueAtRisk95Pct": 80.6,
-    "valueAtRisk99Pct": 81.9,
-    "conditionalValueAtRisk99Pct": 83.1,
-    "skewness": -0.02,
-    "kurtosis": 1.63,
+    "valueAtRisk95Pct": 80.5,
+    "conditionalValueAtRisk95Pct": 81.9,
+    "valueAtRisk99Pct": 82.7,
+    "conditionalValueAtRisk99Pct": 83.7,
+    "skewness": -1.33,
+    "kurtosis": 3.98,
     "histogram": [
       {
         "range": "0%–10%",
-        "count": 98,
-        "percentage": 0.4
+        "count": 0,
+        "percentage": 0
       },
       {
         "range": "10%–20%",
-        "count": 3323,
-        "percentage": 13.3
+        "count": 133,
+        "percentage": 0.5
       },
       {
         "range": "20%–30%",
-        "count": 4199,
-        "percentage": 16.8
+        "count": 688,
+        "percentage": 2.8
       },
       {
         "range": "30%–40%",
-        "count": 2672,
-        "percentage": 10.7
+        "count": 1302,
+        "percentage": 5.2
       },
       {
         "range": "40%–50%",
-        "count": 2928,
-        "percentage": 11.7
+        "count": 1832,
+        "percentage": 7.3
       },
       {
         "range": "50%–60%",
-        "count": 2988,
-        "percentage": 12
+        "count": 2307,
+        "percentage": 9.2
       },
       {
         "range": "60%–70%",
-        "count": 3403,
-        "percentage": 13.6
+        "count": 4847,
+        "percentage": 19.4
       },
       {
         "range": "70%–80%",
-        "count": 4666,
-        "percentage": 18.7
+        "count": 12238,
+        "percentage": 49
       },
       {
         "range": "80%–90%",
-        "count": 723,
-        "percentage": 2.9
+        "count": 1653,
+        "percentage": 6.6
       },
       {
         "range": "90%–100%",
@@ -245,6 +246,11 @@
         "percentage": 0
       }
     ],
-    "executionTimeMs": 342
-  }
+    "executionTimeMs": 464
+  },
+  "_corrections": [
+    "2026-10-19 (fix lane A, pass 11): re-evaluated against the corrected src/data/live-inputs.json — macro.highYieldSpreadBps 329 → 323bp (FRED BAMLH0A0HYM2, Oct 15 2026; the published level was the HYG-inverse proxy) and adoption.apiPriceDeclineMultiple 798 → 670× (input basis: GPT-4 $30/1M Mar 2023 → DeepSeek V4.1 Flash $0.0448/1M, OpenRouter Oct 19 2026). The HY-OAS correction moves the macro_rates factor 0.7202 → 0.7154, the composite 63.4 → 63.3 and the burst probability 71.7% → 71.6% (band unchanged: HIGH).",
+    "2026-10-19 (fix lane A, pass 11): the 90-day trajectory rows in src/data/trajectory-history.json now carry \"backfilled\": true for the 89 interpolated rows and false for the observed current row, and the current row's deltaVs90d is the derived \"+33.0 pts\" (71.6 − 38.6 — this artifact's own burstProbability 71.6 less trajectory-history row 0 at 38.6, matching the published current row).",
+    "2026-10-19 (round-2 consolidation): TS ⇄ mirror parity (Altman x4 = 7.21, Minsky US10Y reference = 4.42) — the live engine now reproduces every published field of this artifact exactly (0/36 divergence). Trajectory re-baseline completed: current row 71.6 / 63.3 / VaR95 80.5, deltaVs90d \"+33.0 pts\", deltaVsYesterday \"+28.9 pts\" (vs the backfilled row 88 at 42.7). The pass-11 note above describes the pre-parity state."
+  ]
 }

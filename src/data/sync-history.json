@@ -1,5 +1,194 @@
 [
   {
+    "timestamp": "2026-10-19T13:27:47.968Z",
+    "status": "SUCCESS",
+    "execution_time_ms": 9037,
+    "sources_scanned": [
+      "OpenRouter Public Models Pricing API",
+      "Polymarket Gamma Events API",
+      "Yahoo Finance Institutional Quotes (21 Tech Tickers & Macro Indicators)",
+      "SEC EDGAR Submissions (Oracle CIK 0001341439)",
+      "AI Capital Tracker Verified Primary Ledger (deals.json)"
+    ],
+    "burst_probability": 71.7,
+    "composite_score": 63.4,
+    "risk_band": "high",
+    "merton_dd": 5.13,
+    "altman_z": 8.41,
+    "token_decline_multiple": "798x",
+    "polymarket_yes_prob": 0.0905,
+    "disclosed_volume_usd": 2872873160000,
+    "debt_share_pct": "7.5%",
+    "deals_count": 169,
+    "delta_vs_previous": {
+      "burst_probability_delta": 0,
+      "polymarket_prob_delta": 0,
+      "disclosed_volume_delta_usd": 0
+    }
+  },
+  {
+    "timestamp": "2026-10-19T13:21:34.223Z",
+    "status": "SUCCESS",
+    "execution_time_ms": 9342,
+    "sources_scanned": [
+      "OpenRouter Public Models Pricing API",
+      "Polymarket Gamma Events API",
+      "Yahoo Finance Institutional Quotes (21 Tech Tickers & Macro Indicators)",
+      "SEC EDGAR Submissions (Oracle CIK 0001341439)",
+      "AI Capital Tracker Verified Primary Ledger (deals.json)"
+    ],
+    "burst_probability": 71.7,
+    "composite_score": 63.4,
+    "risk_band": "high",
+    "merton_dd": 5.13,
+    "altman_z": 8.41,
+    "token_decline_multiple": "798x",
+    "polymarket_yes_prob": 0.0905,
+    "disclosed_volume_usd": 2872873160000,
+    "debt_share_pct": "7.5%",
+    "deals_count": 169,
+    "delta_vs_previous": {
+      "burst_probability_delta": 24.6,
+      "polymarket_prob_delta": -0.002,
+      "disclosed_volume_delta_usd": -6500000000
+    }
+  },
+  {
+    "timestamp": "2026-10-19T12:51:20.400Z",
+    "status": "SUCCESS",
+    "execution_time_ms": 8737,
+    "sources_scanned": [
+      "OpenRouter Public Models Pricing API",
+      "Polymarket Gamma Events API",
+      "Yahoo Finance Institutional Quotes (21 Tech Tickers & Macro Indicators)",
+      "SEC EDGAR Submissions (Oracle CIK 0001341439)",
+      "AI Capital Tracker Verified Primary Ledger (deals.json)"
+    ],
+    "burst_probability": 47.1,
+    "composite_score": 54,
+    "risk_band": "elevated",
+    "merton_dd": 5.05,
+    "altman_z": 8.41,
+    "token_decline_multiple": "798x",
+    "polymarket_yes_prob": 0.092,
+    "disclosed_volume_usd": 2879373160000,
+    "debt_share_pct": "7.7%",
+    "deals_count": 169,
+    "delta_vs_previous": {
+      "burst_probability_delta": 0.6,
+      "polymarket_prob_delta": 0,
+      "disclosed_volume_delta_usd": 0
+    }
+  },
+  {
+    "timestamp": "2026-10-19T12:45:11.616Z",
+    "status": "SUCCESS",
+    "execution_time_ms": 9820,
+    "sources_scanned": [
+      "OpenRouter Public Models Pricing API",
+      "Polymarket Gamma Events API",
+      "Yahoo Finance Institutional Quotes (21 Tech Tickers & Macro Indicators)",
+      "SEC EDGAR Submissions (Oracle CIK 0001341439)",
+      "AI Capital Tracker Verified Primary Ledger (deals.json)"
+    ],
+    "burst_probability": 46.5,
+    "composite_score": 53.8,
+    "risk_band": "elevated",
+    "merton_dd": 5.05,
+    "altman_z": 8.41,
+    "token_decline_multiple": "798x",
+    "polymarket_yes_prob": 0.092,
+    "disclosed_volume_usd": 2879373160000,
+    "debt_share_pct": "7.7%",
+    "deals_count": 169,
+    "delta_vs_previous": {
+      "burst_probability_delta": -2.3,
+      "polymarket_prob_delta": -0.004,
+      "disclosed_volume_delta_usd": 21065357974
+    }
+  },
+  {
+    "timestamp": "2026-10-19T10:16:50.739Z",
+    "status": "SUCCESS",
+    "execution_time_ms": 8477,
+    "sources_scanned": [
+      "OpenRouter Public Models Pricing API",
+      "Polymarket Gamma Events API",
+      "Yahoo Finance Institutional Quotes (21 Tech Tickers & Macro Indicators)",
+      "SEC EDGAR Submissions (Oracle CIK 0001341439)",
+      "AI Capital Tracker Verified Primary Ledger (deals.json)"
+    ],
+    "burst_probability": 48.8,
+    "composite_score": 54.6,
+    "risk_band": "elevated",
+    "merton_dd": 4.97,
+    "altman_z": 8.41,
+    "token_decline_multiple": "670x",
+    "polymarket_yes_prob": 0.096,
+    "disclosed_volume_usd": 2858307802026,
+    "debt_share_pct": "8.0%",
+    "deals_count": 169,
+    "delta_vs_previous": {
+      "burst_probability_delta": -0.1,
+      "polymarket_prob_delta": 0,
+      "disclosed_volume_delta_usd": 0
+    }
+  },
+  {
+    "timestamp": "2026-10-19T10:01:39.368Z",
+    "status": "SUCCESS",
+    "execution_time_ms": 13523,
+    "sources_scanned": [
+      "OpenRouter Public Models Pricing API",
+      "Polymarket Gamma Events API",
+      "Yahoo Finance Institutional Quotes (21 Tech Tickers & Macro Indicators)",
+      "SEC EDGAR Submissions (Oracle CIK 0001341439)",
+      "AI Capital Tracker Verified Primary Ledger (deals.json)"
+    ],
+    "burst_probability": 48.9,
+    "composite_score": 54.6,
+    "risk_band": "elevated",
+    "merton_dd": 4.97,
+    "altman_z": 8.41,
+    "token_decline_multiple": "670x",
+    "polymarket_yes_prob": 0.096,
+    "disclosed_volume_usd": 2858307802026,
+    "debt_share_pct": "8.0%",
+    "deals_count": 169,
+    "delta_vs_previous": {
+      "burst_probability_delta": 3.4,
+      "polymarket_prob_delta": -0.005,
+      "disclosed_volume_delta_usd": 0
+    }
+  },
+  {
+    "timestamp": "2026-10-19T09:32:57.689Z",
+    "status": "SUCCESS",
+    "execution_time_ms": 9196,
+    "sources_scanned": [
+      "OpenRouter Public Models Pricing API",
+      "Polymarket Gamma Events API",
+      "Yahoo Finance Institutional Quotes (21 Tech Tickers & Macro Indicators)",
+      "SEC EDGAR Submissions (Oracle CIK 0001341439)",
+      "AI Capital Tracker Verified Primary Ledger (deals.json)"
+    ],
+    "burst_probability": 45.5,
+    "composite_score": 53.4,
+    "risk_band": "elevated",
+    "merton_dd": 4.97,
+    "altman_z": 8.41,
+    "token_decline_multiple": "60x",
+    "polymarket_yes_prob": 0.1005,
+    "disclosed_volume_usd": 2858307802026,
+    "debt_share_pct": "8.0%",
+    "deals_count": 169,
+    "delta_vs_previous": {
+      "burst_probability_delta": 0,
+      "polymarket_prob_delta": 0,
+      "disclosed_volume_delta_usd": 0
+    }
+  },
+  {
     "timestamp": "2026-10-19T08:49:58.656Z",
     "status": "SUCCESS",
     "execution_time_ms": 9200,
@@ -619,32 +808,5 @@
       "polymarket_prob_delta": 0,
       "disclosed_volume_delta_usd": 0
     }
-  },
-  {
-    "timestamp": "2026-10-18T21:38:15.717Z",
-    "status": "SUCCESS",
-    "token_decline_multiple": "25x",
-    "polymarket_yes_prob": 0.103,
-    "disclosed_volume_usd": 2810757802026,
-    "debt_share_pct": "7.0%",
-    "deals_count": 158
-  },
-  {
-    "timestamp": "2026-10-18T17:15:00.000Z",
-    "status": "SUCCESS",
-    "token_decline_multiple": "40x",
-    "polymarket_yes_prob": 0.54,
-    "disclosed_volume_usd": 2810757802026,
-    "debt_share_pct": "7.0%",
-    "deals_count": 159
-  },
-  {
-    "timestamp": "2026-10-18T14:21:04.476Z",
-    "status": "SUCCESS",
-    "token_decline_multiple": "25x",
-    "polymarket_yes_prob": 0.54,
-    "disclosed_volume_usd": 2753757802026,
-    "debt_share_pct": "5.0%",
-    "deals_count": 158
   }
 ]

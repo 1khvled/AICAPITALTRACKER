@@ -1,25 +1,23 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Institutional REST API Documentation — Real-time AI Risk & Deal Feeds",
+  title: "API reference — model output, deal ledger and research wire",
   description:
-    "Institutional programmatic API endpoints for real-time model outputs, 169-deal infrastructure ledger, 8 diagnostic stress factors, live market monitoring, and research wire feeds.",
+    "Five unauthenticated JSON endpoints with their parameters, sample responses and copy-paste cURL, JavaScript and Python snippets.",
   keywords: [
     "AI capital tracker API",
-    "AI credit risk API",
-    "datacenter financing API",
-    "GPU debt database API",
-    "AI bubble index endpoint",
-    "REST API AI infrastructure",
-    "algorithmic finance AI data",
+    "REST API documentation",
+    "deal ledger API",
+    "model output JSON endpoint",
+    "research wire API",
   ],
   alternates: {
     canonical: "/api-docs",
   },
   openGraph: {
-    title: "Institutional REST API Documentation | AI Capital Tracker",
+    title: "API reference | AI Capital Tracker",
     description:
-      "Programmatic REST API documentation for real-time AI risk factors, deal flow data, macroeconomic sensitivities, and live research feeds.",
+      "Parameters, sample responses and copy-paste snippets for every public JSON endpoint.",
     url: "/api-docs",
     type: "website",
   },

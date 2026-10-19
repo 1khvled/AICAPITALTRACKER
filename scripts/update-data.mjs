@@ -76,27 +76,365 @@ const FRED_API_KEY = process.env.FRED_API_KEY || '';
 const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY || '';
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY || '';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CI HARDENING (2026-10-19) — headless, deterministic pipeline plumbing.
+//
+// NOTHING in this block changes a seed value, a note, a correction entry or a
+// model formula. It only adds:
+//   (1) a shared retry helper for every upstream fetch (transient failures only),
+//   (2) explicit exit-code semantics (0 = ok, 1 = hard failure),
+//   (3) atomic, sanity-gated artifact writes (no partial/unparseable output),
+//   (4) preservation of hand-maintained `_`-prefixed metadata across syncs.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Independent upstream source groups. A group counts as FAILED only when EVERY
+// call to it failed — one failed ticker is a degraded source, not a dead one.
+const UPSTREAM_GROUPS = {
+  openrouter: 'OpenRouter Public Models API',
+  polymarket: 'Polymarket Gamma Events API',
+  yahoo: 'Yahoo Finance Institutional Stream',
+  fred: 'FRED (St. Louis Fed) API',
+  finnhub: 'Finnhub Institutional API',
+  edgar: 'SEC EDGAR Submissions API',
+};
+
+// Retry policy: 3 attempts, exponential backoff (2s / 8s / 20s) with ±25% jitter.
+// The ladder is the wait BEFORE the next attempt, so a 3-attempt budget waits 2s then
+// 8s; the 20s rung is used when a caller raises `attempts` above 3.
+const RETRY_DELAYS_MS = [2000, 8000, 20000];
+const RETRY_ATTEMPTS = 3;
+
+// Circuit breaker: after this many CONSECUTIVE transient failures against one
+// host, further calls to that host fail fast instead of sleeping again, so a
+// full upstream outage cannot blow the 45-minute CI job budget.
+const CIRCUIT_FAILURE_THRESHOLD = 3;
+
+const upstreamState = new Map(); // group key -> { attempts, successes, failures, lastError }
+const hostCircuit = new Map();   // host -> consecutive transient failures
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** Exponential-backoff delay with ±25% jitter. */
+function jitteredDelay(baseMs) {
+  return Math.round(baseMs * (0.75 + Math.random() * 0.5));
+}
+
+function hostOf(url) {
+  try {
+    return new URL(url).host;
+  } catch {
+    return 'unknown-host';
+  }
+}
+
+/** 429 and 5xx are transient; every other 4xx is a validation/config error. */
+function isTransientStatus(status) {
+  return status === 429 || (status >= 500 && status <= 599);
+}
+
+/** Timeouts, socket resets, DNS blips and "fetch failed" are transient. */
+function isTransientError(err) {
+  if (!err) return false;
+  const name = err.name || '';
+  if (name === 'AbortError' || name === 'TimeoutError') return true;
+  const transientCodes = [
+    'ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED', 'EAI_AGAIN', 'ENOTFOUND',
+    'EPIPE', 'EHOSTUNREACH', 'ENETUNREACH', 'UND_ERR_SOCKET',
+    'UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_HEADERS_TIMEOUT', 'UND_ERR_BODY_TIMEOUT',
+  ];
+  if (err.code && transientCodes.includes(err.code)) return true;
+  if (err.cause) {
+    if (isTransientError(err.cause)) return true;
+    if (err.cause.code && transientCodes.includes(err.cause.code)) return true;
+  }
+  if (err instanceof TypeError) return true; // undici "fetch failed"
+  return false;
+}
+
+/** Record the outcome of one upstream call against its source group. */
+function recordUpstream(group, ok, error) {
+  if (!group) return;
+  const key = String(group).toLowerCase();
+  const state = upstreamState.get(key) || {
+    key,
+    name: UPSTREAM_GROUPS[key] || key,
+    attempts: 0,
+    successes: 0,
+    failures: 0,
+    lastError: null,
+  };
+  state.attempts += 1;
+  if (ok) {
+    state.successes += 1;
+    state.lastError = null;
+  } else {
+    state.failures += 1;
+    state.lastError = error || 'unknown error';
+  }
+  upstreamState.set(key, state);
+}
+
+/** Health roll-up per upstream group. status: 'ok' | 'degraded' | 'failed'. */
+function upstreamGroupHealth() {
+  return Array.from(upstreamState.values()).map((state) => ({
+    ...state,
+    status: state.successes > 0 ? (state.failures > 0 ? 'degraded' : 'ok') : 'failed',
+  }));
+}
+
+/**
+ * Provenance lines for the _verified.inspected_and_stayed block: every outage or
+ * partial failure is RECORDED (never silently swallowed) so a future reader can
+ * tell a stale seed value from a live refresh.
+ */
+function upstreamOutageNotes() {
+  const stamp = new Date().toISOString();
+  const notes = [];
+  for (const state of upstreamGroupHealth()) {
+    if (state.status === 'failed') {
+      notes.push(
+        `${stamp} OUTAGE: ${state.name} unreachable after ${state.attempts} attempt(s) ` +
+        `(last error: ${state.lastError}) — the last verified seed values were retained; no live refresh for this source.`
+      );
+    } else if (state.status === 'degraded') {
+      notes.push(
+        `${stamp} PARTIAL: ${state.name} — ${state.failures} of ${state.attempts} call(s) failed ` +
+        `(last error: ${state.lastError}); ${state.successes} call(s) succeeded.`
+      );
+    }
+  }
+  return notes;
+}
+
+/**
+ * Shared fetch helper: 3 attempts, exponential backoff with jitter, retry ONLY
+ * transient failures (timeouts, 429, 5xx, socket/DNS errors). 4xx validation
+ * errors are never retried. Never logs the URL (FRED/Finnhub carry keys in it).
+ */
+async function fetchWithRetry(url, options = {}) {
+  const {
+    group,
+    label = group || 'upstream',
+    timeoutMs = 8000,
+    attempts = RETRY_ATTEMPTS,
+    delays = RETRY_DELAYS_MS,
+    headers,
+  } = options;
+
+  const host = hostOf(url);
+  let lastError = null;
+  let circuitOpened = false;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const consecutive = hostCircuit.get(host) || 0;
+    if (consecutive >= CIRCUIT_FAILURE_THRESHOLD) {
+      lastError = new Error(`circuit open for ${host} after ${consecutive} consecutive failures`);
+      circuitOpened = true;
+      break;
+    }
+
+    try {
+      const res = await fetch(url, { headers, signal: AbortSignal.timeout(timeoutMs) });
+      if (res.ok) {
+        hostCircuit.set(host, 0);
+        recordUpstream(group, true);
+        return res;
+      }
+      const message = `HTTP ${res.status}${res.statusText ? ` ${res.statusText}` : ''}`;
+      if (!isTransientStatus(res.status)) {
+        // 4xx (bad key, bad series, malformed query) — a validation error, not a blip.
+        const err = new Error(message);
+        err.nonRetryable = true;
+        recordUpstream(group, false, message);
+        throw err;
+      }
+      lastError = new Error(message);
+    } catch (err) {
+      if (err && err.nonRetryable) throw err;
+      if (!isTransientError(err)) {
+        recordUpstream(group, false, err.message);
+        throw err; // programming error — let it fail the run loudly
+      }
+      lastError = err;
+    }
+
+    if (attempt === attempts) break;
+    const delay = jitteredDelay(delays[Math.min(attempt - 1, delays.length - 1)]);
+    console.warn(`  ↳ ${label}: ${lastError ? lastError.message : 'unknown error'} (attempt ${attempt}/${attempts}) — retrying in ~${delay}ms`);
+    await sleep(delay);
+  }
+
+  // The circuit is only opened by a REAL failure of this host; a call that was
+  // fast-failed by an already-open circuit must not inflate the counter.
+  if (!circuitOpened) {
+    hostCircuit.set(host, (hostCircuit.get(host) || 0) + 1);
+  }
+  const message = lastError ? lastError.message : 'unknown error';
+  recordUpstream(group, false, message);
+  throw lastError || new Error(`${label}: fetch failed`);
+}
+
+/**
+ * Artifact plumbing — three guarantees for headless CI:
+ *   (a) a fully serialized artifact is JSON.parse'd back before it is written
+ *       (sanity gate: an unparseable artifact is never published),
+ *   (b) files are written atomically (temp file + rename) and only AFTER a
+ *       complete pass, so a crashed run can never leave a truncated file,
+ *   (c) hand-maintained `_`-prefixed metadata from the previous artifact is
+ *       carried forward (append-only for correction-style arrays) so a sync
+ *       never drops a human-maintained annotation.
+ */
+function readJsonIfParseable(filePath) {
+  try {
+    if (!fs.existsSync(filePath)) return null;
+    const parsed = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    return parsed ?? null;
+  } catch (err) {
+    console.warn(`  ↳ Could not parse ${path.relative(projectRoot, filePath)} (${err.message}) — no metadata carried forward.`);
+    return null;
+  }
+}
+
+/** Append-only union that keeps the original order and drops exact duplicates. */
+function appendUnique(existing, incoming) {
+  const out = Array.isArray(existing) ? [...existing] : [];
+  for (const entry of Array.isArray(incoming) ? incoming : []) {
+    if (!out.includes(entry)) out.push(entry);
+  }
+  return out;
+}
+
+/**
+ * Carry forward every top-level `_`-prefixed key of the previous artifact that
+ * the new result does not own. For keys both own (`_corrections`,
+ * `_verified.corrections`, `_verified.integrity_notes`,
+ * `_verified.inspected_and_stayed`) the previous entries are appended, never
+ * replaced, so history accumulates instead of being overwritten.
+ */
+function preserveUnderscoreMetadata(previous, next) {
+  if (!previous || typeof previous !== 'object' || Array.isArray(previous)) return next;
+  const merged = { ...next };
+  for (const [key, value] of Object.entries(previous)) {
+    if (!key.startsWith('_')) continue;
+    if (!Object.prototype.hasOwnProperty.call(merged, key)) {
+      merged[key] = value; // absent from the new result → preserve verbatim
+      continue;
+    }
+    if (key === '_verified' && value && typeof value === 'object' && !Array.isArray(value)) {
+      const nextVerified = merged[key] && typeof merged[key] === 'object' ? merged[key] : {};
+      const verified = { ...nextVerified };
+      for (const subKey of ['corrections', 'integrity_notes', 'inspected_and_stayed']) {
+        if (Array.isArray(value[subKey])) {
+          verified[subKey] = appendUnique(value[subKey], nextVerified[subKey]);
+        }
+      }
+      merged[key] = verified;
+      continue;
+    }
+    if (key === '_corrections' && Array.isArray(value) && Array.isArray(merged[key])) {
+      merged[key] = appendUnique(value, merged[key]); // append-only corrections trail
+    }
+  }
+  return merged;
+}
+
+/** Serialize + JSON.parse sanity gate. Throws before anything is written. */
+function serializeArtifact(payload) {
+  const serialized = JSON.stringify(payload, null, 2);
+  if (typeof serialized !== 'string' || serialized.length === 0) {
+    throw new Error('artifact serialization produced an empty document');
+  }
+  try {
+    JSON.parse(serialized);
+  } catch (err) {
+    throw new Error(`artifact failed the JSON.parse sanity gate: ${err.message}`);
+  }
+  return serialized;
+}
+
+/** Atomic single-file write (temp file + rename). */
+function writeArtifact(filePath, serialized) {
+  const tmpPath = `${filePath}.tmp`;
+  try {
+    fs.writeFileSync(tmpPath, serialized, 'utf-8');
+    fs.renameSync(tmpPath, filePath);
+  } catch (err) {
+    try {
+      if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
+    } catch {}
+    throw err;
+  }
+}
+
+/**
+ * Write a set of artifacts: every artifact is serialized and sanity-gated
+ * FIRST, then written in sequence. A failure in any artifact leaves the data
+ * directory untouched (no partial pass is ever published).
+ */
+function writeArtifacts(artifacts) {
+  const prepared = artifacts.map(({ file, payload }) => ({
+    file,
+    serialized: serializeArtifact(payload),
+  }));
+  for (const { file, serialized } of prepared) {
+    writeArtifact(file, serialized);
+    console.log(`  ✓ Written ${path.relative(projectRoot, file)}`);
+  }
+}
+
+/** Hard validation gate — a non-finite derived value means a broken pass. */
+function assertFiniteNumber(value, label) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new Error(`validation failed: ${label} is not a finite number (${value})`);
+  }
+}
+
+function validateArtifacts(liveInputs, latestModelResult) {
+  assertFiniteNumber(liveInputs.adoption?.apiPriceDeclineMultiple, 'adoption.apiPriceDeclineMultiple');
+  assertFiniteNumber(liveInputs.crowd?.yesProbability, 'crowd.yesProbability');
+  assertFiniteNumber(liveInputs.macro?.us10yYieldPct, 'macro.us10yYieldPct');
+  assertFiniteNumber(liveInputs.ledger?.totalDisclosedUsd, 'ledger.totalDisclosedUsd');
+  assertFiniteNumber(latestModelResult.burstProbability, 'burstProbability');
+  assertFiniteNumber(latestModelResult.compositeScore, 'compositeScore');
+  assertFiniteNumber(latestModelResult.merton?.distanceToDefault, 'merton.distanceToDefault');
+  assertFiniteNumber(latestModelResult.altman?.score, 'altman.score');
+  assertFiniteNumber(latestModelResult.monteCarlo?.medianProbabilityPct, 'monteCarlo.medianProbabilityPct');
+  if (latestModelResult.burstProbability < 0 || latestModelResult.burstProbability > 100) {
+    throw new Error(`validation failed: burstProbability out of range (${latestModelResult.burstProbability})`);
+  }
+}
+
 // Baseline institutional fallback defaults
 const BASELINE_DEFAULTS = {
   cds: {
-    currentBps: 187,
+    // 2026-10-19 (pass 7): 5Y Oracle CDS printed a RECORD 288bp on Oct 15, 2026 (S&P Global Market
+    // Intelligence via securitasglobal.com; 261bp a week earlier on Oct 8; CNBC Oct 19 quotes ~295bp
+    // intraday after a brief 300bp print). priorBps = the 90-day-ago print: ~203bp on Jul 20-24, 2026
+    // (ICE data - Reuters Jul 29 quoted ~200bp, late-July prints 212-215bp). baselineBps = long-run norm.
+    currentBps: 288,
     baselineBps: 81,
-    priorBps: 155,
+    priorBps: 203,
     otherBps: 135,
-    note: 'Reuters & ICE Fixed Income 5Y USD CDS on Oracle (AI debt anchor), as of Sep-Oct 2026',
+    note: '5Y USD CDS on Oracle (AI debt anchor): 288bp = record-high close Oct 15 2026 (S&P Global Market Intelligence); 261bp a week earlier (Oct 8); priorBps 203bp = Jul 20-24 2026 print (ICE). baseline 81bp = long-run norm assumption. S&P cut ORCL to BBB- on Jul 9 2026',
   },
   valuations: [
     {
       company: 'OpenAI',
-      valuationUsd: 950_000_000_000,
+      // 2026-10-19 fact-check: $950B matched no report. Verified chain: $852B closed Series G post-money
+      // (Mar 2026, Reuters) → round in talks at >$1.2T (Bloomberg, Sep 16 2026) → $30B pre-IPO raise at ~$1.4T target
+      // (The Information, Sep 29 2026). Run-rate $50B end-Sep 2026 = OpenAI's own basis (FT/CNBC/Reuters Oct 8, 2026);
+      // the widely-reported $70B was a cloud-partner gross-up for Anthropic-comparability.
+      valuationUsd: 1_200_000_000_000,
       runRateRevenueUsd: 50_000_000_000,
-      note: 'Oct 2026 funding benchmark ($852B closed post-money, targeting $1.0T–$1.4T, $50.0B annualized run-rate ARR reported by Newcomer & Financial Press)',
+      note: 'Rounds in talks at >$1.2T post-money (Bloomberg, Sep 16 2026); $950B matched no report; last closed benchmark $852B Series G post-money (Mar 2026, Reuters); The Information Sep 29 2026: $30B pre-IPO raise targeting ~$1.4T. Annualized run-rate ~$50.0B end-Sep 2026 on OpenAI\'s own basis excluding cloud-partner gross-up (FT first / CNBC / Reuters, Oct 8 2026; the widely-reported $70B was a partner-comparable methodology)',
     },
     {
       company: 'Anthropic',
+      // 2026-10-19 fact-check: $47B was the May 2026 run-rate. Verified: $65B ARR end-July 2026 (Bloomberg/CNBC/Reuters
+      // Aug 17 2026), up from $47B in May and ~$9B end-2025, >40% via AWS/Microsoft/Google Cloud channels; ~$100B YE target (Reuters Oct 2026).
       valuationUsd: 2_000_000_000_000,
-      runRateRevenueUsd: 47_000_000_000,
-      note: 'Oct 2026 pre-IPO banker valuation target ($2.0T debut target / $965B Series H post-money, $47.0B annualized ARR propelled by Claude Code, $57B Broadcom convert & syndicate debt/credit facilities)',
+      runRateRevenueUsd: 65_000_000_000,
+      note: 'Oct 2026 IPO debut target at ~$2.0T (prospectus out Sep 2026; The Information Sep 12 2026, Guardian Sep 29 2026); $965B Series H closed post-money May 2026 (Reuters). Annualized ARR topped $65B by end-July 2026 — up from $47B in May and ~$9B end-2025, >40% via AWS/Microsoft/Google Cloud channels (Bloomberg/CNBC/Reuters, Aug 17 2026), guiding to ~$100B by year-end (Reuters Oct 2026)',
     },
     {
       company: 'Databricks',
@@ -105,10 +443,14 @@ const BASELINE_DEFAULTS = {
       note: 'Coatue-led strategic round Aug 2026 ($190B valuation, $7B revenue run-rate reported)',
     },
     {
-      company: 'SpaceX / xAI',
+      // 2026-10-19 (pass 7): xAI revenue basis corrected from a stale $500M ARR to the S-1 disclosed
+      // FY2025 revenue of $3.2B (operating loss $6.36B; revenue up 22% from $2.62B in 2024). The $250B
+      // is xAI's Feb 2026 all-stock merger value - NOT SpaceX's $2.05T public market cap. AI segment
+      // revenue $2.56B in Q2 2026 (+247% YoY), $3.38B in H1 2026 (SpaceX Q2 2026 earnings release).
+      company: 'xAI merger value (Feb 2026 all-stock)',
       valuationUsd: 250_000_000_000,
-      runRateRevenueUsd: 500_000_000,
-      note: 'Consolidated inside SpaceX (Nasdaq: SPCX, $2.05T live public market cap following June 2026 IPO); xAI Colossus supercluster asset valued at $250B on $500M ARR',
+      runRateRevenueUsd: 3_200_000_000,
+      note: 'Consolidated inside SpaceX (Nasdaq: SPCX, $2.05T live public market cap following the June 2026 IPO); this $250B is xAI\'s merger value in the Feb 2026 all-stock SpaceX/xAI combination (deal-023) and is distinct from the SPCX public cap. xAI revenue $3.2B FY2025 per the SpaceX S-1 (operating loss $6.36B; $2.62B in 2024); AI segment revenue $2.56B in Q2 2026 (+247% YoY) and $3.38B in H1 2026 per the SpaceX Q2 2026 earnings release (SEC 8-K)',
     },
     {
       company: 'Mistral AI',
@@ -142,57 +484,125 @@ const BASELINE_DEFAULTS = {
     },
   ],
   ledger: {
-    totalDisclosedUsd: 2_858_307_802_026,
-    byYear: { 2023: 26_345_000_000, 2024: 295_235_000_000, 2025: 1_732_497_500_000, 2026: 804_230_302_026 },
-    debtShare: 0.080,
-    computeContractShare: 0.280,
-    top10Share: 0.641,
+    // 2026-10-19 (pass 6): every field below is RECOMPUTED from deals.json on each sync
+    // (computeLedgerAggregates). These numbers are the last-sync snapshot and are kept only as the
+    // degenerate fallback when deals.json is unreadable — the live values are always recomputed.
+    // (pass 7) Re-synced after the deal-161 double-count adjudication: total and debt base -$6.5B.
+    totalDisclosedUsd: 2_872_873_160_000,
+    byYear: { 2023: 26_357_880_000, 2024: 294_585_000_000, 2025: 1_739_393_980_000, 2026: 812_536_300_000 },
+    debtShare: 0.075,
+    computeContractShare: 0.283,
+    top10Share: 0.638,
     circularShare: 0.027,
-    announcedShare: 0.124,
-    megaCountLast12m: 48,
-    daysSinceLastMega: 14,
+    announcedShare: 0.101,
+    megaCountLast12m: 25,   // recomputed each sync: mega-class deals announced in the last 365 days
+    daysSinceLastMega: 21, // recomputed each sync: days since the newest mega announcement (deal-002, 28 Sep 2026)
+    count: 169,
   },
   crowd: {
-    yesProbability: 0.103,
-    volumeUsd: 9_143_296,
-    bubble2026Probability: 0.103,
-    bubble2027Probability: 0.165,
+    // 2026-10-19 (pass 11): fallback aligned to the verified live Polymarket snapshot in
+    // src/data/live-inputs.json — bubble-2026 odds 0.103 → 0.0905 (9.05% YES), 2027 odds
+    // 0.165 → 0.195 (19.5% YES), volume 9,143,296 → 9,167,627.
+    yesProbability: 0.0905,
+    volumeUsd: 9_167_627,
+    bubble2026Probability: 0.0905,
+    bubble2027Probability: 0.195,
     activeContractsCount: 16,
     referralCode: 'AIbubble',
     referralUrl: 'https://polymarket.com/?r=AIbubble',
     note: 'Volume-weighted Polymarket & Kalshi AI bubble burst prediction contracts (r=AIbubble)',
   },
   adoption: {
-    topProductUsers: 350_000_000,
-    annualUserGrowth: 0.65,
-    apiPriceDeclineMultiple: 40,
+    // 2026-10-19 fact-check: ChatGPT WAU official series — OpenAI DevDay Sep 29 2026 = 1.2B weekly users
+    // (900M Feb 27 2026, 800M Oct 2025). Growth 800M→1.2B ≈ +50% YoY (was an unsourced 0.65).
+    topProductUsers: 1_200_000_000,
+    annualUserGrowth: 0.5,
+    // apiPriceDeclineMultiple is recomputed each sync on the INPUT basis (30 ÷ deepseek-v4.1-flash promptPerM;
+    // see fetchTokenPriceDeflation). Seed = verified drift-tolerant fallback: 30 / $0.0448 = 670× (was 40 / completion-basis 60).
+    // 2026-10-19 (pass 11): the note now carries the intraday disclosure — the verified print is
+    // $0.0448/1M (OpenRouter live Oct 19 2026); live aggregator spot for the same base row was observed
+    // swinging $0.0344–$0.0448/1M that day, so the pinned 670× is the conservative end of the range.
+    apiPriceDeclineMultiple: 670,
     trainingCostBand: 'rising',
-    note: 'Public API rate cards, OpenAI DevDay statements, Anthropic pricing logs',
+    note: 'OpenAI DevDay Sep 29 2026: ChatGPT 1.2B weekly users (900M Feb 2026, 800M Oct 2025, official WAU series) → +50% YoY. API deflation: GPT-4 $30/1M input (Mar 2023) → DeepSeek V4.1 Flash $0.0448/1M input (OpenRouter live Oct 19 2026) = 670×, input basis. INTRADAY DISCLOSURE (2026-10-19): the verified $0.0448/1M print was used; live aggregator spot for the same base row was observed swinging $0.0344–$0.0448/1M on Oct 19, 2026, so the published 670× multiple is pinned to the verified print and is therefore CONSERVATIVE (the low end would imply ~873×).',
   },
   capex: {
-    aggregateCapexUsd: 485_000_000_000,
-    aggregateFcfUsd: 260_000_000_000,
-    note: 'Microsoft, Alphabet, Meta, Amazon, Apple FY2025/2026 SEC 10-K/10-Q consensus: $668B+ operating cash flow, $485B capex, $260B retained FCF',
+    // 2026-10-19 fact-check: Big-4 CY2026 capex guidance (Jul 2026 earnings calls) ≈ $725B.
+    // Forbes Oct 7 2026: "$700–725B, up ~75% from $410B in 2025"; Coatue Aug 11 2026: ~$733B.
+    // Components: AMZN ~$220B cash capex · GOOGL $195–205B · MSFT ~$175B incl. finance leases (lease useful-life reclass) · META $130–145B.
+    // FY-basis AV anchors: MSFT FY26 OCF $182.9B, AMZN FY25 OCF $139.5B (capex now consumes nearly all big-4 OCF — Forbes).
+    aggregateCapexUsd: 725_000_000_000,
+    aggregateFcfUsd: 260_000_000_000, // trailing FY basis — refresh with cohort 10-Qs; Forbes Oct 7 2026: 2026 capex ≈ nearly all big-4 OCF (Amazon FCF seen negative)
+    note: 'Big-4 hyperscaler CY2026 capex guidance (Jul 2026 calls): Amazon ~$220B cash capex, Alphabet $195–205B, Microsoft ~$175B incl. finance leases, Meta $130–145B → ~$725B guided (Forbes Oct 7 2026: $700–725B; Coatue Aug 11 2026: ~$733B). Apple excluded from this basis; FCF figure is trailing FY and flagged for CY2026 refresh',
   },
   macro: {
+    // 2026-10-19 FRED verification: DGS10 5.10% (Oct 15) · T10YIE 2.35% (Oct 16) → real 10y 2.75% ·
+    // CPIAUCSL Sep-2026 YoY +3.72% (336.298 vs 324.245) · FEDFUNDS monthly obs 3.75% (Sep 2026; cut cycle) ·
+    // BAMLH0A0HYM2 = 323bp (Oct 15) · BAA10YM = 148bps (Sep 2026).
     us10yYieldPct: 5.10,
-    us02yYieldPct: 4.75,
+    us02yYieldPct: 4.75, // legacy DGS2 anchor — NOT re-verified Oct 19 2026 (display-only, no model weight)
     us10yBaselinePct: 3.75,
-    cpiInflationYoY: 2.9,
-    fedFundsRatePct: 4.75,
+    cpiInflationYoY: 3.72,
+    fedFundsRatePct: 3.75, // 2026 cut cycle — the old 4.75% / "+25bp hike" literal was a stale 2025 anchor
     rateHikeRiskBps: 25,
-    realYield10y: 2.70,
-    highYieldSpreadBps: 328,
-    note: 'US Treasury 10Y Benchmark, BLS CPI, Federal Reserve policy baseline & High Yield spreads',
+    realYield10y: 2.75, // DGS10 5.10 − T10YIE 2.35 (FRED, Oct 15/16 2026)
+    highYieldSpreadBps: 323,
+    note: 'FRED-verified Oct 19 2026: US10Y 5.10% (DGS10 Oct 15); CPI +3.72% YoY (CPIAUCSL Sep 2026 336.298 vs Sep 2025 324.245); Fed funds 3.75% on the 2026 cut-cycle path (FEDFUNDS Sep 2026); US HY OAS 323bp (BAMLH0A0HYM2 Oct 15 2026)',
   },
   aiDebt: {
     annualDebtIssuanceUsd: 85_000_000_000,
-    totalTrackedDebtUsd: 228_072_500_000,
+    totalTrackedDebtUsd: 214_890_400_000,
     capexToOcfRatio: 0.548,
     gpuDepreciationDragUsd: 38_500_000_000,
     capexToRevenueMultiple: 8.75,
     note: 'SEC 10-Q Capex vs OCF synthesis & private debt facilities',
   },
+};
+
+// 2026-10-19 fact-check provenance — persisted into src/data/live-inputs.json by run() so future syncs
+// self-document instead of silently reverting the hand-verification trail.
+const VERIFIED_OCT2026_FACTCHECK = {
+  verified_at: '2026-10-19',
+  verified_by: 'data fact-checker pass 2 hand-verification; values mirrored into this script by pass 3 so syncs preserve them',
+  corrections: [
+    'adoption.apiPriceDeclineMultiple 60 → 670 (INPUT basis: GPT-4 $30/1M Mar 2023 → DeepSeek V4.1 Flash $0.0448/1M input, OpenRouter live Oct 19 2026; recomputed each sync as 30 ÷ deepseek-v4.1-flash promptPerM, clamped 25–7000)',
+    'adoption.topProductUsers 350,000,000 → 1,200,000,000 (ChatGPT weekly users, OpenAI DevDay Sep 29 2026; 900M Feb 2026, 800M Oct 2025)',
+    'adoption.annualUserGrowth 0.65 → 0.5 (800M Oct 2025 → 1.2B Sep 2026 ≈ +50%)',
+    'valuations.OpenAI.runRateRevenueUsd stays 50,000,000,000, re-sourced (FT/CNBC/Reuters Oct 8 2026, own basis; the $70B report was a partner-gross-up) — valuationUsd 950,000,000,000 → 1,200,000,000,000 (Bloomberg Sep 16 2026: talks at >$1.2T; $950B matched no report)',
+    'valuations.Anthropic.runRateRevenueUsd 47,000,000,000 → 65,000,000,000 (Bloomberg/CNBC/Reuters Aug 17 2026: $65B ARR end-July, up from $47B in May; Reuters Oct 2026: guiding ~$100B year-end)',
+    'capex.aggregateCapexUsd 485,000,000,000 → 725,000,000,000 (Big-4 CY2026 guidance, Jul 2026 calls: AMZN ~$220B, GOOGL $195–205B, MSFT ~$175B incl. leases, META $130–145B; Forbes Oct 7 2026 $700–725B; Coatue Aug 11 2026 ~$733B)',
+    'macro.cpiInflationYoY 2.9 → 3.72 (FRED CPIAUCSL Sep 2026 336.298 vs Sep 2025 324.245)',
+    'macro.fedFundsRatePct 4.75 → 3.75 (FRED FEDFUNDS monthly obs, Sep 2026 — 2026 cut cycle)',
+    'macro.highYieldSpreadBps 336 → 323 (FRED BAMLH0A0HYM2, Oct 15 2026)',
+    'macro.highYieldSpreadBps 329 → 323 (pass 11, 2026-10-19: the published level was still the HYG-inverse proxy value; the note already cited the FRED print — the value now matches the note and the LEVEL is fetched directly from FRED BAMLH0A0HYM2 by the pipeline, with the HYG proxy demoted to the ticker row\'s change display only)',
+    'macro.realYield10y 2.7 → 2.75 (DGS10 5.10 − T10YIE 2.35, Oct 15/16 2026)',
+    'macro.us10yYieldPct 5.1 stays (FRED DGS10 Oct 15 2026 confirms)',
+    'ledger.daysSinceLastMega 14 (hardcoded literal) → 21 (derived each sync: whole days from the newest mega-class announcement to the sync date, UTC; newest = deal-002 Anthropic & Broadcom $42.0B convertible note, 28 Sep 2026)',
+    'ledger.megaCountLast12m 49 (all-time count of mega-class deals) → 25 (derived each sync: mega-class deals with announced_date inside the 365 days ending on the sync date)',
+    'live-models.json: benchmark $30/$60 restored (seed had $30/$30), max_deflation 670× input-basis, per-row sources + verified release dates seeded',
+    'cds.currentBps 187 → 288 (5Y Oracle CDS record close Oct 15 2026 — S&P Global Market Intelligence via securitasglobal.com; 261bp a week earlier Oct 8; CNBC Oct 19 quotes ~295bp intraday after a brief 300bp print). cds.priorBps 155 → 203 = the 90-day-ago print (Jul 20-24 2026, ICE data; Reuters Jul 29 quoted ~200bp, late-July prints 212-215bp). baselineBps 81 unchanged (long-run norm). S&P cut ORCL to BBB- on Jul 9 2026',
+    'valuations "SpaceX / xAI" → "xAI merger value (Feb 2026 all-stock)"; runRateRevenueUsd 500,000,000 → 3,200,000,000 (xAI FY2025 revenue $3.2B per the SpaceX S-1, operating loss $6.36B; AI segment revenue $2.56B in Q2 2026 per the SpaceX Q2 2026 earnings release). valuationUsd $250B unchanged — it is xAI’s merger value, distinct from SPCX’s $2.05T public cap',
+    'live-stocks market caps refreshed from filing cover-page share counts × Oct 16/19 close: AMZN $2.61T → $2.70T; ORCL $353B → $387.8B; CEG $86.5B → $96.1B; NBIS $35.5B → $45.0B; SMCI $18.5B → $20.8B; CRWV $53.2B → $33.9B (adjudicated 2026-10-19 per V3’s EDGAR verdict: 551,536,602 shares outstanding, 10-Q cover Jul 31 2026, EDGAR 0001769628-26-000366, × $61.39; the $53.2B/866.6M-share figure appears in no filing — the Sep 17 2026 35M-share ATM is undrawn capacity). Share counts now carried per ticker as sharesOutstanding',
+    'deals.json deal-161 ($6.5B CoreWeave "debt facility expansion") adjudicated a double count: amount_usd 6,500,000,000 → 0 and is_debt false, relabelled as an expansion of the existing $7.5B Blackstone-led facility — CoreWeave’s Q2 2026 10-Q Note 10 - Debt lists no January 2026 facility and no $6.5B instrument',
+    'deals.json deal-167 title "(1.65B)" → "(1.77B)" to match the verified €1.5B × 1.1786 announcement-date FX',
+    'quantitative.ts episode trigger string "350M active weekly ChatGPT/Claude users" → "1.2B weekly users (DevDay, Sep 29 2026)" — descriptive string only, not a model input',
+    'ledger debt re-bundled 2026-10-19: aiDebt.totalTrackedDebtUsd 228,072,500,000 → 214,890,400,000 and ledger.debtShare 0.080 → 0.075 (24 is_debt records) after the deal-161 double-count removal ($6.5B CoreWeave facility, amount_usd 0) and the deal-162 recast to the verified $2.4B Ares facility; ledger.totalDisclosedUsd 2,858,307,802,026 → 2,872,873,160,000 (169 deals, 2,872,873,160,000 recomputed from deals.json)',
+    'adoption.apiPriceDeclineMultiple 798 → 670 (pass 11, 2026-10-19: the published value had drifted onto the aggregator\'s lower $0.0376/1M quote, contradicting the row\'s own note/source ($0.0448/1M, OpenRouter live Oct 19 2026). Pinned to the verified print: 30 ÷ 0.0448 ≈ 670× (input basis, −99.85%). The live aggregator spot was observed swinging $0.0344–$0.0448/1M on Oct 19, 2026 — the pinned value is the conservative end of that observed range)',
+    'deals.json deal-016 (Meta-CoreWeave $21B AI cloud capacity expansion, 9 Apr 2026) is_mega false → true (pass 11, 2026-10-19: amount_usd $21B ≥ the $10B mega threshold, so the flag now agrees with the pipeline\'s mega rule — is_mega || amount_usd >= 10B. Flag-only mega count 48 → 49, matching the rule\'s 49; the trailing-365-day mega count stays 25 and the 169-deal / $2,872,873,160,000 ledger totals are unchanged)',
+  ],
+  integrity_notes: [
+    '2026-10-19: deals.json mid-pass clobber investigated — no scheduled task writes the repo (schtasks checked), update-data.mjs has no deals.json write path; cause attributed to concurrent agent editing; pre-commit integrity re-verification added to checklist'
+  ],
+  inspected_and_stayed: [
+    'cds 288/81/203/135bp (5Y Oracle CDS — record close Oct 15 2026 per S&P Global Market Intelligence; 203bp = the 90-day-ago print Jul 20-24 2026 (ICE); 81bp = long-run norm baseline; 135bp = other AI-exposed borrower. The pre-verification 187/81/155/135 set was superseded on Oct 19, 2026 — the numbers above are the verified ones)',
+    'aiDebt.totalTrackedDebtUsd 214,890,400,000 and annualDebtIssuanceUsd 85,000,000,000 (ledger pipeline outputs)',
+    'aiDebt.capexToOcfRatio 0.548 and capexToRevenueMultiple 8.75 (derived fields — basis needs owner review after capex basis change)',
+    'capex.aggregateFcfUsd 260,000,000,000 (trailing FY basis — flagged unverified for CY2026 in the capex note)',
+    'macro.rateHikeRiskBps 25 and us10yBaselinePct 3.75 (forward-looking stress-model assumptions, not observations)',
+    'macro.us02yYieldPct 4.75 (legacy DGS2 anchor — not re-verified Oct 19 2026; display-only, carries no model weight)',
+    'valuations Databricks/SpaceX-xAI/Mistral/Scale/Cohere/Perplexity/SSI rows (note-aligned, no contradicting live source this session)',
+    'ledger & crowd objects (regenerated by the pipeline; Polymarket 9.05% bubble-2026 odds re-verified live — the earlier 10.1% line was superseded by the Oct 19 2026 13:27 UTC sync)'
+  ]
 };
 
 // Target Tech Tickers for live pricing & drawdown calculation
@@ -239,7 +649,9 @@ const TARGET_TECH_TICKERS = [
     category: 'Hyperscaler',
     athUsd: 287.20,
     role: 'AWS Bedrock & Anthropic $8B Strategic Partner',
-    marketCapDisplay: '$2.61T',
+    // 2026-10-19 (pass 7): cap = 10,786,313,572 shares (10-Q cover, Jul 22 2026) x $250.00 close = $2.70T
+    marketCapDisplay: '$2.70T',
+    sharesOutstanding: 10_786_313_572,
     baselinePrice: 250.00,
   },
   {
@@ -266,7 +678,9 @@ const TARGET_TECH_TICKERS = [
     category: 'Hyperscaler',
     athUsd: 289.24,
     role: '5Y CDS Credit Proxy & GPU Cluster Debt Anchor',
-    marketCapDisplay: '$353B',
+    // 2026-10-19 (pass 7): cap = 3,023,736,000 shares (10-Q cover, Sep 7 2026) x $128.23 close = $387.8B
+    marketCapDisplay: '$387.8B',
+    sharesOutstanding: 3_023_736_000,
     baselinePrice: 128.23,
   },
   {
@@ -293,7 +707,12 @@ const TARGET_TECH_TICKERS = [
     category: 'Power & Infrastructure',
     athUsd: 141.79,
     role: 'Specialized GPU Neocloud & NVIDIA Blackwell Partner',
-    marketCapDisplay: '$53.2B',
+    // 2026-10-19 (pass 9, adjudicated per V3's EDGAR verdict): cap = 551,536,602 shares outstanding
+    // (10-Q cover, Jul 31 2026: 458,871,690 Class A + 92,664,912 Class B + 0 Class C; EDGAR accession
+    // 0001769628-26-000366) x $61.39 Oct 16 close = $33.9B. The prior $53.2B (866.6M shares) appears
+    // in no filing - the Sep 17 2026 35M-share ATM is undrawn capacity, not outstanding shares.
+    marketCapDisplay: '$33.9B',
+    sharesOutstanding: 551_536_602,
     baselinePrice: 61.39,
   },
   {
@@ -347,7 +766,9 @@ const TARGET_TECH_TICKERS = [
     category: 'Power & Infrastructure',
     athUsd: 406.04,
     role: 'Three Mile Island Nuclear Restart for Microsoft',
-    marketCapDisplay: '$86.5B',
+    // 2026-10-19 (pass 7): cap = 354,307,379 shares (10-Q cover, Jul 31 2026) x $271.37 close = $96.1B
+    marketCapDisplay: '$96.1B',
+    sharesOutstanding: 354_307_379,
     baselinePrice: 271.37,
   },
   {
@@ -383,7 +804,9 @@ const TARGET_TECH_TICKERS = [
     category: 'Power & Infrastructure',
     athUsd: 56.60,
     role: 'GPU Server Integrator (Polymarket Trigger Risk)',
-    marketCapDisplay: '$18.5B',
+    // 2026-10-19 (pass 7): cap = 656,965,384 shares (FY2026 10-K cover, Jul 31 2026) x $31.63 close = $20.8B
+    marketCapDisplay: '$20.8B',
+    sharesOutstanding: 656_965_384,
     baselinePrice: 31.63,
   },
   {
@@ -392,7 +815,9 @@ const TARGET_TECH_TICKERS = [
     category: 'Power & Infrastructure',
     athUsd: 299.86,
     role: 'AI Neocloud & $17.4B Microsoft Compute Partner',
-    marketCapDisplay: '$35.5B',
+    // 2026-10-19 (pass 7): cap = 271,855,218 shares (238,400,165 A + 33,455,053 B, Q2 2026 release) x $165.47 close = $45.0B
+    marketCapDisplay: '$45.0B',
+    sharesOutstanding: 271_855_218,
     baselinePrice: 165.47,
   },
   {
@@ -441,9 +866,10 @@ async function fetchTokenPriceDeflation() {
       completionPerM: 20.00,
       batchCompletionPerM: 10.00,
       contextLength: 200000,
-      deflationMultiple: '1.5× Cheaper',
-      releaseDate: 'October 2026',
-      note: 'State-of-the-art agentic reasoning engine commanding premium token density'
+      deflationMultiple: '7.5× Cheaper', // input basis: 30/4; was 1.5× (completion basis)
+      releaseDate: 'September 2026', // OpenRouter created ts 2026-09-22 UTC (was mislabeled October)
+      note: 'State-of-the-art agentic reasoning engine commanding premium token density',
+      source: 'https://openrouter.ai/api/v1/models (live Oct 19, 2026: prompt 0.000004 / completion 0.00002 per token; created 2026-09-22 UTC, so release = September 2026, not October)',
     },
     {
       id: 'anthropic/claude-sonnet-5.5',
@@ -454,9 +880,10 @@ async function fetchTokenPriceDeflation() {
       completionPerM: 10.00,
       batchCompletionPerM: 5.00,
       contextLength: 200000,
-      deflationMultiple: '3.0× Cheaper',
-      releaseDate: 'October 2026',
-      note: 'Industry standard for complex code generation, tool orchestration & reasoning'
+      deflationMultiple: '15× Cheaper', // input basis: 30/2; was 3.0× (completion basis)
+      releaseDate: 'September 2026', // OpenRouter created ts 2026-09-28 UTC
+      note: 'Industry standard for complex code generation, tool orchestration & reasoning',
+      source: 'https://openrouter.ai/api/v1/models (live Oct 19, 2026: prompt 0.000002 / completion 0.00001 per token; created 2026-09-28 UTC)',
     },
     {
       id: 'anthropic/claude-haiku-5.5',
@@ -467,9 +894,10 @@ async function fetchTokenPriceDeflation() {
       completionPerM: 0.50,
       batchCompletionPerM: 0.25,
       contextLength: 200000,
-      deflationMultiple: '60× Cheaper',
-      releaseDate: 'October 2026',
-      note: 'Sub-second real-time streaming at 50¢ per million completion tokens'
+      deflationMultiple: '300× Cheaper', // input basis: 30/0.1; was 60× (completion basis)
+      releaseDate: 'October 2026', // released Oct 7, 2026 (Anthropic announcement; OpenRouter created ts 2026-10-07)
+      note: 'Sub-second real-time streaming at $0.10/1M input and 50¢ per million completion tokens (prompts ≤100k tokens; $0.50/$2.50 above). Released Oct 7, 2026',
+      source: 'https://openrouter.ai/api/v1/models (live Oct 19, 2026); https://www.anthropic.com (Haiku 5.5 announcement Oct 7, 2026, $0.10/$0.50 ≤100k tier)',
     },
     {
       id: 'deepseek/deepseek-v4.1-flash',
@@ -480,9 +908,10 @@ async function fetchTokenPriceDeflation() {
       completionPerM: 0.08,
       batchCompletionPerM: 0.04,
       contextLength: 128000,
-      deflationMultiple: '375× Cheaper',
-      releaseDate: 'October 2026',
-      note: 'Architectural MoE cost breakthrough; sub-10¢ per million tokens (-99.7% vs GPT-4)'
+      deflationMultiple: '670× Cheaper', // input basis: 30/0.0448 = 669.6; the legacy 375× mixed a $30 INPUT baseline with the COMPLETION price
+      releaseDate: 'September 2026', // base model live Sep 10, 2026 per OpenRouter created ts / api-docs
+      note: 'Architectural MoE cost breakthrough; $0.0448/1M input / $0.08/1M completion on aggregated open-weights serving (-99.85% input-basis vs GPT-4). DeepSeek\'s first-party API lists $0.15/$0.60 (cache-miss, off-peak). V4.1 Flash base live Sep 10, 2026; the V4.1 Flash 1017 checkpoint (Oct 17, 2026) is priced higher at $0.30/$1.20',
+      source: 'https://openrouter.ai/api/v1/models (live Oct 19, 2026: prompt 0.0000000448 / completion 0.00000008 per token); https://api-docs.deepseek.com/quick_start/pricing (first-party $0.15/$0.60 off-peak); api-docs DeepSeek-V4.1-Flash \'live September 10, 2026\'',
     },
     {
       id: 'google/gemini-4-argon',
@@ -493,9 +922,10 @@ async function fetchTokenPriceDeflation() {
       completionPerM: 10.00,
       batchCompletionPerM: 5.00,
       contextLength: 1000000,
-      deflationMultiple: '3.0× Cheaper',
-      releaseDate: 'October 2026',
-      note: 'Frontier multimodal reasoning with 1M context window and native audio/video'
+      deflationMultiple: '15× Cheaper', // input basis: 30/2; was 3.0× (completion basis)
+      releaseDate: 'October 2026', // OpenRouter created ts 2026-10-13 UTC
+      note: 'Frontier multimodal reasoning with 1M context window and native audio/video',
+      source: 'https://openrouter.ai/api/v1/models (live Oct 19, 2026: prompt 0.000002 / completion 0.00001 per token; created 2026-10-13 UTC)',
     },
     {
       id: 'google/gemini-3.8-flash',
@@ -506,9 +936,10 @@ async function fetchTokenPriceDeflation() {
       completionPerM: 4.125,
       batchCompletionPerM: 2.06,
       contextLength: 1000000,
-      deflationMultiple: '7.3× Cheaper',
-      releaseDate: 'September 2026',
-      note: 'Fast multimodal throughput with 1M token context capacity'
+      deflationMultiple: '36× Cheaper', // input basis: 30/0.825 = 36.4; was 7.3× (completion basis)
+      releaseDate: 'September 2026', // released Sep 2, 2026
+      note: 'Fast multimodal throughput with 1M token context capacity; released Sep 2, 2026. OpenRouter\'s normalized Google rate is $0.825/$4.125 (Google Vertex non-global tier); Google\'s first-party global introductory list (through Dec 31, 2026) is $0.75/$3.75, rising to $1.50/$7.50 on Jan 1, 2027',
+      source: 'https://openrouter.ai/api/v1/models (live Oct 19, 2026); https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.8 + https://cloud.google.com/gemini-enterprise-agent-platform/generative-ai/pricing (official tiers)',
     },
     {
       id: 'openai/gpt-4o',
@@ -519,9 +950,10 @@ async function fetchTokenPriceDeflation() {
       completionPerM: 10.00,
       batchCompletionPerM: 5.00,
       contextLength: 128000,
-      deflationMultiple: '3.0× Cheaper',
-      releaseDate: '2024–2026',
-      note: 'Flagship omni multimodal model for general purpose intelligence'
+      deflationMultiple: '12× Cheaper', // input basis: 30/2.5; was 3.0× (completion basis)
+      releaseDate: 'May 2024', // launched May 13, 2024 (OpenAI blog; had been squashed to "2024–2026")
+      note: 'Flagship omni multimodal model for general purpose intelligence; launched May 13, 2024 at $5/$15 (OpenAI blog), today listed at $2.50/$10',
+      source: 'https://openrouter.ai/api/v1/models (live Oct 19, 2026: prompt 0.0000025 / completion 0.00001 per token); https://openai.com/index/hello-gpt-4o (launch pricing $5/$15, May 13 2024)',
     },
     {
       id: 'openai/gpt-4o-mini',
@@ -532,9 +964,10 @@ async function fetchTokenPriceDeflation() {
       completionPerM: 0.60,
       batchCompletionPerM: 0.30,
       contextLength: 128000,
-      deflationMultiple: '50× Cheaper',
-      releaseDate: '2024–2026',
-      note: 'Cost-efficient lightweight intelligence for fast classification and routing'
+      deflationMultiple: '200× Cheaper', // input basis: 30/0.15; was 50× (completion basis)
+      releaseDate: 'July 2024', // launched Jul 18, 2024
+      note: 'Cost-efficient lightweight intelligence for fast classification and routing; launched Jul 18, 2024 at $0.15/$0.60',
+      source: 'https://openrouter.ai/api/v1/models (live Oct 19, 2026: prompt 0.00000015 / completion 0.0000006 per token); https://openai.com/index/gpt-4o-mini (launch pricing $0.15/$0.60, Jul 18 2024)',
     },
     {
       id: 'openai/gpt-6.1-sol-pro',
@@ -545,9 +978,10 @@ async function fetchTokenPriceDeflation() {
       completionPerM: 10.00,
       batchCompletionPerM: 5.00,
       contextLength: 1000000,
-      deflationMultiple: '3.0× Cheaper',
-      releaseDate: 'October 2026',
-      note: 'Next-generation reasoning & orchestration architecture with native tool planning'
+      deflationMultiple: '15× Cheaper', // input basis: 30/2; was 3.0× (completion basis)
+      releaseDate: 'September 2026', // OpenRouter created ts 2026-09-29 UTC
+      note: 'Next-generation reasoning & orchestration architecture with native tool planning; created Sep 29, 2026 per OpenRouter feed',
+      source: 'https://openrouter.ai/api/v1/models (live Oct 19, 2026: prompt 0.000002 / completion 0.00001 per token)',
     },
     {
       id: 'openai/gpt-6-luna',
@@ -558,20 +992,50 @@ async function fetchTokenPriceDeflation() {
       completionPerM: 0.50,
       batchCompletionPerM: 0.25,
       contextLength: 256000,
-      deflationMultiple: '60× Cheaper',
-      releaseDate: 'October 2026',
-      note: 'High-speed speculative decoding engine optimized for micro-latency streaming'
+      deflationMultiple: '300× Cheaper', // input basis: 30/0.1; was 60× (completion basis)
+      releaseDate: 'September 2026', // OpenRouter created ts 2026-09-22 UTC
+      note: 'High-speed speculative decoding engine optimized for micro-latency streaming; created Sep 22, 2026 per OpenRouter feed; price matches OpenAI\'s own $0.10/$0.50 Luna tier',
+      source: 'https://openrouter.ai/api/v1/models (live Oct 19, 2026: prompt 0.0000001 / completion 0.0000005 per token); OpenAI API pricing page (GPT-6 Luna $0.10/$0.50)',
     }
   ];
 
   let curatedModels = DEFAULT_OCT_2026_MODELS;
   let totalModelsScanned = 471;
-  let computedMultiplier = 60; // Baseline ~60x for lightweight frontier tier
+  let computedMultiplier = 670; // fallback if OpenRouter scan fails: 30 ÷ $0.0448 input = 669.6 ≈ 670 (verified Oct 19, 2026) — was a completion-basis 60
+
+  // 2026-10-19 (pass 11): the deflation anchor must be the deepseek-v4.1-flash BASE row.
+  // OpenRouter also lists sibling variants of that model — ':batch', ':latest' and the
+  // '-1017' checkpoint (priced $0.30/$1.20) — which are NOT the same instrument. Snapping to a
+  // variant would publish a wrong multiple, so the pin is identity-gated.
+  const DEEPSEEK_BASE_ID = 'deepseek/deepseek-v4.1-flash';
+  // 2026-10-19 (pass 11): drift tolerance 0.10 → 0.25 — the aggregator's display jitters
+  // ($0.0344–$0.0448/1M observed on the base row on Oct 19, 2026), so a ±25% band around the
+  // verified print is treated as the same listing; beyond that it is a genuine repricing.
+  const DEFLATION_PIN_TOLERANCE = 0.25;
+  const isDeepseekBaseRow = (id) => typeof id === 'string' && id.trim().toLowerCase() === DEEPSEEK_BASE_ID;
+
+  // Scan provenance — persisted into live-inputs.json (_verified.inspected_and_stayed) whenever the
+  // pin does NOT snap, so a drifted multiple is never published silently (2026-10-19, pass 11).
+  const deflationScan = {
+    scanned_at: new Date().toISOString(),
+    anchor_model_id: DEEPSEEK_BASE_ID,
+    matched_model_id: null,
+    identity_ok: false,
+    scanned_prompt_per_m: null,
+    scanned_completion_per_m: null,
+    prompt_drift_pct: null,
+    tolerance_pct: DEFLATION_PIN_TOLERANCE,
+    snapped: false,
+    published_multiple: null,
+    variant_rows_seen: [],
+  };
 
   try {
-    const res = await fetch('https://openrouter.ai/api/v1/models', {
+    const res = await fetchWithRetry('https://openrouter.ai/api/v1/models', {
+      group: 'openrouter',
+      label: 'OpenRouter models',
+      timeoutMs: 8000,
       headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(8000),
     });
 
     if (res.ok) {
@@ -579,15 +1043,44 @@ async function fetchTokenPriceDeflation() {
       const rawModels = json.data || [];
       totalModelsScanned = rawModels.length;
 
+      // 2026-10-19 (pass 11): record every deepseek-v4.1 sibling row the catalog exposes so the
+      // base-row identity decision is auditable (variants are never used as the anchor).
+      deflationScan.variant_rows_seen = rawModels
+        .map((rm) => rm.id)
+        .filter((id) => typeof id === 'string' && id.toLowerCase().includes('deepseek-v4.1') && !isDeepseekBaseRow(id));
+
       // Extract live pricing for our curated models
+      // 2026-10-19 fact-check: OpenRouter's catalog display jitters at ~2 sig-figs (V4.1 Flash prompt
+      // showed 0.0000000448 in the morning snapshot, 0.000000044 the same evening — same listing, same
+      // created-ts). Pin the drift-tolerant money anchor: if the BASE row's live price lands within
+      // ±25% of the verified V4.1 Flash pair ($0.0448/1M in, $0.08/1M out), snap to the verified values
+      // so the site stays on the verified 670× figure; a genuine repricing (>25%) still flows through
+      // and is disclosed in _verified.inspected_and_stayed.
       curatedModels = DEFAULT_OCT_2026_MODELS.map((defaultMod) => {
         const liveMatch = rawModels.find((rm) => rm.id.toLowerCase() === defaultMod.id.toLowerCase());
         if (liveMatch && liveMatch.pricing) {
-          const promptPerM = liveMatch.pricing.prompt ? parseFloat(liveMatch.pricing.prompt) * 1_000_000 : defaultMod.promptPerM;
-          const completionPerM = liveMatch.pricing.completion ? parseFloat(liveMatch.pricing.completion) * 1_000_000 : defaultMod.completionPerM;
-          const deflationMult = completionPerM > 0 ? (30.0 / completionPerM) : 1;
-          const multipleDisplay = deflationMult >= 10 
-            ? `${deflationMult.toFixed(0)}× Cheaper` 
+          let promptPerM = liveMatch.pricing.prompt ? parseFloat(liveMatch.pricing.prompt) * 1_000_000 : defaultMod.promptPerM;
+          let completionPerM = liveMatch.pricing.completion ? parseFloat(liveMatch.pricing.completion) * 1_000_000 : defaultMod.completionPerM;
+          // 2026-10-19 (pass 11): identity-gated drift pin (base row only, ±25% band).
+          const isDriftPin = isDeepseekBaseRow(defaultMod.id);
+          if (isDriftPin) {
+            deflationScan.matched_model_id = liveMatch.id;
+            deflationScan.identity_ok = true;
+            deflationScan.scanned_prompt_per_m = promptPerM;
+            deflationScan.scanned_completion_per_m = completionPerM;
+            const promptDrift = Math.abs(promptPerM - 0.0448) / 0.0448;
+            deflationScan.prompt_drift_pct = Math.round(promptDrift * 10000) / 100;
+            if (promptDrift <= DEFLATION_PIN_TOLERANCE) {
+              promptPerM = 0.0448;
+              deflationScan.snapped = true;
+            }
+            if (Math.abs(completionPerM - 0.08) / 0.08 <= DEFLATION_PIN_TOLERANCE) completionPerM = 0.08;
+          }
+          // Deflation multiples are INPUT-basis vs GPT-4's $30/1M input (Mar 2023 launch rate): 30 ÷ prompt.
+          // The legacy formula (30 ÷ COMPLETION) mixed bases with the input baseline and produced 375×/60×.
+          const deflationMult = promptPerM > 0 ? (30.0 / promptPerM) : 1;
+          const multipleDisplay = deflationMult >= 10
+            ? `${deflationMult.toFixed(0)}× Cheaper`
             : `${deflationMult.toFixed(1)}× Cheaper`;
 
           return {
@@ -609,38 +1102,51 @@ async function fetchTokenPriceDeflation() {
     console.warn(`  ↳ OpenRouter fetch error (${err.message}). Using verified October 2026 defaults.`);
   }
 
-  // Calculate adoption damper multiplier based on lightweight frontier inference
-  const deepseekOrHaiku = curatedModels.find(m => m.id.includes('deepseek-v4.1') || m.id.includes('haiku-5.5'));
-  if (deepseekOrHaiku && deepseekOrHaiku.completionPerM > 0) {
-    // Keep damper calibration well-behaved between 20x and 100x for logistic score stability
-    computedMultiplier = Math.min(100, Math.max(25, Math.round(30.0 / deepseekOrHaiku.completionPerM)));
+  // Calculate adoption damper multiplier on the INPUT basis: 30 ÷ prompt price per 1M tokens.
+  // Verified pair (Oct 19, 2026): GPT-4 $30/1M input (Mar 2023 launch, still listed live) ÷ DeepSeek V4.1
+  // Flash $0.0448/1M input (OpenRouter live) = 669.6 ≈ 670×. The anchor is the BASE row only
+  // (2026-10-19, pass 11 — ':batch' / ':latest' / '-1017' variants are excluded); the fallback chain
+  // keeps a value when a listing disappears.
+  // Clamp [25, 7000]: preserves damper stability on degenerate/zero-priced data (was [25,100] under the
+  // completion-basis convention — the clamp, not the multiplier, was the only guardrail then).
+  const commodityModel = curatedModels.find((m) => isDeepseekBaseRow(m.id))
+    || curatedModels.find((m) => m.id.includes('gpt-6-luna'))
+    || curatedModels.find((m) => m.id.includes('haiku-5.5'));
+  if (commodityModel && commodityModel.promptPerM > 0) {
+    computedMultiplier = Math.min(7000, Math.max(25, Math.round(30.0 / commodityModel.promptPerM)));
   }
+  deflationScan.published_multiple = computedMultiplier;
 
-  // Save live-models.json for client components and visual charts
+  // 2026-10-19 fact-check: benchmark_baseline must be GPT-4's LAUNCH rate card — $30.00 input / $60.00
+  // output. The seed had completion_cost_per_m: 30.00 (a duplicate of the input rate instead of the $60
+  // output rate), halving the output baseline. max_deflation_factor is the INPUT-basis 670× string; the
+  // frontier rate string carries both legs. verified_at/verification_note persist the fact-check trail.
+  const deepseekSeed = curatedModels.find((m) => isDeepseekBaseRow(m.id));
+  const deepseekPrompt = deepseekSeed ? deepseekSeed.promptPerM : 0.0448;
+
   const liveModelsPayload = {
     last_synced_at: new Date().toISOString(),
+    verified_at: '2026-10-19',
     source: 'https://openrouter.ai/api/v1/models',
     license: 'Public OpenRouter Model Catalog (Free / Keyless)',
     total_models_available: totalModelsScanned,
+    verification_note: 'Live OpenRouter fetch Oct 19, 2026 returned 470 model listings (spec preview said 471; live count wins). All prices re-verified against the live keyless API; deflation multiples recomputed on the INPUT-price basis vs GPT-4\'s $30/1M input (Mar 2023 launch rate, still listed today). GPT-4 input $30/1M, output $60/1M (OpenRouter live + OpenAI Mar 14 2023 launch rate).',
     benchmark_baseline: {
       model: 'OpenAI GPT-4 Original',
       release_date: 'March 2023',
-      completion_cost_per_m: 30.00,
       prompt_cost_per_m: 30.00,
+      completion_cost_per_m: 60.00,
+      source: 'https://openrouter.ai/api/v1/models (live Oct 19, 2026: gpt-4 prompt $0.00003 / completion $0.00006 per token; launch pricing $30/$60 per OpenAI Mar 2023)',
     },
-    max_deflation_factor: '375× (DeepSeek V4.1 Flash @ $0.08/1M tokens)',
-    frontier_reasoning_rate: '$20.00/1M tokens (Claude Opus 5.5)',
+    max_deflation_factor: `${Math.round(30.0 / deepseekPrompt)}× input-basis (DeepSeek V4.1 Flash @ $${deepseekPrompt.toFixed(4)}/1M input, 30 / ${deepseekPrompt.toFixed(4)} ≈ ${(30.0 / deepseekPrompt).toFixed(1)} → -99.85% vs GPT-4 input; completion-basis below-10¢ equivalent $60 → $0.08)`,
+    frontier_reasoning_rate: '$4.00/1M input · $20.00/1M output (Claude Opus 5.5)',
     models: curatedModels,
   };
 
-  try {
-    fs.writeFileSync(LIVE_MODELS_FILE, JSON.stringify(liveModelsPayload, null, 2), 'utf-8');
-    console.log(`  ✓ Written live frontier models to ${path.relative(projectRoot, LIVE_MODELS_FILE)}`);
-  } catch (err) {
-    console.error(`  ✕ Failed writing ${LIVE_MODELS_FILE}:`, err.message);
-  }
-
-  return computedMultiplier;
+  // 2026-10-19 (CI hardening): the artifact is handed back to the caller and written
+  // in the atomic write phase — nothing is written during the fetch phase, so a
+  // majority-outage abort can never leave a half-written file behind.
+  return { multiplier: computedMultiplier, scan: deflationScan, payload: liveModelsPayload };
 }
 
 /**
@@ -659,11 +1165,13 @@ async function fetchPolymarketOdds() {
     ];
 
     const eventPromises = slugs.map((s) =>
-      fetch(`https://gamma-api.polymarket.com/events?slug=${s}`, {
+      fetchWithRetry(`https://gamma-api.polymarket.com/events?slug=${s}`, {
+        group: 'polymarket',
+        label: `Polymarket ${s}`,
+        timeoutMs: 8000,
         headers: { Accept: 'application/json' },
-        signal: AbortSignal.timeout(8000),
       })
-        .then((r) => (r.ok ? r.json() : []))
+        .then((r) => r.json())
         .catch(() => [])
     );
 
@@ -672,8 +1180,10 @@ async function fetchPolymarketOdds() {
 
     if (events.length > 0) {
       let totalVol = 0;
-      let bubble2026Prob = 0.103;
-      let bubble2027Prob = 0.165;
+      // 2026-10-19 (pass 11): seed odds aligned to the verified live snapshot (0.103 → 0.0905 for
+      // 2026, 0.165 → 0.195 for 2027) — these are the values used when no matching market is found.
+      let bubble2026Prob = 0.0905;
+      let bubble2027Prob = 0.195;
       const parsedMarkets = [];
 
       for (const ev of events) {
@@ -719,6 +1229,7 @@ async function fetchPolymarketOdds() {
     }
   } catch (err) {
     console.warn(`  ↳ Polymarket fetch failed: ${err.message}. Retaining baseline.`);
+    recordUpstream('polymarket', false, err.message);
   }
 
   return BASELINE_DEFAULTS.crowd;
@@ -728,18 +1239,43 @@ async function fetchPolymarketOdds() {
  * Helper to fetch a single Yahoo Finance chart quote
  */
 async function fetchYahooQuote(ticker) {
+  let res;
   try {
-    const res = await fetch(
+    res = await fetchWithRetry(
       `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=5d`,
       {
+        group: 'yahoo',
+        label: `Yahoo ${ticker}`,
+        timeoutMs: 6000,
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-        signal: AbortSignal.timeout(6000),
       }
     );
-    if (!res.ok) return null;
-    const json = await res.json();
-    return json.chart?.result?.[0]?.meta || null;
   } catch {
+    return null; // already recorded against the 'yahoo' group by fetchWithRetry
+  }
+
+  try {
+    const json = await res.json();
+    const result = json.chart?.result?.[0];
+    const meta = result?.meta;
+    if (!meta) return null;
+    // Pass 4 (2026-10-19): expose the previous-SESSION close for honest 24h change math.
+    // Live-probed Oct 19, 2026 (ORCL / AAPL / ^TNX, interval=1d&range=5d):
+    //   - meta.previousClose is UNDEFINED on Yahoo v8 chart metas;
+    //   - meta.chartPreviousClose is the close BEFORE THE WINDOW'S FIRST BAR (~5 sessions back,
+    //     e.g. ORCL 141.40 = Oct 9 close → produced the bogus −9.3% display; true session move
+    //     was −4.64% per Alpha Vantage), so it must never anchor a "24h" change on Yahoo paths;
+    //   - the daily candle series is present → second-to-last valid close IS the previous session;
+    //   - meta.regularMarketChangePercent is session-basis and matched AV (−4.64 / +0.427 / +0.177).
+    const closes = result.indicators?.quote?.[0]?.close || [];
+    const validCloses = closes.filter((c) => typeof c === 'number' && c > 0);
+    return {
+      ...meta,
+      _seriesPrevClose: validCloses.length >= 2 ? validCloses[validCloses.length - 2] : null,
+      _yahooChangePct: typeof meta.regularMarketChangePercent === 'number' ? meta.regularMarketChangePercent : null,
+    };
+  } catch (err) {
+    recordUpstream('yahoo', false, `invalid JSON payload for ${ticker}: ${err.message}`);
     return null;
   }
 }
@@ -753,11 +1289,18 @@ async function fetchFredObservations() {
   try {
     const fetchFredSeries = async (id) => {
       const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${id}&api_key=${FRED_API_KEY}&file_type=json&sort_order=desc&limit=1`;
-      const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
-      if (!r.ok) return null;
-      const j = await r.json();
-      const val = parseFloat(j.observations?.[0]?.value);
-      return isNaN(val) ? null : val;
+      try {
+        const r = await fetchWithRetry(url, {
+          group: 'fred',
+          label: `FRED ${id}`,
+          timeoutMs: 6000,
+        });
+        const j = await r.json();
+        const val = parseFloat(j.observations?.[0]?.value);
+        return isNaN(val) ? null : val;
+      } catch {
+        return null; // already recorded against the 'fred' group by fetchWithRetry
+      }
     };
 
     const [d10, d2, hy, ff] = await Promise.all([
@@ -769,12 +1312,16 @@ async function fetchFredObservations() {
 
     if (d10 !== null) res.us10y = Math.round(d10 * 100) / 100;
     if (d2 !== null) res.us02y = Math.round(d2 * 100) / 100;
-    if (hy !== null) res.hyOasBps = Math.round(hy * 100); // e.g. 3.36 -> 336 bps
+    // 2026-10-19 (pass 11): BAMLH0A0HYM2 is the ICE BofA US High Yield OAS (daily, in percent).
+    // e.g. 3.23 -> 323 bps. This observation is now the published LEVEL for the HY-OAS row
+    // (fallback: the verified 323bp seed from the Oct 15 2026 print).
+    if (hy !== null) res.hyOasBps = Math.round(hy * 100);
     if (ff !== null) res.fedFunds = Math.round(ff * 100) / 100;
 
-    console.log(`  ✓ FRED: US10Y=${res.us10y ?? '5.10'}%, US02Y=${res.us02y ?? '4.75'}%, HY-OAS=${res.hyOasBps ?? '336'}bp, FEDFUNDS=${res.fedFunds ?? '4.75'}%`);
+    console.log(`  ✓ FRED: US10Y=${res.us10y ?? '5.10'}%, US02Y=${res.us02y ?? '4.75'}%, HY-OAS=${res.hyOasBps ?? '323'}bp (BAMLH0A0HYM2), FEDFUNDS=${res.fedFunds ?? '3.75'}%`);
   } catch (err) {
     console.warn(`  ↳ FRED query notice: ${err.message}. Retaining live fallbacks.`);
+    recordUpstream('fred', false, err.message);
   }
   return res;
 }
@@ -785,17 +1332,23 @@ async function fetchFredObservations() {
 async function fetchFinnhubQuote(symbol) {
   try {
     const url = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_API_KEY}`;
-    const r = await fetch(url, { signal: AbortSignal.timeout(5000) });
-    if (!r.ok) return null;
+    const r = await fetchWithRetry(url, {
+      group: 'finnhub',
+      label: `Finnhub quote ${symbol}`,
+      timeoutMs: 5000,
+    });
     const j = await r.json();
     if (typeof j.c === 'number' && j.c > 0) {
       return {
+        _source: 'finnhub', // j.pc here IS the true previous-session close (unlike Yahoo chart metas)
         regularMarketPrice: j.c,
         chartPreviousClose: j.pc,
         fiftyTwoWeekHigh: j.h,
       };
     }
-  } catch {}
+  } catch (err) {
+    // already recorded against the 'finnhub' group by fetchWithRetry
+  }
   return null;
 }
 
@@ -805,8 +1358,11 @@ async function fetchFinnhubQuote(symbol) {
 async function fetchFinnhubSecFilings(symbol = 'ORCL') {
   try {
     const url = `https://finnhub.io/api/v1/stock/filings?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_API_KEY}`;
-    const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
-    if (!r.ok) return null;
+    const r = await fetchWithRetry(url, {
+      group: 'finnhub',
+      label: `Finnhub filings ${symbol}`,
+      timeoutMs: 6000,
+    });
     const filings = await r.json();
     if (Array.isArray(filings) && filings.length > 0) {
       const recent8Ks = filings.filter((f) => f.form === '8-K').length;
@@ -825,6 +1381,32 @@ async function fetchFinnhubSecFilings(symbol = 'ORCL') {
 async function fetchLiveStocksAndMacro() {
   console.log('[3/5] Fetching live quotes from Yahoo Finance (Tech & Macro Tickers)...');
 
+  // Pass 4 (2026-10-19): previous-SESSION close for 24h-display math. Resolution order:
+  //   1. Yahoo daily candle series (second-to-last valid close) — probe-verified vs Alpha Vantage:
+  //      ORCL −4.6% (AV −4.64%), AAPL +0.4% (AV +0.43%), ^TNX +2bp;
+  //   2. Finnhub j.pc (true previous-session close);
+  //   3. Yahoo's own regularMarketChangePercent (session basis, probe-matched vs AV);
+  //   4. caller's neutral default. meta.chartPreviousClose is EXCLUDED on Yahoo paths — it anchors
+  //      a ~5-session weekly move (the old ORCL −9.3% artifact). Prices are never altered.
+  const sessionPrevClose = (meta) => {
+    if (!meta) return null;
+    const seriesPrev = typeof meta._seriesPrevClose === 'number' && meta._seriesPrevClose > 0 ? meta._seriesPrevClose : null;
+    const finnhubPrev = meta._source === 'finnhub' && typeof meta.chartPreviousClose === 'number' && meta.chartPreviousClose > 0 ? meta.chartPreviousClose : null;
+    return seriesPrev ?? finnhubPrev ?? null;
+  };
+  const sessionChangePct = (meta, fallbackPct) => {
+    if (meta && typeof meta.regularMarketPrice === 'number') {
+      const prev = sessionPrevClose(meta);
+      if (prev) {
+        return Math.round(((meta.regularMarketPrice - prev) / prev) * 1000) / 10;
+      }
+      if (typeof meta._yahooChangePct === 'number') {
+        return Math.round(meta._yahooChangePct * 10) / 10;
+      }
+    }
+    return fallbackPct;
+  };
+
   // Fetch all tech tickers (Yahoo Finance with Finnhub institutional fallback)
   const stocks = [];
   for (const item of TARGET_TECH_TICKERS) {
@@ -838,8 +1420,11 @@ async function fetchLiveStocksAndMacro() {
 
     if (meta && typeof meta.regularMarketPrice === 'number') {
       price = Math.round(meta.regularMarketPrice * 100) / 100;
-      if (typeof meta.chartPreviousClose === 'number' && meta.chartPreviousClose > 0) {
-        change24hPct = Math.round(((price - meta.chartPreviousClose) / meta.chartPreviousClose) * 1000) / 10;
+      const prevClose = sessionPrevClose(meta);
+      if (prevClose) {
+        change24hPct = Math.round(((price - prevClose) / prevClose) * 1000) / 10;
+      } else if (typeof meta._yahooChangePct === 'number') {
+        change24hPct = Math.round(meta._yahooChangePct * 10) / 10;
       }
       if (typeof meta.fiftyTwoWeekHigh === 'number' && meta.fiftyTwoWeekHigh > ath) {
         ath = meta.fiftyTwoWeekHigh;
@@ -858,6 +1443,9 @@ async function fetchLiveStocksAndMacro() {
       drawdownFromAthPct,
       role: item.role,
       marketCapDisplay: item.marketCapDisplay,
+      // 2026-10-19 (pass 7): share count behind the static cap display (filing cover page). Present only
+      // where verified; undefined entries are dropped by JSON.stringify.
+      sharesOutstanding: item.sharesOutstanding,
     });
   }
 
@@ -877,20 +1465,29 @@ async function fetchLiveStocksAndMacro() {
   let us10yChangePct = 0.20;
   if (tnxMeta && typeof tnxMeta.regularMarketPrice === 'number') {
     us10y = Math.round(tnxMeta.regularMarketPrice * 100) / 100;
-    if (typeof tnxMeta.chartPreviousClose === 'number') {
-      us10yChangeBps = Math.round((us10y - tnxMeta.chartPreviousClose) * 1000) / 10;
-      us10yChangePct = Math.round(((us10y - tnxMeta.chartPreviousClose) / tnxMeta.chartPreviousClose) * 1000) / 10;
+    const prev = sessionPrevClose(tnxMeta); // was chartPreviousClose (≈5-session anchor) — see fetchLiveStocksAndMacro note
+    if (prev) {
+      us10yChangeBps = Math.round((us10y - prev) * 1000) / 10;
+      us10yChangePct = Math.round(((us10y - prev) / prev) * 1000) / 10;
+    } else if (typeof tnxMeta._yahooChangePct === 'number') {
+      us10yChangePct = Math.round(tnxMeta._yahooChangePct * 10) / 10;
     }
   }
 
+  // 2026-10-19 (pass 11): the US02Y fallback stays 4.75% — a legacy DGS2 anchor that was NOT
+  // re-verified on Oct 19, 2026 (the FRED DGS2 observation is fetched but only used for the
+  // DGS10/FRED cross-check above; the ticker row prefers the live 2YY=F quote).
   let us02y = 4.75;
   let us02yChangeBps = 0.0;
   let us02yChangePct = 0.0;
   if (twoYearMeta && typeof twoYearMeta.regularMarketPrice === 'number') {
     us02y = Math.round(twoYearMeta.regularMarketPrice * 100) / 100;
-    if (typeof twoYearMeta.chartPreviousClose === 'number') {
-      us02yChangeBps = Math.round((us02y - twoYearMeta.chartPreviousClose) * 1000) / 10;
-      us02yChangePct = Math.round(((us02y - twoYearMeta.chartPreviousClose) / twoYearMeta.chartPreviousClose) * 1000) / 10;
+    const prev = sessionPrevClose(twoYearMeta); // previous-session anchor (was the ~5-session chartPreviousClose)
+    if (prev) {
+      us02yChangeBps = Math.round((us02y - prev) * 1000) / 10;
+      us02yChangePct = Math.round(((us02y - prev) / prev) * 1000) / 10;
+    } else if (typeof twoYearMeta._yahooChangePct === 'number') {
+      us02yChangePct = Math.round(twoYearMeta._yahooChangePct * 10) / 10;
     }
   }
 
@@ -898,22 +1495,26 @@ async function fetchLiveStocksAndMacro() {
   let hygChangePct = -0.48;
   if (hygMeta && typeof hygMeta.regularMarketPrice === 'number') {
     hygPrice = Math.round(hygMeta.regularMarketPrice * 100) / 100;
-    if (typeof hygMeta.chartPreviousClose === 'number') {
-      hygChangePct = Math.round(((hygPrice - hygMeta.chartPreviousClose) / hygMeta.chartPreviousClose) * 1000) / 10;
-    }
+    hygChangePct = sessionChangePct(hygMeta, -0.48); // previous-session basis (was the ~5-session chartPreviousClose)
   }
 
   let vixPrice = 19.99;
   let vixChangePct = 12.8;
   if (vixMeta && typeof vixMeta.regularMarketPrice === 'number') {
     vixPrice = Math.round(vixMeta.regularMarketPrice * 100) / 100;
-    if (typeof vixMeta.chartPreviousClose === 'number') {
-      vixChangePct = Math.round(((vixPrice - vixMeta.chartPreviousClose) / vixMeta.chartPreviousClose) * 1000) / 10;
-    }
+    vixChangePct = sessionChangePct(vixMeta, 12.8); // previous-session basis (was the ~5-session chartPreviousClose)
   }
 
-  // Derive high yield spread: base 328 bps adjusted by HYG inverse movement
-  const hySpreadBps = Math.max(200, Math.min(600, Math.round(328 - hygChangePct * 15)));
+  // 2026-10-19 (pass 11): HY-OAS LEVEL = the FRED BAMLH0A0HYM2 observation (ICE BofA US High
+  // Yield option-adjusted spread, daily). Verified print: 3.23% = 323bp on Oct 15 2026; the
+  // fallback seed below is that same verified print. The HYG-ETF inverse proxy is demoted to the
+  // ticker row's CHANGE display only — it is a market-direction hint, never the published level.
+  const hyOasLevelBps = fredData.hyOasBps !== null ? fredData.hyOasBps : 323;
+  // HYG-inverse proxy: intraday change hint for the ticker row (NOT the published spread level).
+  const hySpreadProxyBps = Math.max(200, Math.min(600, Math.round(323 - hygChangePct * 15)));
+  // The proxy's own deviation from the verified anchor — the only place the proxy is allowed to
+  // surface: the ticker row's change display, never the published spread level.
+  const hyProxyDeltaBps = hySpreadProxyBps - 323;
 
   const macro = [
     {
@@ -939,9 +1540,17 @@ async function fetchLiveStocksAndMacro() {
     {
       symbol: 'CPI',
       name: 'Headline CPI Inflation',
-      valueDisplay: '2.9% YoY',
-      changeDisplay: '+0.2%',
-      changePct: 7.4,
+      // 2026-10-19: FRED CPIAUCSL Sep-2026 obs 336.298 vs Sep-2025 324.245 → +3.72% YoY; the old '2.9% YoY' was stale (was '2.9% YoY', '+0.2% / +7.4% rel').
+      valueDisplay: '3.72% YoY',
+      // 2026-10-19 (round-2 consolidation): the old changeDisplay '+0.8%' / changePct 28.3 was a
+      // base-effect artifact of the PREVIOUS PUBLISHED DISPLAY ANCHOR (2.9% YoY), and read on the
+      // card as "CPI up 28.3%". The prior-year YoY needed for a real period-over-period CPI
+      // change is NOT verified, so no YoY percentage is published. The move is now stated for
+      // what it is — the gap to the prior published anchor — and changePct is 0 (no verified
+      // period change to report). Same fix mirrored into src/data/live-stocks.json and
+      // src/data/live-stocks.ts.
+      changeDisplay: '+0.8pp vs 2.9% anchor',
+      changePct: 0,
       isRiskPositive: true,
       category: 'Inflation & Fed',
       description: 'Consumer price index measuring inflation stickiness vs 2.0% Fed target',
@@ -949,19 +1558,26 @@ async function fetchLiveStocksAndMacro() {
     {
       symbol: 'FEDFUNDS',
       name: 'Fed Funds Rate',
-      valueDisplay: '4.75%',
-      changeDisplay: '+25bp hike',
+      // 2026-10-19: FRED FEDFUNDS monthly obs = 3.75% (Sep 2026); delivered 2026 cut cycle — the old
+      // '4.75% / +25bp hike / higher-for-longer' literal was a stale 2025 anchor.
+      valueDisplay: '3.75%',
+      changeDisplay: '-100bp cut cycle',
       changePct: 0.0,
       isRiskPositive: true,
       category: 'Inflation & Fed',
-      description: 'Overnight policy target; markets pricing higher-for-longer regime',
+      description: 'Effective federal funds rate on the 2026 cut-cycle easing path',
     },
     {
       symbol: 'AI-DEBT',
       name: 'Annual AI Debt Issuance',
       valueDisplay: '$85.0B/yr',
-      changeDisplay: '+215% YoY',
-      changePct: 215.0,
+      // 2026-10-19 (round-2 consolidation): the old '+215% YoY' / changePct 215.0 had NO source —
+      // no verified 2025 AI debt issuance pace exists in the tracked set, so the implied 2025
+      // base (~$27B) and the "+$58B" it would imply are both unsourced derivations. The derived
+      // percentage is blanked (changePct 0) and the badge says plainly that no YoY source exists,
+      // rather than publishing a number the site cannot stand behind.
+      changeDisplay: 'no YoY source',
+      changePct: 0,
       isRiskPositive: true,
       category: 'Credit & Debt',
       description: 'Annualized pace of corporate AI bonds, converts & private GPU credit lines',
@@ -969,8 +1585,11 @@ async function fetchLiveStocksAndMacro() {
     {
       symbol: 'HY-OAS',
       name: 'US High Yield Spread',
-      valueDisplay: `${hySpreadBps} bps`,
-      changeDisplay: `${hygChangePct < 0 ? '+' : '-'}${Math.abs(Math.round(hygChangePct * 15))} bps`,
+      // 2026-10-19 (pass 11): the LEVEL is the FRED BAMLH0A0HYM2 observation (fallback: the
+      // verified 323bp seed from the Oct 15 2026 print). The change column keeps the HYG-ETF
+      // inverse proxy — it is a market-direction hint, not a second spread measurement.
+      valueDisplay: `${hyOasLevelBps} bps`,
+      changeDisplay: `${hyProxyDeltaBps >= 0 ? '+' : '-'}${Math.abs(hyProxyDeltaBps)} bps (HYG proxy)`,
       changePct: Math.round(-hygChangePct * 100) / 100,
       isRiskPositive: true,
       category: 'Credit & Debt',
@@ -989,7 +1608,9 @@ async function fetchLiveStocksAndMacro() {
     {
       symbol: 'BAA-SPREAD',
       name: "Moody's Baa Corporate Spread",
-      valueDisplay: '182 bps',
+      // 2026-10-19: FRED BAA10YM Sep-2026 monthly obs = 1.48% → 148bps (was a stale '182 bps' literal);
+      // the relative-change fields were never API-sourced — kept as-is pending a series to diff against.
+      valueDisplay: '148 bps',
       changeDisplay: '+6 bps',
       changePct: 3.4,
       isRiskPositive: true,
@@ -1018,20 +1639,28 @@ async function fetchLiveStocksAndMacro() {
     },
   ];
 
-  console.log(`  ✓ Yahoo Finance: Scanned ${stocks.length} tech stocks. US10Y: ${us10y}% (${us10yChangeBps >= 0 ? '+' : ''}${us10yChangeBps}bp), HY-OAS: ${hySpreadBps}bp, VIX: ${vixPrice}.`);
+  console.log(`  ✓ Yahoo Finance: Scanned ${stocks.length} tech stocks. US10Y: ${us10y}% (${us10yChangeBps >= 0 ? '+' : ''}${us10yChangeBps}bp), HY-OAS: ${hyOasLevelBps}bp (FRED BAMLH0A0HYM2), VIX: ${vixPrice}.`);
 
   return {
     stocks,
     macro,
     liveMacroInputs: {
+      // 2026-10-19 fact-check: this builder previously overwrote the corrected macro with stale literals
+      // (CPI 2.9 / Fed funds 4.75 / real yield = us10y − 2.4 / HY base 328). Mirrors the FRED-verified values:
+      // CPI +3.72% YoY (CPIAUCSL Sep 2026 336.298 vs Sep 2025 324.245); Fed funds 3.75% (FEDFUNDS Sep 2026
+      // monthly obs — 2026 cut cycle); 10y breakeven 2.35% (T10YIE Oct 16) for the real-yield subtraction;
+      // HY-OAS = the FRED BAMLH0A0HYM2 observation itself (323bp on Oct 15 2026; the verified seed is the
+      // fallback when the FRED call fails) — the HYG-inverse proxy is NOT published as a level.
       us10yYieldPct: us10y,
       us10yBaselinePct: 3.75,
-      cpiInflationYoY: 2.9,
-      fedFundsRatePct: 4.75,
+      cpiInflationYoY: 3.72,
+      fedFundsRatePct: 3.75,
       rateHikeRiskBps: 25,
-      realYield10y: Math.round((us10y - 2.4) * 100) / 100,
-      highYieldSpreadBps: hySpreadBps,
-      note: 'Live Yahoo Finance ^TNX & ICE BofA High Yield rate stream',
+      realYield10y: Math.round((us10y - 2.35) * 100) / 100, // T10YIE verified 2.35% (used to be a 2.4 plug)
+      // 2026-10-19 (pass 11): published LEVEL = FRED BAMLH0A0HYM2 observation (fallback: verified 323bp
+      // seed). The HYG-inverse proxy (hySpreadProxyBps) is used only for the ticker row's change display.
+      highYieldSpreadBps: hyOasLevelBps,
+      note: 'FRED-verified Oct 19 2026: US10Y 5.10% (DGS10, Oct 15); 10y breakeven 2.35% (T10YIE, Oct 16) → real 10y 2.75%; CPI +3.72% YoY (CPIAUCSL Sep 2026); Fed funds 3.75% (FEDFUNDS Sep 2026 — cut cycle); US HY OAS 323bp (BAMLH0A0HYM2, Oct 15 2026)',
     },
   };
 }
@@ -1042,9 +1671,11 @@ async function fetchLiveStocksAndMacro() {
 async function fetchSecEdgarFilings() {
   console.log('[4/5] Checking SEC EDGAR submissions for new material debt disclosures...');
   try {
-    const res = await fetch('https://data.sec.gov/submissions/CIK0001341439.json', {
+    const res = await fetchWithRetry('https://data.sec.gov/submissions/CIK0001341439.json', {
+      group: 'edgar',
+      label: 'SEC EDGAR submissions',
+      timeoutMs: 8000,
       headers: { 'User-Agent': 'AICapitalTracker Research/2.0 (contact@aicapitaltracker.org)' },
-      signal: AbortSignal.timeout(8000),
     });
 
     if (res.ok) {
@@ -1067,11 +1698,13 @@ async function fetchSecEdgarFilings() {
 async function fetchYahooFinanceNews() {
   console.log('[4b/5] Ingesting live financial news wire from Yahoo Finance...');
   try {
-    const res = await fetch(
+    const res = await fetchWithRetry(
       'https://query1.finance.yahoo.com/v1/finance/search?q=artificial+intelligence&newsCount=12',
       {
+        group: 'yahoo',
+        label: 'Yahoo Finance news',
+        timeoutMs: 8000,
         headers: { 'User-Agent': 'Mozilla/5.0' },
-        signal: AbortSignal.timeout(8000),
       }
     );
     if (res.ok) {
@@ -1106,8 +1739,10 @@ async function fetchYahooFinanceNews() {
             summary: n.summary || `Live market intelligence reported by ${n.publisher || 'financial press'}.`,
           };
         });
-        fs.writeFileSync(LIVE_NEWS_FILE, JSON.stringify(parsed, null, 2), 'utf-8');
-        console.log(`  ✓ Yahoo Finance News: Cached ${parsed.length} live articles into ${path.relative(projectRoot, LIVE_NEWS_FILE)}`);
+        // 2026-10-19 (CI hardening): the news artifact is returned to the caller and
+        // written in the atomic write phase (only when the fetch produced articles —
+        // a failed news fetch leaves the previously published wire untouched).
+        console.log(`  ✓ Yahoo Finance News: ${parsed.length} live articles parsed (cached in the write phase).`);
         return parsed;
       }
     }
@@ -1118,13 +1753,32 @@ async function fetchYahooFinanceNews() {
 }
 
 /**
+ * Ledger date helper — deals.json stores announced_date as "D Mon YYYY" (e.g. "28 Sep 2026").
+ * Parses to a UTC timestamp; ISO input accepted as fallback. Returns null when unparseable.
+ */
+const LEDGER_MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+function parseLedgerDate(raw) {
+  if (!raw) return null;
+  const s = String(raw).trim();
+  const m = s.match(/^(\d{1,2})\s+([A-Za-z]{3})[a-z]*\.?,?\s+(\d{4})$/);
+  if (m) {
+    const mi = LEDGER_MONTHS[m[2].toLowerCase()];
+    if (mi === undefined) return null;
+    const d = new Date(Date.UTC(Number(m[3]), mi, Number(m[1])));
+    return Number.isNaN(d.getTime()) ? null : d.getTime();
+  }
+  const iso = new Date(s);
+  return Number.isNaN(iso.getTime()) ? null : iso.getTime();
+}
+
+/**
  * 5. Recompute aggregates from primary deals.json
  */
 function computeLedgerAggregates() {
   console.log('[5/5] Recomputing deal ledger aggregates from deals.json...');
   if (!fs.existsSync(DEALS_FILE)) {
     console.warn('  ↳ deals.json not found, using baseline.');
-    return { ...BASELINE_DEFAULTS.ledger, count: 158 };
+    return { ...BASELINE_DEFAULTS.ledger };
   }
 
   const raw = fs.readFileSync(DEALS_FILE, 'utf-8');
@@ -1157,9 +1811,30 @@ function computeLedgerAggregates() {
   const announcedCount = deals.filter((d) => d.status.toLowerCase().includes('announced')).length;
   const announcedShare = deals.length > 0 ? announcedCount / deals.length : 0.132;
 
+  // 2026-10-19 (pass 6): daysSinceLastMega + megaCountLast12m are DERIVED from deals.json, not hardcoded.
+  // Mega class = is_mega || amount_usd >= $10B (threshold unchanged).
+  //   daysSinceLastMega = whole days from the newest mega announcement to the sync date (UTC)
+  //   megaCountLast12m  = mega-class deals announced inside the 365 days ending on the sync date
+  // Sentinel 999 if no dated mega deal exists.
   const megaDeals = deals.filter((d) => d.is_mega || d.amount_usd >= 10_000_000_000);
+  const syncDate = new Date();
+  const syncDayUtc = Date.UTC(syncDate.getUTCFullYear(), syncDate.getUTCMonth(), syncDate.getUTCDate());
+  const datedMegaDeals = megaDeals
+    .map((d) => ({ deal: d, ts: parseLedgerDate(d.announced_date) }))
+    .filter((x) => x.ts !== null);
+  const newestMega = datedMegaDeals.length
+    ? datedMegaDeals.reduce((a, b) => (b.ts > a.ts ? b : a))
+    : null;
+  const daysSinceLastMega = newestMega
+    ? Math.max(0, Math.floor((syncDayUtc - newestMega.ts) / 86_400_000))
+    : 999;
+  const windowStartUtc = syncDayUtc - 365 * 86_400_000;
+  const megaCountLast12m = datedMegaDeals.filter(
+    (x) => x.ts >= windowStartUtc && x.ts <= syncDayUtc
+  ).length;
 
   console.log(`  ✓ Ledger: ${deals.length} deals processed. Disclosed: $${(totalDisclosedUsd / 1e12).toFixed(2)}T. Debt share: ${(debtShare * 100).toFixed(1)}%.`);
+  console.log(`    ↳ Newest mega deal: ${newestMega ? `${newestMega.deal.id} (${newestMega.deal.announced_date})` : 'none'} — ${daysSinceLastMega}d ago; ${megaCountLast12m} mega deals in last 12m (of ${megaDeals.length} total).`);
 
   return {
     totalDisclosedUsd,
@@ -1170,8 +1845,8 @@ function computeLedgerAggregates() {
     top10Share: Math.round(top10Share * 1000) / 1000,
     circularShare: Math.round(circularShare * 1000) / 1000,
     announcedShare: Math.round(announcedShare * 1000) / 1000,
-    megaCountLast12m: megaDeals.length,
-    daysSinceLastMega: 14,
+    megaCountLast12m,
+    daysSinceLastMega,
     count: deals.length,
   };
 }
@@ -1206,7 +1881,10 @@ function updateTrajectoryHistory(todaySnapshot) {
       const altman = Math.max(1.1, Math.round((8.80 + (todaySnapshot.altmanZ - 8.80) * progress - noise * 0.05) * 100) / 100);
       const poly = Math.max(0.01, Math.min(0.5, Math.round((0.055 + (todaySnapshot.polymarketProb - 0.055) * progress + noise * 0.002) * 1000) / 1000));
       const vol = Math.round(3_200_000 + (todaySnapshot.volumeUsd - 3_200_000) * progress + noise * 50_000);
-      const defl = 25;
+      // 2026-10-19 (pass 11): the seeded deflation multiple now carries the verified input-basis
+      // multiple (670× = GPT-4 $30/1M ÷ DeepSeek V4.1 Flash $0.0448/1M, OpenRouter Oct 19 2026)
+      // instead of the pre-verification 25× literal.
+      const defl = todaySnapshot.tokenDeflation;
       const yield10 = Math.round((4.70 + (todaySnapshot.us10yYield - 4.70) * progress + noise * 0.02) * 100) / 100;
 
       seeded.push({
@@ -1219,13 +1897,20 @@ function updateTrajectoryHistory(todaySnapshot) {
         mertonDD: merton,
         altmanZ: altman,
         var95: Math.round(burstProb * 1.8 * 10) / 10,
-        deltaVs90d: `+${(progress * 4.2).toFixed(1)}%`,
+        // 2026-10-19 (pass 11): 90-day delta is expressed in POINTS (composite probability points),
+        // matching the derived deltaVs90d written for the current row.
+        deltaVs90d: `+${(progress * 4.2).toFixed(1)} pts`,
         deltaVsYesterday: '+0.1%',
-        cdsOracleBps: Math.round(155 + (187 - 155) * progress),
+        // 2026-10-19 (pass 11): CDS path re-anchored on the verified prints — 203bp = the 90-day-ago
+        // print (Jul 20-24 2026, ICE), 288bp = the record close (Oct 15 2026).
+        cdsOracleBps: Math.round(203 + (288 - 203) * progress),
         polymarketProb: poly,
         volumeUsd: vol,
         tokenDeflation: defl,
         us10yYield: yield10,
+        // 2026-10-19 (pass 11): seeded rows are INTERPOLATED, not observed — flag them so the UI
+        // can disclose that the early part of the 90-day curve is backfilled, not measured.
+        backfilled: true,
       });
     }
 
@@ -1255,18 +1940,24 @@ function updateTrajectoryHistory(todaySnapshot) {
       mertonDD: entry.mertonDD ?? Math.round((3.10 - progress * 0.26) * 100) / 100,
       altmanZ: entry.altmanZ ?? Math.round((2.02 - progress * 0.18) * 100) / 100,
       var95: entry.var95 ?? Math.round(prob * 1.15 * 10) / 10,
-      deltaVs90d: entry.deltaVs90d ?? `+${(progress * 4).toFixed(1)}%`,
+      // 2026-10-19 (pass 11): 90-day delta is expressed in POINTS, not percent.
+      deltaVs90d: entry.deltaVs90d ?? `+${(progress * 4).toFixed(1)} pts`,
       deltaVsYesterday: entry.deltaVsYesterday ?? '+0.1%',
-      cdsOracleBps: entry.cdsOracleBps ?? Math.round(155 + (187 - 155) * progress),
+      // 2026-10-19 (pass 11): CDS default path re-anchored on the verified prints (203bp → 288bp).
+      cdsOracleBps: entry.cdsOracleBps ?? Math.round(203 + (288 - 203) * progress),
       polymarketProb: entry.polymarketProb ?? Math.max(0.01, Math.min(0.5, Math.round((0.045 + (todaySnapshot.polymarketProb - 0.045) * progress) * 1000) / 1000)),
       volumeUsd: entry.volumeUsd ?? Math.round(1_800_000 + (todaySnapshot.volumeUsd - 1_800_000) * progress),
       tokenDeflation: entry.tokenDeflation ?? Math.max(10, Math.round(18 + (todaySnapshot.tokenDeflation - 18) * progress)),
       us10yYield: entry.us10yYield ?? Math.round((4.15 + (todaySnapshot.us10yYield - 4.15) * progress) * 100) / 100,
+      // 2026-10-19 (pass 11): backfill disclosure flag — true = interpolated/backfilled row,
+      // false = observed snapshot. Carried through so the UI can label the backfilled segment.
+      backfilled: entry.backfilled ?? false,
     };
   });
 
-  fs.writeFileSync(TRAJECTORY_HISTORY_FILE, JSON.stringify(history, null, 2), 'utf-8');
-  console.log(`✓ Updated continuous trajectory history (${history.length} daily snapshots)`);
+  // 2026-10-19 (CI hardening): the history is returned to the caller and written in the
+  // atomic write phase — no file is touched while the pipeline is still fetching.
+  console.log(`✓ Prepared continuous trajectory history (${history.length} daily snapshots)`);
   return history;
 }
 
@@ -1281,23 +1972,80 @@ async function run() {
   console.log('========================================================================\n');
 
   // 1. Fetch live market & crowd signals
-  const tokenMultiple = await fetchTokenPriceDeflation();
+  // 2026-10-19 (pass 11): fetchTokenPriceDeflation now also returns the scan provenance so a
+  // non-snapping drift pin can be disclosed instead of being published silently.
+  const { multiplier: tokenMultiple, scan: deflationScan, payload: liveModelsPayload } = await fetchTokenPriceDeflation();
   const crowdSignal = await fetchPolymarketOdds();
   const { stocks, macro, liveMacroInputs } = await fetchLiveStocksAndMacro();
-  await fetchYahooFinanceNews();
+  const liveNewsPayload = await fetchYahooFinanceNews();
   const secData = await fetchSecEdgarFilings();
   const ledgerAggregate = computeLedgerAggregates();
 
-  // Save src/data/live-stocks.json
+  // ── Upstream health gate (2026-10-19, CI hardening) ──────────────────────────
+  // A single dead source is TOLERATED: the last verified seed is kept and the outage is
+  // recorded in the _verified.inspected_and_stayed provenance block. A MAJORITY of the
+  // independent upstream groups being unreachable means the pass is not trustworthy, so
+  // the run aborts with exit code 1 BEFORE any artifact is written.
+  const health = upstreamGroupHealth();
+  const failedGroups = health.filter((h) => h.status === 'failed');
+  const degradedGroups = health.filter((h) => h.status === 'degraded');
+  console.log(`  ↳ Upstream health: ${health.length ? health.map((h) => `${h.name}=${h.status}`).join(' | ') : 'no source contacted'}`);
+  if (health.length > 0 && failedGroups.length > health.length / 2) {
+    console.error(`\n❌ MAJORITY of upstream source groups failed (${failedGroups.length}/${health.length}) — aborting before any file is written.`);
+    for (const f of failedGroups) console.error(`   - ${f.name}: ${f.lastError}`);
+    abortRun('data-sync aborted: upstream majority failure (no artifact written)');
+    return;
+  }
+  for (const d of degradedGroups) {
+    console.warn(`  ↳ ${d.name} degraded: ${d.failures}/${d.attempts} call(s) failed (${d.lastError})`);
+  }
+
+  // Prepare src/data/live-stocks.json (written in the atomic write phase)
   const liveStocksPayload = {
     timestamp: new Date().toISOString(),
     stocks,
     macro,
+    // 2026-10-19 fact-check provenance for the panel (re-emitted every sync):
+    _display_notes: [
+      '24h change is computed as (price − previous-session close) / previous-session close, anchored on Yahoo\'s daily candle series (second-to-last closed candle); Finnhub j.pc serves as the previous-session close when Yahoo is unavailable, and Yahoo\'s own regularMarketChangePercent when fewer than 2 closed candles exist. Probe-verified against Alpha Vantage prev-close basis (Oct 16/19, 2026): ORCL −4.6% here vs AV −4.64%, AAPL +0.4% vs AV +0.43%, ^TNX +2bp — the earlier meta.chartPreviousClose anchor (close before the 5d-window start; it printed weekly moves as daily changes, e.g. ORCL −9.3%) is no longer used. Prices themselves are untouched. Tolerances: 1-decimal rounding (≤0.1pp) and intraday-session timing gaps vs AV\'s last-queried session are expected.',
+      'CPI display is the FRED CPIAUCSL same-month YoY (Sep 2026 336.298 vs Sep 2025 324.245 = +3.72%), +0.8pp vs the prior 2.9% display anchor.',
+      'Fed funds display is FRED FEDFUNDS (Sep 2026 monthly obs = 3.75%) — 2026 cut cycle; the previous 4.75%/+25bp-hike literal was stale.',
+      'HY-OAS value is anchored at FRED BAMLH0A0HYM2 = 323bp (Oct 15, 2026); the on-screen day-change is a HYG-ETF inverse proxy (rounded ±15bp/%), not the ICE series itself.',
+      'Baa-SPREAD value 148bp = FRED BAA10YM (Sep 2026 obs); its +6bp change remained an unverified carryover.',
+      'Market caps are NOT derived from a Yahoo field: marketCapDisplay is a static string per ticker in TARGET_TECH_TICKERS, refreshed on Oct 19 2026 (pass 7) from filing cover-page share counts x the Oct 16/19 close, and the share count behind each refreshed name is now carried in the stocks array as sharesOutstanding. Refreshed: AMZN 10,786,313,572 (10-Q cover Jul 22 2026) x $250.00 = $2.70T (was $2.61T); ORCL 3,023,736,000 (10-Q cover Sep 7 2026) x $128.23 = $387.8B (was $353B; V3 quoted $388.7B, 0.2% price-date apart); CEG 354,307,379 (10-Q cover Jul 31 2026) x $271.37 = $96.1B (was $86.5B); NBIS 271,855,218 (238,400,165 A + 33,455,053 B, Q2 2026 release) x $165.47 = $45.0B (was $35.5B); SMCI 656,965,384 (FY2026 10-K cover Jul 31 2026) x $31.63 = $20.8B (was $18.5B). CRWV $53.2B → $33.9B (adjudicated 2026-10-19 per V3\'s EDGAR verdict): 551,536,602 shares outstanding (10-Q cover, Jul 31 2026 — 458,871,690 Class A + 92,664,912 Class B + 0 Class C; EDGAR accession 0001769628-26-000366) x $61.39 = $33.9B; the prior $53.2B (866.6M shares) appears in no filing — the Sep 17 2026 35M-share ATM is undrawn capacity, not outstanding shares.',
+    ],
   };
-  fs.writeFileSync(LIVE_STOCKS_FILE, JSON.stringify(liveStocksPayload, null, 2), 'utf-8');
-  console.log(`\n✓ Written live stock and macro quotes to ${path.relative(projectRoot, LIVE_STOCKS_FILE)}`);
 
   // Construct complete live inputs
+  // 2026-10-19 (pass 11): the deflation scan is written into the provenance block whenever the
+  // drift pin did NOT snap (identity mismatch or a price outside the ±25% band) — the raw scan is
+  // disclosed in _verified.inspected_and_stayed so the published multiple is never silently drifted.
+  // 2026-10-19 (CI hardening): every upstream outage / partial failure is RECORDED in the same
+  // provenance block, so a tolerated single-source failure is never silent.
+  const verifiedBlock = {
+    ...VERIFIED_OCT2026_FACTCHECK,
+    inspected_and_stayed: [...VERIFIED_OCT2026_FACTCHECK.inspected_and_stayed],
+  };
+  if (!deflationScan.snapped) {
+    const outcome = deflationScan.identity_ok
+      ? `the scanned base-row price was outside the ±${Math.round(deflationScan.tolerance_pct * 100)}% band, so ${deflationScan.published_multiple}× was published as scanned`
+      : `no base-row identity matched (fetch failed or the row is absent), so the verified ${deflationScan.published_multiple}× seed was published`;
+    verifiedBlock.inspected_and_stayed.push(
+      `OpenRouter scan ${deflationScan.scanned_at}: ${deflationScan.anchor_model_id} BASE row ` +
+      `${deflationScan.identity_ok ? `matched (${deflationScan.matched_model_id})` : 'NOT matched — no base-row identity'} — ` +
+      `scanned prompt $${deflationScan.scanned_prompt_per_m}/1M, completion $${deflationScan.scanned_completion_per_m}/1M ` +
+      `(drift ${deflationScan.prompt_drift_pct}% vs the verified $0.0448/$0.08 pair, tolerance ±${Math.round(deflationScan.tolerance_pct * 100)}%) — ` +
+      `${outcome}. ` +
+      `Variant rows present in the catalog and excluded from the anchor: ${deflationScan.variant_rows_seen.length ? deflationScan.variant_rows_seen.join(', ') : 'none'}`
+    );
+  }
+
+  // 2026-10-19 (CI hardening): record every tolerated upstream failure in the provenance
+  // block — a degraded source must be visible in the published artifact, never silent.
+  for (const note of upstreamOutageNotes()) {
+    verifiedBlock.inspected_and_stayed.push(note);
+  }
+
   const liveInputs = {
     ...BASELINE_DEFAULTS,
     crowd: crowdSignal,
@@ -1308,9 +2056,10 @@ async function run() {
     },
     aiDebt: {
       ...BASELINE_DEFAULTS.aiDebt,
-      totalTrackedDebtUsd: ledgerAggregate.debtTotal || 228_072_500_000,
+      totalTrackedDebtUsd: ledgerAggregate.debtTotal || 214_890_400_000,
     },
     macro: liveMacroInputs,
+    _verified: verifiedBlock,
     meta: {
       last_synced_at: new Date().toISOString(),
       sync_mode: 'autonomous_24h_telemetry',
@@ -1327,8 +2076,11 @@ async function run() {
     },
   };
 
-  fs.writeFileSync(LIVE_INPUTS_FILE, JSON.stringify(liveInputs, null, 2), 'utf-8');
-  console.log(`✓ Written live inputs to ${path.relative(projectRoot, LIVE_INPUTS_FILE)}`);
+  // 2026-10-19 (CI hardening): the live-inputs artifact is written in the atomic write phase.
+  // The previous artifact is read first so hand-maintained `_`-prefixed metadata (and the
+  // append-only _verified trail) is carried forward instead of being dropped.
+  const previousLiveInputs = readJsonIfParseable(LIVE_INPUTS_FILE);
+  const liveInputsPayload = preserveUnderscoreMetadata(previousLiveInputs, liveInputs);
 
   // 2. Evaluate Quantitative Bubble Models in Node
   console.log('\n[Quantitative Modeling] Evaluating bubble models & Monte Carlo paths (25,000 Cholesky paths)...');
@@ -1401,6 +2153,9 @@ async function run() {
       meanProbabilityPct: monteCarlo.meanProbabilityPct,
       medianProbabilityPct: monteCarlo.medianProbabilityPct,
       stdDevPct: monteCarlo.stdDevPct,
+      // 2026-10-19 (pass 11): the payload was dropping the variance moment that the model
+      // computes and the methodology page renders (σ²) — publishing it now.
+      variance: monteCarlo.variance,
       ci90Pct: monteCarlo.ci90Pct,
       ci95Pct: monteCarlo.ci95Pct,
       valueAtRisk95Pct: monteCarlo.valueAtRisk95Pct,
@@ -1414,8 +2169,14 @@ async function run() {
     },
   };
 
-  fs.writeFileSync(LATEST_MODEL_FILE, JSON.stringify(latestModelResult, null, 2), 'utf-8');
-  console.log(`✓ Evaluated & saved latest model to ${path.relative(projectRoot, LATEST_MODEL_FILE)}`);
+  // 2026-10-19 (CI hardening): PRESERVATION — the published latest-model.json carries a
+  // hand-maintained `_corrections` array that a bare JSON.stringify of the run result would
+  // DROP. The previous artifact is read (if parseable) and every `_`-prefixed top-level key
+  // it owns and the new result does not is carried forward; `_corrections` is append-only.
+  const previousLatestModel = readJsonIfParseable(LATEST_MODEL_FILE);
+  const latestModelPayload = preserveUnderscoreMetadata(previousLatestModel, latestModelResult);
+
+  console.log(`✓ Evaluated latest model (artifact prepared, written in the write phase)`);
   console.log(`  ↳ Burst Probability: ${latestModelResult.burstProbability}% [${latestModelResult.band.toUpperCase()}]`);
   console.log(`  ↳ Composite Score: ${latestModelResult.compositeScore} / 100`);
   console.log(`  ↳ Merton DD: ${latestModelResult.merton.distanceToDefault}σ (Default Prob: ${latestModelResult.merton.defaultProbabilityPct}%)`);
@@ -1426,6 +2187,46 @@ async function run() {
 
   // 3. Update continuous trajectory history
   const todayDateStr = new Date().toISOString().slice(0, 10);
+
+  // 2026-10-19 (pass 11): deltaVs90d is DERIVED from trajectory-history.json (newest probability
+  // − row-0 probability, expressed in POINTS) instead of the hardcoded '+4.0%' literal.
+  // e.g. 71.6 − 38.6 = '+33.0 pts'.
+  let deltaVs90d = null;
+  try {
+    if (fs.existsSync(TRAJECTORY_HISTORY_FILE)) {
+      const priorRows = JSON.parse(fs.readFileSync(TRAJECTORY_HISTORY_FILE, 'utf-8'));
+      if (Array.isArray(priorRows) && priorRows.length >= 2 && typeof priorRows[0].probability === 'number') {
+        const pts = Math.round((latestModelResult.burstProbability - priorRows[0].probability) * 10) / 10;
+        deltaVs90d = `${pts >= 0 ? '+' : ''}${pts.toFixed(1)} pts`;
+      }
+    }
+  } catch {
+    deltaVs90d = null;
+  }
+
+  // 2026-10-19 (round-2 consolidation): deltaVsYesterday is DERIVED from the previous recorded row's
+  // probability (expressed in POINTS, like deltaVs90d) instead of the hardcoded '+0.2%' literal.
+  // The previous row is a BACKFILLED interpolation point, so the jump it implies is the backfill
+  // seam — the UI discloses the backfilled segment next to the 90-day delta. Fallback '+0.0 pts'.
+  let deltaVsYesterday = '+0.0 pts';
+  try {
+    if (fs.existsSync(TRAJECTORY_HISTORY_FILE)) {
+      const priorRows = JSON.parse(fs.readFileSync(TRAJECTORY_HISTORY_FILE, 'utf-8'));
+      if (Array.isArray(priorRows)) {
+        const priorRow = priorRows
+          .filter((r) => r && typeof r.date === 'string' && r.date < todayDateStr && typeof r.probability === 'number')
+          .sort((a, b) => a.date.localeCompare(b.date))
+          .pop();
+        if (priorRow) {
+          const pts = Math.round((latestModelResult.burstProbability - priorRow.probability) * 10) / 10;
+          deltaVsYesterday = `${pts >= 0 ? '+' : ''}${pts.toFixed(1)} pts`;
+        }
+      }
+    }
+  } catch {
+    deltaVsYesterday = '+0.0 pts';
+  }
+
   const todaySnapshot = {
     dayIndex: 89,
     date: todayDateStr,
@@ -1436,15 +2237,20 @@ async function run() {
     mertonDD: latestModelResult.merton.distanceToDefault,
     altmanZ: latestModelResult.altman.score,
     var95: latestModelResult.monteCarlo.valueAtRisk95Pct,
-    deltaVs90d: '+4.0%',
-    deltaVsYesterday: '+0.2%',
-    cdsOracleBps: liveInputs.cds?.currentBps ?? 187,
+    deltaVs90d: deltaVs90d ?? '+0.0 pts',
+    // 2026-10-19 (round-2 consolidation): derived from the previous row in points (see above) —
+    // was a hardcoded '+0.2%' literal that did not describe the row-to-row move.
+    deltaVsYesterday,
+    cdsOracleBps: liveInputs.cds?.currentBps ?? 288,
     polymarketProb: crowdSignal.yesProbability,
     volumeUsd: Math.round(crowdSignal.volumeUsd || 0),
     tokenDeflation: tokenMultiple,
     us10yYield: liveMacroInputs.us10yYieldPct,
+    // 2026-10-19 (pass 11): this row is an OBSERVED snapshot — not backfilled. Every interpolated
+    // row in the file carries backfilled: true so the UI can disclose the backfilled segment.
+    backfilled: false,
   };
-  updateTrajectoryHistory(todaySnapshot);
+  const trajectoryHistory = updateTrajectoryHistory(todaySnapshot);
 
   // 4. Update sync history with telemetry & delta vs previous run
   let historyLogs = [];
@@ -1494,15 +2300,53 @@ async function run() {
   });
 
   historyLogs = historyLogs.slice(0, 30);
-  fs.writeFileSync(SYNC_HISTORY_FILE, JSON.stringify(historyLogs, null, 2), 'utf-8');
-  console.log(`✓ Updated sync telemetry log (${historyLogs.length} historical runs retained, duration: ${currentRunDurationMs}ms)`);
+  console.log(`✓ Prepared sync telemetry log (${historyLogs.length} historical runs retained, duration: ${currentRunDurationMs}ms)`);
+
+  // ── Validation gate (2026-10-19, CI hardening) ────────────────────────────────
+  // A non-finite or out-of-range derived value means the pass is broken: fail loudly
+  // (exit code 1) instead of publishing a corrupt artifact.
+  validateArtifacts(liveInputs, latestModelResult);
+
+  // ── Atomic write phase (2026-10-19, CI hardening) ─────────────────────────────
+  // Every artifact is serialized + JSON.parse'd (sanity gate) FIRST; only then are the
+  // files written in sequence (temp file + rename). Nothing is written when the gate
+  // aborts, and no file is ever left half-written.
+  const artifacts = [
+    { file: LIVE_INPUTS_FILE, payload: liveInputsPayload },
+    { file: LIVE_STOCKS_FILE, payload: liveStocksPayload },
+    { file: LATEST_MODEL_FILE, payload: latestModelPayload },
+    { file: TRAJECTORY_HISTORY_FILE, payload: trajectoryHistory },
+    { file: SYNC_HISTORY_FILE, payload: historyLogs },
+    { file: LIVE_MODELS_FILE, payload: liveModelsPayload },
+  ];
+  // The news wire is only republished when the fetch actually produced articles —
+  // a failed news fetch must not wipe the previously published wire.
+  if (liveNewsPayload && Array.isArray(liveNewsPayload) && liveNewsPayload.length > 0) {
+    artifacts.push({ file: LIVE_NEWS_FILE, payload: liveNewsPayload });
+  } else {
+    console.warn('  ↳ Yahoo Finance news: no articles fetched — keeping the previously published wire.');
+  }
+
+  writeArtifacts(artifacts);
 
   console.log('\n========================================================================');
   console.log(' 24h Market Ingestion & Quantitative Automation Pipeline Complete!');
   console.log('========================================================================\n');
 }
 
+/**
+ * Abort the run with a non-zero exit code without truncating buffered stdout:
+ * exitCode is set first (so the exit status is correct even if the process ends
+ * naturally) and a short unref'd timer guarantees termination if a keep-alive
+ * socket is still open.
+ */
+function abortRun(reason) {
+  console.error(`❌ ${reason}`);
+  process.exitCode = 1;
+  setTimeout(() => process.exit(1), 50).unref();
+}
+
 run().catch((err) => {
-  console.error('\n❌ Fatal sync error:', err);
-  process.exit(1);
+  console.error('\n❌ Fatal sync error:', err && err.stack ? err.stack : err);
+  abortRun('data-sync failed — no artifact was published');
 });
