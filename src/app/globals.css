@@ -845,6 +845,128 @@ html.dark .chip-caution {
       at the end of this file.
    ───────────────────────────────────────────────────────────────────────── */
 
+/* ─────────────────────────────────────────────────────────────────────────
+   6a. MOTION TOKENS (2026-10-20)
+   One easing set for the whole site, so every surface decelerates the same
+   way. The "out" curve is the one Apple's own interfaces use: fast to start,
+   long to settle, with no overshoot. The "spring" curve is for small,
+   reversible feedback (a chip pressed, a toggle flipped) where a little
+   overshoot reads as physical.
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-spring: cubic-bezier(0.34, 1.42, 0.64, 1);
+  --dur-micro: 140ms;
+  --dur-quick: 240ms;
+  --dur-move: 420ms;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   6b. THE GLASS LAYER (2026-10-20)
+   Glass belongs to the FLOATING surfaces only - the masthead, the phone
+   action bar, the command palette, the sticky filter bar - so a reader always
+   sees the content itself on a flat, opaque, printable surface. The blur sits
+   behind a high-opacity tint (text contrast is unchanged), and a browser
+   without backdrop-filter gets a solid panel instead of a hole.
+   ───────────────────────────────────────────────────────────────────────── */
+.glass {
+  background-color: color-mix(in srgb, rgb(var(--c-surface)) 74%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  border-color: rgb(var(--c-rule));
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background-color: rgb(var(--c-surface));
+  }
+}
+/* The masthead is always the terminal's own black, so its glass is that black
+   at 74% with the page showing through. */
+.glass-dark {
+  background-color: rgba(12, 14, 17, 0.74);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-dark {
+    background-color: rgb(12, 14, 17);
+  }
+}
+
+/* The command palette arrives the way a panel should: the scrim fades, the
+   panel rises a few pixels and settles. Transform and opacity only. */
+@keyframes palette-scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes palette-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.palette-scrim {
+  animation: palette-scrim-in 200ms ease-out both;
+}
+.palette-panel {
+  animation: palette-panel-in 260ms var(--ease-out-quint) both;
+}
+
+/* The command palette floats over whatever the reader was looking at, so it
+   carries more of the surface colour than the other glass panels: the blur is
+   the finish, the text still has to pass contrast on its own. */
+.glass-strong {
+  background-color: color-mix(in srgb, rgb(var(--c-surface)) 93%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  backdrop-filter: blur(20px) saturate(170%);
+  border-color: rgb(var(--c-rule));
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-strong {
+    background-color: rgb(var(--c-surface));
+  }
+}
+
+/* The command palette dims the page it floats over: the panel is glass, and
+   glass needs something behind it to read as a separate layer. The terminal's
+   own black, at 45%. */
+.palette-dim {
+  background-color: rgba(12, 14, 17, 0.45);
+}
+
+/* Re-ordering list: the row keeps its box and SLIDES to the new position.
+   The transform is set by the component for one frame and released, so the
+   browser animates the difference. No layout is animated - the row's box was
+   already in its final place. */
+.flip-move {
+  will-change: transform;
+}
+
+/* A soft lift for anything that opens a panel: the shadow and the one-pixel
+   rise travel together, so the surface feels picked up rather than redrawn. */
+.lift-on-hover {
+  transition: transform var(--dur-quick) var(--ease-out-quint),
+    box-shadow var(--dur-quick) var(--ease-out-quint),
+    border-color var(--dur-micro) ease;
+}
+.lift-on-hover:hover {
+  transform: translateY(-2px);
+}
+.lift-on-hover:active {
+  transform: translateY(0) scale(0.995);
+  transition-duration: 80ms;
+}
+
+
 /* Reveal — the one entrance animation on the site.
    The colour properties are carried in the same transition so a surface that
    also has a hover state (a ledger row, a card that lifts) keeps its 150ms

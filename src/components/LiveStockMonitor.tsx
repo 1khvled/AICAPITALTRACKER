@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -524,6 +524,31 @@ export function LiveStockMonitor() {
     );
   }, [activeIndex, visible]);
 
+  // Throttled summary of board updates for screen readers.
+  //
+  // This is a SECOND live region, deliberately separate from the row
+  // announcement above. One region would mean the two messages overwrite each
+  // other: a reader who sorts the board would hear "24 quotes updated" half
+  // a second after the position of the row they just moved to was announced.
+  // Two regions, each with its own message, is the correct shape.
+  const isFirstMonitorRender = useRef(true);
+  const statusTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [quotesStatus, setQuotesStatus] = useState("");
+
+  useEffect(() => {
+    if (isFirstMonitorRender.current) {
+      isFirstMonitorRender.current = false;
+      return;
+    }
+    if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+    statusTimerRef.current = setTimeout(() => {
+      setQuotesStatus(`${visible.length} quotes updated`);
+    }, 600);
+    return () => {
+      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+    };
+  }, [visible.length, category, sort]);
+
   /** Move the DOM focus to a row — the table on a wide screen, the list on a phone. */
   const focusRow = useCallback((index: number) => {
     const candidates = [tableRowsRef.current[index], listRowsRef.current[index]];
@@ -660,13 +685,98 @@ export function LiveStockMonitor() {
     return () => window.removeEventListener("keydown", onKeyDown, true);
   }, [moveSelection, openProfile, setActive, visible]);
 
-  const onSort = useCallback((key: SortKey) => {
-    setSort((prev) =>
-      prev.key === key
-        ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
-        : { key, direction: OPENING_DIRECTION[key] }
-    );
+  /**
+   * FLIP: when the order changes, the rows SLIDE to their new positions
+   * instead of jumping.
+   *
+   * The row's box is already in its final place when the browser paints, so
+   * only a TRANSFORM is animated - no layout moves, nothing shifts (zero CLS),
+   * and the movement is the information: "these rows changed places".
+   * A reduced-motion reader gets the final state immediately.
+   */
+  const positionsBeforeRef = useRef<Map<string, number> | null>(null);
+
+  /**
+   * The row element the reader can actually SEE at this width.
+   *
+   * The board is rendered twice: a table for a wide screen and a list for a
+   * phone. Only one of them is displayed at a time, and the hidden one still
+   * has a DOM node - with no box. Picking the first node that HAS a box is
+   * what makes the slide work on a phone as well as on a desktop.
+   */
+  const rowElement = useCallback((index: number): HTMLElement | null => {
+    const candidates = [tableRowsRef.current[index], listRowsRef.current[index]];
+    for (const element of candidates) {
+      if (element && element.getClientRects().length > 0) return element;
+    }
+    return null;
   }, []);
+
+  const capturePositions = useCallback(() => {
+    const map = new Map<string, number>();
+    visible.forEach((stock, index) => {
+      const el = rowElement(index);
+      if (el) {
+        map.set(stock.ticker, el.getBoundingClientRect().top);
+      }
+    });
+    positionsBeforeRef.current = map;
+  }, [visible, rowElement]);
+
+  useLayoutEffect(() => {
+    const before = positionsBeforeRef.current;
+    positionsBeforeRef.current = null;
+    if (!before || before.size === 0) return;
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+
+    const moved: { el: HTMLElement; delta: number }[] = [];
+    visible.forEach((stock, index) => {
+      const previousTop = before.get(stock.ticker);
+      if (previousTop === undefined) return;
+      const el = rowElement(index);
+      if (!el) return;
+      const delta = previousTop - el.getBoundingClientRect().top;
+      if (Math.abs(delta) > 1) moved.push({ el, delta });
+    });
+    if (moved.length === 0) return;
+
+    // Frame one: put every moved row back where it was.
+    moved.forEach(({ el, delta }) => {
+      el.style.transition = "none";
+      el.style.transform = `translateY(${delta}px)`;
+    });
+    // Make the browser register that position before we release it.
+    void document.body.offsetHeight;
+    // Frame two: release, and the row travels home.
+    moved.forEach(({ el }) => {
+      el.style.transition = "transform 420ms cubic-bezier(0.22, 1, 0.36, 1)";
+      el.style.transform = "";
+    });
+    const timer = window.setTimeout(() => {
+      moved.forEach(({ el }) => {
+        el.style.transition = "";
+        el.style.transform = "";
+      });
+    }, 460);
+    return () => window.clearTimeout(timer);
+  }, [visible]);
+
+  const onSort = useCallback(
+    (key: SortKey) => {
+      capturePositions();
+      setSort((prev) =>
+        prev.key === key
+          ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
+          : { key, direction: OPENING_DIRECTION[key] }
+      );
+    },
+    [capturePositions]
+  );
 
   const toggleWatch = useCallback(
     (ticker: string) => {
@@ -696,10 +806,14 @@ export function LiveStockMonitor() {
       ref={boardRef}
       className="card card-flush shadow-card transition-shadow duration-200 hover:shadow-raised"
     >
-      {/* What a screen reader is told about the current row. */}
-      <p aria-live="polite" aria-atomic="true" className="sr-only">
+      {/* The row position, announced when the reader moves through the board. */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
         {announcement}
-      </p>
+      </div>
+      {/* The board's own state, announced when the set of quotes changes. */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {quotesStatus}
+      </div>
 
       {/* Board header */}
       <div className="card-header flex-wrap gap-x-4 gap-y-2">
@@ -727,7 +841,10 @@ export function LiveStockMonitor() {
             <button
               key={item}
               type="button"
-              onClick={() => setCategory(item)}
+              onClick={() => {
+                capturePositions();
+                setCategory(item);
+              }}
               aria-pressed={active}
               className={[
                 "chip min-h-11 shrink-0 items-center whitespace-nowrap px-3 transition duration-150 active:scale-[0.97]",
@@ -742,7 +859,10 @@ export function LiveStockMonitor() {
         <button
           type="button"
           onClick={() => {
-            if (!watchlistEmpty) setCategory("Watchlist");
+            if (!watchlistEmpty) {
+              capturePositions();
+              setCategory("Watchlist");
+            }
           }}
           aria-pressed={category === "Watchlist"}
           aria-disabled={watchlistEmpty}
@@ -802,10 +922,7 @@ export function LiveStockMonitor() {
             ) : null}
           </div>
 
-          <p
-            className="shrink-0 text-[14px] text-ink-subtle"
-            aria-live="polite"
-          >
+          <p className="shrink-0 text-[14px] text-ink-subtle">
             <span className="num font-semibold text-ink">{visible.length}</span> of{" "}
             <span className="num font-semibold text-ink">{scoped.length}</span> shown
           </p>

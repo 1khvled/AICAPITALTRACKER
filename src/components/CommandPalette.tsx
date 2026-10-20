@@ -433,7 +433,7 @@ export function CommandPalette() {
         ? createPortal(
             <div
               ref={overlayRef}
-              className="fixed inset-0 z-[70] flex justify-center px-4"
+              className="palette-scrim palette-dim fixed inset-0 z-[70] flex justify-center px-4"
             >
               <div
                 ref={panelRef}
@@ -441,7 +441,7 @@ export function CommandPalette() {
                 aria-modal="true"
                 aria-label="Search the tracker"
                 onKeyDown={onPanelKeyDown}
-                className="mt-[10vh] flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden rounded-lg border border-rule bg-surface shadow-float"
+                className="palette-panel glass-strong mt-[10vh] flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden rounded-lg border border-rule shadow-float"
               >
                 <div className="flex items-center gap-2 border-b border-rule px-3">
                   <Search className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden="true" />

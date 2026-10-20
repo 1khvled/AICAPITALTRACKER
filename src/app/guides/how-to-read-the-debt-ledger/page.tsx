@@ -176,7 +176,7 @@ export default function DebtLedgerGuidePage() {
           the shape of the argument before committing to it. */}
       <GuideToc sections={GUIDE_SECTIONS["how-to-read-the-debt-ledger"]} />
 
-      <div className="mt-8 space-y-10">
+      <div data-guide-body className="mt-8 space-y-10">
         {/* ── SECTION 01 ─────────────────────────────────────────────────── */}
         <GuideSection
           id="anatomy"

@@ -39,6 +39,33 @@ const ITEMS: BarItem[] = [
 export function MobileActionBar() {
   const pathname = usePathname();
 
+  /**
+   * The bar gets out of the way while the reader is scrolling down through the
+   * page and comes back the moment they scroll up - the gesture phone readers
+   * already expect, and it keeps the thumb space free for the content.
+   * A transform only: no layout moves, so nothing shifts.
+   */
+  const [hidden, setHidden] = React.useState(false);
+  React.useEffect(() => {
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const delta = y - lastY;
+      if (Math.abs(delta) > 6) {
+        setHidden(delta > 0 && y > 120);
+        lastY = y;
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    // A background tab is not painted, so it can miss its own scrolls; measure
+    // again when it comes back into view.
+    document.addEventListener("visibilitychange", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("visibilitychange", onScroll);
+    };
+  }, []);
+
   const isActive = (href?: string) => {
     if (!href) return false;
     return href === "/" ? pathname === "/" : pathname?.startsWith(href) === true;
@@ -47,7 +74,11 @@ export function MobileActionBar() {
   return (
     <nav
       aria-label="Quick actions"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-rule bg-surface sm:hidden"
+      className={[
+        "glass fixed inset-x-0 bottom-0 z-40 border-t border-rule sm:hidden",
+        "transition-transform duration-300 ease-out",
+        hidden ? "translate-y-full" : "translate-y-0",
+      ].join(" ")}
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <ul className="flex items-stretch">

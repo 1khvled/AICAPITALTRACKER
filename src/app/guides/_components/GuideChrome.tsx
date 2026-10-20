@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { ArrowRight, FileText, Scale } from "lucide-react";
 import type { GuideEntry } from "@/lib/guides";
+import { GuideReadingProgress } from "./GuideReadingProgress";
 
 /**
  * ─────────────────────────────────────────────────────────────────────────────
@@ -50,6 +51,10 @@ export function GuideHeader({
       </h1>
 
       <p className="prose prose-lead max-w-reading">{standfirst}</p>
+
+      {/* The reading-progress rule: fixed to the top of the screen so it stays
+          in view for the whole guide, and measured against the guide body. */}
+      <GuideReadingProgress />
     </header>
   );
 }

@@ -48,6 +48,13 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
   /**
+   * The masthead is glass: the page shows through it, and it tightens once the
+   * reader has started scrolling (a hairline arrives, the blur deepens). It is
+   * the one surface on the site that floats over the content, so it is the one
+   * surface that gets the treatment.
+   */
+  const [scrolled, setScrolled] = React.useState(false);
+  /**
    * 2026-10-19 (design pass): on a phone the five destinations move into a
    * disclosure panel under the masthead. The panel is absolutely positioned
    * and animates on opacity + transform only, so opening it can never push
@@ -56,6 +63,22 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
   const [menuOpen, setMenuOpen] = React.useState(false);
 
   React.useEffect(() => setMounted(true), []);
+
+  // The masthead tightens on scroll. The handler reads one number and sets one
+  // flag, so it runs straight from the scroll event: a browser withholds
+  // animation frames from a tab that is not being painted, and a masthead that
+  // only tightens while the tab is visible is a masthead that lies.
+  React.useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    // A tab that was in the background has not seen its own scrolls.
+    document.addEventListener("visibilitychange", onScroll);
+    onScroll();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("visibilitychange", onScroll);
+    };
+  }, []);
 
   // A destination was chosen: close the panel behind it.
   React.useEffect(() => {
@@ -79,7 +102,13 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
   const tone = BAND_TONE[(band || "").toLowerCase()] ?? "bg-ink-400";
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[rgb(12_14_17)] text-header-ink">
+    <header
+      className={[
+        "glass-dark sticky top-0 z-50 w-full border-b text-header-ink",
+        "transition-[background-color,border-color] duration-200 ease-out",
+        scrolled ? "border-white/15" : "border-white/10",
+      ].join(" ")}
+    >
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
         <div className="flex min-h-14 flex-wrap items-center justify-between gap-x-4 gap-y-0 py-1.5">
           {/* Brand */}

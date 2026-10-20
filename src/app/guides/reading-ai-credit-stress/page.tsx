@@ -164,7 +164,7 @@ export default function CreditStressGuidePage() {
           the shape of the argument before committing to it. */}
       <GuideToc sections={GUIDE_SECTIONS["reading-ai-credit-stress"]} />
 
-      <div className="mt-8 space-y-10">
+      <div data-guide-body className="mt-8 space-y-10">
         {/* ── SECTION 01 ─────────────────────────────────────────────────── */}
         <GuideSection
           id="three-series"
