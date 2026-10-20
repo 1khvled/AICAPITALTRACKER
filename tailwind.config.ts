@@ -30,7 +30,13 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
+        /**
+         * The fonts are self-hosted by next/font (src/app/layout.tsx) and exposed
+         * as CSS variables with an automatic size-adjusted fallback — that removes
+         * the render-blocking Google Fonts stylesheet and the font-swap shift.
+         */
         sans: [
+          "var(--font-inter)",
           "Inter",
           "-apple-system",
           "BlinkMacSystemFont",
@@ -40,6 +46,7 @@ const config: Config = {
           "sans-serif",
         ],
         mono: [
+          "var(--font-mono)",
           "JetBrains Mono",
           "ui-monospace",
           "SFMono-Regular",

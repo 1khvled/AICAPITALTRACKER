@@ -596,6 +596,102 @@ const PLACEMENT_ENV: Record<PlacementId, string | undefined> = {
   "social-bar": process.env.NEXT_PUBLIC_ADSTERRA_SOCIAL_BAR,
 };
 
+/**
+ * Optional PHONE-SIZED twin for a fixed-size `/22/` placement:
+ * `..._<PLACEMENT>_MOBILE` (a second zone URL) and `..._<PLACEMENT>_MOBILE_SIZE`.
+ *
+ * These are STATIC literal lookups on purpose. Next.js only inlines
+ * `process.env.NEXT_PUBLIC_*` when the property is written out literally, so a
+ * computed lookup (e.g. `process.env[`...${id}`]`) is undefined in the client
+ * bundle — and a slot that resolves its config on the server but not on the
+ * client hydrates into a different tree (React #418/#422, full client
+ * re-render). The lookup is spelled out for every placement so the server and
+ * the browser always read the same value.
+ */
+const PLACEMENT_MOBILE_ENV: Record<PlacementId, string | undefined> = {
+  "home-leaderboard": process.env.NEXT_PUBLIC_ADSTERRA_HOME_LEADERBOARD_MOBILE,
+  "home-infeed-1": process.env.NEXT_PUBLIC_ADSTERRA_HOME_INFEED_1_MOBILE,
+  "home-infeed-2": process.env.NEXT_PUBLIC_ADSTERRA_HOME_INFEED_2_MOBILE,
+  "home-mid": process.env.NEXT_PUBLIC_ADSTERRA_HOME_MID_MOBILE,
+  "home-footer": process.env.NEXT_PUBLIC_ADSTERRA_HOME_FOOTER_MOBILE,
+  "ledger-top": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_TOP_MOBILE,
+  "ledger-infeed": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_INFEED_MOBILE,
+  "ledger-mid": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_MID_MOBILE,
+  "ledger-bottom": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_BOTTOM_MOBILE,
+  "companies-top": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_TOP_MOBILE,
+  "companies-infeed": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_INFEED_MOBILE,
+  "companies-mid": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_MID_MOBILE,
+  "companies-bottom": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_BOTTOM_MOBILE,
+  "markets-top": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_TOP_MOBILE,
+  "markets-sidebar-mpu": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_SIDEBAR_MPU_MOBILE,
+  "markets-infeed": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_INFEED_MOBILE,
+  "markets-bottom": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_BOTTOM_MOBILE,
+  "news-top": process.env.NEXT_PUBLIC_ADSTERRA_NEWS_TOP_MOBILE,
+  "news-infeed": process.env.NEXT_PUBLIC_ADSTERRA_NEWS_INFEED_MOBILE,
+  "news-bottom": process.env.NEXT_PUBLIC_ADSTERRA_NEWS_BOTTOM_MOBILE,
+  "methodology-top": process.env.NEXT_PUBLIC_ADSTERRA_METHODOLOGY_TOP_MOBILE,
+  "methodology-infeed": process.env.NEXT_PUBLIC_ADSTERRA_METHODOLOGY_INFEED_MOBILE,
+  "methodology-bottom": process.env.NEXT_PUBLIC_ADSTERRA_METHODOLOGY_BOTTOM_MOBILE,
+  "dotcom-top": process.env.NEXT_PUBLIC_ADSTERRA_DOTCOM_TOP_MOBILE,
+  "dotcom-infeed": process.env.NEXT_PUBLIC_ADSTERRA_DOTCOM_INFEED_MOBILE,
+  "dotcom-bottom": process.env.NEXT_PUBLIC_ADSTERRA_DOTCOM_BOTTOM_MOBILE,
+  "visualize-top": process.env.NEXT_PUBLIC_ADSTERRA_VISUALIZE_TOP_MOBILE,
+  "visualize-infeed": process.env.NEXT_PUBLIC_ADSTERRA_VISUALIZE_INFEED_MOBILE,
+  "visualize-bottom": process.env.NEXT_PUBLIC_ADSTERRA_VISUALIZE_BOTTOM_MOBILE,
+  "sandbox-top": process.env.NEXT_PUBLIC_ADSTERRA_SANDBOX_TOP_MOBILE,
+  "sandbox-infeed": process.env.NEXT_PUBLIC_ADSTERRA_SANDBOX_INFEED_MOBILE,
+  "sandbox-bottom": process.env.NEXT_PUBLIC_ADSTERRA_SANDBOX_BOTTOM_MOBILE,
+  "api-docs-top": process.env.NEXT_PUBLIC_ADSTERRA_API_DOCS_TOP_MOBILE,
+  "api-docs-bottom": process.env.NEXT_PUBLIC_ADSTERRA_API_DOCS_BOTTOM_MOBILE,
+  "global-leaderboard": process.env.NEXT_PUBLIC_ADSTERRA_GLOBAL_LEADERBOARD_MOBILE,
+  "global-infeed": process.env.NEXT_PUBLIC_ADSTERRA_GLOBAL_INFEED_MOBILE,
+  "global-footer-billboard": process.env.NEXT_PUBLIC_ADSTERRA_GLOBAL_FOOTER_BILLBOARD_MOBILE,
+  "social-bar": process.env.NEXT_PUBLIC_ADSTERRA_SOCIAL_BAR_MOBILE,
+};
+
+/** Optional per-placement size override for the phone-sized twin (`160x300`). */
+const PLACEMENT_MOBILE_SIZE_ENV: Record<PlacementId, string | undefined> = {
+  "home-leaderboard": process.env.NEXT_PUBLIC_ADSTERRA_HOME_LEADERBOARD_MOBILE_SIZE,
+  "home-infeed-1": process.env.NEXT_PUBLIC_ADSTERRA_HOME_INFEED_1_MOBILE_SIZE,
+  "home-infeed-2": process.env.NEXT_PUBLIC_ADSTERRA_HOME_INFEED_2_MOBILE_SIZE,
+  "home-mid": process.env.NEXT_PUBLIC_ADSTERRA_HOME_MID_MOBILE_SIZE,
+  "home-footer": process.env.NEXT_PUBLIC_ADSTERRA_HOME_FOOTER_MOBILE_SIZE,
+  "ledger-top": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_TOP_MOBILE_SIZE,
+  "ledger-infeed": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_INFEED_MOBILE_SIZE,
+  "ledger-mid": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_MID_MOBILE_SIZE,
+  "ledger-bottom": process.env.NEXT_PUBLIC_ADSTERRA_LEDGER_BOTTOM_MOBILE_SIZE,
+  "companies-top": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_TOP_MOBILE_SIZE,
+  "companies-infeed": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_INFEED_MOBILE_SIZE,
+  "companies-mid": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_MID_MOBILE_SIZE,
+  "companies-bottom": process.env.NEXT_PUBLIC_ADSTERRA_COMPANIES_BOTTOM_MOBILE_SIZE,
+  "markets-top": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_TOP_MOBILE_SIZE,
+  "markets-sidebar-mpu": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_SIDEBAR_MPU_MOBILE_SIZE,
+  "markets-infeed": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_INFEED_MOBILE_SIZE,
+  "markets-bottom": process.env.NEXT_PUBLIC_ADSTERRA_MARKETS_BOTTOM_MOBILE_SIZE,
+  "news-top": process.env.NEXT_PUBLIC_ADSTERRA_NEWS_TOP_MOBILE_SIZE,
+  "news-infeed": process.env.NEXT_PUBLIC_ADSTERRA_NEWS_INFEED_MOBILE_SIZE,
+  "news-bottom": process.env.NEXT_PUBLIC_ADSTERRA_NEWS_BOTTOM_MOBILE_SIZE,
+  "methodology-top": process.env.NEXT_PUBLIC_ADSTERRA_METHODOLOGY_TOP_MOBILE_SIZE,
+  "methodology-infeed": process.env.NEXT_PUBLIC_ADSTERRA_METHODOLOGY_INFEED_MOBILE_SIZE,
+  "methodology-bottom": process.env.NEXT_PUBLIC_ADSTERRA_METHODOLOGY_BOTTOM_MOBILE_SIZE,
+  "dotcom-top": process.env.NEXT_PUBLIC_ADSTERRA_DOTCOM_TOP_MOBILE_SIZE,
+  "dotcom-infeed": process.env.NEXT_PUBLIC_ADSTERRA_DOTCOM_INFEED_MOBILE_SIZE,
+  "dotcom-bottom": process.env.NEXT_PUBLIC_ADSTERRA_DOTCOM_BOTTOM_MOBILE_SIZE,
+  "visualize-top": process.env.NEXT_PUBLIC_ADSTERRA_VISUALIZE_TOP_MOBILE_SIZE,
+  "visualize-infeed": process.env.NEXT_PUBLIC_ADSTERRA_VISUALIZE_INFEED_MOBILE_SIZE,
+  "visualize-bottom": process.env.NEXT_PUBLIC_ADSTERRA_VISUALIZE_BOTTOM_MOBILE_SIZE,
+  "sandbox-top": process.env.NEXT_PUBLIC_ADSTERRA_SANDBOX_TOP_MOBILE_SIZE,
+  "sandbox-infeed": process.env.NEXT_PUBLIC_ADSTERRA_SANDBOX_INFEED_MOBILE_SIZE,
+  "sandbox-bottom": process.env.NEXT_PUBLIC_ADSTERRA_SANDBOX_BOTTOM_MOBILE_SIZE,
+  "api-docs-top": process.env.NEXT_PUBLIC_ADSTERRA_API_DOCS_TOP_MOBILE_SIZE,
+  "api-docs-bottom": process.env.NEXT_PUBLIC_ADSTERRA_API_DOCS_BOTTOM_MOBILE_SIZE,
+  "global-leaderboard": process.env.NEXT_PUBLIC_ADSTERRA_GLOBAL_LEADERBOARD_MOBILE_SIZE,
+  "global-infeed": process.env.NEXT_PUBLIC_ADSTERRA_GLOBAL_INFEED_MOBILE_SIZE,
+  "global-footer-billboard": process.env.NEXT_PUBLIC_ADSTERRA_GLOBAL_FOOTER_BILLBOARD_MOBILE_SIZE,
+  "social-bar": process.env.NEXT_PUBLIC_ADSTERRA_SOCIAL_BAR_MOBILE_SIZE,
+};
+
+
 /** Optional per-placement container id overrides (`..._<PLACEMENT>_ID`). */
 const PLACEMENT_CONTAINER_ENV: Record<PlacementId, string | undefined> = {
   "home-leaderboard": process.env.NEXT_PUBLIC_ADSTERRA_HOME_LEADERBOARD_ID,
@@ -912,11 +1008,11 @@ export function resolveAdPlacement(
           adFormatSize(format) ?? { width: 300, height: 250 }
         : null;
 
-    // A phone-sized twin for a fixed-size banner (see mobileEnvKey). Only a
+    // A phone-sized twin for a fixed-size banner (see PLACEMENT_MOBILE_ENV). Only a
     // `/22/` zone can have one — a native unit is already fluid.
     let mobile: AdSlotConfig["mobile"] = null;
     if (shape.pattern === "at-options-iframe") {
-      const mobileSrc = normalizeScriptUrl(mobileEnvKey(placementId, "MOBILE"));
+      const mobileSrc = normalizeScriptUrl(PLACEMENT_MOBILE_ENV[placementId]);
       if (mobileSrc) {
         const mobileShape = detectAdZoneShape(mobileSrc);
         if (mobileShape.pattern === "at-options-iframe" && mobileShape.zoneKey) {
@@ -924,7 +1020,7 @@ export function resolveAdPlacement(
             scriptSrc: mobileSrc,
             zoneKey: mobileShape.zoneKey,
             size:
-              parseSizeOverride(mobileEnvKey(placementId, "MOBILE_SIZE")) ??
+              parseSizeOverride(PLACEMENT_MOBILE_SIZE_ENV[placementId]) ??
               adFormatSize("mobile") ?? { width: 320, height: 50 },
           };
         }
@@ -962,32 +1058,11 @@ export function getAdFormat(formatId: string): AdFormat | null {
   return (AD_FORMATS as Record<string, AdFormat>)[formatId] ?? null;
 }
 
-/** Env var name for a placement — handy for docs and debugging. */
+/**
+ * Env var name for a placement — handy for docs and debugging.
+ */
 export function envKeyFor(placementId: PlacementId): string {
   return `NEXT_PUBLIC_ADSTERRA_${placementId.toUpperCase().replace(/-/g, "_")}`;
-}
-
-/**
- * Optional PHONE-SIZED twin for a fixed-size `/22/` placement:
- * `..._<PLACEMENT>_MOBILE` (a second zone URL) and `..._<PLACEMENT>_MOBILE_SIZE`.
- *
- * Adsterra's classic banners are FIXED-SIZE creatives. A 728x90 unit on a 375px
- * phone is cropped to its left third — a broken ad, which is exactly what the
- * non-intrusive policy forbids. So a placement may be given a second, phone-
- * sized unit: below the `md` breakpoint the slot serves that one, above it the
- * desktop unit. The reserved box follows the unit actually on screen, so
- * nothing shifts (zero CLS).
- *
- * The names are derived from the placement id rather than spelled out 39 times,
- * so a new placement gets the pair for free.
- */
-export function mobileEnvKey(
-  placementId: PlacementId,
-  suffix: "MOBILE" | "MOBILE_SIZE",
-): string | undefined {
-  return process.env[
-    `NEXT_PUBLIC_ADSTERRA_${placementId.toUpperCase().replace(/-/g, "_")}_${suffix}`
-  ];
 }
 
 /**

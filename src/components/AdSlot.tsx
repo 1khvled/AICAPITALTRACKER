@@ -126,7 +126,12 @@ export function buildAtOptionsDoc(args: {
     "<style>html,body{margin:0;padding:0;background:transparent;overflow:hidden}" +
     "iframe{border:0;display:block}</style>" +
     "</head><body>" +
-    `<script>var atOptions=${options};window.atOptions=atOptions;</script>` +
+    // `window.atOptions = {...}` and NOT `var atOptions = {...}`: a var
+    // declaration creates a NON-configurable global, and Adsterra's invocation
+    // script does `delete window.atOptions` when it finishes — which throws on a
+    // non-configurable property and takes the rest of their script down with it
+    // ("Cannot delete property 'atOptions' of #<Window>").
+    `<script>window.atOptions=${options};</script>` +
     `<script async data-cfasync="false" src="${safeSrc}"></script>` +
     "</body></html>"
   );

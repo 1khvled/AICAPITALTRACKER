@@ -43,6 +43,12 @@ export interface PaletteItem {
 const GROUP_ORDER = ["Pages", "Companies", "Ledger", "Markets"];
 const MAX_RESULTS = 36;
 
+/**
+ * The event any surface can fire to open the palette (the mobile action bar
+ * uses it, because the keyboard shortcut does not exist on a phone).
+ */
+export const OPEN_PALETTE_EVENT = "aict:open-palette";
+
 function normalize(value: string): string {
   return value
     .toLowerCase()
@@ -82,16 +88,24 @@ function groupRank(group: string): number {
   return index === -1 ? GROUP_ORDER.length : index;
 }
 
-export function CommandPalette({ items }: { items: PaletteItem[] }) {
+export function CommandPalette() {
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
+  /**
+   * The search index is NOT inlined into every page — it is fetched from
+   * /api/palette the first time the palette opens. Inlining it cost every
+   * route tens of kilobytes of RSC payload for a panel most readers never open.
+   */
+  const [items, setItems] = useState<PaletteItem[]>([]);
+  const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
+  const loadedRef = useRef(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -128,6 +142,16 @@ export function CommandPalette({ items }: { items: PaletteItem[] }) {
     setOpen(true);
     setQuery("");
     setActiveIndex(0);
+    // Fetch the index once, the first time the palette opens.
+    if (!loadedRef.current) {
+      loadedRef.current = true;
+      setLoading(true);
+      fetch("/api/palette")
+        .then((response) => (response.ok ? response.json() : { items: [] }))
+        .then((payload: { items?: PaletteItem[] }) => setItems(payload.items ?? []))
+        .catch(() => setItems([]))
+        .finally(() => setLoading(false));
+    }
   }, []);
 
   const closePalette = useCallback(() => {
@@ -137,6 +161,13 @@ export function CommandPalette({ items }: { items: PaletteItem[] }) {
     // Send the reader back to where they were.
     triggerRef.current?.focus();
   }, []);
+
+  // The mobile action bar (and anything else) can open the palette.
+  useEffect(() => {
+    const onRequest = () => openPalette();
+    window.addEventListener(OPEN_PALETTE_EVENT, onRequest);
+    return () => window.removeEventListener(OPEN_PALETTE_EVENT, onRequest);
+  }, [openPalette]);
 
   // Global shortcuts: ⌘K / Ctrl+K anywhere, "/" when not typing in a field.
   useEffect(() => {
@@ -310,7 +341,14 @@ export function CommandPalette({ items }: { items: PaletteItem[] }) {
                 </div>
 
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-                  {results.length === 0 ? (
+                  {loading && items.length === 0 ? (
+                    <div className="px-4 py-8 text-center">
+                      <p className="text-[14px] font-semibold text-ink">Loading the index…</p>
+                      <p className="mt-1 text-[14px] text-ink-subtle">
+                        Pages, companies, ledger facilities and tickers, in one list.
+                      </p>
+                    </div>
+                  ) : results.length === 0 ? (
                     <div className="px-4 py-8 text-center">
                       <p className="text-[14px] font-semibold text-ink">
                         Nothing matches “{query.trim()}”

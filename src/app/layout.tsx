@@ -1,12 +1,37 @@
 import type { Metadata, Viewport } from "next";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { MarketTickerTape } from "@/components/MarketTickerTape";
+import { MobileActionBar } from "@/components/MobileActionBar";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
-import { buildPaletteIndex } from "@/lib/palette-index";
 import rawDeals from "@/data/deals.json";
+
+/**
+ * Fonts — self-hosted by next/font.
+ *
+ * The site used to load Inter and JetBrains Mono from Google Fonts with a
+ * render-blocking <link> in the document head: two extra DNS/TLS round trips
+ * before first paint, a third-party origin in the critical path, and a visible
+ * reflow when the webfont replaced the fallback. next/font downloads the fonts
+ * at build time, serves them from the same origin, and ships a size-adjusted
+ * fallback so the swap costs almost nothing.
+ */
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+  adjustFontFallback: true,
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-mono",
+  adjustFontFallback: true,
+});
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aicapitaltracker.com";
 
@@ -111,11 +136,6 @@ export default function RootLayout({
   const model = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
   const dealCount = rawDeals.length;
   const totalDisclosedUsd = rawDeals.reduce((sum, deal) => sum + (deal.amount_usd || 0), 0);
-  /**
-   * The command palette index is built here, on the server, so the browser gets
-   * a flat list of labels and links — never the records themselves.
-   */
-  const paletteItems = buildPaletteIndex();
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -156,16 +176,10 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         <script dangerouslySetInnerHTML={{ __html: revealBootScript }} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap"
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -183,9 +197,11 @@ export default function RootLayout({
             <Navbar
               burstProbability={model.burstProbability}
               band={model.band}
-              paletteItems={paletteItems}
             />
-            <main id="main" className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
+            <main
+              id="main"
+              className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 pb-24 sm:px-6 sm:py-10 sm:pb-10"
+            >
               {children}
             </main>
             <Footer
@@ -193,6 +209,8 @@ export default function RootLayout({
               dealCount={dealCount}
               totalDisclosedTrillions={(totalDisclosedUsd / 1e12).toFixed(2)}
             />
+            {/* Phones only: the thumb bar for search, verdict, ledger and markets */}
+            <MobileActionBar />
           </div>
         </ThemeProvider>
       </body>
