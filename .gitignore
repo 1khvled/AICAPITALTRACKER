@@ -40,3 +40,4 @@ next-env.d.ts
 # agent scratch (screenshots / dev logs)
 shot-*.png
 dev.log
+m-viz-*.png
