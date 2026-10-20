@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-20T04:03:26.227Z",
+  "timestamp": "2026-10-20T04:06:05.500Z",
   "model_version": "2.7.0",
   "burstProbability": 32.3,
   "compositeScore": 48.3,
@@ -250,7 +250,7 @@
         "percentage": 1.5
       }
     ],
-    "executionTimeMs": 323
+    "executionTimeMs": 283
   },
   "_corrections": [
     "2026-10-19 (fix lane A, pass 11): re-evaluated against the corrected src/data/live-inputs.json — macro.highYieldSpreadBps 329 → 323bp (FRED BAMLH0A0HYM2, Oct 15 2026; the published level was the HYG-inverse proxy) and adoption.apiPriceDeclineMultiple 798 → 670× (input basis: GPT-4 $30/1M Mar 2023 → DeepSeek V4.1 Flash $0.0448/1M, OpenRouter Oct 19 2026). The HY-OAS correction moves the macro_rates factor 0.7202 → 0.7154, the composite 63.4 → 63.3 and the burst probability 71.7% → 71.6% (band unchanged: HIGH).",

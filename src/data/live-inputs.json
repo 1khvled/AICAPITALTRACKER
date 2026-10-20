@@ -95,6 +95,12 @@
         "yesProbabilityPct": 0,
         "noProbabilityPct": 100,
         "volumeUsd": 385004,
+        "endDate": "2026-04-01T03:59:00Z",
+        "closed": true,
+        "active": true,
+        "liquidityUsd": 0,
+        "spreadPct": 0.1,
+        "oneDayPriceChangePct": 0,
         "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
       },
       {
@@ -105,6 +111,12 @@
         "yesProbabilityPct": 8.3,
         "noProbabilityPct": 91.7,
         "volumeUsd": 2483997,
+        "endDate": "2027-01-01T04:59:00Z",
+        "closed": false,
+        "active": true,
+        "liquidityUsd": 34709,
+        "spreadPct": 0.6,
+        "oneDayPriceChangePct": 0.5,
         "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
       },
       {
@@ -115,6 +127,12 @@
         "yesProbabilityPct": 0,
         "noProbabilityPct": 100,
         "volumeUsd": 202991,
+        "endDate": "2026-01-01T04:59:00Z",
+        "closed": true,
+        "active": true,
+        "liquidityUsd": 0,
+        "spreadPct": 0.1,
+        "oneDayPriceChangePct": 0.1,
         "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
       },
       {
@@ -125,6 +143,12 @@
         "yesProbabilityPct": 19.5,
         "noProbabilityPct": 80.5,
         "volumeUsd": 34773,
+        "endDate": "2027-07-01T03:59:00Z",
+        "closed": false,
+        "active": true,
+        "liquidityUsd": 12069,
+        "spreadPct": 1,
+        "oneDayPriceChangePct": 3,
         "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
       },
       {
@@ -135,6 +159,12 @@
         "yesProbabilityPct": 0,
         "noProbabilityPct": 100,
         "volumeUsd": 207401,
+        "endDate": "2027-07-01T03:59:00Z",
+        "closed": true,
+        "active": true,
+        "liquidityUsd": 0,
+        "spreadPct": 0.1,
+        "oneDayPriceChangePct": 0,
         "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
       },
       {
@@ -145,6 +175,12 @@
         "yesProbabilityPct": 0,
         "noProbabilityPct": 100,
         "volumeUsd": 150890,
+        "endDate": "2026-10-01T03:59:00Z",
+        "closed": true,
+        "active": true,
+        "liquidityUsd": 0,
+        "spreadPct": 0.1,
+        "oneDayPriceChangePct": 0,
         "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
       },
       {
@@ -155,6 +191,12 @@
         "yesProbabilityPct": 0,
         "noProbabilityPct": 100,
         "volumeUsd": 184102,
+        "endDate": "2027-07-01T03:59:00Z",
+        "closed": true,
+        "active": true,
+        "liquidityUsd": 0,
+        "spreadPct": 0.1,
+        "oneDayPriceChangePct": 0,
         "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
       },
       {
@@ -165,6 +207,12 @@
         "yesProbabilityPct": 0,
         "noProbabilityPct": 100,
         "volumeUsd": 495527,
+        "endDate": "2027-07-01T03:59:00Z",
+        "closed": true,
+        "active": true,
+        "liquidityUsd": 0,
+        "spreadPct": 0.1,
+        "oneDayPriceChangePct": 0,
         "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
       },
       {
@@ -175,6 +223,12 @@
         "yesProbabilityPct": 0,
         "noProbabilityPct": 100,
         "volumeUsd": 957465,
+        "endDate": "2027-07-01T03:59:00Z",
+        "closed": true,
+        "active": true,
+        "liquidityUsd": 0,
+        "spreadPct": 0.1,
+        "oneDayPriceChangePct": 0,
         "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
       },
       {
@@ -185,6 +239,12 @@
         "yesProbabilityPct": 4.7,
         "noProbabilityPct": 95.4,
         "volumeUsd": 1059834,
+        "endDate": "2027-01-01T04:59:00Z",
+        "closed": false,
+        "active": true,
+        "liquidityUsd": 28953,
+        "spreadPct": 0.3,
+        "oneDayPriceChangePct": 0.4,
         "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
       },
       {
@@ -195,6 +255,12 @@
         "yesProbabilityPct": 19.5,
         "noProbabilityPct": 80.5,
         "volumeUsd": 2740,
+        "endDate": "2027-04-01T03:59:00Z",
+        "closed": false,
+        "active": true,
+        "liquidityUsd": 6228,
+        "spreadPct": 1,
+        "oneDayPriceChangePct": 0,
         "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
       },
       {
@@ -205,6 +271,12 @@
         "yesProbabilityPct": 33.5,
         "noProbabilityPct": 66.5,
         "volumeUsd": 5058,
+        "endDate": "2027-07-01T03:59:00Z",
+        "closed": false,
+        "active": true,
+        "liquidityUsd": 7222,
+        "spreadPct": 1,
+        "oneDayPriceChangePct": 0,
         "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
       },
       {
@@ -215,6 +287,12 @@
         "yesProbabilityPct": 8.5,
         "noProbabilityPct": 91.5,
         "volumeUsd": 331567,
+        "endDate": "2027-01-01T04:59:00Z",
+        "closed": false,
+        "active": true,
+        "liquidityUsd": 22665,
+        "spreadPct": 1,
+        "oneDayPriceChangePct": 0,
         "referralUrl": "https://polymarket.com/event/openai-announces-it-has-achieved-agi-before-2027?r=AIbubble"
       },
       {
@@ -225,6 +303,12 @@
         "yesProbabilityPct": 2.3,
         "noProbabilityPct": 97.8,
         "volumeUsd": 317063,
+        "endDate": "2027-01-01T04:59:00Z",
+        "closed": false,
+        "active": true,
+        "liquidityUsd": 8091,
+        "spreadPct": 0.3,
+        "oneDayPriceChangePct": 0,
         "referralUrl": "https://polymarket.com/event/openai-1t-ipo-before-2027?r=AIbubble"
       },
       {
@@ -235,6 +319,12 @@
         "yesProbabilityPct": 2.6,
         "noProbabilityPct": 97.4,
         "volumeUsd": 30586,
+        "endDate": "2027-01-01T04:59:00Z",
+        "closed": false,
+        "active": true,
+        "liquidityUsd": 2549,
+        "spreadPct": 1,
+        "oneDayPriceChangePct": 0.3,
         "referralUrl": "https://polymarket.com/event/anthropic-acquired-before-2027?r=AIbubble"
       },
       {
@@ -245,6 +335,12 @@
         "yesProbabilityPct": 6.5,
         "noProbabilityPct": 93.5,
         "volumeUsd": 2324922,
+        "endDate": "2027-01-31T00:00:00Z",
+        "closed": false,
+        "active": true,
+        "liquidityUsd": 80390,
+        "spreadPct": 1,
+        "oneDayPriceChangePct": 0,
         "referralUrl": "https://polymarket.com/event/us-recession-by-end-of-2026?r=AIbubble"
       }
     ],
@@ -327,7 +423,7 @@
     ]
   },
   "meta": {
-    "last_synced_at": "2026-10-20T04:03:25.844Z",
+    "last_synced_at": "2026-10-20T04:06:05.131Z",
     "sync_mode": "autonomous_24h_telemetry",
     "sources": [
       "Federal Reserve Economic Data (FRED) St. Louis API (DGS10, DGS2, BAMLH0A0HYM2, FEDFUNDS)",

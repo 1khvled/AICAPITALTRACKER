@@ -1220,6 +1220,17 @@ async function fetchPolymarketOdds() {
             yesProbabilityPct: Math.round(yesP * 1000) / 10,
             noProbabilityPct: Math.round(noP * 1000) / 10,
             volumeUsd: Math.round(vol),
+            // 2026-10-20: the metadata a reader needs to judge a contract - when it
+            // closes, whether it is still live, how deep the book is, how wide the
+            // spread is and how far the price moved today. Without them the
+            // published board would show a dead contract as if it were open.
+            endDate: m.endDate || ev.endDate || null,
+            closed: Boolean(m.closed ?? ev.closed ?? false),
+            active: Boolean(m.active ?? ev.active ?? true),
+            liquidityUsd: Math.round(parseFloat(m.liquidity || '0') || 0),
+            spreadPct: Math.round((parseFloat(m.spread || '0') || 0) * 1000) / 10,
+            oneDayPriceChangePct:
+              Math.round((parseFloat(m.oneDayPriceChange || '0') || 0) * 1000) / 10,
             referralUrl: `https://polymarket.com/event/${ev.slug}?r=AIbubble`,
           });
         }
