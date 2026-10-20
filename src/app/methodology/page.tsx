@@ -45,6 +45,7 @@ import {
   calibrationDrift,
   inSampleAuc,
   MARKET_IMPLIED_12M_BAND,
+  marketImplied12mBand,
   BAND_FLOOR_RULE_SENTENCE,
   crowdDivergencePoints,
 } from "@/lib/model/documentFormulas";
@@ -175,7 +176,17 @@ export default function MethodologyPage() {
     })),
   );
   /** Model-vs-market divergence, in probability points. */
-  const crowdDivergence = crowdDivergencePoints(currentModel.burstProbability);
+  /**
+   * The market's own prices, straight from the live snapshot. The 12-month
+   * read is COMPUTED from the longest-dated contract (see
+   * `marketImplied12mBand`), so the published band tracks the market instead
+   * of standing still while the market moves — and the band's low end IS the
+   * market's own price, which is what the band-floor rule requires.
+   */
+  const rawContract2027 = (DEFAULT_MODEL_INPUTS.crowd?.bubble2027Probability ?? 0) * 100;
+  const rawContract2026 = (DEFAULT_MODEL_INPUTS.crowd?.bubble2026Probability ?? 0) * 100;
+  const marketBand = marketImplied12mBand(rawContract2027);
+  const crowdDivergence = crowdDivergencePoints(currentModel.burstProbability, rawContract2026);
   /** The published model version, straight from the changelog. */
   const modelVersion = CHANGELOG[0]?.version ?? "2.6.0";
   const modelVersionScope = CHANGELOG[0]?.scope ?? "";
@@ -692,11 +703,15 @@ return (
           </div>
           <div className="overflow-x-auto border border-rule rounded-xl">
             <table className="w-full text-left text-[14px] font-mono">
+              <caption className="sr-only">
+                The model&apos;s factor breakdown: points earned by each risk factor, the systemic
+                contagion synergy, the real-use damper and the composite stress score.
+              </caption>
               <thead className="bg-surface-2 border-b border-rule text-ink-subtle">
                 <tr>
-                  <th className="p-3.5">Row</th>
-                  <th className="p-3.5">Points</th>
-                  <th className="p-3.5">Note</th>
+                  <th scope="col" className="p-3.5">Row</th>
+                  <th scope="col" className="p-3.5">Points</th>
+                  <th scope="col" className="p-3.5">Note</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-rule divide-rule/80">
@@ -704,7 +719,7 @@ return (
                   .filter((c) => c.kind === "risk")
                   .map((c) => (
                     <tr key={c.id}>
-                      <td className="p-3.5 font-semibold text-ink">{c.label}</td>
+                      <th scope="row" className="p-3.5 font-semibold text-ink">{c.label}</th>
                       <td className="p-3.5 font-semibold text-ink">
                         +{c.earnedPoints.toFixed(1)}
                       </td>
@@ -712,9 +727,9 @@ return (
                     </tr>
                   ))}
                 <tr className="bg-caution-50/40 bg-caution-50/20">
-                  <td className="p-3.5 font-bold text-caution-700">
+                  <th scope="row" className="p-3.5 font-bold text-caution-700">
                     Systemic contagion synergy
-                  </td>
+                  </th>
                   <td className="p-3.5 font-bold text-caution-700">
                     +{reconciliation.contagionPoints.toFixed(1)}
                   </td>
@@ -725,7 +740,7 @@ return (
                   </td>
                 </tr>
                 <tr className="bg-safe-50/40 bg-safe-50/20">
-                  <td className="p-3.5 font-bold text-safe-700">Real-use damper</td>
+                  <th scope="row" className="p-3.5 font-bold text-safe-700">Real-use damper</th>
                   <td className="p-3.5 font-bold text-safe-700">
                     {currentModel.contributions
                       .filter((c) => c.kind === "damper")
@@ -740,7 +755,7 @@ return (
                   </td>
                 </tr>
                 <tr className="bg-ink text-canvas">
-                  <td className="p-3.5 font-bold">Composite stress score</td>
+                  <th scope="row" className="p-3.5 font-bold">Composite stress score</th>
                   <td className="p-3.5 font-bold">
                     {reconciliation.compositeScore.toFixed(1)}
                   </td>
@@ -914,21 +929,25 @@ return (
 
         <div className="overflow-x-auto border border-rule rounded-xl">
           <table className="w-full text-left text-[14px] sm:text-sm font-mono">
+            <caption className="sr-only">
+              Historical backtest epochs: stress score, burst probability, model band, Brier
+              score, debt and leverage volume, and the primary quantitative driver.
+            </caption>
             <thead className="bg-surface-2 border-b border-rule text-ink-subtle">
               <tr>
-                <th className="p-3.5">Historical Epoch</th>
-                <th className="p-3.5">Stress (0–100)</th>
-                <th className="p-3.5">Burst Probability</th>
-                <th className="p-3.5">Model Band</th>
-                <th className="p-3.5">Brier Score</th>
-                <th className="p-3.5">Debt &amp; Leverage Volume</th>
-                <th className="p-3.5">Primary Quantitative Driver</th>
+                <th scope="col" className="p-3.5">Historical Epoch</th>
+                <th scope="col" className="p-3.5">Stress (0–100)</th>
+                <th scope="col" className="p-3.5">Burst Probability</th>
+                <th scope="col" className="p-3.5">Model Band</th>
+                <th scope="col" className="p-3.5">Brier Score</th>
+                <th scope="col" className="p-3.5">Debt &amp; Leverage Volume</th>
+                <th scope="col" className="p-3.5">Primary Quantitative Driver</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-rule divide-rule/80">
               {historicalBacktests.map((b) => (
                 <tr key={b.era} className="hover:bg-surface-2/50 hover:bg-surface-2/40 transition-colors">
-                  <td className="p-3.5 font-bold text-ink">{b.era}</td>
+                  <th scope="row" className="p-3.5 font-bold text-ink">{b.era}</th>
                   <td className="p-3.5 font-semibold text-ink">{b.score}</td>
                   <td className="p-3.5 font-semibold text-risk-700">{b.prob}</td>
                   <td className="p-3.5">
@@ -2109,32 +2128,36 @@ return (
           {/* 4-Tier Valuation Risk Premia Classification Table */}
           <div className="overflow-x-auto border border-rule rounded-xl">
             <table className="w-full text-left text-[14px] font-mono">
+              <caption className="sr-only">
+                Excess CAPE yield bands with their quantitative thresholds, the model risk state,
+                the historical analogue and which band is currently active.
+              </caption>
               <thead className="bg-surface-2 border-b border-rule text-ink-subtle">
                 <tr>
-                  <th className="p-3">Excess CAPE Yield Band</th>
-                  <th className="p-3">Quantitative Threshold</th>
-                  <th className="p-3">Model Risk State</th>
-                  <th className="p-3">Historical Analogue</th>
-                  <th className="p-3">Current Regime Status</th>
+                  <th scope="col" className="p-3">Excess CAPE Yield Band</th>
+                  <th scope="col" className="p-3">Quantitative Threshold</th>
+                  <th scope="col" className="p-3">Model Risk State</th>
+                  <th scope="col" className="p-3">Historical Analogue</th>
+                  <th scope="col" className="p-3">Current Regime Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-rule divide-rule/80">
                 <tr className="hover:bg-surface-2/50 hover:bg-surface-2/40">
-                  <td className="p-3 font-bold text-safe-700">Generous Equity Buffer</td>
+                  <th scope="row" className="p-3 font-bold text-safe-700">Generous Equity Buffer</th>
                   <td className="p-3 font-semibold">ECY &gt; +3.00%</td>
                   <td className="p-3 font-bold text-safe-700">Calm (Deep Cushion)</td>
                   <td className="p-3 text-ink-muted">2011–2014 Post-GFC Recovery</td>
                   <td className="p-3 text-ink-subtle">Inactive</td>
                 </tr>
                 <tr className="hover:bg-surface-2/50 hover:bg-surface-2/40">
-                  <td className="p-3 font-bold text-ink-muted">Fair Historical Premium</td>
+                  <th scope="row" className="p-3 font-bold text-ink-muted">Fair Historical Premium</th>
                   <td className="p-3 font-semibold">+1.50% ≤ ECY ≤ +3.00%</td>
                   <td className="p-3 font-bold text-ink-muted">Guarded (Equilibrium)</td>
                   <td className="p-3 text-ink-muted">2016–2019 Tech Expansion</td>
                   <td className="p-3 text-ink-subtle">Inactive</td>
                 </tr>
                 <tr className="bg-caution-50/40 bg-caution-50/20 hover:bg-caution-50/60 hover:bg-caution-50/30">
-                  <td className="p-3 font-bold text-caution-700">Compressed Tech ERP</td>
+                  <th scope="row" className="p-3 font-bold text-caution-700">Compressed Tech ERP</th>
                   <td className="p-3 font-semibold text-caution-700">0.00% ≤ ECY &lt; +1.50%</td>
                   <td className="p-3 font-bold text-caution-700">Elevated (Thin Buffer)</td>
                   <td className="p-3 text-ink-muted">Late 1998 Dot-Com Phase</td>
@@ -2144,7 +2167,7 @@ return (
                   </td>
                 </tr>
                 <tr className="hover:bg-surface-2/50 hover:bg-surface-2/40">
-                  <td className="p-3 font-bold text-risk-700">Negative Equity Risk Premium</td>
+                  <th scope="row" className="p-3 font-bold text-risk-700">Negative Equity Risk Premium</th>
                   <td className="p-3 font-semibold text-risk-700">ECY &lt; 0.00%</td>
                   <td className="p-3 font-bold text-risk-700">Critical (Severe Overvaluation)</td>
                   <td className="p-3 text-ink-muted">March 2000 Peak (-0.95%)</td>
@@ -2301,20 +2324,25 @@ return (
           <div className="panel space-y-2.5">
             <span className="label">Crowd diagnostic — the model against the market&apos;s own price</span>
             <p className="text-[14px] leading-relaxed text-ink-muted">
-              The horizon/bias-corrected market-implied 12-month probability is ≈{" "}
+              The longest-dated tracked contract — AI bubble burst by June 30, 2027 — closed today
+              at{" "}
               <span className="num font-semibold text-ink">
-                {MARKET_IMPLIED_12M_BAND.centralPct.toFixed(1)}%
-              </span>{" "}
-              at the central bias-correction α = {MARKET_IMPLIED_12M_BAND.alphaCentral.toFixed(2)},
-              and spans{" "}
+                {marketBand.contractPct.toFixed(1)}%
+              </span>
+              . Scaled to a 12-month horizon by the published bias factor α ={" "}
+              {marketBand.alphaCentral.toFixed(2)}, that is the market-implied 12-month read of{" "}
               <span className="num font-semibold text-ink">
-                {MARKET_IMPLIED_12M_BAND.lowPct.toFixed(1)}%–{MARKET_IMPLIED_12M_BAND.highPct.toFixed(1)}%
+                {marketBand.centralPct.toFixed(1)}%
+              </span>
+              , spanning{" "}
+              <span className="num font-semibold text-ink">
+                {marketBand.lowPct.toFixed(1)}%–{marketBand.highPct.toFixed(1)}%
               </span>{" "}
-              across α ∈ [{MARKET_IMPLIED_12M_BAND.alphaRange[0].toFixed(2)},{" "}
-              {MARKET_IMPLIED_12M_BAND.alphaRange[1].toFixed(2)}]. The model sits ≈46–63 probability
-              points above that market reading: {crowdDivergence.vsBandHigh.toFixed(1)} points above
-              the top of the band and {crowdDivergence.vsRawContract.toFixed(1)} points above the raw
-              Dec-2026 contract (9.05%). The two ask different questions — the market asks &quot;AI
+              across α ∈ [{marketBand.alphaRange[0].toFixed(2)},{" "}
+              {marketBand.alphaRange[1].toFixed(2)}]. The model sits{" "}
+              {crowdDivergence.vsBandHigh.toFixed(1)} points above the top of that band and{" "}
+              {crowdDivergence.vsRawContract.toFixed(1)} points above the raw Dec-2026 contract (
+              {rawContract2026.toFixed(1)}%). The two ask different questions — the market asks &quot;AI
               downturn by date&quot;, this model asks &quot;AI capital bubble bursts inside 12 months&quot;
               — so part of the gap is definitional, not only informational.
             </p>
@@ -2401,25 +2429,30 @@ return (
           {/* Full Empirical Verification Matrix Table */}
           <div className="overflow-x-auto border border-rule rounded-xl shadow-xs">
             <table className="w-full text-left text-[14px] font-mono">
+              <caption className="sr-only">
+                Empirical verification matrix: each historical epoch with its tracked debt, Merton
+                distance-to-default, Altman Z&apos;&apos;, model probability, observed outcome, Brier
+                score and verification status.
+              </caption>
               <thead className="bg-surface-2 border-b border-rule text-ink-subtle">
                 <tr>
-                  <th className="p-3.5">Historical Epoch &amp; Date</th>
-                  <th className="p-3.5">Tracked Debt</th>
-                  <th className="p-3.5">Merton DD (σ)</th>
-                  <th className="p-3.5">Altman Z&apos;&apos;</th>
-                  <th className="p-3.5">Model Prob</th>
-                  <th className="p-3.5">Actual Crisis</th>
-                  <th className="p-3.5">Brier Score</th>
-                  <th className="p-3.5">Verification Status</th>
+                  <th scope="col" className="p-3.5">Historical Epoch &amp; Date</th>
+                  <th scope="col" className="p-3.5">Tracked Debt</th>
+                  <th scope="col" className="p-3.5">Merton DD (σ)</th>
+                  <th scope="col" className="p-3.5">Altman Z&apos;&apos;</th>
+                  <th scope="col" className="p-3.5">Model Prob</th>
+                  <th scope="col" className="p-3.5">Actual Crisis</th>
+                  <th scope="col" className="p-3.5">Brier Score</th>
+                  <th scope="col" className="p-3.5">Verification Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-rule divide-rule/80">
                 {HISTORICAL_BACKTESTS.map((test) => (
                   <tr key={test.id} className="hover:bg-surface-2/50 hover:bg-surface-2/40 transition-colors">
-                    <td className="p-3.5">
+                    <th scope="row" className="p-3.5">
                       <span className="font-bold text-ink block">{test.era}</span>
                       <span className="text-ink-subtle">{test.date}</span>
-                    </td>
+                    </th>
                     <td className="p-3.5 font-medium text-ink-muted">{test.debtExposureUsd}</td>
                     <td className="p-3.5 font-bold text-ink-muted">{test.mertonDistanceToDefault.toFixed(2)}σ</td>
                     <td className="p-3.5 font-bold text-ink">{test.altmanZScore.toFixed(2)}</td>

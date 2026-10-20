@@ -14,6 +14,7 @@ import { FlipSection } from "@/components/home/FlipSection";
 import { ReceiptsBand } from "@/components/home/ReceiptsBand";
 import { ModelNote } from "@/components/home/ModelNote";
 import { formatAsOf, formatTrillions } from "@/components/home/copy";
+import { marketImplied12mBand } from "@/lib/model/factors";
 import liveInputs from "@/data/live-inputs.json";
 import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 
@@ -40,7 +41,14 @@ export default function HomePage() {
   const crowd = liveInputs.crowd;
   const crowd2027 = crowd.bubble2027Probability ?? crowd.yesProbability ?? 0;
   const crowdVolumeUsd = crowd.volumeUsd ?? 0;
-  const crowdGap = result.burstProbability - crowd2027 * 100;
+  /**
+   * ONE gap, one comparison object: the model print against the market-implied
+   * 12-month read (the tracked contracts with their horizon correction
+   * applied). The raw contract prices are shown beside it as context - they ask
+   * a dated, differently-scoped question.
+   */
+  const marketRead = marketImplied12mBand(crowd2027 * 100);
+  const crowdGap = result.burstProbability - marketRead.centralPct;
 
   // ── Published 90-day trajectory: the "as of" date and the 90-day move ──────
   const history = Array.isArray(trajectoryHistory)
@@ -70,9 +78,13 @@ export default function HomePage() {
     .map((factor) => ({ id: factor.id, points: factor.earnedPoints }));
 
   // Lightest reading first, heaviest last — the list escalates to the top driver.
-  const detailDrivers = riskFactors
-    .slice(0, DETAIL_DRIVER_COUNT)
-    .sort((a, b) => a.earnedPoints - b.earnedPoints);
+  //
+  // 2026-10-20: the detail list shows EVERY risk factor, not the top five. A
+  // page that says "9/9 factors priced" while showing five of them makes the
+  // reader hunt for the other four, and a model that hides 40% of itself is
+  // less credible than one that shows all of it. The sort axis is stated on the
+  // list: by CONTRIBUTION to the print, not by published weight.
+  const detailDrivers = [...riskFactors].sort((a, b) => a.earnedPoints - b.earnedPoints);
 
   const pricedFactors = result.contributions.filter((factor) => factor.reading.coverage > 0).length;
 
@@ -91,6 +103,47 @@ export default function HomePage() {
         totalFactors={result.contributions.length}
         drivers={headlineDrivers}
       />
+
+      {/* ── 1b · What changed, and what this number is not ─────────────────────
+          The caveats used to live on /methodology, which is where a reader who
+          goes looking for them finds them. The number is here, so the
+          qualifications belong here too: what moved, and what the print is not. */}
+      <Reveal>
+        <div className="panel space-y-3">
+          <p className="label">What changed on 20 Oct 2026</p>
+          <p className="text-[15px] leading-relaxed text-ink-muted">
+            Model v2.7.0 raised the credit factor&apos;s ramp ceiling from ×3 to ×7.556 of
+            baseline after the factor was found <em>pinned at its maximum</em>. It had been
+            adding a flat 18 of 18 points — 46.3 of the 72.3 probability points — for every
+            print above 243bp, so a record credit spread and a merely elevated one scored
+            identically. The print moved{" "}
+            <strong className="font-semibold text-ink">72.3% → 32.3%</strong> with no input
+            change. The factor moves again across the range that matters now, and the published
+            band follows the market.{" "}
+            <Link href="/methodology#sigmoid" className="text-ink underline decoration-rule underline-offset-4 hover:decoration-ink">
+              See the method
+            </Link>
+            .
+          </p>
+          <p className="label pt-1">What {result.burstProbability.toFixed(1)}% is not</p>
+          <ul className="space-y-1.5 text-[15px] leading-relaxed text-ink-muted">
+            <li>
+              It is not a validated probability. The composite maps through a chosen sigmoid
+              (anchor 55, slope 9) — a published judgement, not a parameter set fitted to
+              outcomes.
+            </li>
+            <li>
+              It carries no false-positive record. All five resolved episodes in the
+              consistency table burst; there is no episode in which a stressed regime failed to
+              break, so the table cannot tell you how often the model cries wolf.
+            </li>
+            <li>
+              The range beside it is an input-sensitivity range, not a confidence interval: it
+              is how far the print moves when the inputs move, not a 95% interval.
+            </li>
+          </ul>
+        </div>
+      </Reveal>
 
       {/* Leaderboard sits BELOW the answer — this page's promise is "the answer, above the fold" */}
       <AdSlot placementId="home-leaderboard" />
@@ -186,13 +239,15 @@ export default function HomePage() {
               </div>
               <div className="panel">
                 <dt className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-faint">
-                  Prediction market
+                  Market-implied 12-month read
                 </dt>
                 <dd className="num mt-1 text-[17px] font-semibold text-ink">
-                  {(crowd2027 * 100).toFixed(1)}%
+                  {marketRead.centralPct.toFixed(1)}%
                 </dd>
                 <dd className="mt-1 text-[14px] leading-snug text-ink-subtle">
-                  Contract closing Jun 2027 &middot; ${(crowdVolumeUsd / 1e6).toFixed(2)}M traded
+                  The tracked contracts with their horizon correction &middot; raw Jun 2027
+                  contract {(crowd2027 * 100).toFixed(1)}% &middot; $
+                  {(crowdVolumeUsd / 1e6).toFixed(2)}M traded
                 </dd>
               </div>
               <div className="panel">
@@ -204,7 +259,7 @@ export default function HomePage() {
                   {crowdGap.toFixed(1)} pts
                 </dd>
                 <dd className="mt-1 text-[14px] leading-snug text-ink-subtle">
-                  How far the model sits above the market&rsquo;s price
+                  How far the model sits above the market-implied 12-month read
                 </dd>
               </div>
             </dl>

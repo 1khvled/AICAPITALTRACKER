@@ -141,7 +141,14 @@ export function MarketTickerTape() {
     },
   ];
 
-  const items: TickerItem[] = [...stockItems, ...macroItems];
+  /**
+   * The order is the page's information hierarchy: the readings that decide
+   * the answer come FIRST (the model's own print, the credit prints, the
+   * rates, the crowd), and the single-name quotes follow. A reader who lands
+   * on the site should meet the numbers the site is about before the tape
+   * walks them through twenty-four tickers.
+   */
+  const items: TickerItem[] = [...macroItems, ...stockItems];
 
   const renderItem = (item: TickerItem, duplicate: boolean) => {
     const body = (

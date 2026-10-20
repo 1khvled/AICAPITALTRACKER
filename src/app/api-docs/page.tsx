@@ -713,25 +713,29 @@ return (
                 </span>
                 <div className="overflow-x-auto text-[14px]">
                   <table className="w-full text-left">
+                    <caption className="sr-only">
+                      Request parameters for the selected endpoint: parameter name, type, default
+                      value and description.
+                    </caption>
                     <thead className="bg-surface-2 border-b border-rule text-ink-subtle font-mono">
                       <tr>
-                        <th className="p-3">Parameter</th>
-                        <th className="p-3">Type</th>
-                        <th className="p-3">Default</th>
-                        <th className="p-3">Description</th>
+                        <th scope="col" className="p-3">Parameter</th>
+                        <th scope="col" className="p-3">Type</th>
+                        <th scope="col" className="p-3">Default</th>
+                        <th scope="col" className="p-3">Description</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-rule font-mono">
                       {activeEndpoint.params.map((p) => (
                         <tr key={p.name} className="bg-surface hover:bg-surface-2 hover:bg-surface-2/40">
-                          <td className="p-3 font-bold text-ink">
+                          <th scope="row" className="p-3 font-bold text-ink">
                             {p.name}
                             {p.required && (
                               <span className="ml-1.5 text-ink px-1 py-0.5 rounded bg-risk-50 text-risk-700 bg-risk-50/60 text-risk-600 border border-risk-200 border-risk-500">
                                 Required
                               </span>
                             )}
-                          </td>
+                          </th>
                           <td className="p-3 text-ink-subtle">{p.type}</td>
                           <td className="p-3 text-ink-subtle">{p.defaultVal || "—"}</td>
                           <td className="p-3 font-sans text-ink-muted">{p.desc}</td>

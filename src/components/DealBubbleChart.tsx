@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useRef, useEffect, useCallback, useId } from "react";
 import { useRouter } from "next/navigation";
 import {
   Search,
@@ -24,6 +24,12 @@ import {
 } from "lucide-react";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import { useInView, usePrefersReducedMotion } from "@/components/Reveal";
+import {
+  getChartAriaProps,
+  generateChartDescription,
+  ChartDataTable,
+  ChartAnnouncer,
+} from "@/lib/chart-a11y";
 
 export interface Deal {
   id: string;
@@ -201,6 +207,302 @@ export const CATEGORY_CONFIG: Record<
   },
 };
 
+/* ── The chart's own numbers ──────────────────────────────────────────────────
+ *
+ * Everything below reads the SAME data the marks are drawn from, so the
+ * description, the data table and the picture can never disagree.
+ */
+
+/**
+ * The number of disclosed dollars a treemap tile is worth.
+ *
+ * A deal with no disclosed amount is given a floor of $100M so it still gets
+ * a visible tile. The area of a tile IS this number, so the description and
+ * the data table have to quote it too — otherwise the table would claim a
+ * different figure from the one on screen.
+ */
+function treemapValue(deal: Deal): number {
+  return deal.amount_usd > 0 ? deal.amount_usd : 100e6;
+}
+
+/** The number of bubbles the gravity arena draws. */
+const ARENA_MAX_DEALS = 42;
+
+/** The id of the gravity arena's single series, for the keyboard model. */
+const ARENA_SERIES_ID = "arena";
+
+/** The largest deals the gravity arena draws — the same slice, every time. */
+function selectArenaDeals(deals: Deal[]): Deal[] {
+  return [...deals]
+    .sort((a, b) => b.amount_usd - a.amount_usd)
+    .slice(0, ARENA_MAX_DEALS);
+}
+
+/**
+ * The most marks the keyboard model will ever expose.
+ *
+ * A chart with hundreds of points is a table, not a maze: walking 169
+ * bubbles with the arrow keys is not a journey, it is a chore. So the
+ * keyboard model stops at the 40 largest marks of the current view and the
+ * data table underneath carries every single one of them.
+ */
+const KEYBOARD_MARK_CAP = 40;
+
+/** The human name of a category — the label the chart's colour key uses. */
+function categoryName(category: string): string {
+  return CATEGORY_CONFIG[category]?.name ?? category;
+}
+
+/** $38.0B, $250M, $1.2B. */
+function formatUsd(value: number): string {
+  if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`;
+  if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
+  if (value >= 1e6) return `$${Math.round(value / 1e6)}M`;
+  return `$${Math.round(value)}`;
+}
+
+/**
+ * The accessible name of one mark.
+ *
+ * It carries what the mark shows (title, amount, date), what its colour
+ * means (the sector) and what the number printed on the big bubbles means
+ * (the modelled bubble exposure), then says what Enter does.
+ */
+function dealMarkLabel(deal: Deal, sector: string): string {
+  const risk = computeDealBubbleRisk(deal);
+  return `${deal.title}, ${deal.amount_display}, announced ${deal.announced_date}. ${sector}. Bubble exposure ${risk.riskScorePct}%, ${risk.riskBand}. Press Enter to open in the ledger.`;
+}
+
+/* ── The two-mode keyboard model ─────────────────────────────────────────────
+ *
+ * Browse mode: the <svg> is ONE tab stop and reads as a single image with a
+ * title and a description. Nothing inside it is in the accessibility tree.
+ *
+ * Data mode: the reader presses Enter or Space on the chart and the <svg>
+ * becomes a group. The marks are symbols now and the arrow keys walk them —
+ * Left and Right along a series, Up and Down between series, Home and End
+ * to the first and last, Escape back to the image.
+ */
+interface NavMark {
+  /** The id of the mark (the deal id). */
+  id: string;
+  /** The value the mark is drawn with — the amount, in dollars. */
+  value: number;
+}
+
+interface NavSeries {
+  /** The id of the series (a category, a pod, the arena). */
+  id: string;
+  /** The marks of the series, in the order they are drawn. */
+  marks: NavMark[];
+}
+
+interface ChartNav {
+  /** True while the reader is walking the marks. */
+  dataMode: boolean;
+  /** The series the reader is in, if any. */
+  activeSeriesId: string | null;
+  /** The mark the reader is on, if any. */
+  activeMarkId: string | null;
+  /** True when the mark is part of the keyboard model. */
+  isFocusable: (id: string) => boolean;
+  /** Register a mark element (for focus). */
+  registerMark: (id: string, el: SVGGElement | null) => void;
+  /** Register the <svg> that owns a series (for Escape). */
+  registerSeries: (id: string, el: SVGSVGElement | null) => void;
+  /** Key handling for the <svg> in browse mode. */
+  onChartKeyDown: (e: React.KeyboardEvent<SVGSVGElement>, seriesId?: string) => void;
+  /** Key handling for a mark in data mode. */
+  onMarkKeyDown: (e: React.KeyboardEvent<SVGGElement>, markId: string) => void;
+}
+
+function useChartNav(
+  series: NavSeries[],
+  onActivate: (markId: string) => void
+): ChartNav {
+  const markRefs = useRef(new Map<string, SVGGElement>());
+  const seriesRefs = useRef(new Map<string, SVGSVGElement>());
+  const lastActive = useRef(new Map<string, string>());
+  const [active, setActive] = useState<{ seriesId: string; markId: string } | null>(null);
+
+  // The callbacks below are stable, so they read the series through a ref.
+  const seriesRef = useRef(series);
+  seriesRef.current = series;
+
+  const focusableIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const s of series) for (const m of s.marks) ids.add(m.id);
+    return ids;
+  }, [series]);
+
+  // A new set of marks means the old focus is gone: start over.
+  useEffect(() => {
+    setActive(null);
+  }, [series]);
+
+  // Remember the last mark of each series, so stepping away and back lands
+  // where the reader left off.
+  useEffect(() => {
+    if (!active) return;
+    lastActive.current.set(active.seriesId, active.markId);
+  }, [active]);
+
+  // Move the real DOM focus onto the active mark. This is what puts the
+  // focus ring on the bubble (globals.css draws it on :focus-visible).
+  useEffect(() => {
+    if (!active) return;
+    const el = markRefs.current.get(active.markId);
+    if (el && typeof el.focus === "function" && document.activeElement !== el) {
+      el.focus();
+    }
+  }, [active]);
+
+  const enterDataMode = useCallback((seriesId: string, index: number) => {
+    const target = seriesRef.current.find((s) => s.id === seriesId);
+    if (!target || target.marks.length === 0) return;
+    const clamped = Math.min(Math.max(index, 0), target.marks.length - 1);
+    setActive({ seriesId, markId: target.marks[clamped].id });
+  }, []);
+
+  const moveSeries = useCallback((fromSeriesId: string, delta: number) => {
+    const list = seriesRef.current;
+    const count = list.length;
+    if (count === 0) return;
+    const from = list.findIndex((s) => s.id === fromSeriesId);
+    if (from < 0) return;
+    // Skip past a series that carries no marks of its own.
+    for (let step = 1; step <= count; step += 1) {
+      const index = (((from + delta * step) % count) + count) % count;
+      const candidate = list[index];
+      if (!candidate || candidate.marks.length === 0) continue;
+      const markId = lastActive.current.get(candidate.id) ?? candidate.marks[0].id;
+      setActive({ seriesId: candidate.id, markId });
+      return;
+    }
+  }, []);
+
+  const registerMark = useCallback((id: string, el: SVGGElement | null) => {
+    if (el) markRefs.current.set(id, el);
+    else markRefs.current.delete(id);
+  }, []);
+
+  const registerSeries = useCallback((id: string, el: SVGSVGElement | null) => {
+    if (el) seriesRefs.current.set(id, el);
+    else seriesRefs.current.delete(id);
+  }, []);
+
+  const onChartKeyDown = useCallback(
+    (e: React.KeyboardEvent<SVGSVGElement>, seriesId?: string) => {
+      const list = seriesRef.current;
+      if (list.length === 0) return;
+      const target = seriesId ? list.find((s) => s.id === seriesId) : list[0];
+      if (!target || target.marks.length === 0) return;
+
+      switch (e.key) {
+        case "Enter":
+        case " ":
+          e.preventDefault();
+          enterDataMode(target.id, 0);
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          enterDataMode(target.id, 0);
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          enterDataMode(target.id, target.marks.length - 1);
+          break;
+        case "Home":
+          e.preventDefault();
+          enterDataMode(target.id, 0);
+          break;
+        case "End":
+          e.preventDefault();
+          enterDataMode(target.id, target.marks.length - 1);
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          moveSeries(target.id, -1);
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          moveSeries(target.id, 1);
+          break;
+        default:
+          break;
+      }
+    },
+    [enterDataMode, moveSeries]
+  );
+
+  const onMarkKeyDown = useCallback(
+    (e: React.KeyboardEvent<SVGGElement>, markId: string) => {
+      const owner = seriesRef.current.find((s) => s.marks.some((m) => m.id === markId));
+      if (!owner || owner.marks.length === 0) return;
+      const index = owner.marks.findIndex((m) => m.id === markId);
+      if (index < 0) return;
+
+      switch (e.key) {
+        case "Enter":
+        case " ":
+          e.preventDefault();
+          onActivate(markId);
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          setActive({
+            seriesId: owner.id,
+            markId: owner.marks[(index + 1) % owner.marks.length].id,
+          });
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          setActive({
+            seriesId: owner.id,
+            markId: owner.marks[(index - 1 + owner.marks.length) % owner.marks.length].id,
+          });
+          break;
+        case "Home":
+          e.preventDefault();
+          setActive({ seriesId: owner.id, markId: owner.marks[0].id });
+          break;
+        case "End":
+          e.preventDefault();
+          setActive({ seriesId: owner.id, markId: owner.marks[owner.marks.length - 1].id });
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          moveSeries(owner.id, -1);
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          moveSeries(owner.id, 1);
+          break;
+        case "Escape":
+          e.preventDefault();
+          e.stopPropagation();
+          setActive(null);
+          seriesRefs.current.get(owner.id)?.focus();
+          break;
+        default:
+          break;
+      }
+    },
+    [moveSeries, onActivate]
+  );
+
+  return {
+    dataMode: active !== null,
+    activeSeriesId: active?.seriesId ?? null,
+    activeMarkId: active?.markId ?? null,
+    isFocusable: (id: string) => focusableIds.has(id),
+    registerMark,
+    registerSeries,
+    onChartKeyDown,
+    onMarkKeyDown,
+  };
+}
+
 function getSvgPoint(
   e: React.PointerEvent<SVGSVGElement>,
   svg: SVGSVGElement,
@@ -258,6 +560,8 @@ interface InteractiveBubblePodProps {
   matchesSearch: (deal: Deal) => boolean;
   isDriftEnabled: boolean;
   resetCounter: number;
+  /** The page-wide two-mode keyboard model. */
+  nav: ChartNav;
 }
 
 function InteractiveBubblePod({
@@ -270,6 +574,7 @@ function InteractiveBubblePod({
   matchesSearch,
   isDriftEnabled,
   resetCounter,
+  nav,
 }: InteractiveBubblePodProps) {
   const [nodes, setNodes] = useState<PodBubbleNode[]>(() =>
     pod.bubbles.map((b) => ({
@@ -298,6 +603,49 @@ function InteractiveBubblePod({
   const showTip = (deal: Deal, x: number, y: number) =>
     setTip({ deal, x: (x / 300) * 100, y: (y / 190) * 100 });
   const hideTip = () => setTip(null);
+
+  /* ── The chart's accessible identity ──────────────────────────────────────
+   *
+   * The pod is one image to a screen reader: a title, a description derived
+   * from the bubbles it draws, and a single tab stop. The bubbles that take
+   * part in the keyboard model become symbols while the reader walks them;
+   * the rest stay out of the accessibility tree and are carried by the data
+   * table under the chart.
+   */
+  const chartUid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const chartTitleId = `${chartUid}-title`;
+  const chartDescId = `${chartUid}-desc`;
+  const chartTitle = `${pod.config.name} bubble pod`;
+
+  const chartDescription = useMemo(
+    () =>
+      generateChartDescription({
+        title: chartTitle,
+        kind: "scatter",
+        points: pod.bubbles.map((b) => ({
+          x: b.deal.title,
+          y: b.deal.amount_usd,
+        })),
+        formatValue: (value) => (value > 0 ? formatUsd(value) : "amount not disclosed"),
+      }),
+    [chartTitle, pod.bubbles]
+  );
+
+  const chartAria = getChartAriaProps({
+    title: chartTitle,
+    description: chartDescription,
+    labelledBy: chartTitleId,
+    describedBy: chartDescId,
+    role: nav.activeSeriesId === pod.categoryKey ? "graphics-document" : "img",
+  });
+
+  const setSvgRef = useCallback(
+    (el: SVGSVGElement | null) => {
+      svgRef.current = el;
+      nav.registerSeries(pod.categoryKey, el);
+    },
+    [nav, pod.categoryKey]
+  );
 
   // Sync state whenever underlying deals, layout, or reset counter changes
   useEffect(() => {
@@ -399,12 +747,6 @@ function InteractiveBubblePod({
     }
   };
 
-  const handleNodeKeyDown = (e: React.KeyboardEvent<SVGGElement>, node: PodBubbleNode) => {
-    if (e.key !== "Enter" && e.key !== " ") return;
-    e.preventDefault();
-    onOpenInLedger(node.deal);
-  };
-
   const handleResetPod = () => {
     setNodes((prev) =>
       prev.map((n) => ({
@@ -422,6 +764,7 @@ function InteractiveBubblePod({
           <span
             className="w-2.5 h-2.5 rounded-full"
             style={{ backgroundColor: pod.config.accentHex }}
+            aria-hidden="true"
           />
           <span className="text-sm font-semibold text-ink">
             {pod.config.name}
@@ -441,19 +784,27 @@ function InteractiveBubblePod({
             title="Reset positions in this pod"
             className="flex h-11 w-11 items-center justify-center rounded-lg text-ink-subtle transition-colors hover:bg-surface-2 hover:text-ink"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
         </div>
       </div>
 
       <div className="relative">
         <svg
-          ref={svgRef}
+          ref={setSvgRef}
           viewBox="0 0 300 190"
-          className="block h-auto w-full cursor-grab touch-none select-none rounded-lg bg-surface-2 active:cursor-grabbing"
+          className="block h-auto w-full cursor-grab touch-none select-none rounded-lg bg-surface-2 active:cursor-grabbing focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
           style={{ minHeight: "170px" }}
           onPointerMove={handlePointerMove}
+          tabIndex={0}
+          {...chartAria}
+          onKeyDown={(e) => nav.onChartKeyDown(e, pod.categoryKey)}
         >
+          <title id={chartTitleId}>{chartTitle}</title>
+          <desc id={chartDescId}>
+            {chartDescription} Press Enter or Space to step through the bubbles with the arrow
+            keys; Escape returns to the chart.
+          </desc>
           <defs>
             {/* No gradients, no glow filter: a flat token fill, a hairline
                 cut-out against the panel, and elevation from CSS on
@@ -465,6 +816,9 @@ function InteractiveBubblePod({
             const isBeingDragged = draggingId === b.deal.id;
             const matched = matchesSearch(b.deal);
             const opacity = searchQuery.trim() && !matched ? 0.15 : 0.95;
+            /* Is this bubble part of the keyboard model? The cap is applied
+               by the parent, so there is one answer for the whole chart. */
+            const isKeyboardMark = nav.isFocusable(b.deal.id);
 
             // Fluid sinusoidal floating keyframes when idle
             const floatClass =
@@ -479,6 +833,7 @@ function InteractiveBubblePod({
             return (
               <g
                 key={b.deal.id}
+                ref={(el) => nav.registerMark(b.deal.id, el)}
                 className={`bubble-node bubble-pop cursor-grab active:cursor-grabbing${
                   inView ? " bubble-pop-live" : ""
                 }`}
@@ -486,10 +841,15 @@ function InteractiveBubblePod({
                   opacity: isHovered || isBeingDragged ? 1 : opacity,
                   animationDelay: `${Math.min(idx, 12) * 24}ms`,
                 }}
-                tabIndex={0}
-                role="button"
-                aria-label={`${b.deal.title}, ${b.deal.amount_display}, announced ${b.deal.announced_date}. Open in the ledger.`}
-                onKeyDown={(e) => handleNodeKeyDown(e, b)}
+                /* Roving tabindex: the pod's <svg> is the one tab stop, and
+                   only the marks inside the keyboard model are reachable.
+                   The rest are hidden from assistive technology and carried by
+                   the data table under the chart. */
+                tabIndex={isKeyboardMark ? -1 : undefined}
+                role={isKeyboardMark ? "graphics-symbol" : undefined}
+                aria-label={isKeyboardMark ? dealMarkLabel(b.deal, pod.config.name) : undefined}
+                aria-hidden={isKeyboardMark ? undefined : true}
+                onKeyDown={(e) => nav.onMarkKeyDown(e, b.deal.id)}
                 onPointerDown={(e) => handlePointerDown(e, b)}
                 onPointerUp={(e) => handlePointerUp(e, b)}
                 onMouseEnter={() => {
@@ -509,6 +869,9 @@ function InteractiveBubblePod({
                   hideTip();
                 }}
               >
+                <title>
+                  {`${b.deal.title} — ${b.deal.amount_display}, ${pod.config.name}`}
+                </title>
                 {/* The optional drift lives on an inner group so it can never
                     fight the pop-in for the same transform. */}
                 <g className={floatClass}>
@@ -612,7 +975,7 @@ function InteractiveBubblePod({
 
         <div className="absolute bottom-1.5 right-2 pointer-events-none opacity-40 hover:opacity-80 transition-opacity">
           <span className="text-[14px] font-mono text-ink-subtle flex items-center gap-1">
-            <Hand className="w-2.5 h-2.5" /> Draggable
+            <Hand className="w-2.5 h-2.5" aria-hidden="true" /> Draggable
           </span>
         </div>
       </div>
@@ -642,6 +1005,8 @@ interface GravityArenaProps {
   matchesSearch: (deal: Deal) => boolean;
   isDriftEnabled: boolean;
   resetCounter: number;
+  /** The page-wide two-mode keyboard model. */
+  nav: ChartNav;
 }
 
 function GravityArena({
@@ -653,6 +1018,7 @@ function GravityArena({
   matchesSearch,
   isDriftEnabled,
   resetCounter,
+  nav,
 }: GravityArenaProps) {
   const [nodes, setNodes] = useState<ArenaNode[]>([]);
   /**
@@ -678,9 +1044,7 @@ function GravityArena({
 
   // Initialize nodes from top deals
   const initNodes = useCallback(() => {
-    const topDeals = [...deals]
-      .sort((a, b) => b.amount_usd - a.amount_usd)
-      .slice(0, 42);
+    const topDeals = selectArenaDeals(deals);
 
     const CANVAS_W = 1000;
     const CANVAS_H = 560;
@@ -912,6 +1276,49 @@ function GravityArena({
     }
   };
 
+  /* ── The chart's accessible identity ──────────────────────────────────────
+   *
+   * The arena is one image to a screen reader: a title, a description
+   * derived from the bubbles it draws, and a single tab stop.
+   */
+  const arenaUid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const arenaTitleId = `${arenaUid}-title`;
+  const arenaDescId = `${arenaUid}-desc`;
+  const arenaTitle = "Zero-gravity arena of the largest AI infrastructure deals";
+
+  const arenaDescription = useMemo(
+    () =>
+      generateChartDescription({
+        title: arenaTitle,
+        kind: "scatter",
+        // The same slice the arena initialises itself from — so the
+        // description counts the bubbles the arena draws, not the ones it
+        // has happened to place yet.
+        points: selectArenaDeals(deals).map((deal) => ({
+          x: deal.title,
+          y: deal.amount_usd,
+        })),
+        formatValue: (value) => (value > 0 ? formatUsd(value) : "amount not disclosed"),
+      }),
+    [arenaTitle, deals]
+  );
+
+  const arenaAria = getChartAriaProps({
+    title: arenaTitle,
+    description: arenaDescription,
+    labelledBy: arenaTitleId,
+    describedBy: arenaDescId,
+    role: nav.activeSeriesId === ARENA_SERIES_ID ? "graphics-document" : "img",
+  });
+
+  const setArenaSvgRef = useCallback(
+    (el: SVGSVGElement | null) => {
+      svgRef.current = el;
+      nav.registerSeries(ARENA_SERIES_ID, el);
+    },
+    [nav]
+  );
+
   return (
     <div className="space-y-3">
       {/* HUD Header Toolbar */}
@@ -950,18 +1357,32 @@ function GravityArena({
       {/* SVG Physics Arena Viewport */}
       <div className="relative w-full rounded-lg border border-rule bg-[rgb(12_14_17)] overflow-hidden shadow-inner">
         <svg
-          ref={svgRef}
+          ref={setArenaSvgRef}
           viewBox="0 0 1000 560"
-          className="w-full h-auto block select-none touch-none cursor-grab active:cursor-grabbing"
+          className="w-full h-auto block select-none touch-none cursor-grab active:cursor-grabbing focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
           style={{ minHeight: "440px" }}
           onPointerMove={handlePointerMove}
+          tabIndex={0}
+          {...arenaAria}
+          onKeyDown={(e) => nav.onChartKeyDown(e, ARENA_SERIES_ID)}
         >
+          <title id={arenaTitleId}>{arenaTitle}</title>
+          <desc id={arenaDescId}>
+            {arenaDescription} Press Enter or Space to step through the bubbles with the arrow
+            keys; Escape returns to the chart.
+          </desc>
           <defs>
             {/* Flat token fills only — no gradients, no glow filter. */}
           </defs>
 
-          {/* Background constellation grid lines */}
-          <g opacity="0.1" stroke="#ffffff" strokeWidth="0.5" strokeDasharray="3 6">
+          {/* Background constellation grid lines — decorative chrome. */}
+          <g
+            aria-hidden="true"
+            opacity="0.1"
+            stroke="#ffffff"
+            strokeWidth="0.5"
+            strokeDasharray="3 6"
+          >
             <line x1="0" y1="280" x2="1000" y2="280" />
             <line x1="500" y1="0" x2="500" y2="560" />
             <circle cx="500" cy="280" r="140" fill="none" />
@@ -973,17 +1394,33 @@ function GravityArena({
             const isBeingDragged = draggingId === b.deal.id;
             const matched = matchesSearch(b.deal);
             const opacity = searchQuery.trim() && !matched ? 0.2 : 0.95;
+            /* Is this bubble part of the keyboard model? The cap is applied
+               by the parent, so there is one answer for the whole chart. */
+            const isKeyboardMark = nav.isFocusable(b.deal.id);
 
             return (
               <g
                 key={b.deal.id}
+                ref={(el) => nav.registerMark(b.deal.id, el)}
                 className="cursor-grab active:cursor-grabbing"
                 style={{ opacity: isHovered || isBeingDragged ? 1 : opacity }}
+                tabIndex={isKeyboardMark ? -1 : undefined}
+                role={isKeyboardMark ? "graphics-symbol" : undefined}
+                aria-label={
+                  isKeyboardMark ? dealMarkLabel(b.deal, categoryName(b.deal.category)) : undefined
+                }
+                aria-hidden={isKeyboardMark ? undefined : true}
+                onKeyDown={(e) => nav.onMarkKeyDown(e, b.deal.id)}
                 onPointerDown={(e) => handlePointerDown(e, b)}
                 onPointerUp={(e) => handlePointerUp(e, b)}
                 onMouseEnter={() => setHoveredDeal(b.deal)}
                 onMouseLeave={() => setHoveredDeal(null)}
+                onFocus={() => setHoveredDeal(b.deal)}
+                onBlur={() => setHoveredDeal(null)}
               >
+                <title>
+                  {`${b.deal.title} — ${b.deal.amount_display}, ${categoryName(b.deal.category)}`}
+                </title>
                 {/* Dragging elevation halo — a static ruled ring. */}
                 {isBeingDragged && (
                   <circle
@@ -1061,7 +1498,7 @@ function GravityArena({
 
         <div className="absolute bottom-3 left-4 pointer-events-none">
           <div className="flex items-center space-x-2 text-[14px] font-mono text-ink-muted bg-ink px-3 py-1.5 rounded-lg border border-rule">
-            <Hand className="w-3.5 h-3.5 text-safe-700" />
+            <Hand className="w-3.5 h-3.5 text-safe-700" aria-hidden="true" />
             <span>Fling bubbles to test collision physics • Double click to inspect</span>
           </div>
         </div>
@@ -1153,9 +1590,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
     const CANVAS_H = 560;
 
     const sorted = [...filteredDeals].sort((a, b) => {
-      const valA = a.amount_usd > 0 ? a.amount_usd : 100e6;
-      const valB = b.amount_usd > 0 ? b.amount_usd : 100e6;
-      return valB - valA;
+      return treemapValue(b) - treemapValue(a);
     });
 
     if (sorted.length === 0) return [];
@@ -1176,12 +1611,12 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
         return;
       }
 
-      const totalVal = list.reduce((s, it) => s + (it.amount_usd > 0 ? it.amount_usd : 100e6), 0);
+      const totalVal = list.reduce((s, it) => s + treemapValue(it), 0);
       let runningSum = 0;
       let splitIdx = 0;
 
       for (let i = 0; i < list.length; i++) {
-        runningSum += list[i].amount_usd > 0 ? list[i].amount_usd : 100e6;
+        runningSum += treemapValue(list[i]);
         if (runningSum >= totalVal / 2 || i === list.length - 2) {
           splitIdx = i + 1;
           break;
@@ -1313,6 +1748,175 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
   }, [filteredDeals, viewMode]);
 
   const liveModelResult = useMemo(() => evaluateBubbleModel(DEFAULT_MODEL_INPUTS), []);
+
+  /* ── 5. The chart's accessible identity ────────────────────────────────────
+   *
+   * One <title> and one <desc> per chart, and a description that is DERIVED
+   * from the tiles the treemap actually draws. The keyboard model works on
+   * the same data: a series per sector, capped at KEYBOARD_MARK_CAP marks,
+   * and the data table underneath carries every last one of them.
+   */
+  const chartUid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const treemapTitleId = `${chartUid}-treemap-title`;
+  const treemapDescId = `${chartUid}-treemap-desc`;
+  const treemapTitle = "Capital allocation treemap of AI infrastructure deals, area proportional to disclosed amount";
+
+  const treemapDescription = useMemo(
+    () =>
+      generateChartDescription({
+        title: treemapTitle,
+        kind: "category",
+        points: treemapTiles.map((tile) => ({
+          x: tile.deal.title,
+          y: treemapValue(tile.deal),
+        })),
+        formatValue: (value) => formatUsd(value),
+      }),
+    [treemapTitle, treemapTiles]
+  );
+
+  /** The treemap's sectors are its series. */
+  const navSeries = useMemo<NavSeries[]>(() => {
+    if (viewMode === "treemap") {
+      const byCategory = new Map<string, NavMark[]>();
+      for (const tile of treemapTiles) {
+        const marks = byCategory.get(tile.category) ?? [];
+        marks.push({ id: tile.deal.id, value: treemapValue(tile.deal) });
+        byCategory.set(tile.category, marks);
+      }
+      return Array.from(byCategory.entries()).map(([id, marks]) => ({ id, marks }));
+    }
+
+    if (viewMode === "bubbles") {
+      return categoryPods.map((pod) => ({
+        id: pod.categoryKey,
+        marks: pod.bubbles.map((b) => ({ id: b.deal.id, value: b.deal.amount_usd })),
+      }));
+    }
+
+    if (viewMode === "arena") {
+      return [
+        {
+          id: ARENA_SERIES_ID,
+          marks: selectArenaDeals(filteredDeals).map((deal) => ({
+            id: deal.id,
+            value: deal.amount_usd,
+          })),
+        },
+      ];
+    }
+
+    return [];
+  }, [viewMode, treemapTiles, categoryPods, filteredDeals]);
+
+  /**
+   * The keyboard model walks the marks of the current view — but only the
+   * largest ones. Everything else is in the table underneath.
+   */
+  const keyboardSeries = useMemo<NavSeries[]>(() => {
+    const largest = navSeries
+      .flatMap((s) => s.marks.map((m) => ({ id: m.id, value: m.value })))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, KEYBOARD_MARK_CAP);
+    const keep = new Set(largest.map((m) => m.id));
+    return navSeries
+      .map((s) => ({ id: s.id, marks: s.marks.filter((m) => keep.has(m.id)) }))
+      .filter((s) => s.marks.length > 0);
+  }, [navSeries]);
+
+  /**
+   * What Enter does on a mark: the bubbles open in the ledger (as they
+   * always have), the treemap tiles and the arena bubbles open the
+   * disclosure.
+   */
+  const handleActivateMark = useCallback(
+    (markId: string) => {
+      const deal = deals.find((d) => d.id === markId);
+      if (!deal) return;
+      if (viewMode === "bubbles") openInLedger(deal);
+      else onSelectDeal(deal);
+    },
+    [deals, viewMode, openInLedger, onSelectDeal]
+  );
+
+  const nav = useChartNav(keyboardSeries, handleActivateMark);
+
+  const treemapAria = getChartAriaProps({
+    title: treemapTitle,
+    description: treemapDescription,
+    labelledBy: treemapTitleId,
+    describedBy: treemapDescId,
+    // While the reader is walking the tiles the treemap becomes a graphics
+    // document, so the tiles (role="graphics-symbol") stay in the
+    // accessibility tree instead of being flattened into one image.
+    role: nav.dataMode ? "graphics-document" : "img",
+  });
+
+  /** The treemap's <svg> is the one tab stop of the treemap. */
+  const setTreemapSvgRef = useCallback(
+    (el: SVGSVGElement | null) => {
+      for (const s of navSeries) nav.registerSeries(s.id, el);
+    },
+    [nav, navSeries]
+  );
+
+  /* ── 6. The data table: the same numbers as the marks ─────────────────────
+   *
+   * The rows are read off the very arrays the view draws from — the tiles,
+   * the bubbles, the arena's slice, the timeline's ten-per-column — so the
+   * table cannot claim a deal the chart does not show.
+   */
+  const tableRows = useMemo<Array<Array<string | number>>>(() => {
+    const row = (deal: Deal, sector: string): Array<string | number> => [
+      deal.title,
+      sector,
+      deal.amount_display,
+      deal.announced_date,
+      `${computeDealBubbleRisk(deal).riskScorePct}%`,
+    ];
+
+    if (viewMode === "treemap") {
+      return treemapTiles.map((tile) => row(tile.deal, categoryName(tile.category)));
+    }
+    if (viewMode === "bubbles") {
+      return categoryPods.flatMap((pod) =>
+        pod.bubbles.map((b) => row(b.deal, pod.config.name))
+      );
+    }
+    if (viewMode === "arena") {
+      return selectArenaDeals(filteredDeals).map((deal) =>
+        row(deal, categoryName(deal.category))
+      );
+    }
+    return timelineColumns.flatMap((col) =>
+      col.deals.slice(0, 10).map((deal) => row(deal, col.label))
+    );
+  }, [viewMode, treemapTiles, categoryPods, filteredDeals, timelineColumns]);
+
+  const viewLabel =
+    viewMode === "treemap"
+      ? "capital treemap"
+      : viewMode === "bubbles"
+        ? "bubble pods"
+        : viewMode === "arena"
+          ? "gravity arena"
+          : "timeline flow";
+
+  /** The filter readout, announced politely when it changes. */
+  const filterAnnouncement = useMemo(() => {
+    const volume =
+      minVolume === "all"
+        ? ""
+        : `, ${
+            minVolume === "1b"
+              ? "at least $1 billion"
+              : minVolume === "10b"
+                ? "at least $10 billion"
+                : "at least $50 billion"
+          }`;
+    const sector = selectedCat === "All" ? "all sectors" : categoryName(selectedCat);
+    return `${filteredDeals.length} deals shown, ${sector}${volume}.`;
+  }, [filteredDeals.length, minVolume, selectedCat]);
 
   return (
     <div
@@ -1493,14 +2097,26 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
           <div className="relative w-full overflow-hidden rounded-lg border border-rule bg-surface">
             <svg
               viewBox="0 0 1000 560"
-              className="w-full h-auto block select-none"
+              className="w-full h-auto block select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
               style={{ minHeight: "440px" }}
+              ref={setTreemapSvgRef}
+              tabIndex={0}
+              {...treemapAria}
+              onKeyDown={(e) => nav.onChartKeyDown(e)}
             >
+              <title id={treemapTitleId}>{treemapTitle}</title>
+              <desc id={treemapDescId}>
+                {treemapDescription} Press Enter or Space to step through the tiles with the arrow
+                keys; Escape returns to the chart.
+              </desc>
               {treemapTiles.map((tile) => {
                 const config = CATEGORY_CONFIG[tile.category] || CATEGORY_CONFIG["Other"];
                 const matched = matchesSearch(tile.deal);
                 const isHovered = hoveredDeal?.id === tile.deal.id;
                 const opacity = searchQuery.trim() && !matched ? 0.15 : 1;
+                /* Is this tile part of the keyboard model? The cap is applied
+                   by the parent, so there is one answer for the whole chart. */
+                const isKeyboardMark = nav.isFocusable(tile.deal.id);
 
                 let shortTitle = tile.deal.title;
                 if (tile.deal.title.includes("Stargate")) shortTitle = "Stargate Project";
@@ -1523,12 +2139,29 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                 return (
                   <g
                     key={tile.deal.id}
+                    ref={(el) => nav.registerMark(tile.deal.id, el)}
                     className="cursor-pointer transition-opacity duration-150"
                     style={{ opacity }}
+                    tabIndex={isKeyboardMark ? -1 : undefined}
+                    role={isKeyboardMark ? "graphics-symbol" : undefined}
+                    aria-label={
+                      isKeyboardMark
+                        ? dealMarkLabel(tile.deal, categoryName(tile.category))
+                        : undefined
+                    }
+                    aria-hidden={isKeyboardMark ? undefined : true}
+                    onKeyDown={(e) => nav.onMarkKeyDown(e, tile.deal.id)}
                     onClick={() => onSelectDeal(tile.deal)}
                     onMouseEnter={() => setHoveredDeal(tile.deal)}
                     onMouseLeave={() => setHoveredDeal(null)}
+                    onFocus={() => setHoveredDeal(tile.deal)}
+                    onBlur={() => setHoveredDeal(null)}
                   >
+                    <title>
+                      {`${tile.deal.title} — ${tile.deal.amount_display}, ${categoryName(
+                        tile.category
+                      )}`}
+                    </title>
                     <rect
                       x={tile.x + 1}
                       y={tile.y + 1}
@@ -1592,6 +2225,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                 matchesSearch={matchesSearch}
                 isDriftEnabled={isDriftEnabled}
                 resetCounter={resetCounter}
+                nav={nav}
               />
             ))}
           </div>
@@ -1608,6 +2242,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
             matchesSearch={matchesSearch}
             isDriftEnabled={isDriftEnabled}
             resetCounter={resetCounter}
+            nav={nav}
           />
         )}
 
@@ -1721,6 +2356,28 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
           );
         })()}
       </div>
+
+      {/* The keyboard model, in words, for the reader who never finds it. The
+          timeline has no chart to walk, so it has no keyboard model either —
+          its table is the representation. */}
+      {viewMode !== "timeline" ? (
+        <p className="px-3 pt-3 text-[14px] leading-relaxed text-ink-subtle sm:px-4">
+          Keyboard: tab to the chart, press Enter to step through the {viewLabel} with the arrow
+          keys, and press Escape to return to the chart.
+        </p>
+      ) : null}
+
+      {/* The same numbers as the chart, as a real table. It is available to
+          assistive technology always, and it is the fallback for every mark
+          the keyboard model does not reach. */}
+      <ChartDataTable
+        caption={`Every deal drawn in the ${viewLabel} view: the same rows and figures as the chart, with the sector, the disclosed amount, the announcement date and the modelled bubble exposure.`}
+        columns={["Deal", "Sector", "Amount", "Announced", "Bubble exposure"]}
+        rows={tableRows}
+      />
+
+      {/* The filter readout, announced politely when it changes. */}
+      <ChartAnnouncer message={filterAnnouncement} />
 
       {/* Footer Meta & Stats */}
       <div className="flex flex-col items-center justify-between gap-3 border-t border-rule bg-surface-2 px-4 py-4 md:flex-row">

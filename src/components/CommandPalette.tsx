@@ -4,23 +4,50 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, CornerDownLeft, Search, X } from "lucide-react";
+import {
+  groupRankedItems,
+  rankPaletteItems,
+} from "@/lib/palette-scoring";
+import { hideOthers } from "@/lib/aria-hide-others";
 
 /**
  * Global command palette.
  *
  * One keyboard entry point for a site with four content graphs: pages,
  * company profiles, ledger facilities and market tickers. The index is built on
- * the server (src/lib/palette-index.ts) and handed down as props, so the model
- * engine and the raw data files never ship to the browser.
+ * the server (src/lib/palette-index.ts) and fetched from /api/palette the
+ * first time the palette opens, so the model engine and the raw data files
+ * never ship to the browser.
  *
- * Behaviour:
+ * THE KEYS
  *   - ⌘K / Ctrl+K opens it from anywhere; "/" opens it when the reader is not
  *     typing in a field.
  *   - ↑ ↓ move the selection, Enter opens it, Escape closes it.
- *   - The list is a combobox with `aria-activedescendant`, so the input keeps
- *     focus and the selection is announced.
- *   - Every number shown comes from the index; the palette never computes a
- *     figure of its own.
+ *   - Tab is trapped inside the panel: the palette is a single-purpose
+ *     overlay and the reader cannot tab out of it into the page behind.
+ *
+ * THE RANKING
+ * The scorer is a continuous-character fuzzy matcher
+ * (src/lib/palette-scoring.ts), not a set of buckets: a run of consecutive
+ * matching characters beats a word-boundary hit, which beats a match that has
+ * to cross a separator. The GROUPS are ordered by their best matching item,
+ * so a query that strongly matches a ledger facility puts Ledger first. The
+ * selection is tracked by ID, never by index, so `aria-activedescendant` can
+ * only ever point at the element that is actually on screen.
+ *
+ * THE OVERLAY
+ * Three rules, hand-rolled from the Radix dismissable-layer / focus-scope
+ * behaviour:
+ *   1. The palette closes on a real outside PRESS, not on any mousedown. A
+ *      press that starts inside the panel is never a dismissal - not on the
+ *      scrollbar of the results list, which used to be a dead end.
+ *   2. The page behind leaves the accessibility tree while the palette is
+ *      open (src/lib/aria-hide-others.ts), with a COUNTER so two overlapping
+ *      overlays cannot clobber each other and an already-hidden element
+ *      keeps its own hiding.
+ *   3. Focus is trapped inside the panel and restored on close. If the
+ *      trigger has unmounted - a route change can do that - focus falls back
+ *      to the body rather than being dropped on the floor.
  */
 
 export interface PaletteItem {
@@ -40,8 +67,12 @@ export interface PaletteItem {
   order?: number;
 }
 
-const GROUP_ORDER = ["Pages", "Companies", "Ledger", "Markets"];
+/** How many results are shown at once. */
 const MAX_RESULTS = 36;
+
+/** Everything the focus trap can land on inside the panel. */
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
  * The event any surface can fire to open the palette (the mobile action bar
@@ -49,51 +80,13 @@ const MAX_RESULTS = 36;
  */
 export const OPEN_PALETTE_EVENT = "aict:open-palette";
 
-function normalize(value: string): string {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9$%.&/-]+/g, " ")
-    .trim();
-}
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-/**
- * Ranking. An exact label beats a prefix, a prefix beats a word hit, a word hit
- * beats a substring, and keywords sit below the visible label so a ticker never
- * outranks the company it belongs to.
- */
-function scoreItem(item: PaletteItem, query: string): number {
-  if (!query) return 1;
-  const label = normalize(item.label);
-  const keywords = normalize(item.keywords ?? "");
-  const sub = normalize(item.sub ?? "");
-
-  if (label === query) return 1000;
-  if (label.startsWith(query)) return 900 - Math.min(label.length, 60);
-  if (keywords.startsWith(query)) return 700 - Math.min(keywords.indexOf(query), 60);
-  if (new RegExp(`\\b${escapeRegExp(query)}`).test(label)) return 600;
-  if (label.includes(query)) return 500;
-  if (keywords.includes(query)) return 300;
-  if (sub.includes(query)) return 200;
-  return 0;
-}
-
-function groupRank(group: string): number {
-  const index = GROUP_ORDER.indexOf(group);
-  return index === -1 ? GROUP_ORDER.length : index;
-}
-
 export function CommandPalette() {
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [activeIndex, setActiveIndex] = useState(0);
+  /** The selected item, by ID. Never by index. */
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   /**
    * The search index is NOT inlined into every page — it is fetched from
@@ -102,46 +95,69 @@ export function CommandPalette() {
    */
   const [items, setItems] = useState<PaletteItem[]>([]);
   const [loading, setLoading] = useState(false);
+
   const inputRef = useRef<HTMLInputElement | null>(null);
+  /** The dialog panel. The outside-press test is made against this. */
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  /** The portal wrapper. It is the one thing that stays visible. */
+  const overlayRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
-  const listRef = useRef<HTMLUListElement | null>(null);
+  /** Where the focus came from, so it can be put back. */
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
+  /** Whether the palette is open, readable synchronously from an event handler. */
+  const openRef = useRef(false);
   const loadedRef = useRef(false);
 
   useEffect(() => setMounted(true), []);
 
-  const results = useMemo(() => {
-    const query_ = normalize(query);
-    const scored = items
-      .map((item, index) => ({ item, index, score: scoreItem(item, query_) }))
-      .filter((entry) => entry.score > 0);
+  /* ── The ranking ──────────────────────────────────────────────────────── */
 
-    scored.sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      const groupDiff = groupRank(a.item.group) - groupRank(b.item.group);
-      if (groupDiff !== 0) return groupDiff;
-      const orderDiff = (a.item.order ?? a.index) - (b.item.order ?? b.index);
-      if (orderDiff !== 0) return orderDiff;
-      return a.item.label.localeCompare(b.item.label);
-    });
-
-    return scored.slice(0, MAX_RESULTS).map((entry) => entry.item);
+  const groups = useMemo(() => {
+    const ranked = rankPaletteItems(items, query);
+    return groupRankedItems(ranked, MAX_RESULTS);
   }, [items, query]);
 
-  /** Grouped view of the flat result list, in the same order. */
-  const grouped = useMemo(() => {
-    const groups: { group: string; rows: PaletteItem[] }[] = [];
-    for (const item of results) {
-      const last = groups[groups.length - 1];
-      if (last && last.group === item.group) last.rows.push(item);
-      else groups.push({ group: item.group, rows: [item] });
+  /** The flat list, in the order it is drawn. */
+  const results = useMemo(
+    () => groups.flatMap((group) => group.rows.map((row) => row.item)),
+    [groups],
+  );
+
+  /**
+   * Where the selection is. The ID is the truth; the index is derived from it,
+   * so a stale ID can never leave `aria-activedescendant` pointing at an
+   * element that is not on screen.
+   */
+  const activeIndex = useMemo(() => {
+    if (results.length === 0) return -1;
+    const index = results.findIndex((item) => item.id === activeId);
+    return index === -1 ? 0 : index;
+  }, [results, activeId]);
+
+  const activeItem = activeIndex >= 0 ? results[activeIndex] : undefined;
+
+  /** Keep the selection on something that exists. */
+  useEffect(() => {
+    if (results.length === 0) {
+      if (activeId !== null) setActiveId(null);
+      return;
     }
-    return groups;
-  }, [results]);
+    if (activeId === null || !results.some((item) => item.id === activeId)) {
+      setActiveId(results[0].id);
+    }
+  }, [results, activeId]);
+
+  /* ── Opening and closing ──────────────────────────────────────────────── */
 
   const openPalette = useCallback(() => {
+    if (typeof document !== "undefined") {
+      const active = document.activeElement;
+      restoreFocusRef.current = active instanceof HTMLElement ? active : null;
+    }
+    openRef.current = true;
     setOpen(true);
     setQuery("");
-    setActiveIndex(0);
+    setActiveId(null);
     // Fetch the index once, the first time the palette opens.
     if (!loadedRef.current) {
       loadedRef.current = true;
@@ -155,11 +171,36 @@ export function CommandPalette() {
   }, []);
 
   const closePalette = useCallback(() => {
+    openRef.current = false;
     setOpen(false);
     setQuery("");
-    setActiveIndex(0);
-    // Send the reader back to where they were.
-    triggerRef.current?.focus();
+    setActiveId(null);
+  }, []);
+
+  /**
+   * Put the focus back where it came from. The trigger can be gone by the
+   * time the palette closes - a route change unmounts it - so the fallback is
+   * the body, never a silent loss of focus.
+   */
+  const restoreFocus = useCallback(() => {
+    const previous = restoreFocusRef.current;
+    restoreFocusRef.current = null;
+
+    if (previous && previous.isConnected && typeof previous.focus === "function") {
+      previous.focus();
+      if (document.activeElement === previous) return;
+    }
+
+    const body = document.body;
+    if (!body) return;
+    const hadTabIndex = body.hasAttribute("tabindex");
+    if (!hadTabIndex) body.setAttribute("tabindex", "-1");
+    body.focus();
+    if (!hadTabIndex) {
+      window.setTimeout(() => {
+        if (body.getAttribute("tabindex") === "-1") body.removeAttribute("tabindex");
+      }, 0);
+    }
   }, []);
 
   // The mobile action bar (and anything else) can open the palette.
@@ -198,60 +239,164 @@ export function CommandPalette() {
   }, [open, openPalette, closePalette]);
 
   // A route change closes the palette (the reader has arrived somewhere).
+  const lastPathname = useRef(pathname);
   useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
+    if (lastPathname.current === pathname) return;
+    lastPathname.current = pathname;
+    closePalette();
+  }, [pathname, closePalette]);
 
-  // Move the focus into the field when the palette opens.
+  /**
+   * The overlay's own lifecycle: the page behind leaves the accessibility
+   * tree, the focus moves into the field, and on close the page comes back
+   * and the focus goes home.
+   */
   useEffect(() => {
     if (!open) return undefined;
-    const id = window.setTimeout(() => inputRef.current?.focus(), 0);
-    return () => window.clearTimeout(id);
-  }, [open]);
 
-  // The page behind must not scroll while the palette is open.
-  useEffect(() => {
-    if (!open) return undefined;
-    const previous = document.body.style.overflow;
+    // 1. The page behind is hidden from assistive technology - with a counter,
+    //    so an overlapping overlay cannot clobber this one.
+    const release = hideOthers(overlayRef.current);
+
+    // 2. The page behind must not scroll while the palette is open. The
+    //    scrollbar's width is given back as padding, so nothing shifts.
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const previousOverflow = document.body.style.overflow;
+    const previousPadding = document.body.style.paddingRight;
     document.body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    // 3. Move the focus into the field.
+    const id = window.setTimeout(() => inputRef.current?.focus(), 0);
+
     return () => {
-      document.body.style.overflow = previous;
+      window.clearTimeout(id);
+      document.body.style.overflow = previousOverflow;
+      document.body.style.paddingRight = previousPadding;
+      // Restore exactly what was hidden, and only then give the focus back:
+      // a focus target inside a hidden subtree is a focus target nobody can
+      // reach.
+      release();
+      restoreFocus();
     };
+  }, [open, restoreFocus]);
+
+  /**
+   * The dismissable layer.
+   *
+   * The palette closes on a press that STARTS OUTSIDE the panel. A press that
+   * starts inside is ignored - which is what makes the scrollbar of the
+   * results list a scrollbar and not a dead end.
+   */
+  useEffect(() => {
+    if (!open) return undefined;
+    const onPointerDown = (event: PointerEvent) => {
+      const panel = panelRef.current;
+      const target = event.target;
+      if (panel && target instanceof Node && panel.contains(target)) return;
+      closePalette();
+    };
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => document.removeEventListener("pointerdown", onPointerDown, true);
+  }, [open, closePalette]);
+
+  /**
+   * The focus scope. If the focus leaves the panel - a pointer press on the
+   * page behind, a programmatic focus() somewhere else - it is pulled back
+   * into the field.
+   */
+  useEffect(() => {
+    if (!open) return undefined;
+    const onFocusIn = (event: FocusEvent) => {
+      if (!openRef.current) return;
+      const panel = panelRef.current;
+      const target = event.target;
+      if (panel && target instanceof Node && panel.contains(target)) return;
+      const input = inputRef.current;
+      if (input && document.activeElement !== input) input.focus();
+    };
+    document.addEventListener("focusin", onFocusIn, true);
+    return () => document.removeEventListener("focusin", onFocusIn, true);
   }, [open]);
 
   // Keep the selected row inside the scroll window.
   useEffect(() => {
-    if (!open || !listRef.current) return;
-    const node = listRef.current.querySelector<HTMLElement>(`[data-index="${activeIndex}"]`);
+    if (!open || !activeItem) return;
+    const node = document.getElementById(`palette-option-${activeItem.id}`);
     node?.scrollIntoView({ block: "nearest" });
-  }, [activeIndex, open]);
+  }, [activeItem, open]);
+
+  /* ── The selection ────────────────────────────────────────────────────── */
+
+  const moveSelection = useCallback(
+    (delta: number) => {
+      if (results.length === 0) return;
+      const from = activeIndex === -1 ? 0 : activeIndex;
+      const next = (from + delta + results.length) % results.length;
+      setActiveId(results[next].id);
+    },
+    [activeIndex, results],
+  );
 
   const choose = useCallback(
     (item: PaletteItem) => {
+      openRef.current = false;
       setOpen(false);
       setQuery("");
+      setActiveId(null);
       router.push(item.href);
     },
     [router],
   );
 
+  /** Keep Tab inside the panel: it is a single-purpose overlay. */
+  const trapTab = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+    const panel = panelRef.current;
+    if (!panel) return;
+    const focusables = Array.from(
+      panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+    ).filter(
+      (element) =>
+        element.offsetWidth > 0 ||
+        element.offsetHeight > 0 ||
+        element === document.activeElement,
+    );
+    if (focusables.length === 0) {
+      event.preventDefault();
+      inputRef.current?.focus();
+      return;
+    }
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const current = document.activeElement;
+    const inside = current instanceof Node && panel.contains(current);
+    if (event.shiftKey) {
+      if (!inside || current === first) {
+        event.preventDefault();
+        last.focus();
+      }
+    } else if (!inside || current === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }, []);
+
   const onPanelKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setActiveIndex((index) => (results.length ? (index + 1) % results.length : 0));
+      moveSelection(1);
       return;
     }
     if (event.key === "ArrowUp") {
       event.preventDefault();
-      setActiveIndex((index) =>
-        results.length ? (index - 1 + results.length) % results.length : 0,
-      );
+      moveSelection(-1);
       return;
     }
     if (event.key === "Enter") {
       event.preventDefault();
-      const item = results[activeIndex];
-      if (item) choose(item);
+      if (activeItem) choose(activeItem);
       return;
     }
     if (event.key === "Escape") {
@@ -260,16 +405,9 @@ export function CommandPalette() {
       return;
     }
     if (event.key === "Tab") {
-      // One focus stop: the field. The palette is a single-purpose overlay.
-      event.preventDefault();
-      inputRef.current?.focus();
+      trapTab(event);
     }
   };
-
-  const flatIndex = new Map<string, number>();
-  results.forEach((item, index) => flatIndex.set(item.id, index));
-
-  let runningIndex = -1;
 
   return (
     <>
@@ -291,12 +429,11 @@ export function CommandPalette() {
       {mounted && open
         ? createPortal(
             <div
+              ref={overlayRef}
               className="fixed inset-0 z-[70] flex justify-center px-4"
-              onMouseDown={(event) => {
-                if (event.target === event.currentTarget) closePalette();
-              }}
             >
               <div
+                ref={panelRef}
                 role="dialog"
                 aria-modal="true"
                 aria-label="Search the tracker"
@@ -313,14 +450,14 @@ export function CommandPalette() {
                     aria-controls="palette-listbox"
                     aria-autocomplete="list"
                     aria-activedescendant={
-                      results[activeIndex] ? `palette-option-${results[activeIndex].id}` : undefined
+                      activeItem ? `palette-option-${activeItem.id}` : undefined
                     }
                     aria-label="Search pages, companies, ledger facilities and tickers"
                     placeholder="Search pages, companies, deals and tickers"
                     value={query}
                     onChange={(event) => {
                       setQuery(event.target.value);
-                      setActiveIndex(0);
+                      setActiveId(null);
                     }}
                     className="h-12 min-w-0 flex-1 bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-faint"
                   />
@@ -329,7 +466,7 @@ export function CommandPalette() {
                       type="button"
                       onClick={() => {
                         setQuery("");
-                        setActiveIndex(0);
+                        setActiveId(null);
                         inputRef.current?.focus();
                       }}
                       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-ink-subtle transition-colors hover:bg-surface-2 hover:text-ink"
@@ -358,25 +495,23 @@ export function CommandPalette() {
                       </p>
                     </div>
                   ) : (
-                    <ul id="palette-listbox" role="listbox" ref={listRef} aria-label="Search results">
-                      {grouped.map((group) => (
+                    <ul id="palette-listbox" role="listbox" aria-label="Search results">
+                      {groups.map((group) => (
                         <li key={group.group} role="presentation">
                           <p className="label px-4 pb-1 pt-3" aria-hidden="true">
                             {group.group}
                           </p>
                           <ul role="presentation">
-                            {group.rows.map((item) => {
-                              runningIndex += 1;
-                              const index = runningIndex;
-                              const selected = index === activeIndex;
+                            {group.rows.map((row) => {
+                              const item = row.item;
+                              const selected = activeItem?.id === item.id;
                               return (
                                 <li
                                   key={item.id}
                                   id={`palette-option-${item.id}`}
                                   role="option"
                                   aria-selected={selected}
-                                  data-index={index}
-                                  onMouseEnter={() => setActiveIndex(index)}
+                                  onMouseEnter={() => setActiveId(item.id)}
                                   onClick={() => choose(item)}
                                   className={[
                                     "flex cursor-pointer items-center justify-between gap-3 px-4 py-2.5 transition-colors",

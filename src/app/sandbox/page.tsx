@@ -43,6 +43,37 @@ import {
   Zap,
 } from "lucide-react";
 
+/**
+ * LIVE Excess CAPE Yield — the model's own reading, never a typed number.
+ *
+ * Source: src/lib/model/quantitative.ts → computeShillerCapeModel() (re-exported
+ * from @/lib/model/engine) evaluated on DEFAULT_MODEL_INPUTS, which resolves to
+ * src/data/live-inputs.json. The live reading is +0.30% (AI CAPE 32.4×, earnings
+ * yield 3.09% less the 2.79% real 10-year Treasury yield).
+ */
+const LIVE_EXCESS_CAPE_YIELD_PCT = computeShillerCapeModel(
+  DEFAULT_MODEL_INPUTS
+).excessCapeYieldPct;
+
+/**
+ * Live baseline readings, all read from the SAME live input set the model
+ * consumes — src/data/live-inputs.json, surfaced through DEFAULT_MODEL_INPUTS
+ * (src/lib/model/engine.ts). Nothing below is typed, so the snapshot panel can
+ * never disagree with the published model.
+ */
+const LIVE_CDS_BPS = DEFAULT_MODEL_INPUTS.cds?.currentBps ?? 0;
+const LIVE_CDS_BASELINE_BPS = DEFAULT_MODEL_INPUTS.cds?.baselineBps ?? 0;
+const LIVE_DEBT_SHARE_PCT = (DEFAULT_MODEL_INPUTS.ledger?.debtShare ?? 0) * 100;
+const LIVE_TRACKED_DEBT_B = (DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 0) / 1e9;
+const LIVE_LEDGER_TOTAL_T = (DEFAULT_MODEL_INPUTS.ledger?.totalDisclosedUsd ?? 0) / 1e12;
+const LIVE_TOKEN_DEFLATION = DEFAULT_MODEL_INPUTS.adoption?.apiPriceDeclineMultiple ?? 0;
+const LIVE_CROWD_2026_PCT =
+  (DEFAULT_MODEL_INPUTS.crowd?.bubble2026Probability ??
+    DEFAULT_MODEL_INPUTS.crowd?.yesProbability ??
+    0) * 100;
+const LIVE_CROWD_2027_PCT = (DEFAULT_MODEL_INPUTS.crowd?.bubble2027Probability ?? 0) * 100;
+const LIVE_CROWD_VOLUME_M = (DEFAULT_MODEL_INPUTS.crowd?.volumeUsd ?? 0) / 1e6;
+
 export default function SandboxPage() {
   const [sampleSeed, setSampleSeed] = useState(42);
   const [isSampling, setIsSampling] = useState(false);
@@ -55,14 +86,17 @@ export default function SandboxPage() {
 
   // Minsky Instability Regime interactive levers.
   // Defaults are the published 24h snapshot (src/data/latest-model.json,
-  // 19 Oct 2026): Ponzi 12.9% / Speculative 31.9% → Hedge 55.2%, fragility 65.6,
-  // refinancing-freeze probability 19.6%.
+  // 20 Oct 2026 sync): Ponzi 12.9% / Speculative 32.0% → Hedge 55.1%, fragility
+  // 65.7, refinancing-freeze probability 19.6%.
   const [ponziDebtShare, setPonziDebtShare] = useState<number>(latestModel.minsky.ponziSharePct);
   const [speculativeDebtShare, setSpeculativeDebtShare] = useState<number>(latestModel.minsky.speculativeSharePct);
   const [hedgeCashFlowCushion, setHedgeCashFlowCushion] = useState<number>(1.42);
 
-  // Shiller Excess CAPE Yield interactive lever
-  const [shillerECY, setShillerECY] = useState<number>(1.08);
+  // Shiller Excess CAPE Yield interactive lever.
+  // Default is the LIVE model's own excess CAPE yield (0.30% on the live
+  // inputs) — computed above from computeShillerCapeModel(DEFAULT_MODEL_INPUTS),
+  // not typed. The reset buttons restore the same live value.
+  const [shillerECY, setShillerECY] = useState<number>(LIVE_EXCESS_CAPE_YIELD_PCT);
 
   // Baseline calibration from today's automated 24h cron execution
   const baselineModel = useMemo(() => evaluateBubbleModel(DEFAULT_MODEL_INPUTS), []);
@@ -121,7 +155,7 @@ export default function SandboxPage() {
     setPonziDebtShare(latestModel.minsky.ponziSharePct);
     setSpeculativeDebtShare(latestModel.minsky.speculativeSharePct);
     setHedgeCashFlowCushion(1.42);
-    setShillerECY(1.08);
+    setShillerECY(LIVE_EXCESS_CAPE_YIELD_PCT);
   };
 
   const handleResample = () => {
@@ -136,12 +170,12 @@ export default function SandboxPage() {
   const deltaBurstProb = Math.round((activeResult.burstProbability - baselineModel.burstProbability) * 10) / 10;
   const deltaScore = Math.round((activeResult.compositeScore - baselineModel.compositeScore) * 10) / 10;
   const deltaFragility = (activeResult.fragilityIndex ?? 0) - (baselineModel.fragilityIndex ?? 0);
-  // Live anchors: 288bp Oracle 5Y CDS (record close Oct 15 2026, S&P Global
-  // Market Intelligence) and the 9.05% Polymarket crowd odds — see
-  // src/data/live-inputs.json.
-  const deltaCds = (activeInputs.cds?.currentBps ?? 288) - (DEFAULT_MODEL_INPUTS.cds?.currentBps ?? 288);
-  const deltaDebtShare = Math.round(((activeInputs.ledger?.debtShare ?? 0.075) - (DEFAULT_MODEL_INPUTS.ledger?.debtShare ?? 0.075)) * 100);
-  const deltaUs10y = Math.round(((activeInputs.macro?.us10yYieldPct ?? 5.10) - (DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 5.10)) * 100) / 100;
+  // Live anchors: the Oracle 5Y CDS print, the ledger debt share, the US10Y
+  // yield and the Polymarket crowd odds are all read from the live input set
+  // (src/data/live-inputs.json) through DEFAULT_MODEL_INPUTS — never typed.
+  const deltaCds = (activeInputs.cds?.currentBps ?? 0) - (DEFAULT_MODEL_INPUTS.cds?.currentBps ?? 0);
+  const deltaDebtShare = Math.round(((activeInputs.ledger?.debtShare ?? 0) - (DEFAULT_MODEL_INPUTS.ledger?.debtShare ?? 0)) * 100);
+  const deltaUs10y = Math.round(((activeInputs.macro?.us10yYieldPct ?? 0) - (DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 0)) * 100) / 100;
 
   // Monte Carlo Deltas against 24h Baseline
   const deltaMCMedian = Math.round((monteCarlo.medianProbabilityPct - baselineMonteCarlo.medianProbabilityPct) * 10) / 10;
@@ -153,7 +187,7 @@ export default function SandboxPage() {
     ponziDebtShare !== latestModel.minsky.ponziSharePct ||
     speculativeDebtShare !== latestModel.minsky.speculativeSharePct ||
     hedgeCashFlowCushion !== 1.42;
-  const isShillerModified = shillerECY !== 1.08;
+  const isShillerModified = shillerECY !== LIVE_EXCESS_CAPE_YIELD_PCT;
   const isSlidersModified = deltaBurstProb !== 0 || deltaCds !== 0 || deltaDebtShare !== 0 || deltaUs10y !== 0 || isMinskyModified || isShillerModified;
   // Refinancing-freeze trigger. The CDS leg was 260bp — a level calibrated
   // against the old 187bp reading. The verified 288bp record close (Oct 15 2026)
@@ -166,14 +200,12 @@ export default function SandboxPage() {
     minsky.refinancingFreezeProbabilityPct >= 20 ||
     minsky.currentRegime === "Ponzi Instability" ||
     ponziDebtShare >= 22.0 ||
-    (activeInputs.cds?.currentBps ?? 288) >= REFINANCING_FREEZE_CDS_TRIGGER_BPS;
+    (activeInputs.cds?.currentBps ?? 0) >= REFINANCING_FREEZE_CDS_TRIGGER_BPS;
 
   // ── Preset stress-scenario benchmarks ─────────────────────────────────────
-  // Every number in this table is recomputed from DEFAULT_MODEL_INPUTS at render
-  // time, so it can never drift from the live model. Live anchors as of the
-  // 19 Oct 2026 verification: Oracle 5Y CDS 288bp (record close Oct 15 2026),
-  // ledger debt share 7.5%, median lab P/S 29.4×, token deflation 670× (input
-  // basis), CY2026 hyperscaler capex $725B.
+  // Every number in this table is recomputed from DEFAULT_MODEL_INPUTS (the live
+  // input set: src/data/live-inputs.json) at render time, so it can never drift
+  // from the live model.
   const stressScenarios = useMemo(() => {
     const base = DEFAULT_MODEL_INPUTS;
     const clone = (): BubbleModelInputs =>
@@ -197,10 +229,10 @@ export default function SandboxPage() {
 
     const run = (i: BubbleModelInputs) => evaluateBubbleModel(i, { skipSubModels: true });
 
-    const liveCds = base.cds?.currentBps ?? 288;
-    const liveDebtShare = ((base.ledger?.debtShare ?? 0.075) * 100).toFixed(1);
-    const liveCapexB = Math.round((base.capex?.aggregateCapexUsd ?? 725_000_000_000) / 1e9);
-    const liveDeflation = base.adoption?.apiPriceDeclineMultiple ?? 670;
+    const liveCds = base.cds?.currentBps ?? 0;
+    const liveDebtShare = ((base.ledger?.debtShare ?? 0) * 100).toFixed(1);
+    const liveCapexB = Math.round((base.capex?.aggregateCapexUsd ?? 0) / 1e9);
+    const liveDeflation = base.adoption?.apiPriceDeclineMultiple ?? 0;
 
     const baseline = clone();
     const baselineResult = run(baseline);
@@ -217,12 +249,12 @@ export default function SandboxPage() {
     compressValuations(multiple, 15);
     const multipleResult = run(multiple);
 
-    // Capex retrenchment: 20% off the live $725B CY2026 guide (and the matching
-    // 20% drop in capex/OCF), i.e. $580B — NOT the old $168B, which was a 77% cut
+    // Capex retrenchment: 20% off the live CY2026 capex guide (and the matching
+    // 20% drop in capex/OCF) — NOT the old $168B, which was a 77% cut
     // mislabelled as 20%.
     const capex = clone();
     capex.capex = { ...capex.capex!, aggregateCapexUsd: Math.round((capex.capex?.aggregateCapexUsd ?? 0) * 0.8) };
-    capex.aiDebt = { ...capex.aiDebt!, capexToOcfRatio: (capex.aiDebt?.capexToOcfRatio ?? 0.548) * 0.8 };
+    capex.aiDebt = { ...capex.aiDebt!, capexToOcfRatio: (capex.aiDebt?.capexToOcfRatio ?? 0) * 0.8 };
     const capexResult = run(capex);
 
     // Soft landing: credit normalises to 150bp, leverage halves, multiples
@@ -306,28 +338,38 @@ export default function SandboxPage() {
   }, []);
 
   // ── Marginal sensitivity elasticity ───────────────────────────────────────
-  // Each impact is measured by re-running the published model on a perturbed
-  // input set, so the table reports what the model actually does. Two factors
-  // are saturated at today's readings (credit stress and capex coverage), and
-  // the token damper saturates at 50× — the notes say so instead of quoting a
-  // stale sensitivity.
+  // EVERY number in this table is produced by the published model itself: each
+  // row re-runs evaluateBubbleModel() on a perturbed copy of the live input set
+  // (src/data/live-inputs.json via DEFAULT_MODEL_INPUTS) and reports the change
+  // in the 12-month burst probability. No impact is typed, and a row that cannot
+  // be computed is removed rather than printed.
   const elasticityRules = useMemo(() => {
     const base = DEFAULT_MODEL_INPUTS;
     const clone = (): BubbleModelInputs =>
       JSON.parse(JSON.stringify(base)) as BubbleModelInputs;
-    const prob = (i: BubbleModelInputs) =>
-      evaluateBubbleModel(i, { skipSubModels: true }).burstProbability;
+    const run = (i: BubbleModelInputs) => evaluateBubbleModel(i, { skipSubModels: true });
 
-    const baseProb = prob(clone());
+    const baseline = run(clone());
 
-    /** Change in burst probability (pts) caused by `mutate`. */
-    const delta = (mutate: (i: BubbleModelInputs) => void) => {
-      const i = clone();
-      mutate(i);
-      const d = Math.round((prob(i) - baseProb) * 10) / 10;
+    /**
+     * Change in 12-month burst probability (pts) caused by moving one input from
+     * `from` to `to` — both runs go through the published model.
+     */
+    const step = (
+      mutate: (i: BubbleModelInputs, value: number) => void,
+      from: number,
+      to: number
+    ) => {
+      const a = clone();
+      mutate(a, from);
+      const b = clone();
+      mutate(b, to);
+      const d = Math.round((run(b).burstProbability - run(a).burstProbability) * 10) / 10;
       return d === 0 ? 0 : d;
     };
 
+    // Median price/sales across the labs with a verified run-rate (same basis as
+    // /api/v1/model) — computed from the live valuation set.
     const psValues = (base.valuations || [])
       .filter((v) => v.runRateRevenueUsd !== null && (v.runRateRevenueUsd as number) >= 100_000_000)
       .map((v) => v.valuationUsd / (v.runRateRevenueUsd as number))
@@ -342,77 +384,112 @@ export default function SandboxPage() {
       i.valuations = (i.valuations || []).map((v) => ({ ...v, valuationUsd: v.valuationUsd * factor }));
     };
 
-    const liveCds = base.cds?.currentBps ?? 288;
-    const liveCdsBaseline = base.cds?.baselineBps ?? 81;
-    const liveCdsPrior = base.cds?.priorBps ?? 203;
-    const liveDebtSharePct = (base.ledger?.debtShare ?? 0.075) * 100;
-    const liveUs10y = base.macro?.us10yYieldPct ?? 5.10;
-    const liveUs10yNeutral = base.macro?.us10yBaselinePct ?? 3.75;
-    const liveDeflation = base.adoption?.apiPriceDeclineMultiple ?? 670;
-    const liveCapexB = Math.round((base.capex?.aggregateCapexUsd ?? 725_000_000_000) / 1e9);
-    const liveCapexFcf = ((base.capex?.aggregateCapexUsd ?? 0) / (base.capex?.aggregateFcfUsd ?? 1)).toFixed(2);
+    // Live inputs (src/data/live-inputs.json).
+    const liveCds = base.cds?.currentBps ?? 0;
+    const liveCdsBaseline = base.cds?.baselineBps ?? 0;
+    const liveDebtSharePct = (base.ledger?.debtShare ?? 0) * 100;
+    const liveUs10y = base.macro?.us10yYieldPct ?? 0;
+    const liveUs10yNeutral = base.macro?.us10yBaselinePct ?? 0;
+    const liveDeflation = base.adoption?.apiPriceDeclineMultiple ?? 0;
+    const liveCapexUsd = base.capex?.aggregateCapexUsd ?? 0;
+    const liveCapexB = Math.round(liveCapexUsd / 1e9);
+    const liveCapexFcf = liveCapexUsd / (base.capex?.aggregateFcfUsd || 1);
+    const liveOcfRatioPct = (base.aiDebt?.capexToOcfRatio ?? 0) * 100;
 
-    // Token deflation: the damper ramps over 1×-50× (factors.ts), so the only
-    // place a +10× step still moves the model is inside that ramp. Beyond 50×
-    // the damper is saturated and the live reading is far past it.
-    const preSaturationDelta = (() => {
-      const i = clone();
-      i.adoption = { ...i.adoption!, apiPriceDeclineMultiple: 50 };
-      const j = clone();
-      j.adoption = { ...j.adoption!, apiPriceDeclineMultiple: 40 };
-      const d = Math.round((prob(i) - prob(j)) * 10) / 10;
-      return d === 0 ? 0 : d;
-    })();
+    // The credit factor's own state, straight from the engine's contribution
+    // list (src/lib/model/engine.ts → evaluateBubbleModel().contributions).
+    const creditFactor = baseline.contributions.find((c) => c.id === "cds_stress");
+    const creditScore = creditFactor?.reading.score ?? 0;
+    const creditPoints = creditFactor?.earnedPoints ?? 0;
+    const creditWeight = creditFactor?.weightPct ?? 0;
+    const creditRatio = liveCdsBaseline > 0 ? liveCds / liveCdsBaseline : 0;
+
+    // Token deflation: the damper's deflation leg (src/lib/model/factors.ts) is
+    // scored across 50×–500×, so the live reading sits past it. One row probes
+    // the middle of the scored range, one probes the live reading itself.
+    const deflationProbe = 200;
+
+    const cdsImpact = step(
+      (i, v) => { i.cds = { ...i.cds!, currentBps: v }; },
+      liveCds,
+      liveCds + 10
+    );
+    const psImpact = step((i, v) => compressTo(i, v), medianPs, medianPs - 5);
+    const deflationInsideImpact = step(
+      (i, v) => { i.adoption = { ...i.adoption!, apiPriceDeclineMultiple: v }; },
+      deflationProbe,
+      deflationProbe + 10
+    );
+    const deflationLiveImpact = step(
+      (i, v) => { i.adoption = { ...i.adoption!, apiPriceDeclineMultiple: v }; },
+      liveDeflation,
+      liveDeflation + 10
+    );
+    const debtShareImpact = step(
+      (i, v) => { i.ledger = { ...i.ledger!, debtShare: v }; },
+      liveDebtSharePct / 100,
+      liveDebtSharePct / 100 + 0.05
+    );
+    const us10yImpact = step(
+      (i, v) => { i.macro = { ...i.macro!, us10yYieldPct: v }; },
+      liveUs10y,
+      liveUs10y + 0.5
+    );
+    const capexImpact = step(
+      (i, v) => { i.capex = { ...i.capex!, aggregateCapexUsd: Math.round(v) }; },
+      liveCapexUsd,
+      liveCapexUsd * 1.2
+    );
 
     return [
       {
         id: "cds",
         lever: "Oracle 5Y CDS Spread",
-        change: "+10 bp",
-        impact: delta((i) => { i.cds = { ...i.cds!, currentBps: liveCds + 10 }; }),
-        note: `Primary debt refinancing trigger for GPU cluster notes. The credit factor is already maxed — ${liveCds}bp is ${(liveCds / liveCdsBaseline).toFixed(1)}× the ${liveCdsBaseline}bp baseline and +${liveCds - liveCdsPrior}bp on the ${liveCdsPrior}bp 90-day print — so both ramps sit at their extremes and the marginal spread move is 0.0 pts.`,
+        change: `+10 bp (${liveCds} bp → ${liveCds + 10} bp)`,
+        impact: cdsImpact,
+        note: `Primary debt refinancing trigger for GPU cluster notes. The credit factor scores ${creditScore.toFixed(2)} on its level ramp and contributes ${creditPoints.toFixed(1)} of its ${creditWeight} published points — ${liveCds} bp is ${creditRatio.toFixed(2)}× the ${liveCdsBaseline} bp baseline, so the factor is NOT maxed and the marginal +10 bp move is worth ${cdsImpact.toFixed(1)} pts.`,
       },
       {
         id: "ps",
         lever: "Private Lab P/S Multiple",
         change: `−5.0× (${medianPs.toFixed(1)}× → ${(medianPs - 5).toFixed(1)}×)`,
-        impact: delta((i) => compressTo(i, medianPs - 5)),
-        note: "Earnings growth catches up to valuation run-rates. The factor ramps linearly over 8×–60×, so a 5× move is still worth real probability.",
+        impact: psImpact,
+        note: `Earnings growth catches up to valuation run-rates. The factor ramps linearly over 8×–60× (src/lib/model/factors.ts), and the live ${medianPs.toFixed(1)}× median is still inside the ramp, so a 5× move is worth ${Math.abs(psImpact).toFixed(1)} pts of burst odds.`,
       },
       {
-        id: "deflation-pre",
-        lever: "Token Price Deflation (pre-saturation)",
-        change: "+10× cheaper (40× → 50×)",
-        impact: preSaturationDelta,
-        note: `Real utility adoption expands unit margins. This is the full size of the effect inside the damper's 1×–50× ramp — below saturation, cheaper tokens are worth about ${Math.abs(preSaturationDelta).toFixed(1)} pts of burst odds per 10×.`,
+        id: "deflation-scored-leg",
+        lever: "Token Price Deflation (inside the damper's scored leg)",
+        change: `+10× cheaper (${deflationProbe}× → ${deflationProbe + 10}×)`,
+        impact: deflationInsideImpact,
+        note: `Real utility adoption expands unit margins. The damper's deflation leg (src/lib/model/factors.ts) is scored across 50×–500×, so this row probes the middle of the scored range: cheaper tokens are worth ${Math.abs(deflationInsideImpact).toFixed(1)} pts of burst odds per 10×.`,
       },
       {
-        id: "deflation-saturated",
-        lever: "Token Price Deflation (saturated)",
+        id: "deflation-live",
+        lever: "Token Price Deflation (at the live reading)",
         change: `+10× cheaper (${liveDeflation}× → ${liveDeflation + 10}×)`,
-        impact: delta((i) => { i.adoption = { ...i.adoption!, apiPriceDeclineMultiple: liveDeflation + 10 }; }),
-        note: `Beyond ~50× the damper saturates: additional cheapening moves the odds 0.0 pts. The live ${liveDeflation}× reading is far past that point, so token deflation no longer lowers the probability at all.`,
+        impact: deflationLiveImpact,
+        note: `The live ${liveDeflation}× reading is past the damper's scored leg, so the damper's contribution cannot move: additional cheapening changes the odds ${deflationLiveImpact.toFixed(1)} pts.`,
       },
       {
         id: "debt-share",
         lever: "Debt Share in Ledger",
         change: `+5.0 pts (${liveDebtSharePct.toFixed(1)}% → ${(liveDebtSharePct + 5).toFixed(1)}%)`,
-        impact: delta((i) => { i.ledger = { ...i.ledger!, debtShare: 0.125 }; }),
-        note: "Leverage increases sensitivity to rate volatility. The factor ramps over 2.5%–15%, and 12.5% is still inside the ramp.",
+        impact: debtShareImpact,
+        note: `Leverage increases sensitivity to rate volatility. The factor ramps over 2.5%–15% (src/lib/model/factors.ts), and ${(liveDebtSharePct + 5).toFixed(1)}% is still inside the ramp — worth ${debtShareImpact.toFixed(1)} pts of burst odds.`,
       },
       {
         id: "us10y",
         lever: "US 10-Year Treasury Yield",
         change: `+50 bp (${liveUs10y.toFixed(2)}% → ${(liveUs10y + 0.5).toFixed(2)}%)`,
-        impact: delta((i) => { i.macro = { ...i.macro!, us10yYieldPct: liveUs10y + 0.5 }; }),
-        note: `Elevates long-duration DCF hurdle discount rates. The yield ramp (${liveUs10yNeutral.toFixed(2)}%–5.25%) is already at ${(((liveUs10y - liveUs10yNeutral) / (5.25 - liveUs10yNeutral))).toFixed(2)} of its range, so only a sliver of headroom is left.`,
+        impact: us10yImpact,
+        note: `Elevates long-duration DCF hurdle discount rates. The published yield ramp (${liveUs10yNeutral.toFixed(2)}%–5.25%, src/lib/model/factors.ts) is already ${(((liveUs10y - liveUs10yNeutral) / (5.25 - liveUs10yNeutral)) * 100).toFixed(0)}% of its range, so only a sliver of headroom is left — the +50 bp step is worth ${us10yImpact.toFixed(1)} pts.`,
       },
       {
         id: "capex",
         lever: "Hyperscaler Capex/FCF Ratio",
         change: `+20% ($${liveCapexB}B → $${Math.round(liveCapexB * 1.2)}B)`,
-        impact: delta((i) => { i.capex = { ...i.capex!, aggregateCapexUsd: Math.round((i.capex?.aggregateCapexUsd ?? 0) * 1.2) }; }),
-        note: `Capex is already ${liveCapexFcf}× free cash flow, past the 2.0× extreme threshold, so the factor is maxed and a 20% build-out moves 0.0 pts. Even a 20% cut to $${Math.round(liveCapexB * 0.8)}B stays maxed.`,
+        impact: capexImpact,
+        note: `Capex is ${liveCapexFcf.toFixed(2)}× free cash flow, past the 2.0× ramp ceiling (src/lib/model/factors.ts), so the free-cash-flow leg is saturated and a 20% build-out moves the odds ${capexImpact.toFixed(1)} pts. A 20% cut to $${Math.round(liveCapexB * 0.8)}B (${(liveCapexFcf * 0.8).toFixed(2)}× FCF) stays saturated too; the operating-cash-flow leg (${liveOcfRatioPct.toFixed(1)}% of OCF) is the only leg still inside its ramp.`,
       },
     ];
   }, []);
@@ -507,23 +584,25 @@ export default function SandboxPage() {
           <div className="panel space-y-1">
             <p className="label">Oracle 5Y CDS</p>
             <p className="num mt-1 text-xl font-semibold text-risk-700">
-              {DEFAULT_MODEL_INPUTS.cds?.currentBps ?? 288} bp
+              {LIVE_CDS_BPS} bp
             </p>
-            <p className="mt-0.5 truncate text-ink-subtle">vs 81 bp baseline</p>
+            <p className="mt-0.5 truncate text-ink-subtle">vs {LIVE_CDS_BASELINE_BPS} bp baseline</p>
           </div>
 
           <div className="panel space-y-1">
             <p className="label">Ledger Debt Share</p>
             <p className="num mt-1 text-xl font-semibold text-caution-700">
-              {((DEFAULT_MODEL_INPUTS.ledger?.debtShare ?? 0.075) * 100).toFixed(1)}%
+              {LIVE_DEBT_SHARE_PCT.toFixed(1)}%
             </p>
-            <p className="num mt-0.5 truncate text-ink-subtle">$214.9B / $2.87T</p>
+            <p className="num mt-0.5 truncate text-ink-subtle">
+              ${LIVE_TRACKED_DEBT_B.toFixed(1)}B / ${LIVE_LEDGER_TOTAL_T.toFixed(2)}T
+            </p>
           </div>
 
           <div className="panel space-y-1">
             <p className="label">Token Deflation</p>
             <p className="num mt-1 text-xl font-semibold text-safe-700">
-              {DEFAULT_MODEL_INPUTS.adoption?.apiPriceDeclineMultiple ?? 670}×
+              {LIVE_TOKEN_DEFLATION}×
             </p>
             <p className="mt-0.5 truncate text-ink-subtle">OpenRouter live, input basis</p>
           </div>
@@ -531,9 +610,14 @@ export default function SandboxPage() {
           <div className="panel space-y-1">
             <p className="label">Polymarket Odds</p>
             <p className="num mt-1 text-xl font-semibold text-ink">
-              {((DEFAULT_MODEL_INPUTS.crowd?.yesProbability ?? 0.0905) * 100).toFixed(1)}%
+              {LIVE_CROWD_2026_PCT.toFixed(1)}%
             </p>
-            <p className="num mt-0.5 truncate text-ink-subtle">$9.17M volume</p>
+            <p className="num mt-0.5 truncate text-ink-subtle">
+              Dec-2026 · ${LIVE_CROWD_VOLUME_M.toFixed(2)}M volume
+            </p>
+            <p className="num mt-0.5 truncate text-ink-subtle">
+              Jun-2027: {LIVE_CROWD_2027_PCT.toFixed(1)}%
+            </p>
           </div>
 
           <div className="panel space-y-1">
@@ -633,11 +717,13 @@ export default function SandboxPage() {
                 )}
 
                 {/* Shiller ECY delta */}
-                {shillerECY !== 1.08 && (
+                {shillerECY !== LIVE_EXCESS_CAPE_YIELD_PCT && (
                   <span className="chip num">
                     Δ Shiller ECY:
-                    <span className={shillerECY < 1.08 ? "text-risk-700" : "text-safe-700"}>
-                      {shillerECY > 1.08 ? `+${(shillerECY - 1.08).toFixed(2)}%` : `${(shillerECY - 1.08).toFixed(2)}%`}
+                    <span className={shillerECY < LIVE_EXCESS_CAPE_YIELD_PCT ? "text-risk-700" : "text-safe-700"}>
+                      {shillerECY > LIVE_EXCESS_CAPE_YIELD_PCT
+                        ? `+${(shillerECY - LIVE_EXCESS_CAPE_YIELD_PCT).toFixed(2)}%`
+                        : `${(shillerECY - LIVE_EXCESS_CAPE_YIELD_PCT).toFixed(2)}%`}
                     </span>
                   </span>
                 )}
@@ -715,7 +801,7 @@ export default function SandboxPage() {
                   setPonziDebtShare(latestModel.minsky.ponziSharePct);
                   setSpeculativeDebtShare(latestModel.minsky.speculativeSharePct);
                   setHedgeCashFlowCushion(1.42);
-                  setShillerECY(1.08);
+                  setShillerECY(LIVE_EXCESS_CAPE_YIELD_PCT);
                 }}
                 className="btn min-h-11 cursor-pointer"
                 title="Reset Minsky and Shiller sliders to baseline"
@@ -984,7 +1070,7 @@ export default function SandboxPage() {
                 Structural Distance-to-Default
               </h3>
               <p className="text-[14px] text-ink-muted leading-relaxed">
-                Evaluates corporate AI debt ($214.9B) against total guarantor asset value ($1.42T) under a 36.5% volatility environment.
+                Evaluates corporate AI debt (${(merton.totalDebtUsd / 1e9).toFixed(1)}B) against total guarantor asset value (${(merton.assetValueUsd / 1e12).toFixed(2)}T) under a {merton.assetVolatilityPct}% volatility environment.
               </p>
               <div className="panel space-y-1">
                 <div className="flex justify-between">
@@ -1015,7 +1101,7 @@ export default function SandboxPage() {
                 Tech &amp; Cloud Distress Classifier
               </h3>
               <p className="text-[14px] text-ink-muted leading-relaxed">
-                Four-variable formula for emerging cloud tech: Working capital, negative retained earnings (lab burn), and 7.2× equity/debt.
+                Four-variable formula for emerging cloud tech: Working capital, negative retained earnings (lab burn), and {altman.components.marketCapToDebt}× equity/debt.
               </p>
               <div className="panel space-y-1">
                 <div className="flex justify-between">
@@ -1304,25 +1390,29 @@ export default function SandboxPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-[14px] sm:text-sm">
+            <caption className="sr-only">
+              Marginal sensitivity of the 12-month burst probability to each model lever: the
+              delta tested, the measured impact on burst odds, and the transmission mechanism.
+            </caption>
             <thead className="border-b border-rule-strong text-ink-subtle">
               <tr>
-                <th className="p-3.5">Variable / Lever</th>
-                <th className="p-3.5">Delta Tested</th>
-                <th className="p-3.5">Impact on 12M Burst Odds</th>
-                <th className="p-3.5">Transmission Mechanism</th>
+                <th scope="col" className="p-3.5">Variable / Lever</th>
+                <th scope="col" className="p-3.5">Delta Tested</th>
+                <th scope="col" className="p-3.5">Impact on 12M Burst Odds</th>
+                <th scope="col" className="p-3.5">Transmission Mechanism</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-rule divide-rule/80">
               {elasticityRules.map((r) => (
                 <tr key={r.id} className="hover:bg-surface-2/50 hover:bg-surface-2/40 transition-colors">
-                  <td className="p-3.5 font-semibold text-ink">{r.lever}</td>
+                  <th scope="row" className="p-3.5 font-semibold text-ink">{r.lever}</th>
                   <td className="num p-3.5 font-semibold text-ink">{r.change}</td>
                   <td
                     className={`num p-3.5 font-semibold ${
                       r.impact > 0 ? "text-risk-700" : r.impact < 0 ? "text-safe-700" : "text-ink-muted"
                     }`}
                   >
-                    {r.impact > 0 ? "+" : ""}{r.impact.toFixed(1)}% Burst Odds
+                    {r.impact > 0 ? "+" : ""}{r.impact.toFixed(1)} pts Burst Odds
                   </td>
                   <td className="p-3.5 text-[14px] leading-relaxed text-ink-muted">{r.note}</td>
                 </tr>
@@ -1338,7 +1428,13 @@ export default function SandboxPage() {
           <BarChart3 className="h-5 w-5 text-ink-subtle" aria-hidden="true" />
           <span>Non-Linear Sigmoid Response Curve Calibration</span>
         </h2>
-        <SensitivityCurveChart />
+        {/* The chart's "Live reading" chip is fed the LIVE model's own output for the
+            current sandbox state (src/lib/model/engine.ts → evaluateBubbleModel),
+            never a hard-coded print. */}
+        <SensitivityCurveChart
+          currentScore={activeResult.compositeScore}
+          currentProb={activeResult.burstProbability}
+        />
       </section>
 
       <AdSlot placementId="sandbox-bottom" className="mt-6" />

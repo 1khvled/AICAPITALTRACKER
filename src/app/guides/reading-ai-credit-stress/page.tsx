@@ -1,4 +1,6 @@
 import React from "react";
+import { GuideToc } from "@/components/GuideToc";
+import { GUIDE_SECTIONS } from "@/lib/guides/sections";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -19,6 +21,7 @@ import {
   GuideDisclosure,
   NotThisPanel,
 } from "../_components/GuideChrome";
+import { GuidePager } from "../_components/GuidePager";
 import liveInputs from "@/data/live-inputs.json";
 import liveStocks from "@/data/live-stocks.json";
 import latestModel from "@/data/latest-model.json";
@@ -155,6 +158,11 @@ export default function CreditStressGuidePage() {
         readTime={guide.readTime}
         meta={[`snapshot ${SNAPSHOT_LABEL}`, `model print ${model.burstProbability.toFixed(1)}%`]}
       />
+
+      {/* The navigation layer: a sticky, scroll-spy contents with a deep link
+          per section, so a reader who lands here from a search result can see
+          the shape of the argument before committing to it. */}
+      <GuideToc sections={GUIDE_SECTIONS["reading-ai-credit-stress"]} />
 
       <div className="mt-8 space-y-10">
         {/* ── SECTION 01 ─────────────────────────────────────────────────── */}
@@ -552,7 +560,7 @@ export default function CreditStressGuidePage() {
               earnings.
             </p>
             <p>
-              The high-yield leg is the smallest at 20% and the only credit leg inside the macro
+              The real-yield leg is the smallest at 15%; the high-yield leg is 20%, and only the high-yield leg inside the macro
               factor. It is there to catch a broad credit shock, which a single-issuer spread
               cannot see, and the two do different jobs: one prices one borrower&apos;s default
               risk, the other prices the market&apos;s appetite for risk in general. The contagion
@@ -798,6 +806,12 @@ export default function CreditStressGuidePage() {
 
       <div className="mt-10">
         <GuideFooter current={guide} next={next} />
+      </div>
+
+      {/* The pager: the other two guides, and the date this one was checked
+          against the published snapshot. */}
+      <div className="mt-8">
+        <GuidePager current={guide} />
       </div>
     </div>
   );

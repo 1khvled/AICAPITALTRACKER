@@ -91,8 +91,11 @@
  *   exposes up to five slots on the long money pages and four elsewhere —
  *   page, not registry, decides what is actually configured. Every slot is
  *   below the primary answer or between sections, never above the headline,
- *   never over a control, and every script below the fold waits for the
- *   viewport (see AdScript) so phones load only the units being read.
+ *   never over a control. Below the fold, the `/21/` native scripts wait for
+ *   the viewport (see AdScript) so phones load only the units being read; the
+ *   `/22/` display creatives are deferred by the browser's own lazy-iframe
+ *   loading (they are not gated by AdScript - an isolation iframe cannot be
+ *   injected by a script the way a native unit can).
  *
  * WHY NEXT_PUBLIC_
  * ─────────────────────────────────────────────────────────────────────────

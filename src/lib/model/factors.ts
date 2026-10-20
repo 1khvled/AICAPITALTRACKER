@@ -72,10 +72,58 @@ export const MODEL_VERSION = '2.7.0';
 
 /**
  * 12-month market-implied burst probability used as the published band's floor
- * (Lane 2's crowd reconciler publishes the derivation). Exported here so the
- * band rule lives next to the model that consumes it, not in a renderer.
+ * (the model may never publish a floor above what money on the line prices).
+ *
+ * 2026-10-20 (v2.7.1): this is the FALLBACK 12-month proxy price - the
+ * longest-dated tracked contract (the Jun-2027 bubble contract) at its last
+ * published print. The band itself is now COMPUTED from the live contract
+ * price by `marketImplied12mBand()` in documentFormulas.ts, so the published
+ * range tracks the market instead of standing still while the market moves.
  */
-export const MARKET_IMPLIED_12M_PCT = 23.0;
+export const MARKET_IMPLIED_12M_PCT = 19.5;
+
+/**
+ * The 12-month market-implied read, COMPUTED from the tracked contracts.
+ *
+ * The longest-dated tracked contract is the closest thing the market prices to
+ * a 12-month question. It is scaled by a published horizon/bias factor α — a
+ * 12-month horizon carries more risk than the contract's own shorter window, so
+ * α > 1 — and the band spans the published α range.
+ *
+ * Every number below is computed from that price and those α values. None of
+ * it is typed, so the band tracks the market instead of standing still while
+ * the market moves, and the band-floor rule is true BY CONSTRUCTION: the
+ * band's low end IS the market's own price (α = 1.00), so the published range
+ * can never be narrower than what money on the line prices.
+ */
+export function marketImplied12mBand(contractPct: number): {
+  /** The contract price the read is scaled from. */
+  contractPct: number;
+  /** Central read at the published bias-correction α. */
+  centralPct: number;
+  /** Low end of the band (α at the bottom of its range = the raw price). */
+  lowPct: number;
+  /** High end of the band (α at the top of its range). */
+  highPct: number;
+  /** α range the band is quoted over. */
+  alphaRange: [number, number];
+  /** Central bias-correction α. */
+  alphaCentral: number;
+} {
+  const price =
+    Number.isFinite(contractPct) && contractPct > 0 ? contractPct : MARKET_IMPLIED_12M_PCT;
+  const alphaRange: [number, number] = [1.0, 1.25];
+  const alphaCentral = 1.1;
+  const round1 = (n: number) => Math.round(n * 10) / 10;
+  return {
+    contractPct: round1(price),
+    centralPct: round1(price * alphaCentral),
+    lowPct: round1(price * alphaRange[0]),
+    highPct: round1(price * alphaRange[1]),
+    alphaRange,
+    alphaCentral,
+  };
+}
 
 /**
  * The Financial Fragility Index is a LINEAR RE-EXPRESSION of the same factor
@@ -208,7 +256,10 @@ const CDS_SCORE_CEILING = 2.0; // panic ceiling: 18 × 2 = 36 composite points
  *
  * Effect on the live canon: credit score 1.000 → 0.390 (7.0 of 18 points), the
  * contagion term falls with it (it consumes the tail-free core), composite
- * 63.6 → 48.3, published print 72.3% → 32.2%.
+ * 63.6 → 48.3, published print 72.3% → 32.3%. Neither published fragility
+ * index moved: the engine's derivative-weighted index stays at 53 and the
+ * Minsky index at 65.7 — they are two different metrics and neither reads
+ * the credit ramp.
  */
 const CDS_LEVEL_CEILING_RATIO = CDS_TAIL_ORIGIN_RATIO + CDS_TAIL_SPAN; // 7.5556×
 const cdStress: ModelFactor = {
@@ -324,7 +375,9 @@ const macroRatesStress: ModelFactor = {
   explain:
     '10-Year US Treasury yield, headline CPI inflation, real yields, and US high-yield credit spreads. High cost of capital compresses valuation multiples and inflates datacenter debt service burdens.',
   formula:
-    'score = 0.40·ramp(US10Y, 3.75%, 5.25%) + 0.25·ramp(CPI YoY, 2.0%, 4.5%) + 0.15·ramp(Real Yield, 1.5%, 3.0%) + 0.20·ramp(HY Spread, 250bp, 500bp)',
+    'score = min(2, 0.40·ramp(US10Y, 3.75%, 5.25%) + 0.25·ramp(CPI YoY, 2.0%, 4.5%) + 0.15·ramp(Real Yield, 1.5%, 3.0%) + 0.20·(ramp(HY Spread, 250bp, 500bp) + 0.30·clamp01((HY−500)/700)^1.5))',
+    // 2026-10-20: the published string now discloses the convex HY panic tail and the
+    // min(2, …) ceiling, which the old string hid (it stopped at the plain ramp).
   compute: (i) => {
     // 2026-10-19 (pass 11): fallback macro block aligned to the FRED-verified live set in
     // src/data/live-inputs.json — CPI 2.9 → 3.72 (FRED CPIAUCSL Sep-2026 336.298 vs Sep-2025

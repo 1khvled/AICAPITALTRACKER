@@ -224,7 +224,27 @@ export function AdSlot({
         marginWidth={0}
         marginHeight={0}
         loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
+        referrerPolicy="no-referrer"
+        /*
+          WHAT THIS SANDBOX GUARANTEES
+          - `allow-top-navigation` is NOT granted, so a creative can open its own
+            tab on a click but can never redirect this page. That is the promise
+            the non-intrusive policy makes, and it holds.
+          - Autoplay is not granted, so nothing ever makes noise on load.
+          - `allow-forms` and popups cover ad destinations that submit or open
+            in new tabs.
+
+          WHAT IT DOES NOT
+          `allow-same-origin` IS granted, and it has to be: Adsterra's invocation
+          script reads `document.cookie` and throws a SecurityError without it,
+          which kills the creative entirely (measured in a browser, not
+          assumed). So the sandboxed document is same-origin with the page: the
+          ad network's code could in principle read this page's localStorage or
+          rewrite its DOM. That is the trade Adsterra's model forces, and it is
+          stated here rather than glossed over. What we can still do is refuse
+          to hand over the page address: `referrerPolicy="no-referrer"` above
+          means the creative never learns which page it is sitting on.
+        */
         sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms"
       />
     );

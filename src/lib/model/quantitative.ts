@@ -18,7 +18,7 @@ import {
   ShillerCapeResult,
   EquityRiskPremiumBand,
 } from './types';
-import { MARKET_IMPLIED_12M_PCT } from './factors';
+import { MARKET_IMPLIED_12M_PCT, marketImplied12mBand } from './factors';
 import { evaluateBubbleModel } from './engine';
 
 // ── Standard Normal Cumulative Distribution Function (Abramowitz & Stegun 7.1.26) ──
@@ -762,7 +762,13 @@ export function runMonteCarloSimulation(
   // 2026-10-19 (v2.6.0): published band floor rule — the published range may never sit
   // above the market-implied 12-month probability (Lane 2's crowd reconciler), so the
   // model can never read as more certain than the market's own floor.
-  const bandLowPct = Math.min(p5, MARKET_IMPLIED_12M_PCT);
+  // 2026-10-20 (v2.7.1): the floor is COMPUTED from the live contract price, so it
+  // moves with the market instead of standing still. The band's low end IS the
+  // market's own price (alpha = 1.00), so the rule holds by construction.
+  const marketRead = marketImplied12mBand(
+    (baseInputs.crowd?.bubble2027Probability ?? 0) * 100,
+  );
+  const bandLowPct = Math.min(p5, marketRead.lowPct);
 
   // Expected Shortfall (CVaR 95%): Mean of worst 5% tail outcomes
   const tailSlice95 = results.slice(Math.floor(iterations * 0.95));

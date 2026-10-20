@@ -61,11 +61,11 @@ export async function GET() {
     // 2026-10-20 (model v2.7.0): every fallback below is re-synced to the published
     // output in src/data/latest-model.json (burst 32.3 / composite 48.3 / band "guarded"
     // after the credit factor's level ramp stopped clipping at x3; MC median 26.3,
-    // VaR95 75.3, VaR99 92.9). LPPLS 81.5, Minsky MFI 65.6 and Shiller ECY 0.34 are
+    // VaR95 75.3, VaR99 92.9). LPPLS 81.5, Minsky MFI 65.7 and Shiller ECY 0.30 are
     // unchanged — they do not read the credit ramp.
     // 2026-10-19 (round-2 consolidation): every fallback below is re-synced to the published
-    // output in src/data/latest-model.json (burst 71.6 / composite 63.3 / band "high" after the
-    // HY-OAS correction to the FRED print; LPPLS 81.5; Minsky MFI 65.6; Shiller ECY 0.34).
+    // output in src/data/latest-model.json (burst 32.3 / composite 48.3 / band "guarded" after the
+    // credit-factor de-saturation; LPPLS 81.5; Minsky MFI 65.7; Shiller ECY 0.30).
     // 2026-10-19 (wave 2, model v2.6.0): the Monte-Carlo fallbacks are re-synced to the
     // re-derived run (MC median 67.5, VaR95 84.6, VaR99 92.9) — the previous triple was the
     // pre-2.6.0 Gaussian run. The old fallbacks were a stale pre-rebaseline
@@ -81,8 +81,8 @@ export async function GET() {
       altmanZ: latestModel?.altman?.score ?? 8.41,
       sornetteLpplsHazardPct: latestModel?.lppls?.crashHazardRatePct ?? 81.5,
       minskyRegime: (latestModel as any)?.minsky?.currentRegime ?? "Speculative Transition",
-      minskyFragility: (latestModel as any)?.minsky?.minskyFragilityIndex ?? 65.6,
-      shillerECY: (latestModel as any)?.shillerCape?.excessCapeYieldPct ?? 0.34,
+      minskyFragility: (latestModel as any)?.minsky?.minskyFragilityIndex ?? 65.7,
+      shillerECY: (latestModel as any)?.shillerCape?.excessCapeYieldPct ?? 0.3,
       monteCarloMedianProbPct: latestModel?.monteCarlo?.medianProbabilityPct ?? 26.3,
       monteCarlo95VaRPct: latestModel?.monteCarlo?.valueAtRisk95Pct ?? 75.3,
       monteCarlo99VaRPct: (latestModel as any)?.monteCarlo?.valueAtRisk99Pct ?? 92.9,

@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useMemo, useCallback } from "react";
 import { MODEL_CALIBRATION } from "@/lib/model/factors";
+import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import { Reveal } from "@/components/Reveal";
 import {
   TrendingUp,
@@ -74,8 +75,11 @@ const TOKEN = {
  * - High-contrast institutional dark styling
  */
 export function SensitivityCurveChart({
-  currentScore = 51.0,
-  currentProb = 39.1,
+  // 2026-10-20: these defaults were the pre-v2.7.0 print (51.0 / 39.1%) and
+  // contradicted the number the site publishes. The live model's own output is
+  // the default; a caller can still pass its own pair.
+  currentScore = evaluateBubbleModel(DEFAULT_MODEL_INPUTS).compositeScore,
+  currentProb = evaluateBubbleModel(DEFAULT_MODEL_INPUTS).burstProbability,
 }: {
   currentScore?: number;
   currentProb?: number;
@@ -206,12 +210,18 @@ export function SensitivityCurveChart({
   const activeX = toX(activeScore);
   const activeY = toY(activeProb);
 
-  // Regime classification — tone is a chip modifier from the token system
+  // Regime classification — tone is a chip modifier from the token system.
+  //
+  // 2026-10-20: the labels were renamed to the vocabulary the rest of the site
+  // publishes. "Elevated Convex Inflection" and "Hyperbolic Fragility Zone" read
+  // as decoration to anyone who knows the maths; the same states are called
+  // "elevated" and "high" in the model's own band, and a label that matches the
+  // published band is checkable.
   const getRegime = (score: number) => {
-    if (score < 42) return { label: "Sub-Critical / Low Risk", tone: "chip-safe" };
-    if (score < 55) return { label: "Equilibrium Baseline", tone: "" };
-    if (score < 68) return { label: "Elevated Convex Inflection", tone: "chip-caution" };
-    return { label: "Hyperbolic Fragility Zone", tone: "chip-risk" };
+    if (score < 42) return { label: "Calm", tone: "chip-safe" };
+    if (score < 55) return { label: "Guarded", tone: "" };
+    if (score < 68) return { label: "Elevated", tone: "chip-caution" };
+    return { label: "High", tone: "chip-risk" };
   };
 
   const currentRegime = getRegime(activeScore);
@@ -1603,8 +1613,17 @@ export function AiRevenueGapChart() {
 }
 
 // ============================================================================
-// 5. TOKEN PRICE DEFLATION CHART (Up to 670x Collapse in Inference Cost — Input-Basis)
+// 5. TOKEN PRICE DEFLATION CHART (collapse in inference cost — input basis)
 // ============================================================================
+//
+// 2026-10-20: the headline multiple and the damper's contribution were typed
+// here from an earlier snapshot. They are now read from the SAME engine the
+// published print comes from, so the chart can never disagree with the number
+// above it.
+const LIVE_DEFLATION_MULTIPLE = DEFAULT_MODEL_INPUTS.adoption?.apiPriceDeclineMultiple ?? 670;
+const LIVE_DAMPER_POINTS =
+  evaluateBubbleModel(DEFAULT_MODEL_INPUTS).contributions.find((c) => c.kind === "damper")
+    ?.earnedPoints ?? -5.2;
 
 export function TokenPriceDeflationChart() {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
@@ -1738,6 +1757,23 @@ export function TokenPriceDeflationChart() {
       notes: "V4.1 Flash base live Sep 10, 2026: $0.0448/$0.08 on OpenRouter's aggregated open-weights serving (DeepSeek first-party API: $0.15/$0.60 off-peak). 30 / 0.0448 ≈ 670× input-basis. The Oct 17, 2026 V4.1 Flash 1017 checkpoint costs more: $0.30/$1.20. Sources: OpenRouter live + api-docs.deepseek.com."
     },
     {
+      // 2026-10-20: the pipeline's live OpenRouter scan matched the base row at
+      // $0.028/1M in and $0.08/1M out. That is outside the ±25% tolerance the
+      // scanner applies to the verified $0.0448 pair, so the model publishes the
+      // scanned price as scanned and says so. This row is that price, and it is
+      // the one the published multiple comes from.
+      date: "Oct 2026",
+      model: "DeepSeek V4.1 Flash (today's scan)",
+      provider: "DeepSeek",
+      cost: 0.028,
+      display: "$0.028",
+      outDisplay: "$0.08",
+      multiple: `${LIVE_DEFLATION_MULTIPLE.toLocaleString("en-US")}× Cheaper`,
+      badge: "-99.91%",
+      color: "bg-safe-500",
+      notes: "The 20 Oct 2026 OpenRouter scan matched the base row at $0.028 in / $0.08 out. That is 37.5% below the verified $0.0448 pair - outside the scanner's ±25% tolerance - so the published multiple uses the scanned price as scanned, with the drift disclosed rather than smoothed. 30 / 0.028 ≈ 1,071× input-basis. Source: the daily pipeline's OpenRouter scan (src/data/live-inputs.json, adoption.apiPriceDeclineMultiple)."
+    },
+    {
       date: "Oct 2026",
       model: "Anthropic Claude Haiku 5.5",
       provider: "Anthropic",
@@ -1846,10 +1882,10 @@ export function TokenPriceDeflationChart() {
       <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="label">PRODUCTIVITY DAMPER</span>
+            <span className="label">REAL-USE DAMPER</span>
             <span className="chip chip-safe">Live API Feed</span>
           </div>
-          <h4 className="mt-0.5 text-base font-bold text-ink">Token Inference Deflation (Up to 670× Cheaper on Input)</h4>
+          <h4 className="mt-0.5 text-base font-bold text-ink">Token Inference Deflation (Up to {LIVE_DEFLATION_MULTIPLE.toLocaleString("en-US")}× Cheaper on Input)</h4>
         </div>
         
 {/* Metric badge & 3-way tab toggle */}
@@ -1857,7 +1893,7 @@ export function TokenPriceDeflationChart() {
           <div className="-mx-1 flex min-w-0 max-w-full overflow-x-auto rounded-lg border border-rule bg-surface-2 px-1 py-0.5 scrollbar-none">
             {(
               [
-                { id: "workhorse", label: "Workhorse (670×)" },
+                { id: "workhorse", label: `Workhorse (${LIVE_DEFLATION_MULTIPLE.toLocaleString("en-US")}×)` },
                 { id: "frontier-sota", label: "Frontier Reasoning" },
                 { id: "live-feed", label: `Live Rates (${modelsList.length})` },
               ] as const
@@ -2008,7 +2044,7 @@ export function TokenPriceDeflationChart() {
         {activeTab === "workhorse" ? (
           <p className="text-ink-muted leading-relaxed">
             <strong className="text-ink">The Productivity Damper: </strong>
-            Unlike the 2000 telecom fiber crash where bandwidth remained dark and transit costs did not drop fast enough to rescue burning startups, AI token inference costs have collapsed up to <strong className="text-safe-700 font-mono">670× on input</strong> (down to <span className="font-mono text-safe-600 font-bold">$0.0448 in / $0.08 out per 1M</span> on DeepSeek V4.1 Flash and <span className="font-mono text-safe-600 font-bold">$0.10 in / $0.50 out per 1M</span> on Claude Haiku 5.5; multiples vs GPT-4&apos;s $30/1M input, launch basis). This massive deflation allows software gross margins to expand rapidly, knocking <strong className="text-safe-700 font-mono">-7.2 points</strong> off the systemic bubble burst score.
+            Unlike the 2000 telecom fiber crash where bandwidth remained dark and transit costs did not drop fast enough to rescue burning startups, AI token inference costs have collapsed up to <strong className="text-safe-700 font-mono">670× on input</strong> (down to <span className="font-mono text-safe-600 font-bold">$0.0448 in / $0.08 out per 1M</span> on DeepSeek V4.1 Flash and <span className="font-mono text-safe-600 font-bold">$0.10 in / $0.50 out per 1M</span> on Claude Haiku 5.5; multiples vs GPT-4&apos;s $30/1M input, launch basis). This massive deflation allows software gross margins to expand rapidly, knocking <strong className="text-safe-700 font-mono">{LIVE_DAMPER_POINTS.toFixed(1)} points</strong> off the systemic bubble burst score.
           </p>
         ) : activeTab === "frontier-sota" ? (
           <p className="text-ink-muted leading-relaxed">

@@ -991,7 +991,7 @@ await runTest(
     const damperPoints = res.contributions
       .filter((c) => c.kind === 'damper')
       .reduce((a, c) => a + c.earnedPoints, 0);
-    return `Live canon reconciles: ${riskPoints} + ${res.systemicContagionPoints} + (${damperPoints}) = ${res.compositeScore} (rounding budget ±${(0.05 * (res.contributions.length + 1)).toFixed(2)}).`;
+    return `Live canon reconciles: ${riskPoints.toFixed(1)} + ${res.systemicContagionPoints.toFixed(1)} + (${damperPoints.toFixed(1)}) = ${res.compositeScore.toFixed(1)} (rounding budget ±${(0.05 * (res.contributions.length + 1)).toFixed(2)}).`;
   }
 );
 
@@ -1088,7 +1088,7 @@ await runTest(
 await runTest(
   18,
   'Documented Formulas & Page-Sourced Strings',
-  'Executes src/lib/model/documentFormulas.ts on the frozen canon (fragility 52.0, freeze 0.196, ECY 0.34, DD 5.13, Altman 8.41, LPPLS 81.5, odds 2.72) and greps methodology/page.tsx for the published strings',
+  'Executes src/lib/model/documentFormulas.ts on the frozen canon (Minsky fragility 65.6, freeze 0.196, ECY 0.34, DD 5.13, Altman 8.41, LPPLS 81.5, odds 2.72) and greps methodology/page.tsx for the published strings',
   async () => {
     const doc = loadTsModule(['types.ts', 'factors.ts', 'documentFormulas.ts']).documentFormulas;
 
@@ -1213,7 +1213,7 @@ await runTest(
       `the published freeze formula is wrong: "${doc.MODEL_DOC_FORMULAS.refi_freeze.formula}"`,
     );
 
-    // 9. The composite reconciliation the page prints (50.5 + 2.8 − 5.2 = 48.1)
+    // 9. The composite reconciliation the page prints (50.7 + 2.8 − 5.2 = 48.3 on the live canon)
     //    and the contagion term's leverage in probability points.
     const reconciliation = doc.reconcileComposite({
       riskPoints: 50.5,
@@ -1225,6 +1225,31 @@ await runTest(
       Math.abs(reconciliation.leveragePoints - 6.3) <= 0.1,
       `the contagion leverage must be 6.3 ± 0.1 probability points, got ${reconciliation.leveragePoints}`,
     );
+
+    // 9b. THE PUBLISHED ARTIFACT MUST EQUAL WHAT THE ENGINE PRODUCES.
+    //     Everything above checks documentFormulas against its own literals, so
+    //     it can pass while the published numbers drift. This is the check that
+    //     cannot: the artifact every page reads has to be the engine's output
+    //     on the same inputs.
+    if (ARTIFACT) {
+      const live = evaluateBubbleModel(LIVE_INPUTS);
+      assert(
+        Math.abs(ARTIFACT.burstProbability - live.burstProbability) <= 0.05,
+        `the published print ${ARTIFACT.burstProbability} does not match the engine's ${live.burstProbability} on the live inputs`,
+      );
+      assert(
+        Math.abs(ARTIFACT.compositeScore - live.compositeScore) <= 0.05,
+        `the published composite ${ARTIFACT.compositeScore} does not match the engine's ${live.compositeScore}`,
+      );
+      assert(
+        Math.abs(ARTIFACT.fragilityIndex - live.fragilityIndex) <= 0.5,
+        `the published fragility ${ARTIFACT.fragilityIndex} does not match the engine's ${live.fragilityIndex}`,
+      );
+      assert(
+        ARTIFACT.model_version === live.modelVersion,
+        `the artifact says model v${ARTIFACT.model_version} while the engine is v${live.modelVersion}`,
+      );
+    }
 
     // 10. The page must render the executed formulas, not a hand-typed copy.
     const page = fs.readFileSync(

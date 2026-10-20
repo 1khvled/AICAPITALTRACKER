@@ -85,7 +85,28 @@ export const logisticMapping = (score) => 1 / (1 + Math.exp(-(score - kellyAncho
 //
 // Published model constants (mirrored from src/lib/model/factors.ts):
 export const MODEL_VERSION = '2.7.0';
-export const MARKET_IMPLIED_12M_PCT = 23.0;
+export const MARKET_IMPLIED_12M_PCT = 19.5;
+
+/**
+ * The 12-month market-implied read, computed from the tracked contract price
+ * (mirrored from src/lib/model/factors.ts). The band's low end IS the market's
+ * own price (alpha = 1.00), so the band-floor rule holds by construction.
+ */
+export function marketImplied12mBand(contractPct) {
+  const price =
+    Number.isFinite(contractPct) && contractPct > 0 ? contractPct : MARKET_IMPLIED_12M_PCT;
+  const alphaRange = [1.0, 1.25];
+  const alphaCentral = 1.1;
+  const round1 = (n) => Math.round(n * 10) / 10;
+  return {
+    contractPct: round1(price),
+    centralPct: round1(price * alphaCentral),
+    lowPct: round1(price * alphaRange[0]),
+    highPct: round1(price * alphaRange[1]),
+    alphaRange,
+    alphaCentral,
+  };
+}
 export const FRAGILITY_INDEX_BASIS =
   'derivative-weighted fragility from the same factor scores — not a first-derivative measure';
 export const CI_TYPE = 'input-sensitivity range (not a probability interval)';
@@ -1036,7 +1057,10 @@ export function runMonteCarloSimulation(baseInputs, iterations = 25_000, seed = 
   // 2026-10-19 (v2.6.0): published band floor rule — the published range may never sit
   // above the market-implied 12-month probability (Lane 2's crowd reconciler), so the
   // model can never read as more certain than the market's own floor.
-  const bandLowPct = Math.min(p5, MARKET_IMPLIED_12M_PCT);
+  const marketRead = marketImplied12mBand(
+    (baseInputs.crowd?.bubble2027Probability ?? 0) * 100,
+  );
+  const bandLowPct = Math.min(p5, marketRead.lowPct);
 
   const tailSlice95 = results.slice(Math.floor(iterations * 0.95));
   const cvar95 = tailSlice95.reduce((acc, v) => acc + v, 0) / (tailSlice95.length || 1);

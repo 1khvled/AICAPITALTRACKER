@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { AdSlot } from "@/components/AdSlot";
+import { CHANGELOG } from "@/lib/model/factors";
 import { POLYMARKET_BASE_URL, POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 
 /**
@@ -232,7 +233,7 @@ export function Footer({
                 News
               </Link>
             </li>
-            <li className="num text-ink-subtle">v2.5.0</li>
+            <li className="num text-ink-subtle">v{CHANGELOG[0]?.version ?? "2.7.0"}</li>
           </ul>
         </div>
       </div>

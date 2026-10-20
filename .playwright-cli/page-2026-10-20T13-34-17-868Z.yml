@@ -1,0 +1,751 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to content" [ref=e3] [cursor=pointer]:
+      - /url: "#main"
+    - generic [ref=e6]:
+      - generic [ref=e7]: Market desk
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - link "12-mo burst odds 32.3% GUARDED" [ref=e11] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e12]:
+              - generic [ref=e13]: 12-mo burst odds
+              - generic [ref=e14]: 32.3%
+              - generic [ref=e15]: GUARDED
+          - link "ORCL 5Y CDS 288 bps 256% vs base" [ref=e16] [cursor=pointer]:
+            - /url: /companies?search=ORCL
+            - generic [ref=e17]:
+              - generic [ref=e18]: ORCL 5Y CDS
+              - generic [ref=e19]: 288 bps
+              - generic [ref=e20]: 256% vs base
+          - link "US 10Y 5.14% 139 bps vs base" [ref=e21] [cursor=pointer]:
+            - /url: /sandbox
+            - generic [ref=e22]:
+              - generic [ref=e23]: US 10Y
+              - generic [ref=e24]: 5.14%
+              - generic [ref=e25]: 139 bps vs base
+          - link "High yield OAS 331 bps" [ref=e26] [cursor=pointer]:
+            - /url: /companies
+            - generic [ref=e27]:
+              - generic [ref=e28]: High yield OAS
+              - generic [ref=e29]: 331 bps
+          - link "AI debt pace $85.0B/yr" [ref=e30] [cursor=pointer]:
+            - /url: /ledger
+            - generic [ref=e31]:
+              - generic [ref=e32]: AI debt pace
+              - generic [ref=e33]: $85.0B/yr
+          - link "Disclosed capital $2.87T 169 deals" [ref=e34] [cursor=pointer]:
+            - /url: /ledger
+            - generic [ref=e35]:
+              - generic [ref=e36]: Disclosed capital
+              - generic [ref=e37]: $2.87T
+              - generic [ref=e38]: 169 deals
+          - link "Crowd odds 2026 8.3% prediction market" [ref=e39] [cursor=pointer]:
+            - /url: https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble
+            - generic [ref=e40]:
+              - generic [ref=e41]: Crowd odds 2026
+              - generic [ref=e42]: 8.3%
+              - generic [ref=e43]: prediction market
+          - link "Crowd odds 2027 19.5% prediction market" [ref=e44] [cursor=pointer]:
+            - /url: https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble
+            - generic [ref=e45]:
+              - generic [ref=e46]: Crowd odds 2027
+              - generic [ref=e47]: 19.5%
+              - generic [ref=e48]: prediction market
+          - link "NVDA $217.09 +1.4%" [ref=e49] [cursor=pointer]:
+            - /url: /companies?search=NVDA
+            - generic [ref=e50]:
+              - generic [ref=e51]: NVDA
+              - generic [ref=e52]: $217.09
+              - generic [ref=e53]: +1.4%
+          - link "MSFT $533.52 +0.8%" [ref=e54] [cursor=pointer]:
+            - /url: /companies?search=MSFT
+            - generic [ref=e55]:
+              - generic [ref=e56]: MSFT
+              - generic [ref=e57]: $533.52
+              - generic [ref=e58]: +0.8%
+          - link "AAPL $342.94 -0.2%" [ref=e59] [cursor=pointer]:
+            - /url: /companies?search=AAPL
+            - generic [ref=e60]:
+              - generic [ref=e61]: AAPL
+              - generic [ref=e62]: $342.94
+              - generic [ref=e63]: "-0.2%"
+          - link "GOOGL $344.18 +1.1%" [ref=e64] [cursor=pointer]:
+            - /url: /companies?search=GOOGL
+            - generic [ref=e65]:
+              - generic [ref=e66]: GOOGL
+              - generic [ref=e67]: $344.18
+              - generic [ref=e68]: +1.1%
+          - link "AMZN $262.45 +5.0%" [ref=e69] [cursor=pointer]:
+            - /url: /companies?search=AMZN
+            - generic [ref=e70]:
+              - generic [ref=e71]: AMZN
+              - generic [ref=e72]: $262.45
+              - generic [ref=e73]: +5.0%
+          - link "META $705.44 -0.5%" [ref=e74] [cursor=pointer]:
+            - /url: /companies?search=META
+            - generic [ref=e75]:
+              - generic [ref=e76]: META
+              - generic [ref=e77]: $705.44
+              - generic [ref=e78]: "-0.5%"
+          - link "SPCX $147.96 +1.3%" [ref=e79] [cursor=pointer]:
+            - /url: /companies?search=SPCX
+            - generic [ref=e80]:
+              - generic [ref=e81]: SPCX
+              - generic [ref=e82]: $147.96
+              - generic [ref=e83]: +1.3%
+          - link "ORCL $129.59 +1.1%" [ref=e84] [cursor=pointer]:
+            - /url: /companies?search=ORCL
+            - generic [ref=e85]:
+              - generic [ref=e86]: ORCL
+              - generic [ref=e87]: $129.59
+              - generic [ref=e88]: +1.1%
+          - link "TSM $420.22 +1.8%" [ref=e89] [cursor=pointer]:
+            - /url: /companies?search=TSM
+            - generic [ref=e90]:
+              - generic [ref=e91]: TSM
+              - generic [ref=e92]: $420.22
+              - generic [ref=e93]: +1.8%
+          - link "AVGO $334.59 +1.8%" [ref=e94] [cursor=pointer]:
+            - /url: /companies?search=AVGO
+            - generic [ref=e95]:
+              - generic [ref=e96]: AVGO
+              - generic [ref=e97]: $334.59
+              - generic [ref=e98]: +1.8%
+          - link "CRWV $61.12 -0.4%" [ref=e99] [cursor=pointer]:
+            - /url: /companies?search=CRWV
+            - generic [ref=e100]:
+              - generic [ref=e101]: CRWV
+              - generic [ref=e102]: $61.12
+              - generic [ref=e103]: "-0.4%"
+          - link "PLTR $194.15 +4.4%" [ref=e104] [cursor=pointer]:
+            - /url: /companies?search=PLTR
+            - generic [ref=e105]:
+              - generic [ref=e106]: PLTR
+              - generic [ref=e107]: $194.15
+              - generic [ref=e108]: +4.4%
+          - link "AMD $538.05 +1.8%" [ref=e109] [cursor=pointer]:
+            - /url: /companies?search=AMD
+            - generic [ref=e110]:
+              - generic [ref=e111]: AMD
+              - generic [ref=e112]: $538.05
+              - generic [ref=e113]: +1.8%
+          - link "INTC $92.03 +2.4%" [ref=e114] [cursor=pointer]:
+            - /url: /companies?search=INTC
+            - generic [ref=e115]:
+              - generic [ref=e116]: INTC
+              - generic [ref=e117]: $92.03
+              - generic [ref=e118]: +2.4%
+          - link "ASML $1647.12 +0.3%" [ref=e119] [cursor=pointer]:
+            - /url: /companies?search=ASML
+            - generic [ref=e120]:
+              - generic [ref=e121]: ASML
+              - generic [ref=e122]: $1647.12
+              - generic [ref=e123]: +0.3%
+          - link "QCOM $173.53 +0.8%" [ref=e124] [cursor=pointer]:
+            - /url: /companies?search=QCOM
+            - generic [ref=e125]:
+              - generic [ref=e126]: QCOM
+              - generic [ref=e127]: $173.53
+              - generic [ref=e128]: +0.8%
+          - link "CEG $263.19 -3.0%" [ref=e129] [cursor=pointer]:
+            - /url: /companies?search=CEG
+            - generic [ref=e130]:
+              - generic [ref=e131]: CEG
+              - generic [ref=e132]: $263.19
+              - generic [ref=e133]: "-3.0%"
+          - link "VST $149.70 -1.5%" [ref=e134] [cursor=pointer]:
+            - /url: /companies?search=VST
+            - generic [ref=e135]:
+              - generic [ref=e136]: VST
+              - generic [ref=e137]: $149.70
+              - generic [ref=e138]: "-1.5%"
+          - link "GEV $908.44 -1.4%" [ref=e139] [cursor=pointer]:
+            - /url: /companies?search=GEV
+            - generic [ref=e140]:
+              - generic [ref=e141]: GEV
+              - generic [ref=e142]: $908.44
+              - generic [ref=e143]: "-1.4%"
+          - link "DELL $455.44 +0.8%" [ref=e144] [cursor=pointer]:
+            - /url: /companies?search=DELL
+            - generic [ref=e145]:
+              - generic [ref=e146]: DELL
+              - generic [ref=e147]: $455.44
+              - generic [ref=e148]: +0.8%
+          - link "SMCI $32.10 +1.5%" [ref=e149] [cursor=pointer]:
+            - /url: /companies?search=SMCI
+            - generic [ref=e150]:
+              - generic [ref=e151]: SMCI
+              - generic [ref=e152]: $32.10
+              - generic [ref=e153]: +1.5%
+          - link "NBIS $170.24 +2.9%" [ref=e154] [cursor=pointer]:
+            - /url: /companies?search=NBIS
+            - generic [ref=e155]:
+              - generic [ref=e156]: NBIS
+              - generic [ref=e157]: $170.24
+              - generic [ref=e158]: +2.9%
+          - link "CRWD $228.10 +0.3%" [ref=e159] [cursor=pointer]:
+            - /url: /companies?search=CRWD
+            - generic [ref=e160]:
+              - generic [ref=e161]: CRWD
+              - generic [ref=e162]: $228.10
+              - generic [ref=e163]: +0.3%
+          - link "ANET $182.95 +3.4%" [ref=e164] [cursor=pointer]:
+            - /url: /companies?search=ANET
+            - generic [ref=e165]:
+              - generic [ref=e166]: ANET
+              - generic [ref=e167]: $182.95
+              - generic [ref=e168]: +3.4%
+          - link "SNPS $454.58 +0.0%" [ref=e169] [cursor=pointer]:
+            - /url: /companies?search=SNPS
+            - generic [ref=e170]:
+              - generic [ref=e171]: SNPS
+              - generic [ref=e172]: $454.58
+              - generic [ref=e173]: +0.0%
+          - generic [ref=e174]: Synced daily 00:00 UTC
+        - generic [aria-hidden] [ref=e175]:
+          - link [ref=e176] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e177]:
+              - generic [ref=e178]: 12-mo burst odds
+              - generic [ref=e179]: 32.3%
+              - generic [ref=e180]: GUARDED
+          - link [ref=e181] [cursor=pointer]:
+            - /url: /companies?search=ORCL
+            - generic [ref=e182]:
+              - generic [ref=e183]: ORCL 5Y CDS
+              - generic [ref=e184]: 288 bps
+              - generic [ref=e185]: 256% vs base
+          - link [ref=e186] [cursor=pointer]:
+            - /url: /sandbox
+            - generic [ref=e187]:
+              - generic [ref=e188]: US 10Y
+              - generic [ref=e189]: 5.14%
+              - generic [ref=e190]: 139 bps vs base
+          - link [ref=e191] [cursor=pointer]:
+            - /url: /companies
+            - generic [ref=e192]:
+              - generic [ref=e193]: High yield OAS
+              - generic [ref=e194]: 331 bps
+          - link [ref=e195] [cursor=pointer]:
+            - /url: /ledger
+            - generic [ref=e196]:
+              - generic [ref=e197]: AI debt pace
+              - generic [ref=e198]: $85.0B/yr
+          - link [ref=e199] [cursor=pointer]:
+            - /url: /ledger
+            - generic [ref=e200]:
+              - generic [ref=e201]: Disclosed capital
+              - generic [ref=e202]: $2.87T
+              - generic [ref=e203]: 169 deals
+          - link [ref=e204] [cursor=pointer]:
+            - /url: https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble
+            - generic [ref=e205]:
+              - generic [ref=e206]: Crowd odds 2026
+              - generic [ref=e207]: 8.3%
+              - generic [ref=e208]: prediction market
+          - link [ref=e209] [cursor=pointer]:
+            - /url: https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble
+            - generic [ref=e210]:
+              - generic [ref=e211]: Crowd odds 2027
+              - generic [ref=e212]: 19.5%
+              - generic [ref=e213]: prediction market
+          - link [ref=e214] [cursor=pointer]:
+            - /url: /companies?search=NVDA
+            - generic [ref=e215]:
+              - generic [ref=e216]: NVDA
+              - generic [ref=e217]: $217.09
+              - generic [ref=e218]: +1.4%
+          - link [ref=e219] [cursor=pointer]:
+            - /url: /companies?search=MSFT
+            - generic [ref=e220]:
+              - generic [ref=e221]: MSFT
+              - generic [ref=e222]: $533.52
+              - generic [ref=e223]: +0.8%
+          - link [ref=e224] [cursor=pointer]:
+            - /url: /companies?search=AAPL
+            - generic [ref=e225]:
+              - generic [ref=e226]: AAPL
+              - generic [ref=e227]: $342.94
+              - generic [ref=e228]: "-0.2%"
+          - link [ref=e229] [cursor=pointer]:
+            - /url: /companies?search=GOOGL
+            - generic [ref=e230]:
+              - generic [ref=e231]: GOOGL
+              - generic [ref=e232]: $344.18
+              - generic [ref=e233]: +1.1%
+          - link [ref=e234] [cursor=pointer]:
+            - /url: /companies?search=AMZN
+            - generic [ref=e235]:
+              - generic [ref=e236]: AMZN
+              - generic [ref=e237]: $262.45
+              - generic [ref=e238]: +5.0%
+          - link [ref=e239] [cursor=pointer]:
+            - /url: /companies?search=META
+            - generic [ref=e240]:
+              - generic [ref=e241]: META
+              - generic [ref=e242]: $705.44
+              - generic [ref=e243]: "-0.5%"
+          - link [ref=e244] [cursor=pointer]:
+            - /url: /companies?search=SPCX
+            - generic [ref=e245]:
+              - generic [ref=e246]: SPCX
+              - generic [ref=e247]: $147.96
+              - generic [ref=e248]: +1.3%
+          - link [ref=e249] [cursor=pointer]:
+            - /url: /companies?search=ORCL
+            - generic [ref=e250]:
+              - generic [ref=e251]: ORCL
+              - generic [ref=e252]: $129.59
+              - generic [ref=e253]: +1.1%
+          - link [ref=e254] [cursor=pointer]:
+            - /url: /companies?search=TSM
+            - generic [ref=e255]:
+              - generic [ref=e256]: TSM
+              - generic [ref=e257]: $420.22
+              - generic [ref=e258]: +1.8%
+          - link [ref=e259] [cursor=pointer]:
+            - /url: /companies?search=AVGO
+            - generic [ref=e260]:
+              - generic [ref=e261]: AVGO
+              - generic [ref=e262]: $334.59
+              - generic [ref=e263]: +1.8%
+          - link [ref=e264] [cursor=pointer]:
+            - /url: /companies?search=CRWV
+            - generic [ref=e265]:
+              - generic [ref=e266]: CRWV
+              - generic [ref=e267]: $61.12
+              - generic [ref=e268]: "-0.4%"
+          - link [ref=e269] [cursor=pointer]:
+            - /url: /companies?search=PLTR
+            - generic [ref=e270]:
+              - generic [ref=e271]: PLTR
+              - generic [ref=e272]: $194.15
+              - generic [ref=e273]: +4.4%
+          - link [ref=e274] [cursor=pointer]:
+            - /url: /companies?search=AMD
+            - generic [ref=e275]:
+              - generic [ref=e276]: AMD
+              - generic [ref=e277]: $538.05
+              - generic [ref=e278]: +1.8%
+          - link [ref=e279] [cursor=pointer]:
+            - /url: /companies?search=INTC
+            - generic [ref=e280]:
+              - generic [ref=e281]: INTC
+              - generic [ref=e282]: $92.03
+              - generic [ref=e283]: +2.4%
+          - link [ref=e284] [cursor=pointer]:
+            - /url: /companies?search=ASML
+            - generic [ref=e285]:
+              - generic [ref=e286]: ASML
+              - generic [ref=e287]: $1647.12
+              - generic [ref=e288]: +0.3%
+          - link [ref=e289] [cursor=pointer]:
+            - /url: /companies?search=QCOM
+            - generic [ref=e290]:
+              - generic [ref=e291]: QCOM
+              - generic [ref=e292]: $173.53
+              - generic [ref=e293]: +0.8%
+          - link [ref=e294] [cursor=pointer]:
+            - /url: /companies?search=CEG
+            - generic [ref=e295]:
+              - generic [ref=e296]: CEG
+              - generic [ref=e297]: $263.19
+              - generic [ref=e298]: "-3.0%"
+          - link [ref=e299] [cursor=pointer]:
+            - /url: /companies?search=VST
+            - generic [ref=e300]:
+              - generic [ref=e301]: VST
+              - generic [ref=e302]: $149.70
+              - generic [ref=e303]: "-1.5%"
+          - link [ref=e304] [cursor=pointer]:
+            - /url: /companies?search=GEV
+            - generic [ref=e305]:
+              - generic [ref=e306]: GEV
+              - generic [ref=e307]: $908.44
+              - generic [ref=e308]: "-1.4%"
+          - link [ref=e309] [cursor=pointer]:
+            - /url: /companies?search=DELL
+            - generic [ref=e310]:
+              - generic [ref=e311]: DELL
+              - generic [ref=e312]: $455.44
+              - generic [ref=e313]: +0.8%
+          - link [ref=e314] [cursor=pointer]:
+            - /url: /companies?search=SMCI
+            - generic [ref=e315]:
+              - generic [ref=e316]: SMCI
+              - generic [ref=e317]: $32.10
+              - generic [ref=e318]: +1.5%
+          - link [ref=e319] [cursor=pointer]:
+            - /url: /companies?search=NBIS
+            - generic [ref=e320]:
+              - generic [ref=e321]: NBIS
+              - generic [ref=e322]: $170.24
+              - generic [ref=e323]: +2.9%
+          - link [ref=e324] [cursor=pointer]:
+            - /url: /companies?search=CRWD
+            - generic [ref=e325]:
+              - generic [ref=e326]: CRWD
+              - generic [ref=e327]: $228.10
+              - generic [ref=e328]: +0.3%
+          - link [ref=e329] [cursor=pointer]:
+            - /url: /companies?search=ANET
+            - generic [ref=e330]:
+              - generic [ref=e331]: ANET
+              - generic [ref=e332]: $182.95
+              - generic [ref=e333]: +3.4%
+          - link [ref=e334] [cursor=pointer]:
+            - /url: /companies?search=SNPS
+            - generic [ref=e335]:
+              - generic [ref=e336]: SNPS
+              - generic [ref=e337]: $454.58
+              - generic [ref=e338]: +0.0%
+          - generic [ref=e339]: Synced daily 00:00 UTC
+    - banner [ref=e340]:
+      - generic [ref=e342]:
+        - link "AI Capital Tracker, home" [ref=e343] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e344]: AI
+          - generic [ref=e346]: AI Capital Tracker
+        - navigation "Primary" [ref=e347]:
+          - list [ref=e348]:
+            - listitem [ref=e349]:
+              - link "Verdict" [ref=e350] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=e351]:
+              - link "Ledger" [ref=e352] [cursor=pointer]:
+                - /url: /ledger
+            - listitem [ref=e353]:
+              - link "Companies" [ref=e354] [cursor=pointer]:
+                - /url: /companies
+            - listitem [ref=e355]:
+              - link "Markets" [ref=e356] [cursor=pointer]:
+                - /url: /markets
+            - listitem [ref=e357]:
+              - link "Predictions" [ref=e358] [cursor=pointer]:
+                - /url: /prediction-markets
+            - listitem [ref=e359]:
+              - link "Your call" [ref=e360] [cursor=pointer]:
+                - /url: /your-call
+            - listitem [ref=e361]:
+              - link "Guides" [ref=e362] [cursor=pointer]:
+                - /url: /guides
+            - listitem [ref=e363]:
+              - link "Glossary" [ref=e364] [cursor=pointer]:
+                - /url: /glossary
+            - listitem [ref=e365]:
+              - link "Method" [ref=e366] [cursor=pointer]:
+                - /url: /methodology
+        - generic [ref=e367]:
+          - link "12-mo risk 32.3%" [ref=e368] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e369]: 12-mo risk
+            - generic [ref=e371]: 32.3%
+          - button "Search the tracker" [ref=e372] [cursor=pointer]:
+            - generic [ref=e376]: Search
+            - generic [ref=e377]: ⌘K
+          - 'button "Market tape: moving. Activate to stop it." [pressed] [ref=e378] [cursor=pointer]'
+          - button "Switch to light mode" [ref=e381] [cursor=pointer]
+    - main [ref=e388]:
+      - generic [ref=e389]:
+        - generic [ref=e390]:
+          - generic [ref=e391]:
+            - generic [ref=e392]: Your call
+            - generic [ref=e393]: 12-month horizon
+          - heading "What do you think the odds are?" [level=1] [ref=e394]
+          - paragraph [ref=e395]: "The model publishes one number: the chance the AI build-out breaks within 12 months. Put your own number on the same question and keep it. Every call is stored with the model print and the market price as they stood that day, so a year from now you can see whether you read it better than the model did."
+          - paragraph [ref=e396]: "There is no account, no leaderboard and nothing uploaded. A call is a record of your estimate, not a forecast: it stays open until the model's own trajectory publishes a print 12 months after you made it, and only then is it scored."
+        - generic [ref=e397]:
+          - region [ref=e398]:
+            - generic [ref=e399]:
+              - generic [ref=e400]: Your call
+              - generic [ref=e401]: 12-month horizon
+              - generic [ref=e402]: stored on this device
+            - heading "Chance the AI build-out breaks within 12 months" [level=2] [ref=e403]
+            - paragraph [ref=e404]: Put your own number on the question the model answers. The slider starts at 25%. When you record it, the model print and the market price are frozen alongside it, so the comparison stays honest in a year.
+            - generic [ref=e405]:
+              - generic [ref=e406]:
+                - generic [ref=e407]: Your probability
+                - slider "Your probability" [ref=e408]: "25"
+                - generic [ref=e409]:
+                  - generic [ref=e410]: 0%
+                  - generic [ref=e411]: 50%
+                  - generic [ref=e412]: 100%
+              - generic [ref=e413]:
+                - generic [ref=e414]: Same number, typed
+                - generic [ref=e415]:
+                  - spinbutton "Same number, typed" [ref=e416]: "25"
+                  - generic [ref=e417]: "%"
+            - generic [ref=e418]:
+              - button "Call it" [ref=e419] [cursor=pointer]
+              - status [ref=e424]
+          - region [ref=e425]:
+            - generic [ref=e426]:
+              - heading "Where your number sits" [level=2] [ref=e427]
+              - generic [ref=e428]: probability points
+            - generic [ref=e429]:
+              - generic [ref=e430]:
+                - generic [ref=e431]: Your call
+                - paragraph [ref=e436]: 25%
+                - paragraph [ref=e437]: Your own estimate. Kept in this browser, nowhere else.
+              - generic [ref=e438]:
+                - text: Model print
+                - paragraph [ref=e439]: 32.3%
+                - paragraph [ref=e440]: Guarded band, as of 20 Oct 2026.
+              - generic [ref=e441]:
+                - text: Market price
+                - paragraph [ref=e442]: 19.5%
+                - paragraph [ref=e443]: AI Bubble Burst by June 30, 2027, as of 20 Oct 2026.
+            - generic [ref=e444]:
+              - generic [ref=e445]:
+                - term [ref=e446]: Your call less the model
+                - definition [ref=e447]: "-7.3 pts"
+              - generic [ref=e448]:
+                - term [ref=e449]: Your call less the market
+                - definition [ref=e450]: +5.5 pts
+              - generic [ref=e451]:
+                - term [ref=e452]: Model less the market
+                - definition [ref=e453]: +12.8 pts
+            - paragraph [ref=e454]: The model print is the site's own daily run. How each number is built is written out, formula by formula, in the methodology.
+            - generic [ref=e455]:
+              - link "See today's print on the front page" [ref=e456] [cursor=pointer]:
+                - /url: /
+              - link "How the model is built" [ref=e457] [cursor=pointer]:
+                - /url: /methodology
+          - region [ref=e458]:
+            - generic [ref=e459]:
+              - heading "Your record against the model" [level=2] [ref=e460]
+              - generic [ref=e465]: self-record, this device only
+            - generic [ref=e466]:
+              - generic [ref=e467]:
+                - term [ref=e468]: Your mean error
+                - definition [ref=e469]: —
+                - paragraph [ref=e470]: Your call, measured against the model print on the resolution date.
+              - generic [ref=e471]:
+                - term [ref=e472]: Model mean error
+                - definition [ref=e473]: —
+                - paragraph [ref=e474]: The model's own print on the day you called, measured the same way.
+              - generic [ref=e475]:
+                - term [ref=e476]: Calls resolved
+                - definition [ref=e477]:
+                  - text: "0"
+                  - generic [ref=e478]: of 0
+                - paragraph [ref=e479]: No call has resolved yet. Nothing is scored until a 12-month print exists.
+            - paragraph [ref=e480]: This is not a Brier score. The target is the model's own probability 12 months on, not a yes/no event, so it measures how closely a call tracked the model — not whether anybody was right.
+          - region [ref=e481]:
+            - generic [ref=e482]:
+              - heading "Badges" [level=2] [ref=e483]
+              - generic [ref=e484]: 0 of 6 earned
+            - paragraph [ref=e485]: Every badge is a property of the calls you have recorded. Nothing is awarded for visiting, and a locked badge shows the rule that would open it.
+            - list [ref=e486]:
+              - listitem [ref=e487]:
+                - generic [ref=e488]:
+                  - generic [ref=e489]: First Call
+                  - generic [ref=e490]: Locked
+                - paragraph [ref=e494]: One call stored on this device.
+                - paragraph [ref=e495]: Record a call to unlock this one.
+              - listitem [ref=e496]:
+                - generic [ref=e497]:
+                  - generic [ref=e498]: Seven Day Streak
+                  - generic [ref=e499]: Locked
+                - paragraph [ref=e503]: Calls recorded on 7 different UTC days.
+                - paragraph [ref=e504]: Seven different days. They do not have to be consecutive.
+              - listitem [ref=e505]:
+                - generic [ref=e506]:
+                  - generic [ref=e507]: Called It
+                  - generic [ref=e508]: Locked
+                - paragraph [ref=e512]: A call within 5 points of the model's print.
+                - paragraph [ref=e513]: Land within 5 points of the model on the day you call.
+              - listitem [ref=e514]:
+                - generic [ref=e515]:
+                  - generic [ref=e516]: Against the Crowd
+                  - generic [ref=e517]: Locked
+                - paragraph [ref=e521]: A call more than 10 points from the market price.
+                - paragraph [ref=e522]: Move more than 10 points away from the market price.
+              - listitem [ref=e523]:
+                - generic [ref=e524]:
+                  - generic [ref=e525]: Book-Maker
+                  - generic [ref=e526]: Locked
+                - paragraph [ref=e530]: 10 calls stored on this device.
+                - paragraph [ref=e531]: Keep ten calls on the record.
+              - listitem [ref=e532]:
+                - generic [ref=e533]:
+                  - generic [ref=e534]: Early Bird
+                  - generic [ref=e535]: Locked
+                - paragraph [ref=e539]: Within 2 points of the print on a day the model moved more than 1 point.
+                - paragraph [ref=e540]: Call it within 2 points on a day the print moves.
+          - region [ref=e541]:
+            - generic [ref=e542]:
+              - heading "Your call history" [level=2] [ref=e543]
+              - generic [ref=e544]: 0 recorded · 0 resolved
+            - region "Your call history, scrollable" [ref=e545]:
+              - table [ref=e546]:
+                - caption [ref=e547]: "Every call recorded on this device, newest first: the date, the probability you called, the model print on that day, the gap between them, and the outcome once the 12-month window has closed."
+                - rowgroup [ref=e555]:
+                  - row [ref=e556]:
+                    - columnheader "Date" [ref=e557]
+                    - columnheader "You" [ref=e558]
+                    - columnheader "Model" [ref=e559]
+                    - columnheader "Gap" [ref=e560]
+                    - columnheader "Outcome" [ref=e561]
+                    - columnheader "Delete this call" [ref=e562]
+                - rowgroup [ref=e564]:
+                  - row [ref=e565]:
+                    - cell "No calls yet. The first one you record will sit here, with the model print and the market price as they stood that day." [ref=e566]
+            - generic [ref=e567]:
+              - status
+            - paragraph [ref=e568]: Dates are UTC. “Model” is the print on the day you called; “Gap” is your call minus that print. A call resolves when the model publishes an observed print dated 12 months after it. Until then it is open, and an open call is never scored.
+            - generic [ref=e569]:
+              - button "Clear my calls" [ref=e571] [cursor=pointer]
+              - paragraph [ref=e575]: Everything you have recorded lives in this browser only. Clearing it can be taken back for a few seconds, and so can deleting one call.
+          - region [ref=e576]:
+            - heading "What this is, and what it is not" [level=3] [ref=e577]
+            - generic [ref=e580]:
+              - paragraph [ref=e581]: Your calls are not forecasts until the window closes. A call is a record of what you believed on a given day, and it is only scored when the model publishes an observed print 12 months later. Before that it is open, and an open call is not a result.
+              - paragraph [ref=e582]: The scoreboard lives only on this device. There is no account, no leaderboard, no comparison with anybody else and nothing uploaded — the records are in this browser's local storage and nowhere else.
+              - paragraph [ref=e583]: "The model's own limit applies to any comparison you make here. Its backtest set contains five resolved episodes that all burst and no non-bust rows, so the published number carries no false-positive validation: it has never been shown a bubble that did not break. Measuring yourself against it measures how closely you tracked a model with that record, not which of you was right."
+              - paragraph [ref=e584]: The badge rules are printed above each badge, they are computed from your own stored calls, and nothing is awarded for coming back to the page. If you clear your calls, the badges go with them.
+    - contentinfo [ref=e585]:
+      - generic [ref=e586]:
+        - complementary "Advertisement" [ref=e587]:
+          - generic [aria-hidden] [ref=e588]: Advertisement
+          - iframe [ref=e590]
+        - generic [ref=e591]:
+          - generic [ref=e592]:
+            - generic [ref=e593]:
+              - generic [ref=e594]: AI
+              - generic [ref=e596]: AI Capital Tracker
+            - paragraph [ref=e597]: "An independent research desk that reads the filings behind the AI spending boom and turns them into one number: the chance the bubble bursts within 12 months."
+            - generic [ref=e598]:
+              - generic [ref=e599]:
+                - term [ref=e600]: Tracked deals
+                - definition [ref=e601]: "169"
+              - generic [ref=e602]:
+                - term [ref=e603]: Disclosed capital
+                - definition [ref=e604]: $2.87T
+              - generic [ref=e605]:
+                - term [ref=e606]: 12-mo burst odds
+                - definition [ref=e607]: 32.3%
+          - navigation "The read" [ref=e608]:
+            - heading "The read" [level=2] [ref=e609]
+            - list [ref=e610]:
+              - listitem [ref=e611]:
+                - link "Verdict 12-month burst probability" [ref=e612] [cursor=pointer]:
+                  - /url: /
+                  - text: Verdict
+                  - generic [ref=e613]: 12-month burst probability
+              - listitem [ref=e614]:
+                - link "Method Every formula and weight" [ref=e615] [cursor=pointer]:
+                  - /url: /methodology
+                  - text: Method
+                  - generic [ref=e616]: Every formula and weight
+              - listitem [ref=e617]:
+                - link "Guides Plain-language explainers" [ref=e618] [cursor=pointer]:
+                  - /url: /guides
+                  - text: Guides
+                  - generic [ref=e619]: Plain-language explainers
+              - listitem [ref=e620]:
+                - link "Glossary The vocabulary, defined" [ref=e621] [cursor=pointer]:
+                  - /url: /glossary
+                  - text: Glossary
+                  - generic [ref=e622]: The vocabulary, defined
+              - listitem [ref=e623]:
+                - link "2000 vs 2026 Dot-com bubble comparison" [ref=e624] [cursor=pointer]:
+                  - /url: /dotcom-vs-ai
+                  - text: 2000 vs 2026
+                  - generic [ref=e625]: Dot-com bubble comparison
+          - navigation "The data" [ref=e626]:
+            - heading "The data" [level=2] [ref=e627]
+            - list [ref=e628]:
+              - listitem [ref=e629]:
+                - link "Ledger Every sourced AI deal" [ref=e630] [cursor=pointer]:
+                  - /url: /ledger
+                  - text: Ledger
+                  - generic [ref=e631]: Every sourced AI deal
+              - listitem [ref=e632]:
+                - link "Companies Debt, revenue, multiples" [ref=e633] [cursor=pointer]:
+                  - /url: /companies
+                  - text: Companies
+                  - generic [ref=e634]: Debt, revenue, multiples
+              - listitem [ref=e635]:
+                - link "Markets Live spreads and macro" [ref=e636] [cursor=pointer]:
+                  - /url: /markets
+                  - text: Markets
+                  - generic [ref=e637]: Live spreads and macro
+              - listitem [ref=e638]:
+                - link "Prediction markets What the crowd is pricing" [ref=e639] [cursor=pointer]:
+                  - /url: /prediction-markets
+                  - text: Prediction markets
+                  - generic [ref=e640]: What the crowd is pricing
+              - listitem [ref=e641]:
+                - link "Charts Interactive figures" [ref=e642] [cursor=pointer]:
+                  - /url: /visualize
+                  - text: Charts
+                  - generic [ref=e643]: Interactive figures
+              - listitem [ref=e644]:
+                - link "Simulator Change an input, see the result" [ref=e645] [cursor=pointer]:
+                  - /url: /sandbox
+                  - text: Simulator
+                  - generic [ref=e646]: Change an input, see the result
+              - listitem [ref=e647]:
+                - link "News Research wire" [ref=e648] [cursor=pointer]:
+                  - /url: /news
+                  - text: News
+                  - generic [ref=e649]: Research wire
+          - navigation "Yours" [ref=e650]:
+            - heading "Yours" [level=2] [ref=e651]
+            - list [ref=e652]:
+              - listitem [ref=e653]:
+                - link "Your call Score yourself against the model" [ref=e654] [cursor=pointer]:
+                  - /url: /your-call
+                  - text: Your call
+                  - generic [ref=e655]: Score yourself against the model
+          - generic [ref=e656]:
+            - heading "For developers" [level=2] [ref=e657]
+            - list [ref=e658]:
+              - listitem [ref=e659]:
+                - link "API overview" [ref=e660] [cursor=pointer]:
+                  - /url: /api
+                - generic [ref=e661]: What the endpoints return
+              - listitem [ref=e662]:
+                - link "API documentation" [ref=e663] [cursor=pointer]:
+                  - /url: /api-docs
+                - generic [ref=e664]: Endpoints, parameters, examples
+            - heading "Endpoints" [level=2] [ref=e665]
+            - list [ref=e666]:
+              - listitem [ref=e667]:
+                - link "GET /api/v1/model" [ref=e668] [cursor=pointer]:
+                  - /url: /api/v1/model
+              - listitem [ref=e669]:
+                - link "GET /api/v1/deals" [ref=e670] [cursor=pointer]:
+                  - /url: /api/v1/deals
+              - listitem [ref=e671]:
+                - link "GET /api/v1/factors" [ref=e672] [cursor=pointer]:
+                  - /url: /api/v1/factors
+              - listitem [ref=e673]:
+                - link "GET /api/v1/news" [ref=e674] [cursor=pointer]:
+                  - /url: /api/v1/news
+        - generic [ref=e675]:
+          - paragraph [ref=e676]: Partner disclosure
+          - paragraph [ref=e677]:
+            - text: Some outbound links to prediction markets carry referral code AIbubble. Those links pay us a fee. They are marked, they are optional, and they never change the numbers on this site. See the
+            - link "prediction market" [ref=e678] [cursor=pointer]:
+              - /url: https://polymarket.com/?r=AIbubble
+            - text: for the full terms.
+        - generic [ref=e679]:
+          - paragraph [ref=e680]: Not investment advice
+          - paragraph [ref=e681]: Every probability, fragility score and simulation here is an informational output computed from public SEC filings, market prices and prediction-market quotes as of October 2026. Nothing on this site is financial, investment, legal, tax or credit advice. Equity, credit and prediction-market positions can lose money. Do your own due diligence or talk to a licensed professional before you act.
+        - generic [ref=e682]:
+          - paragraph [ref=e683]: Data as of October 2026 · 169 sourced deals · $2.87T disclosed
+          - list [ref=e684]:
+            - listitem [ref=e685]:
+              - link "Method" [ref=e686] [cursor=pointer]:
+                - /url: /methodology
+            - listitem [ref=e687]:
+              - link "API" [ref=e688] [cursor=pointer]:
+                - /url: /api-docs
+            - listitem [ref=e689]:
+              - link "News" [ref=e690] [cursor=pointer]:
+                - /url: /news
+            - listitem [ref=e691]: v2.7.0
+  - alert [ref=e692]

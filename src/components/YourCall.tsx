@@ -15,10 +15,12 @@ import {
   resolveCall,
   scoreCalls,
   utcDayKey,
+  writeCalls,
   type CallRecord,
   type ObservedPrint,
 } from "@/lib/predictions";
 import { formatAsOf } from "@/components/home/copy";
+import { UndoAction } from "@/components/UndoAction";
 
 /**
  * "Your Call" — the reader's own 12-month burst probability, kept next to the
@@ -65,6 +67,19 @@ export interface YourCallProps {
  */
 const DEFAULT_CALL_PCT = 25;
 
+/**
+ * An action that can be taken back.
+ *
+ * The history is the reader's own record, and deleting a row from it used to
+ * be a one-way door: the record was gone, the badges it had unlocked were
+ * gone, and there was no way back. Both the single-row delete and the
+ * clear-all now leave a record of what was removed, so the UNDO button in the
+ * history panel can put it back exactly as it was.
+ */
+type PendingUndo =
+  | { kind: "delete"; record: CallRecord }
+  | { kind: "clear"; records: CallRecord[] };
+
 /** Signed probability points, house style: "+1.7" / "-7.3". */
 function signedPoints(value: number): string {
   return `${value >= 0 ? "+" : "-"}${Math.abs(value).toFixed(1)}`;
@@ -87,6 +102,8 @@ export function YourCall({
   const [records, setRecords] = useState<CallRecord[]>([]);
   const [status, setStatus] = useState<string>("");
   const [confirmClear, setConfirmClear] = useState<boolean>(false);
+  /** The action that can still be taken back, if the reader has not let it go. */
+  const [pendingUndo, setPendingUndo] = useState<PendingUndo | null>(null);
 
   /**
    * The store is read AFTER mount, never during render, so the server markup
@@ -175,14 +192,72 @@ export function YourCall({
 
   const handleClear = useCallback(() => {
     const cleared = clearCalls();
+    const snapshot = records;
     setRecords([]);
     setConfirmClear(false);
+    /** The cleared records are kept for a few seconds, in case. */
+    setPendingUndo({ kind: "clear", records: snapshot });
     setStatus(
       cleared
         ? "Your calls were cleared from this browser."
         : "Your calls were cleared. This browser would not confirm the deletion."
     );
+  }, [records]);
+
+  /**
+   * Delete one call from the history - and remember it, so the reader can put
+   * it back.
+   */
+  const handleDeleteCall = useCallback(
+    (record: CallRecord) => {
+      const next = records.filter((entry) => entry.id !== record.id);
+      setRecords(next);
+      writeCalls(next);
+      setPendingUndo({ kind: "delete", record });
+    },
+    [records]
+  );
+
+  /**
+   * Take the last action back.
+   *
+   * The record is written back to storage exactly as it was, in the same
+   * order, so a deleted call comes back with its date, its probability and the
+   * model print it was frozen against.
+   */
+  const handleUndo = useCallback(() => {
+    const pending = pendingUndo;
+    setPendingUndo(null);
+    if (!pending) return;
+
+    if (pending.kind === "delete") {
+      const next = [...records, pending.record].sort((a, b) =>
+        a.submittedAt.localeCompare(b.submittedAt)
+      );
+      setRecords(next);
+      writeCalls(next);
+      return;
+    }
+
+    setRecords(pending.records);
+    writeCalls(pending.records);
+  }, [pendingUndo, records]);
+
+  /** The undo window closed without an undo: the old state is gone for good. */
+  const handleUndoExpired = useCallback(() => {
+    setPendingUndo(null);
   }, []);
+
+  /** The line the undo region shows. */
+  const undoMessage = (() => {
+    if (!pendingUndo) return "";
+    if (pendingUndo.kind === "delete") {
+      const day = utcDayKey(pendingUndo.record.submittedAt);
+      return day ? `Call from ${formatAsOf(day)} deleted.` : "Call deleted.";
+    }
+    const count = pendingUndo.records.length;
+    return count === 1 ? "1 call cleared." : `${count} calls cleared.`;
+  })();
 
   /* ── Copy helpers ────────────────────────────────────────────────────── */
 
@@ -529,11 +604,12 @@ export function YourCall({
               window has closed.
             </caption>
             <colgroup>
+              <col className="w-[21%]" />
+              <col className="w-[14%]" />
+              <col className="w-[16%]" />
+              <col className="w-[12%]" />
               <col className="w-[24%]" />
-              <col className="w-[16%]" />
-              <col className="w-[19%]" />
-              <col className="w-[16%]" />
-              <col className="w-[25%]" />
+              <col className="w-[13%]" />
             </colgroup>
             <thead className="sticky top-0 z-10 bg-surface-2">
               <tr>
@@ -567,12 +643,18 @@ export function YourCall({
                 >
                   Outcome
                 </th>
+                <th
+                  scope="col"
+                  className="px-1 py-2 text-right text-[13px] font-medium uppercase tracking-[0.1em] text-ink-faint"
+                >
+                  <span className="sr-only">Delete this call</span>
+                </th>
               </tr>
             </thead>
             <tbody>
               {history.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-3 py-8 text-center text-[14px] text-ink-muted">
+                  <td colSpan={6} className="px-3 py-8 text-center text-[14px] text-ink-muted">
                     No calls yet. The first one you record will sit here, with the model print and
                     the market price as they stood that day.
                   </td>
@@ -618,11 +700,38 @@ export function YourCall({
                         </>
                       )}
                     </td>
+                    <td className="px-1 py-2 text-right align-middle">
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteCall(row.record)}
+                        aria-label={`Delete the call from ${row.fullDate}`}
+                        title={`Delete the call from ${row.fullDate}`}
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-md text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink"
+                      >
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* ── The undo row ───────────────────────────────────────────────── */}
+        {/*
+          The slot is reserved with a fixed height, so the row that appears
+          when an action can be taken back does not push the page down. The
+          window is paused while the pointer is on it or it holds the focus.
+        */}
+        <div className="mt-2 min-h-[2.75rem]">
+          <UndoAction
+            message={undoMessage}
+            onUndo={handleUndo}
+            onExpire={handleUndoExpired}
+            undoLabel="Undo"
+            undoDescription="put the call back on your record"
+          />
         </div>
 
         <p className="mt-2 text-[13px] leading-relaxed text-ink-faint">
@@ -664,7 +773,8 @@ export function YourCall({
             )}
           </div>
           <p className="mt-1 text-[13px] leading-snug text-ink-faint">
-            Everything you have recorded lives in this browser only. Clearing it cannot be undone.
+            Everything you have recorded lives in this browser only. Clearing it can be taken back
+            for a few seconds, and so can deleting one call.
           </p>
         </div>
       </section>

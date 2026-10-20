@@ -59,38 +59,66 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
   // 2026-10-19 fact-check sweep: the CDS fallback was the stale 187bp (the live
   // 5Y Oracle CDS closed at a record 288bp on 15 Oct 2026), the user-growth
   // fallback was 0.65 (the model input is +50% YoY: 800M Oct 2025 → 1.2B Sep
-  // 2026 weekly users, OpenAI DevDay) and the crowd fallback was 0.54 (the live
-  // Polymarket reading is 9.05% on the 2026 contract).
-  const baseCds = DEFAULT_MODEL_INPUTS.cds?.currentBps || 288;
-  const baseDebt = Math.round((DEFAULT_MODEL_INPUTS.ledger?.debtShare ?? 0.075) * 100);
-  const baseUs10y = DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 5.10;
-  const baseAnnualDebtB = Math.round((DEFAULT_MODEL_INPUTS.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000) / 1e9);
+  // 2026 weekly users, OpenAI DevDay) and the crowd fallback was 0.54.
+  //
+  // 2026-10-20: every baseline below is read from the LIVE input set the model
+  // itself consumes (src/data/live-inputs.json via DEFAULT_MODEL_INPUTS) — the
+  // Polymarket leg is the live 8.3% Dec-2026 print (19.5% on Jun-2027) and the
+  // US10Y leg is the live 5.14% (FRED DGS10). Nothing here is typed.
+  const baseCds = DEFAULT_MODEL_INPUTS.cds?.currentBps ?? 0;
+  const baseCdsBaseline = DEFAULT_MODEL_INPUTS.cds?.baselineBps ?? 0;
+  // Precise live debt share (7.5%) — the slider control and the model input
+  // both run on this value, so the printed reading is never rounded away.
+  const baseDebtPct = (DEFAULT_MODEL_INPUTS.ledger?.debtShare ?? 0) * 100;
+  const baseTrackedDebtB = ((DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 0) / 1e9).toFixed(1);
+  const baseUs10y = DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 0;
+  const baseAnnualDebtB = Math.round((DEFAULT_MODEL_INPUTS.aiDebt?.annualDebtIssuanceUsd ?? 0) / 1e9);
   // The published input-basis deflation multiple is pinned at 670× (GPT-4 $30/1M
   // input, Mar 2023 → DeepSeek V4.1 Flash $0.0448/1M, OpenRouter, 19 Oct 2026).
   // The live aggregator's intraday rate swings the raw reading (798× at the
-  // 19 Oct 2026 print on a $0.0376 quote); the damper saturates above 50×, so
-  // the score is identical either way.
-  const baseTokenDiscount = DEFAULT_MODEL_INPUTS.adoption?.apiPriceDeclineMultiple || 670;
-  const baseUserGrowth = Math.round((DEFAULT_MODEL_INPUTS.adoption?.annualUserGrowth || 0.5) * 100);
-  const baseOdds = Math.round((DEFAULT_MODEL_INPUTS.crowd?.yesProbability || 0.0905) * 100);
+  // 19 Oct 2026 print on a $0.0376 quote); the damper's deflation leg
+  // (src/lib/model/factors.ts) saturates at 500×, so the score is identical
+  // either way.
+  const baseTokenDiscount = DEFAULT_MODEL_INPUTS.adoption?.apiPriceDeclineMultiple ?? 0;
+  const baseUserGrowth = Math.round((DEFAULT_MODEL_INPUTS.adoption?.annualUserGrowth ?? 0) * 100);
+  // Live crowd snapshot: the scored leg is the Dec-2026 Polymarket contract
+  // (8.3% YES); the Jun-2027 contract prints 19.5% and is carried for context.
+  const baseOddsPct =
+    (DEFAULT_MODEL_INPUTS.crowd?.bubble2026Probability ??
+      DEFAULT_MODEL_INPUTS.crowd?.yesProbability ??
+      0) * 100;
+  const baseOdds2027Pct = (DEFAULT_MODEL_INPUTS.crowd?.bubble2027Probability ?? 0) * 100;
+  const baseCapexB = Math.round((DEFAULT_MODEL_INPUTS.capex?.aggregateCapexUsd ?? 0) / 1e9);
 
   // Active current values
   const currentCds = inputs.cds?.currentBps || baseCds;
-  const currentDebt = Math.round((inputs.ledger?.debtShare ?? 0.075) * 100);
+  const currentDebt = Math.round((inputs.ledger?.debtShare ?? 0) * 1000) / 10;
   const currentUs10y = inputs.macro?.us10yYieldPct ?? baseUs10y;
-  const currentAnnualDebtB = Math.round((inputs.aiDebt?.annualDebtIssuanceUsd ?? 85_000_000_000) / 1e9);
+  const currentAnnualDebtB = Math.round((inputs.aiDebt?.annualDebtIssuanceUsd ?? 0) / 1e9);
   const currentTokenDiscount = inputs.adoption?.apiPriceDeclineMultiple || baseTokenDiscount;
-  const currentUserGrowth = Math.round((inputs.adoption?.annualUserGrowth || 0.5) * 100);
-  const currentOdds = Math.round((inputs.crowd?.yesProbability || 0.0905) * 100);
+  const currentUserGrowth = Math.round((inputs.adoption?.annualUserGrowth ?? 0) * 100);
+  const currentOdds = Math.round((inputs.crowd?.yesProbability ?? baseOddsPct / 100) * 1000) / 10;
+
+  /** Median price/sales across the labs with a verified run-rate (same basis as /api/v1/model). */
+  const medianPsMultiple = (base: BubbleModelInputs): number => {
+    const ps = (base.valuations ?? [])
+      .filter((v) => v.runRateRevenueUsd !== null && (v.runRateRevenueUsd as number) >= 100_000_000)
+      .map((v) => v.valuationUsd / (v.runRateRevenueUsd as number))
+      .sort((a, b) => a - b);
+    if (ps.length === 0) return 0;
+    const mid = Math.floor(ps.length / 2);
+    return ps.length % 2 !== 0 ? ps[mid] : (ps[mid - 1] + ps[mid]) / 2;
+  };
+
+  // Live median price/sales (computed from the live valuation set).
+  const baseMedianPs = medianPsMultiple(DEFAULT_MODEL_INPUTS);
 
   // 2026-10-19 (round-2 consolidation): the scenario preset set was REBUILT to mirror the
   // sandbox page's published stress table (src/app/sandbox/page.tsx → stressScenarios), which
   // is itself recomputed from the live model inputs at render time. The old presets were pinned
   // to a pre-rebaseline world — CDS 290/235/95bp, debt share 0.20/0.16/0.04, crowd odds
   // 0.80/0.70/0.28, token deflation 85× — levels that no longer exist on the live inputs and that
-  // never matched the scenarios the page publishes. Live anchors (19 Oct 2026): Oracle 5Y CDS
-  // 288bp (record close Oct 15 2026), ledger debt share 7.5%, median lab P/S 29.4×, token
-  // deflation 670× (input basis), CY2026 hyperscaler capex $725B, crowd odds 9.05%.
+  // never matched the scenarios the page publishes.
   type PresetId =
     | "baseline"
     | "credit_freeze"
@@ -104,31 +132,31 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
   > = {
     baseline: {
       label: "Baseline Calibration",
-      note: "Live verified inputs — CDS 288 bp · ledger debt share 7.5% ($214.9B) · median lab P/S 29.4× · token deflation 670× · crowd odds 9.05% · capex $725B.",
+      note: `Live verified inputs — CDS ${baseCds} bp · ledger debt share ${baseDebtPct.toFixed(1)}% ($${baseTrackedDebtB}B) · median lab P/S ${baseMedianPs.toFixed(1)}× · token deflation ${baseTokenDiscount}× · crowd odds ${baseOddsPct.toFixed(1)}% (Dec-2026) / ${baseOdds2027Pct.toFixed(1)}% (Jun-2027) · capex $${baseCapexB}B.`,
       icon: <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />,
       tone: "",
     },
     credit_freeze: {
       label: "AI Credit Freeze",
-      note: "Credit freeze — CDS blows out to 400 bp (+112 bp on the live print) and the ledger's borrowed share jumps to 12.0%.",
+      note: `Credit freeze — CDS blows out to 400 bp (+${400 - baseCds} bp on the live print) and the ledger's borrowed share jumps to 12.0%.`,
       icon: <Flame className="h-3.5 w-3.5 text-risk-700" aria-hidden="true" />,
       tone: "hover:text-risk-700",
     },
     multiple_compression: {
       label: "Multiple Compression",
-      note: "Multiple compression — median lab price/sales halves to 15.0× (from 29.4×): the 2022-style de-rating of frontier-lab equity.",
+      note: `Multiple compression — median lab price/sales halves to 15.0× (from ${baseMedianPs.toFixed(1)}×): the 2022-style de-rating of frontier-lab equity.`,
       icon: <TrendingDown className="h-3.5 w-3.5 text-caution-700" aria-hidden="true" />,
       tone: "hover:text-caution-700",
     },
     capex_retrenchment: {
       label: "Capex Retrenchment",
-      note: "Capex retrenchment — CY2026 hyperscaler capex cut 20% ($725B → $580B) with the matching capex/OCF relief (54.8% → 43.8%).",
+      note: `Capex retrenchment — CY2026 hyperscaler capex cut 20% ($${baseCapexB}B → $${Math.round(baseCapexB * 0.8)}B) with the matching capex/OCF relief (${((DEFAULT_MODEL_INPUTS.aiDebt?.capexToOcfRatio ?? 0) * 100).toFixed(1)}% → ${((DEFAULT_MODEL_INPUTS.aiDebt?.capexToOcfRatio ?? 0) * 80).toFixed(1)}%).`,
       icon: <Zap className="h-3.5 w-3.5 text-caution-700" aria-hidden="true" />,
       tone: "hover:text-caution-700",
     },
     soft_landing: {
       label: "Soft Landing",
-      note: "Soft landing — credit normalises to 150 bp (−138 bp), leverage falls to 5.0%, multiples compress to 20.0× and tokens keep getting cheaper (200×).",
+      note: `Soft landing — credit normalises to 150 bp (−${baseCds - 150} bp), leverage falls to 5.0%, multiples compress to 20.0× and tokens keep getting cheaper (200×).`,
       icon: <ShieldCheck className="h-3.5 w-3.5 text-safe-700" aria-hidden="true" />,
       tone: "hover:text-safe-700",
     },
@@ -141,17 +169,6 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
     "capex_retrenchment",
     "soft_landing",
   ];
-
-  /** Median price/sales across the labs with a verified run-rate (same basis as /api/v1/model). */
-  const medianPsMultiple = (base: BubbleModelInputs): number => {
-    const ps = (base.valuations ?? [])
-      .filter((v) => v.runRateRevenueUsd !== null && (v.runRateRevenueUsd as number) >= 100_000_000)
-      .map((v) => v.valuationUsd / (v.runRateRevenueUsd as number))
-      .sort((a, b) => a - b);
-    if (ps.length === 0) return 29.4; // 19 Oct 2026 canonical live median
-    const mid = Math.floor(ps.length / 2);
-    return ps.length % 2 !== 0 ? ps[mid] : (ps[mid - 1] + ps[mid]) / 2;
-  };
 
   // Preset scenarios handler
   const applyPreset = (preset: PresetId) => {
@@ -222,7 +239,8 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
     setScenarioName("custom");
     setInputs((prev) => ({
       ...prev,
-      ledger: { ...prev.ledger!, debtShare: baseDebt / 100 },
+      // Restores the PRECISE live debt share, not the rounded control value.
+      ledger: { ...prev.ledger!, debtShare: baseDebtPct / 100 },
     }));
   };
 
@@ -262,7 +280,15 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
     setScenarioName("custom");
     setInputs((prev) => ({
       ...prev,
-      crowd: { ...prev.crowd!, yesProbability: baseOdds / 100 },
+      crowd: {
+        ...prev.crowd!,
+        // The crowd factor scores the 2026 contract leg (bubble2026Probability),
+        // so the reset restores BOTH crowd probability fields to the live
+        // snapshot — otherwise the lever would appear to move while the model
+        // kept reading the untouched contract price.
+        yesProbability: baseOddsPct / 100,
+        bubble2026Probability: baseOddsPct / 100,
+      },
     }));
   };
 
@@ -406,8 +432,8 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                 "350 bp (Crisis Spike)" → "400 bp (Credit Freeze)" — the rebuilt credit-freeze
                 preset sets CDS to 400bp, which the old 350bp ceiling could not represent. */}
             <div className="num flex justify-between text-[14px] text-ink-subtle">
-              <span>81 bp (long-run norm)</span>
-              <span className="font-semibold text-ink-muted">288 bp (Baseline)</span>
+              <span>{baseCdsBaseline} bp (long-run norm)</span>
+              <span className="font-semibold text-ink-muted">{baseCds} bp (Baseline)</span>
               <span>400 bp (Credit Freeze)</span>
             </div>
           </div>
@@ -419,9 +445,9 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                 <span className="font-bold text-ink">
                   Debt &amp; Convertible Share in Deal Ledger
                 </span>
-                {currentDebt !== baseDebt && (
+                {currentDebt !== baseDebtPct && (
                   <span className="text-[14px] font-bold text-caution-700">
-                    ({currentDebt > baseDebt ? `+${currentDebt - baseDebt}%` : `${currentDebt - baseDebt}%`})
+                    ({currentDebt > baseDebtPct ? `+${(currentDebt - baseDebtPct).toFixed(1)}%` : `${(currentDebt - baseDebtPct).toFixed(1)}%`})
                   </span>
                 )}
               </div>
@@ -430,17 +456,17 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                   type="number"
                   min="0"
                   max="50"
-                  step="1"
+                  step="0.5"
                   value={currentDebt}
                   onChange={(e) => {
-                    const val = Math.max(0, Math.min(50, parseInt(e.target.value, 10) || 0));
+                    const val = Math.max(0, Math.min(50, parseFloat(e.target.value) || 0));
                     setScenarioName("custom");
                     setInputs({ ...inputs, ledger: { ...inputs.ledger!, debtShare: val / 100 } });
                   }}
                   className="num h-11 w-16 rounded-lg border border-rule-strong bg-surface px-2 text-right text-[14px] font-semibold text-ink"
                 />
                 <span className="text-ink-subtle font-bold">%</span>
-                {currentDebt !== baseDebt && (
+                {currentDebt !== baseDebtPct && (
                   <button
                     onClick={resetDebt}
                     title="Reset to baseline"
@@ -456,10 +482,10 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
               type="range"
               min="0"
               max="50"
-              step="1"
+              step="0.5"
               value={currentDebt}
               onChange={(e) => {
-                const val = parseInt(e.target.value, 10);
+                const val = parseFloat(e.target.value);
                 setScenarioName("custom");
                 setInputs({ ...inputs, ledger: { ...inputs.ledger!, debtShare: val / 100 } });
               }}
@@ -468,7 +494,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
 
             <div className="num flex justify-between text-[14px] text-ink-subtle">
               <span>0% (Equity-only)</span>
-              <span className="font-bold text-caution-700">7.5% ($214.9B Baseline)</span>
+              <span className="font-bold text-caution-700">{baseDebtPct.toFixed(1)}% (${baseTrackedDebtB}B Baseline)</span>
               <span>50% (High Leverage)</span>
             </div>
           </div>
@@ -535,7 +561,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
 
             <div className="num flex justify-between text-[14px] text-ink-subtle">
               <span>3.00% (Accommodative)</span>
-              <span className="font-bold text-ink-subtle">5.10% (Baseline)</span>
+              <span className="font-bold text-ink-subtle">{baseUs10y.toFixed(2)}% (Baseline)</span>
               <span>6.50% (Liquidity Freeze)</span>
             </div>
           </div>
@@ -602,7 +628,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
 
             <div className="num flex justify-between text-[14px] text-ink-subtle">
               <span>$10B/yr (Restrained)</span>
-              <span className="font-bold text-risk-700">$85B/yr (Baseline)</span>
+              <span className="font-bold text-risk-700">${baseAnnualDebtB}B/yr (Baseline)</span>
               <span>$150B/yr (Leveraged Surge)</span>
             </div>
           </div>
@@ -674,7 +700,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
             <div className="num flex justify-between text-[14px] text-ink-subtle">
               <span>1× (No Price Drop)</span>
               <span className="font-bold text-safe-700">{baseTokenDiscount}× (Baseline)</span>
-              <span>700× (Live Print)</span>
+              <span>700× (Slider Ceiling)</span>
             </div>
           </div>
 
@@ -752,9 +778,9 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                 <span className="font-bold text-ink">
                   Polymarket Crowd Consensus (Bubble Burst YES Odds)
                 </span>
-                {currentOdds !== baseOdds && (
+                {currentOdds !== baseOddsPct && (
                   <span className="text-[14px] font-bold text-ink-muted">
-                    ({currentOdds > baseOdds ? `+${currentOdds - baseOdds}%` : `${currentOdds - baseOdds}%`})
+                    ({currentOdds > baseOddsPct ? `+${(currentOdds - baseOddsPct).toFixed(1)}%` : `${(currentOdds - baseOddsPct).toFixed(1)}%`})
                   </span>
                 )}
               </div>
@@ -763,20 +789,24 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                   type="number"
                   min={1}
                   max="90"
-                  step="1"
+                  step="0.1"
                   value={currentOdds}
                   onChange={(e) => {
-                    const val = Math.max(1, Math.min(90, parseInt(e.target.value, 10) || baseOdds));
+                    const val = Math.max(1, Math.min(90, parseFloat(e.target.value) || baseOddsPct));
                     setScenarioName("custom");
                     setInputs({
                       ...inputs,
-                      crowd: { ...inputs.crowd!, yesProbability: val / 100 },
+                      crowd: {
+                        ...inputs.crowd!,
+                        yesProbability: val / 100,
+                        bubble2026Probability: val / 100,
+                      },
                     });
                   }}
                   className="num h-11 w-16 rounded-lg border border-rule-strong bg-surface px-2 text-right text-[14px] font-semibold text-ink"
                 />
                 <span className="text-ink-subtle font-bold">%</span>
-                {currentOdds !== baseOdds && (
+                {currentOdds !== baseOddsPct && (
                   <button
                     onClick={resetOdds}
                     title="Reset to baseline"
@@ -792,29 +822,39 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
               type="range"
               min={1}
               max="90"
-              step="1"
+              step="0.1"
               value={currentOdds}
               onChange={(e) => {
-                const val = parseInt(e.target.value, 10);
+                const val = parseFloat(e.target.value);
                 setScenarioName("custom");
                 setInputs({
                   ...inputs,
-                  crowd: { ...inputs.crowd!, yesProbability: val / 100 },
+                  crowd: {
+                    ...inputs.crowd!,
+                    yesProbability: val / 100,
+                    bubble2026Probability: val / 100,
+                  },
                 });
               }}
               className="h-11 w-full cursor-pointer accent-ink"
             />
 
             {/* 2026-10-19 (round-2 consolidation): the baseline label showed the rounded
-                integer "9%" — the live crowd reading is 9.05% (Polymarket bubble-2026 contract,
-                19 Oct 2026 snapshot), so the label now carries the precise two-decimal value. */}
+                integer "9%" — the live crowd reading is carried at two decimals now.
+                2026-10-20: the label reads the LIVE Polymarket snapshot (Dec-2026
+                contract 8.30%, Jun-2027 contract 19.50%) from src/data/live-inputs.json
+                through DEFAULT_MODEL_INPUTS, so it can never drift from the model. */}
             <div className="num flex justify-between text-[14px] text-ink-subtle">
               <span>1% (Floor)</span>
               <span className="font-semibold text-ink-muted">
-                {((DEFAULT_MODEL_INPUTS.crowd?.yesProbability ?? 0.0905) * 100).toFixed(2)}% (Baseline)
+                {baseOddsPct.toFixed(2)}% (Baseline)
               </span>
               <span>90% (Consensus Panic)</span>
             </div>
+            <p className="num text-[14px] leading-relaxed text-ink-subtle">
+              Dec-2026 contract {baseOddsPct.toFixed(2)}% · Jun-2027 contract{" "}
+              {baseOdds2027Pct.toFixed(2)}% (live Polymarket snapshot).
+            </p>
           </div>
         </div>
 

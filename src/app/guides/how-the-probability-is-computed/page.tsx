@@ -11,6 +11,8 @@ import {
 import { MODEL_CALIBRATION, MODEL_FACTORS, CHANGELOG } from "@/lib/model/factors";
 import { calibrationDrift, inSampleAuc, ODDS_SHIFT_SENTENCE } from "@/lib/model/documentFormulas";
 import { getGuide, nextGuide } from "@/lib/guides";
+import { GuideToc } from "@/components/GuideToc";
+import { GUIDE_SECTIONS } from "@/lib/guides/sections";
 import {
   GuideHeader,
   GuideSection,
@@ -18,6 +20,7 @@ import {
   GuideDisclosure,
   NotThisPanel,
 } from "../_components/GuideChrome";
+import { GuidePager } from "../_components/GuidePager";
 import latestModel from "@/data/latest-model.json";
 
 /**
@@ -62,8 +65,13 @@ const consistencyRows = HISTORICAL_BACKTESTS.map((b) => ({
   brier: b.brierScore,
   resolved: b.brierScoreResolved,
 }));
-const burstRows = consistencyRows.filter((r) => r.burstObserved);
-const nonBurstRows = consistencyRows.filter((r) => !r.burstObserved);
+// Only RESOLVED episodes count towards the burst/non-burst split. The open
+// window (the live 2026 episode) has no outcome yet, and counting it as a
+// non-burst would claim six outcomes from five episodes.
+const resolvedRows = consistencyRows.filter((r) => r.resolved);
+const burstRows = resolvedRows.filter((r) => r.burstObserved);
+const nonBurstRows = resolvedRows.filter((r) => !r.burstObserved);
+const openRows = consistencyRows.filter((r) => !r.resolved);
 const drift = calibrationDrift(
   burstRows.map((r) => ({
     compositeScore: r.score,
@@ -146,6 +154,11 @@ export default function ProbabilityGuidePage() {
         meta={[`model v${latestModel.model_version}`, `snapshot ${SNAPSHOT_LABEL}`]}
       />
 
+      {/* The navigation layer: a sticky, scroll-spy contents with a deep link
+          per section, so a reader who lands here from a search result can see
+          the shape of the argument before committing to it. */}
+      <GuideToc sections={GUIDE_SECTIONS["how-the-probability-is-computed"]} />
+
       <div className="mt-8 space-y-10">
         {/* ── SECTION 01 ─────────────────────────────────────────────────── */}
         <GuideSection
@@ -225,15 +238,15 @@ export default function ProbabilityGuidePage() {
         >
           <div className="max-w-measure space-y-4 text-[15px] leading-relaxed text-ink-muted">
             <p>
-              Each factor is a pure function from the input set to a stress score. Six of them run
-              between 0 and 1; two &mdash; credit stress and the macro rates factor &mdash; can
-              exceed 1, because they carry a convex panic tail above their ramp ceiling. A
-              factor&apos;s score multiplied by its published weight is the number of points it
-              earns.
+              Each factor is a pure function from the input set to a stress score. Most of them run
+              between 0 and 1; two &mdash; credit stress and the macro rates factor &mdash; carry a
+              convex panic premium and can exceed 1. A factor&apos;s score multiplied by its
+              published weight is the number of points it earns.
             </p>
             <p>
-              The weights are not typed into the model. They are derived from the factor
-              definitions, so they sum to exactly 100 by construction, and the damper&apos;s 10
+              The eight weights are written out per factor, side by side with the factor they
+              belong to, and their sum is derived from those definitions rather than typed
+              separately &mdash; so they total exactly 100 by construction. The damper&apos;s 10
               points sit outside that scale entirely: it subtracts, it never competes. That is why
               a genuinely healthy demand picture cannot make the score fall by more than 10 points
               however strong it gets.
@@ -649,9 +662,11 @@ export default function ProbabilityGuidePage() {
             <p>
               Read that table carefully and one fact dominates: of the{" "}
               {BACKTEST_CALIBRATION_SUMMARY.resolvedEpisodes} resolved episodes,{" "}
-              {burstRows.length} burst and {nonBurstRows.length} did not. The one non-burst row is
-              the live 12-month window the model is currently rating, which is still open. There is
-              no episode in the table in which a stressed regime failed to break.
+              {burstRows.length} burst and {nonBurstRows.length} did not. The{" "}
+              {openRows.length} open row
+              {openRows.length === 1 ? " is" : " are"} the live 12-month window the model is
+              currently rating, which has no outcome yet. There is no resolved episode in the
+              table in which a stressed regime failed to break.
             </p>
             <p>
               The consequences are direct. The mean Brier score of{" "}
@@ -753,6 +768,12 @@ export default function ProbabilityGuidePage() {
 
       <div className="mt-10">
         <GuideFooter current={guide} next={next} />
+      </div>
+
+      {/* The pager: the other two guides, and the date this one was checked
+          against the published snapshot. */}
+      <div className="mt-8">
+        <GuidePager current={guide} />
       </div>
     </div>
   );

@@ -118,15 +118,19 @@ export default async function ApiLandingPage() {
         </h2>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full min-w-[34rem] border-collapse text-left text-sm">
+            <caption className="sr-only">
+              Public API endpoints: the path to call, what each endpoint returns, and the query
+              parameters it accepts.
+            </caption>
             <thead>
               <tr className="border-b border-rule-strong">
-                <th className="py-2 pr-4 font-mono text-[13px] uppercase tracking-wider text-ink-subtle">
+                <th scope="col" className="py-2 pr-4 font-mono text-[13px] uppercase tracking-wider text-ink-subtle">
                   Path
                 </th>
-                <th className="py-2 pr-4 font-mono text-[13px] uppercase tracking-wider text-ink-subtle">
+                <th scope="col" className="py-2 pr-4 font-mono text-[13px] uppercase tracking-wider text-ink-subtle">
                   Returns
                 </th>
-                <th className="py-2 font-mono text-[13px] uppercase tracking-wider text-ink-subtle">
+                <th scope="col" className="py-2 font-mono text-[13px] uppercase tracking-wider text-ink-subtle">
                   Query
                 </th>
               </tr>
@@ -134,7 +138,7 @@ export default async function ApiLandingPage() {
             <tbody className="divide-y divide-rule">
               {ENDPOINTS.map((e) => (
                 <tr key={e.path}>
-                  <td className="num py-2.5 pr-4 font-semibold text-ink">{e.path}</td>
+                  <th scope="row" className="num py-2.5 pr-4 font-semibold text-ink">{e.path}</th>
                   <td className="py-2.5 pr-4 text-[14px] leading-relaxed text-ink-muted">{e.what}</td>
                   <td className="num py-2.5 text-[14px] text-ink-subtle">{e.params}</td>
                 </tr>

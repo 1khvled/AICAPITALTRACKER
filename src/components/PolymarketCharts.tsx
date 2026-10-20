@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useId } from "react";
 import {
   POLYMARKET_REFERRAL_CODE,
   POLYMARKET_FEATURED_MARKETS,
@@ -9,6 +9,12 @@ import {
   PolymarketMarket,
 } from "@/data/polymarket-data";
 import liveInputsData from "@/data/live-inputs.json";
+import {
+  getChartAriaProps,
+  generateChartDescription,
+  ChartDataTable,
+  ChartAnnouncer,
+} from "@/lib/chart-a11y";
 import {
   TrendingUp,
   ShieldAlert,
@@ -215,6 +221,78 @@ export function PolymarketCharts() {
   const bubble2027Path = makePath("aiBubble2027");
   const oracleCdsPath = makePath("oracleCdsStress");
   const openaiAgiPath = makePath("openaiAgiOdds");
+
+  /* ── The chart's accessible identity ──────────────────────────────────────
+   *
+   * The trajectory is one image to a screen reader: a title, a description
+   * DERIVED from the four series it draws, and the same numbers again in a
+   * real table underneath. The description is built from `points`, so it
+   * cannot claim a figure the chart is not showing.
+   */
+  const chartUid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const chartTitleId = `${chartUid}-title`;
+  const chartDescId = `${chartUid}-desc`;
+  const chartTitle =
+    "AI bubble, Oracle CDS stress and OpenAI AGI odds — the historical consensus trajectory";
+
+  const chartDescription = useMemo(
+    () =>
+      generateChartDescription({
+        title: chartTitle,
+        kind: "line",
+        series: [
+          {
+            name: "AI Bubble 2026 odds",
+            points: points.map((p) => ({ x: p.date, y: p.aiBubble2026 })),
+          },
+          {
+            name: "AI Bubble 2027 odds",
+            points: points.map((p) => ({ x: p.date, y: p.aiBubble2027 })),
+          },
+          {
+            name: "Oracle CDS stress",
+            points: points.map((p) => ({ x: p.date, y: p.oracleCdsStress })),
+          },
+          {
+            name: "OpenAI AGI odds",
+            points: points.map((p) => ({ x: p.date, y: p.openaiAgiOdds })),
+          },
+        ],
+        formatValue: (value) => `${value}%`,
+      }),
+    [chartTitle, points]
+  );
+
+  const chartAria = getChartAriaProps({
+    title: chartTitle,
+    description: chartDescription,
+    labelledBy: chartTitleId,
+    describedBy: chartDescId,
+  });
+
+  /** The same rows the chart draws, in the order it draws them. */
+  const chartTableRows = useMemo(
+    () =>
+      points.map((p) => [
+        p.date,
+        `${p.aiBubble2026}%`,
+        `${p.aiBubble2027}%`,
+        `${p.oracleCdsStress}%`,
+        `${p.openaiAgiOdds}%`,
+        `$${p.volumeCumulativeMillions}M`,
+      ]),
+    [points]
+  );
+
+  /** The readout under the chart, announced politely when it changes. */
+  const hoverAnnouncement =
+    hoveredPoint !== null
+      ? `${points[hoveredPoint].date}. Bubble 2026: ${points[hoveredPoint].aiBubble2026}%. Bubble 2027: ${
+          points[hoveredPoint].aiBubble2027
+        }%. Oracle CDS stress: ${points[hoveredPoint].oracleCdsStress}%. OpenAI AGI: ${
+          points[hoveredPoint].openaiAgiOdds
+        }%. Cumulative volume: $${points[hoveredPoint].volumeCumulativeMillions}M.`
+      : "";
 
   return (
 <div className="card card-flush overflow-hidden shadow-card">
@@ -779,22 +857,22 @@ export function PolymarketCharts() {
               {/* Chart legend — swatch colours are the chart's own series colours */}
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[14px]">
                 <span className="flex items-center gap-1.5 whitespace-nowrap text-ink-muted">
-                  <span className="h-0.5 w-3" style={{ backgroundColor: SERIES.risk500 }} />
+                  <span className="h-0.5 w-3" style={{ backgroundColor: SERIES.risk500 }} aria-hidden="true" />
                   <span>AI Bubble 2026 ({bubble2026Prob.toFixed(1)}%)</span>
                 </span>
                 <span className="flex items-center gap-1.5 whitespace-nowrap text-ink-muted">
-                  <span className="h-0.5 w-3" style={{ backgroundColor: SERIES.caution500 }} />
+                  <span className="h-0.5 w-3" style={{ backgroundColor: SERIES.caution500 }} aria-hidden="true" />
                   <span>AI Bubble 2027 ({bubble2027Prob.toFixed(1)}%)</span>
                 </span>
                 <span className="flex items-center gap-1.5 whitespace-nowrap text-ink-muted">
-                  <span className="h-0.5 w-3" style={{ backgroundColor: SERIES.inkSubtle }} />
+                  <span className="h-0.5 w-3" style={{ backgroundColor: SERIES.inkSubtle }} aria-hidden="true" />
                   <span>
                     Oracle CDS Stress (
                     {(points[points.length - 1]?.oracleCdsStress ?? 38.0).toFixed(1)}%)
                   </span>
                 </span>
                 <span className="flex items-center gap-1.5 whitespace-nowrap text-ink-muted">
-                  <span className="h-0.5 w-3" style={{ backgroundColor: SERIES.safe500 }} />
+                  <span className="h-0.5 w-3" style={{ backgroundColor: SERIES.safe500 }} aria-hidden="true" />
                   <span>
                     OpenAI AGI Odds (
                     {(points[points.length - 1]?.openaiAgiOdds ?? 8.5).toFixed(1)}%)
@@ -808,49 +886,57 @@ export function PolymarketCharts() {
               <svg
                 viewBox={`0 0 ${chartWidth} ${chartHeight}`}
                 className="w-full h-auto min-w-[600px] select-none"
+                {...chartAria}
               >
-                {/* Y-axis gridlines */}
-                {[0, 10, 20, 30, 40, 50].map((val) => {
-                  const y = getY(val);
-                  return (
-                    <g key={val}>
-                      <line
-                        x1={padding.left}
-                        y1={y}
-                        x2={chartWidth - padding.right}
-                        y2={y}
-                        stroke="currentColor"
-                        className="text-ink"
-                        strokeDasharray={val === 0 ? "none" : "3 3"}
-                        strokeWidth={val === 0 ? 1.5 : 1}
-                      />
+                <title id={chartTitleId}>{chartTitle}</title>
+                <desc id={chartDescId}>{chartDescription}</desc>
+
+                {/* Y-axis gridlines and their tick labels — decorative chrome. */}
+                <g aria-hidden="true">
+                  {[0, 10, 20, 30, 40, 50].map((val) => {
+                    const y = getY(val);
+                    return (
+                      <g key={val}>
+                        <line
+                          x1={padding.left}
+                          y1={y}
+                          x2={chartWidth - padding.right}
+                          y2={y}
+                          stroke="currentColor"
+                          className="text-ink"
+                          strokeDasharray={val === 0 ? "none" : "3 3"}
+                          strokeWidth={val === 0 ? 1.5 : 1}
+                        />
+                        <text
+                          x={padding.left - 8}
+                          y={y + 4}
+                          textAnchor="end"
+                          className="text-[14px] font-mono font-medium fill-ink-muted"
+                        >
+                          {val}%
+                        </text>
+                      </g>
+                    );
+                  })}
+                </g>
+
+                {/* X-axis labels — decorative chrome. */}
+                <g aria-hidden="true">
+                  {points.map((p, i) => {
+                    const x = getX(i);
+                    return (
                       <text
-                        x={padding.left - 8}
-                        y={y + 4}
-                        textAnchor="end"
+                        key={p.date}
+                        x={x}
+                        y={chartHeight - 12}
+                        textAnchor="middle"
                         className="text-[14px] font-mono font-medium fill-ink-muted"
                       >
-                        {val}%
+                        {p.date}
                       </text>
-                    </g>
-                  );
-                })}
-
-                {/* X-axis labels */}
-                {points.map((p, i) => {
-                  const x = getX(i);
-                  return (
-                    <text
-                      key={p.date}
-                      x={x}
-                      y={chartHeight - 12}
-                      textAnchor="middle"
-                      className="text-[14px] font-mono font-medium fill-ink-muted"
-                    >
-                      {p.date}
-                    </text>
-                  );
-                })}
+                    );
+                  })}
+                </g>
 
                 {/* Series Lines — each one draws itself in when the tab opens */}
                 <path
@@ -896,9 +982,10 @@ export function PolymarketCharts() {
                       onMouseEnter={() => setHoveredPoint(i)}
                       onMouseLeave={() => setHoveredPoint(null)}
                     >
-                      {/* Vertical highlight line on hover */}
+                      {/* Vertical highlight line on hover — decorative chrome. */}
                       {isHovered && (
                         <line
+                          aria-hidden="true"
                           x1={x}
                           y1={padding.top}
                           x2={x}
@@ -908,6 +995,9 @@ export function PolymarketCharts() {
                           strokeDasharray="2 2"
                         />
                       )}
+                      <title>
+                        {`${p.date} — Bubble 2026 ${p.aiBubble2026}%, Bubble 2027 ${p.aiBubble2027}%, Oracle CDS stress ${p.oracleCdsStress}%, OpenAI AGI ${p.openaiAgiOdds}%`}
+                      </title>
                       <circle cx={x} cy={getY(p.aiBubble2026)} r={isHovered ? 5 : 3} fill={SERIES.risk500} />
                       <circle cx={x} cy={getY(p.aiBubble2027)} r={isHovered ? 5 : 3} fill={SERIES.caution500} />
                       <circle cx={x} cy={getY(p.oracleCdsStress)} r={isHovered ? 5 : 3} style={{ fill: SERIES.inkSubtle }} />
@@ -950,6 +1040,25 @@ export function PolymarketCharts() {
                 widening (+256% from the 81 bp long-run norm to 288 bp, 15 Oct 2026).
               </p>
             </div>
+
+            {/* The same numbers as the chart, as a real table. */}
+            <ChartDataTable
+              visible
+              caption="The historical consensus trajectory: the crowd probability of the AI bubble 2026 and 2027 contracts, Oracle CDS refinancing stress and OpenAI AGI, with cumulative traded volume, at each observation date."
+              columns={[
+                "Date",
+                "AI Bubble 2026",
+                "AI Bubble 2027",
+                "Oracle CDS stress",
+                "OpenAI AGI odds",
+                "Cumulative volume",
+              ]}
+              numericColumns={[1, 2, 3, 4, 5]}
+              rows={chartTableRows}
+            />
+
+            {/* The readout under the chart, announced politely when it changes. */}
+            <ChartAnnouncer message={hoverAnnouncement} />
           </div>
         )}
 

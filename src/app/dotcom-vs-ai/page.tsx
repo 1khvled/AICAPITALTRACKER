@@ -504,7 +504,7 @@ const CREDIT_FREEZE_CARD_SUMMARY = `${CREDIT_FREEZE_INPUTS.cds?.currentBps}bp CD
 
 // INVARIANT (asserted here in code, never in the page copy): every preset labelled a
 // STRESS must score at or above the live baseline once the modes compute from the
-// engine. Live baseline 71.6% (score 63.3) · neocloud credit freeze 90.3% (75.1) ·
+// engine. Live baseline 32.3% (score 48.3) · neocloud credit freeze 90.3% (75.1) ·
 // 2000 dot-com peak 97.4% (87.5). A preset that fell below the baseline would be a
 // stress that scores calmer than reality — a broken simulator, not a finding.
 if (process.env.NODE_ENV !== "production") {
@@ -528,7 +528,7 @@ export default function DotComVsAiPage() {
   
   // Interactive Simulator State
   // 2026-10-19 (B-F11): the lever defaults ARE the live input values, so the live mode
-  // reproduces the canonical print (71.6%) instead of a hand-rolled approximation.
+  // reproduces the canonical print (32.3%) instead of a hand-rolled approximation.
   const [simRegime, setSimRegime] = useState<"dotcom2000" | "ai2026" | "creditFreeze">("ai2026");
   const [customFcf, setCustomFcf] = useState<number>(Math.round((liveCapex.aggregateFcfUsd ?? 0) / 1e9)); // $B
   const [customDebt, setCustomDebt] = useState<number>(Math.round((liveAiDebt.totalTrackedDebtUsd / 1e9) * 10) / 10); // $B — ledger totalTrackedDebtUsd
@@ -949,19 +949,24 @@ export default function DotComVsAiPage() {
               </p>
               <div className="overflow-x-auto">
                 <table className="w-full text-[14px] font-mono border-collapse">
+                  <caption className="sr-only">
+                    Hyperscaler cash flows against filed AI capex: operating cash flow, annual AI
+                    capex, retained free cash flow, capex-to-operating-cash-flow ratio and credit
+                    rating.
+                  </caption>
                   <thead>
                     <tr className="border-b border-rule text-left text-ink-subtle">
-                      <th className="py-2.5 px-3">Company</th>
-                      <th className="py-2.5 px-3">Operating Cash Flow (trailing FY)</th>
-                      <th className="py-2.5 px-3">Annual AI Capex (FY2025 filed)</th>
-                      <th className="py-2.5 px-3">Retained Free Cash Flow</th>
-                      <th className="py-2.5 px-3">Capex / OCF Ratio</th>
-                      <th className="py-2.5 px-3">Credit Rating</th>
+                      <th scope="col" className="py-2.5 px-3">Company</th>
+                      <th scope="col" className="py-2.5 px-3">Operating Cash Flow (trailing FY)</th>
+                      <th scope="col" className="py-2.5 px-3">Annual AI Capex (FY2025 filed)</th>
+                      <th scope="col" className="py-2.5 px-3">Retained Free Cash Flow</th>
+                      <th scope="col" className="py-2.5 px-3">Capex / OCF Ratio</th>
+                      <th scope="col" className="py-2.5 px-3">Credit Rating</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-rule divide-rule/60 text-ink">
                     <tr className="hover:bg-surface-2 hover:bg-surface-2">
-                      <td className="py-2.5 px-3 font-bold text-ink">Microsoft (MSFT)</td>
+                      <th scope="row" className="py-2.5 px-3 font-bold text-ink">Microsoft (MSFT)</th>
                       <td className="py-2.5 px-3 text-safe-700">$136.2B</td>
                       <td className="py-2.5 px-3">$80.0B</td>
                       <td className="py-2.5 px-3 font-bold">$56.2B</td>
@@ -969,7 +974,7 @@ export default function DotComVsAiPage() {
                       <td className="py-2.5 px-3"><span className="chip chip-safe">AAA</span></td>
                     </tr>
                     <tr className="hover:bg-surface-2 hover:bg-surface-2">
-                      <td className="py-2.5 px-3 font-bold text-ink">Alphabet (GOOGL)</td>
+                      <th scope="row" className="py-2.5 px-3 font-bold text-ink">Alphabet (GOOGL)</th>
                       <td className="py-2.5 px-3 text-safe-700">$128.5B</td>
                       <td className="py-2.5 px-3">$75.0B</td>
                       <td className="py-2.5 px-3 font-bold">$53.5B</td>
@@ -977,7 +982,7 @@ export default function DotComVsAiPage() {
                       <td className="py-2.5 px-3"><span className="chip chip-safe">AA+</span></td>
                     </tr>
                     <tr className="hover:bg-surface-2 hover:bg-surface-2">
-                      <td className="py-2.5 px-3 font-bold text-ink">Meta Platforms (META)</td>
+                      <th scope="row" className="py-2.5 px-3 font-bold text-ink">Meta Platforms (META)</th>
                       <td className="py-2.5 px-3 text-safe-700">$98.4B</td>
                       <td className="py-2.5 px-3">$65.0B</td>
                       <td className="py-2.5 px-3 font-bold">$33.4B</td>
@@ -985,7 +990,7 @@ export default function DotComVsAiPage() {
                       <td className="py-2.5 px-3"><span className="chip chip-safe">AA-</span></td>
                     </tr>
                     <tr className="hover:bg-surface-2 hover:bg-surface-2">
-                      <td className="py-2.5 px-3 font-bold text-ink">Amazon AWS (AMZN)</td>
+                      <th scope="row" className="py-2.5 px-3 font-bold text-ink">Amazon AWS (AMZN)</th>
                       <td className="py-2.5 px-3 text-safe-700">$142.0B</td>
                       <td className="py-2.5 px-3">$105.0B</td>
                       <td className="py-2.5 px-3 font-bold">$37.0B</td>
@@ -993,7 +998,7 @@ export default function DotComVsAiPage() {
                       <td className="py-2.5 px-3"><span className="chip chip-safe">AA</span></td>
                     </tr>
                     <tr className="hover:bg-surface-2 hover:bg-surface-2">
-                      <td className="py-2.5 px-3 font-bold text-ink">Apple (AAPL)</td>
+                      <th scope="row" className="py-2.5 px-3 font-bold text-ink">Apple (AAPL)</th>
                       <td className="py-2.5 px-3 text-safe-700">$163.0B</td>
                       <td className="py-2.5 px-3">$35.0B</td>
                       <td className="py-2.5 px-3 font-bold">$128.0B</td>
@@ -1001,7 +1006,7 @@ export default function DotComVsAiPage() {
                       <td className="py-2.5 px-3"><span className="chip chip-safe">AAA</span></td>
                     </tr>
                     <tr className="bg-surface-2/60 font-bold">
-                      <td className="py-2.5 px-3 text-ink">Total Hyperscaler Engine</td>
+                      <th scope="row" className="py-2.5 px-3 text-ink">Total Hyperscaler Engine</th>
                       <td className="py-2.5 px-3 text-safe-700">$668.1B</td>
                       <td className="py-2.5 px-3">$360.0B</td>
                       <td className="py-2.5 px-3 text-safe-700">+$308.1B</td>

@@ -57,7 +57,7 @@ export function MobileActionBar() {
           const inner = (
             <>
               <Icon className="h-[18px] w-[18px] shrink-0" />
-              <span className="text-[12px] font-medium leading-none">{item.label}</span>
+              <span className="text-[13px] font-medium leading-none">{item.label}</span>
             </>
           );
 

@@ -23,6 +23,7 @@
 // two engines still agree on them.
 
 import {
+  marketImplied12mBand,
   MODEL_CALIBRATION,
   MODEL_FACTORS,
   MODEL_VERSION,
@@ -441,38 +442,42 @@ export function inSampleAuc(rows: ConsistencyRow[]): number {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * The 12-month market-implied burst probability, used as the published band's
- * floor (the model may never publish a floor above what money on the line
- * prices). Derived from the tracked prediction-market contracts with a
- * horizon/bias correction α.
+ * The 12-month market-implied read, COMPUTED from the tracked contracts.
+ *
+ * The implementation lives in factors.ts (the leaf both the model and the
+ * pages import) and is re-exported here so the published formula table and the
+ * pages can reach it from one place.
  */
-export const MARKET_IMPLIED_12M_BAND = {
-  /** Central read at the published bias-correction α. */
-  centralPct: MARKET_IMPLIED_12M_PCT,
-  /** α range the band is quoted over. */
-  alphaRange: [1.0, 1.25] as [number, number],
-  /** Central bias-correction α. */
-  alphaCentral: 1.1,
-  /** Low end of the band (α at the top of its range). */
-  lowPct: 19.7,
-  /** High end of the band (α at the bottom of its range). */
-  highPct: 25.3,
-};
+export { marketImplied12mBand };
+
+/**
+ * The fallback band, for a consumer that has no live contract price to hand
+ * (the published fallback price in factors.ts). Pages pass the LIVE price.
+ */
+export const MARKET_IMPLIED_12M_BAND = marketImplied12mBand(MARKET_IMPLIED_12M_PCT);
 
 /** The published band-floor rule, in one sentence. */
 export const BAND_FLOOR_RULE_SENTENCE =
   'the published range can never be narrower than what money on the line prices.';
 
-/** Divergence between the model and the market's own readings, probability points. */
-export function crowdDivergencePoints(modelProbabilityPct: number): {
+/**
+ * Divergence between the model and the market's own readings, probability
+ * points. The raw-contract gap is measured against the price the caller passes
+ * in (the live Dec-2026 contract) — never a typed constant.
+ */
+export function crowdDivergencePoints(
+  modelProbabilityPct: number,
+  rawContractPct: number = MARKET_IMPLIED_12M_PCT,
+): {
   vsBandHigh: number;
   vsBandLow: number;
   vsRawContract: number;
 } {
+  const band = marketImplied12mBand(rawContractPct);
   return {
-    vsBandHigh: Math.round((modelProbabilityPct - MARKET_IMPLIED_12M_BAND.highPct) * 10) / 10,
-    vsBandLow: Math.round((modelProbabilityPct - MARKET_IMPLIED_12M_BAND.lowPct) * 10) / 10,
-    vsRawContract: Math.round((modelProbabilityPct - 9.05) * 10) / 10,
+    vsBandHigh: Math.round((modelProbabilityPct - band.highPct) * 10) / 10,
+    vsBandLow: Math.round((modelProbabilityPct - band.lowPct) * 10) / 10,
+    vsRawContract: Math.round((modelProbabilityPct - rawContractPct) * 10) / 10,
   };
 }
 

@@ -11,6 +11,8 @@ import {
 import { MODEL_FACTORS } from "@/lib/model/factors";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import { getGuide, nextGuide } from "@/lib/guides";
+import { GuideToc } from "@/components/GuideToc";
+import { GUIDE_SECTIONS } from "@/lib/guides/sections";
 import {
   GuideHeader,
   GuideSection,
@@ -18,6 +20,7 @@ import {
   GuideDisclosure,
   NotThisPanel,
 } from "../_components/GuideChrome";
+import { GuidePager } from "../_components/GuidePager";
 import latestModel from "@/data/latest-model.json";
 
 /**
@@ -167,6 +170,11 @@ export default function DebtLedgerGuidePage() {
         readTime={guide.readTime}
         meta={[`${deals.length} records`, `snapshot ${SNAPSHOT_LABEL}`]}
       />
+
+      {/* The navigation layer: a sticky, scroll-spy contents with a deep link
+          per section, so a reader who lands here from a search result can see
+          the shape of the argument before committing to it. */}
+      <GuideToc sections={GUIDE_SECTIONS["how-to-read-the-debt-ledger"]} />
 
       <div className="mt-8 space-y-10">
         {/* ── SECTION 01 ─────────────────────────────────────────────────── */}
@@ -847,6 +855,12 @@ export default function DebtLedgerGuidePage() {
 
       <div className="mt-10">
         <GuideFooter current={guide} next={next} />
+      </div>
+
+      {/* The pager: the other two guides, and the date this one was checked
+          against the published snapshot. */}
+      <div className="mt-8">
+        <GuidePager current={guide} />
       </div>
     </div>
   );

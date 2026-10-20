@@ -51,6 +51,14 @@
       "probability": 32.3,
       "composite_score": 48.3,
       "revision_range_pct": null
+    },
+    {
+      "date": "2026-10-20",
+      "source": "canonical artifact (src/data/latest-model.json, model v2.7.0)",
+      "probability": 32.3,
+      "composite_score": 48.3,
+      "revision_range_pct": null,
+      "note": "the same inputs re-observed: the print did not move (+0.0 on the day)"
     }
   ]
 }

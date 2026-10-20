@@ -984,12 +984,22 @@ export function LiveStockMonitor() {
                         ? "text-safe-600 dark:text-safe-300"
                         : "text-risk-600 dark:text-risk-300";
                       /**
-                       * 2026-10-19 (design pass): a 24-hour move washes its cell once
-                       * as the board ticks in — 600ms, in the row's own direction,
-                       * never a loop. The delay staggers it down the column so the
-                       * board reads as a tape, not a strobe.
+                       * 2026-10-20: the 24-hour cell NO LONGER flashes.
+                       *
+                       * It used to wash its cell once on every page load. But
+                       * these are DAILY CLOSES — the feed syncs once a day at
+                       * 00:00 UTC — so a flash that fires on every visit says
+                       * "something just happened" about a number that has not
+                       * changed since yesterday. An alert that always fires is
+                       * not an alert; it teaches the eye to skip the cell, and
+                       * it makes a static snapshot look live.
+                       *
+                       * The sign, the arrow and the colour already carry the
+                       * direction. If the number ever does change between
+                       * snapshots, the right place for a motion cue is on that
+                       * ONE changed cell - which needs the previous value
+                       * stored per ticker, not a flash on every load.
                        */
-                      const tickFlash = up ? "flash-safe" : "flash-risk";
                       const tickDelay = { animationDelay: `${Math.min(index, 20) * 40}ms` };
                       const saved = watchlistSet.has(stock.ticker);
                       const isCurrent = activeIndex === index;
@@ -1038,7 +1048,7 @@ export function LiveStockMonitor() {
                             ${stock.priceUsd.toFixed(2)}
                           </td>
                           <td
-                            className={`num rounded-sm py-3 pl-3 text-right align-top text-[14px] font-semibold ${tone} ${tickFlash}`}
+                            className={`num rounded-sm py-3 pl-3 text-right align-top text-[14px] font-semibold ${tone}`}
                             style={tickDelay}
                           >
                             {up ? "+" : ""}

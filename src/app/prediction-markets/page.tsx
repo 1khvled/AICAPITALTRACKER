@@ -10,7 +10,7 @@ import {
 } from "@/lib/model/factors";
 import {
   BAND_FLOOR_RULE_SENTENCE,
-  MARKET_IMPLIED_12M_BAND,
+  marketImplied12mBand,
   RISK_FACTOR_COUNT,
   crowdDivergencePoints,
 } from "@/lib/model/documentFormulas";
@@ -97,6 +97,14 @@ const featured2027 = POLYMARKET_FEATURED_MARKETS.find((m) => m.id === "poly-bubb
 const featured2026 = POLYMARKET_FEATURED_MARKETS.find((m) => m.id === "poly-bubble-2026");
 const contract2027Live = liveMarkets.find((m) => m.slug === featured2027?.slug) ?? null;
 const contract2026Live = liveMarkets.find((m) => m.slug === featured2026?.slug) ?? null;
+
+/**
+ * The market-implied 12-month read, COMPUTED from the live contract price
+ * (the longest-dated tracked contract, scaled by the published horizon factor).
+ */
+const liveMarketBand = marketImplied12mBand(
+  typeof crowd?.bubble2027Probability === "number" ? crowd.bubble2027Probability * 100 : 0,
+);
 
 /** The 12-month contract: the one whose window brackets the model's horizon. */
 const twelveMonthPct =
@@ -440,7 +448,7 @@ export default function PredictionMarketsPage() {
         </h1>
 
         <p className="prose prose-lead max-w-reading">
-          The crowd prices a twelve-month AI bubble at{" "}
+          The crowd prices the AI bubble at{" "}
           <span className="num font-semibold text-ink">{fmtPct(twelveMonthPct)}</span> YES on{" "}
           {marketLabelClean}. This site&rsquo;s model prints{" "}
           <span className="num font-semibold text-ink">
@@ -543,18 +551,25 @@ export default function PredictionMarketsPage() {
                   Published market-implied band
                 </th>
                 <td className="num p-3 text-right font-semibold text-ink">
-                  {MARKET_IMPLIED_12M_BAND.lowPct.toFixed(1)}%&ndash;{" "}
-                  {MARKET_IMPLIED_12M_BAND.highPct.toFixed(1)}%
+                  {liveMarketBand.lowPct.toFixed(1)}%&ndash;{" "}
+                  {liveMarketBand.highPct.toFixed(1)}%
                   <span className="block text-[14px] font-normal text-ink-subtle">
-                    central {MARKET_IMPLIED_12M_BAND.centralPct.toFixed(1)}% at &alpha;{" "}
-                    {MARKET_IMPLIED_12M_BAND.alphaCentral.toFixed(2)} (
-                    {MARKET_IMPLIED_12M_BAND.alphaRange[0].toFixed(2)}&ndash;
-                    {MARKET_IMPLIED_12M_BAND.alphaRange[1].toFixed(2)})
+                    central {liveMarketBand.centralPct.toFixed(1)}% at &alpha;{" "}
+                    {liveMarketBand.alphaCentral.toFixed(2)} (
+                    {liveMarketBand.alphaRange[0].toFixed(2)}&ndash;
+                    {liveMarketBand.alphaRange[1].toFixed(2)})
                   </span>
                 </td>
                 <td className="p-3 text-ink-muted">
                   The tracked contracts re-expressed as a twelve-month read with the published
-                  horizon and bias correction applied.
+                  horizon and bias correction applied.{" "}
+                  <strong className="text-ink">In plain English:</strong> the market prices the
+                  AI bubble at about{" "}
+                  {liveMarketBand.centralPct.toFixed(0)}% for a twelve-month question,
+                  somewhere between{" "}
+                  {liveMarketBand.lowPct.toFixed(0)}% and{" "}
+                  {liveMarketBand.highPct.toFixed(0)}% depending on how much of the
+                  shorter contract&rsquo;s risk you carry over.
                 </td>
               </tr>
               <tr>

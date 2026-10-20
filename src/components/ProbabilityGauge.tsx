@@ -19,6 +19,7 @@ import {
   POLYMARKET_FEATURED_MARKETS,
   POLYMARKET_REFERRAL_CODE,
 } from "@/data/polymarket-data";
+import { marketImplied12mBand } from "@/lib/model/documentFormulas";
 import {
   TrendingUp,
   TrendingDown,
@@ -610,18 +611,29 @@ export function ProbabilityGauge({
   }, [currentContributions, initialInputs]);
 
   // Polymarket Reference Data — the odds come from the live 24h crowd sync
-  // (19 Oct 2026: 9.05% on the Dec-2026 contract, 19.5% on the Jun-2027
+  // (20 Oct 2026: 8.3% on the Dec-2026 contract, 19.5% on the Jun-2027
   // contract, $9,167,627 traded), not from the static contract table.
   const crowdInputs = liveInputsData?.crowd;
   const poly2026Market = POLYMARKET_FEATURED_MARKETS[0];
   const poly2027Market = POLYMARKET_FEATURED_MARKETS[1];
-  const polyOdds2026 = (crowdInputs?.bubble2026Probability ?? 0.0905) * 100;
+  const polyOdds2026 = (crowdInputs?.bubble2026Probability ?? 0.083) * 100;
   const polyOdds2027 = (crowdInputs?.bubble2027Probability ?? 0.195) * 100;
   const polyVolumeTotal = crowdInputs?.volumeUsd ?? 9_167_627;
 
-  // Divergence calculation between our institutional model and Polymarket crowd
-  const divergenceDelta = Math.round((currentProb - polyOdds2026) * 10) / 10;
-  const divergenceMultiplier = (currentProb / polyOdds2026).toFixed(1);
+  /**
+   * ONE gap, one comparison object.
+   *
+   * The site used to publish two different "gaps to the market" (one against
+   * the Dec-2026 contract, one against the Jun-2027 contract) with no
+   * contract named beside the number. A gap without its comparison object
+   * cannot be read. The canonical comparison for a TWELVE-MONTH model is the
+   * market-implied 12-month read the site publishes in
+   * `marketImplied12mBand` — the tracked contracts with their horizon and
+   * bias correction applied. The raw contract prices stay on this panel as
+   * context, and the four-way comparison lives on /prediction-markets.
+   */
+  const marketImplied12m = marketImplied12mBand(polyOdds2027);
+  const divergenceDelta = Math.round((currentProb - marketImplied12m.centralPct) * 10) / 10;
 
   // Flat, ink-first palette for the arc. Token values: the safe / caution /
   // risk scales from tailwind.config.ts, and the ink ramp for the guarded
@@ -979,7 +991,7 @@ export function ProbabilityGauge({
                 recorded history. */}
             <p className="mt-1.5 border-t border-rule pt-1.5 text-[13px] leading-relaxed text-ink-subtle">
               {usingFallbackTrajectory
-                ? "Fallback trajectory: a seeded model path (38.6% → 71.6%) shown because the recorded history file is unavailable — not recorded market history."
+                ? "Fallback trajectory: a seeded model path (31.8% → 32.3%) shown because the recorded history file is unavailable — not recorded market history."
                 : backfilledPointCount > 0
                 ? `First ${backfilledPointCount} points backfilled from seed, live points thereafter.`
                 : "Source: the 24h pipeline trajectory history (trajectory-history.json)."}
@@ -1154,7 +1166,7 @@ export function ProbabilityGauge({
           </a>
         </div>
 
-        <div className="mt-2 grid grid-cols-1 gap-px overflow-hidden rounded-md border border-rule bg-rule sm:grid-cols-3">
+        <div className="mt-2 grid grid-cols-1 gap-px overflow-hidden rounded-md border border-rule bg-rule sm:grid-cols-2 lg:grid-cols-4">
           <div className="bg-surface p-3.5">
             <p className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">This model</p>
             <p className="num mt-1 text-2xl font-bold text-ink">{currentProb.toFixed(1)}%</p>
@@ -1170,6 +1182,19 @@ export function ProbabilityGauge({
             </p>
           </div>
           <div className="bg-surface p-3.5">
+            <p className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">
+              Market-implied 12-month read
+            </p>
+            <p className="num mt-1 text-2xl font-bold text-ink">
+              {marketImplied12m.centralPct.toFixed(1)}%
+            </p>
+            <p className="num mt-1 text-[14px] text-ink-faint">
+              {marketImplied12m.lowPct.toFixed(1)}–{marketImplied12m.highPct.toFixed(1)}%
+              &middot; raw contracts {polyOdds2026.toFixed(1)}% (Dec 2026) and{" "}
+              {polyOdds2027.toFixed(1)}% (Jun 2027)
+            </p>
+          </div>
+          <div className="bg-surface p-3.5">
             <p className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">Gap</p>
             <p
               className={`num mt-1 text-2xl font-bold ${
@@ -1179,7 +1204,9 @@ export function ProbabilityGauge({
               {divergenceDelta > 0 ? "+" : ""}
               {divergenceDelta.toFixed(1)} pts
             </p>
-            <p className="num mt-1 text-[14px] text-ink-faint">{divergenceMultiplier}× the crowd reading</p>
+            <p className="num mt-1 text-[14px] text-ink-faint">
+              above the market-implied 12-month read
+            </p>
           </div>
         </div>
 

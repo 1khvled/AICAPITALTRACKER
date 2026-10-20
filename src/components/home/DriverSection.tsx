@@ -42,7 +42,9 @@ export function DriverSection({
         <h3 className="text-lg font-bold tracking-[-0.02em] text-ink sm:text-xl">
           What&apos;s driving it
         </h3>
-        <span className="label">{shownCount} of {totalCount} factors, lightest to heaviest</span>
+        <span className="label">
+          {shownCount} of {totalCount} factors, by contribution to the print
+        </span>
       </div>
 
       <ol className="mt-2 divide-y divide-rule border-y border-rule">
