@@ -1,79 +1,28 @@
 import React from "react";
-import type { BubbleModelInputs, BubbleModelResult } from "@/lib/model/types";
 import { Reveal } from "@/components/Reveal";
+import { flipWatches } from "@/lib/flip-watches";
+import type { BubbleModelInputs, BubbleModelResult } from "@/lib/model/types";
 
 interface FlipSectionProps {
   inputs: BubbleModelInputs;
   result: BubbleModelResult;
 }
 
-interface WatchItem {
-  key: string;
-  label: string;
-  value: string;
-  note: string;
-}
-
 /**
  * Section 3 — "What would flip the answer".
  *
- * Every value below is read from the same inputs the model already publishes.
- * If an input is missing, that bullet is dropped rather than guessed.
+ * 2026-10-20: this was static prose — it named the readings worth watching but
+ * not what each one was worth. Every row is now PRICED: the model is re-run
+ * with one shocked input and the new print is read off the result, so the line
+ * "if credit widened 50bp, the print would be X" is the model's own output and
+ * not an estimate. The threshold beside it is the factor's own published ramp
+ * boundary — the point beyond which that factor stops responding.
+ *
+ * The rows are ordered by how much the priced move actually shifts the print,
+ * so the biggest lever is first.
  */
 export function FlipSection({ inputs, result }: FlipSectionProps) {
-  const items: WatchItem[] = [];
-
-  if (inputs.cds) {
-    items.push({
-      key: "cds",
-      label: "Credit insurance price (Oracle 5-year CDS)",
-      value: `${inputs.cds.currentBps}bp vs ${inputs.cds.baselineBps}bp baseline, ${inputs.cds.priorBps}bp 90 days ago`,
-      note: "CDS is an insurance price on debt. Another wide leg here raises the score quickly.",
-    });
-  }
-
-  if (inputs.ledger) {
-    items.push({
-      key: "pipeline",
-      label: "Unclosed pipeline",
-      value: `${(inputs.ledger.announcedShare * 100).toFixed(1)}% of tracked deals announced but unfinished · ${inputs.ledger.daysSinceLastMega} days since the last $10B+ deal`,
-      note: "A growing backlog means money is still accelerating. A draining one means it is slowing.",
-    });
-  }
-
-  const valuationFactor = result.contributions.find(
-    (contribution) => contribution.id === "valuation_stretch",
-  );
-  if (valuationFactor) {
-    items.push({
-      key: "valuations",
-      label: "What investors pay per dollar of lab revenue",
-      value: valuationFactor.reading.reading,
-      note: "A down-round is the cleanest way to lower the score. A new print at today's price raises it.",
-    });
-  }
-
-  if (inputs.capex?.aggregateCapexUsd && inputs.capex.aggregateFcfUsd) {
-    const ratio = inputs.capex.aggregateCapexUsd / inputs.capex.aggregateFcfUsd;
-    const ocf = inputs.aiDebt?.capexToOcfRatio;
-    items.push({
-      key: "capex",
-      label: "Building cost against money earned",
-      value: `${ratio.toFixed(2)}× free cash flow${ocf ? ` · ${(ocf * 100).toFixed(1)}% of operating cash flow` : ""}`,
-      note: "Cuts in building lower the score. Building faster than sales raises it.",
-    });
-  }
-
-  const crowdProbability = inputs.crowd?.bubble2026Probability ?? inputs.crowd?.yesProbability;
-  if (typeof crowdProbability === "number") {
-    const volume = inputs.crowd?.volumeUsd;
-    items.push({
-      key: "crowd",
-      label: "Betting odds on a 2026 AI downturn",
-      value: `${(crowdProbability * 100).toFixed(1)}% YES${volume ? ` · $${(volume / 1e6).toFixed(2)}M traded` : ""}`,
-      note: "Crowd odds are a weak signal alone. They matter once they jump.",
-    });
-  }
+  const watches = flipWatches(inputs, result).slice(0, 5);
 
   return (
     <section aria-labelledby="flip-heading" className="border-t border-rule pt-8 sm:pt-10">
@@ -83,22 +32,29 @@ export function FlipSection({ inputs, result }: FlipSectionProps) {
         </h2>
         <span className="label">The short honest list</span>
       </div>
-      <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-ink-muted">
-        No one knows the turn date. These are the readings worth watching, all already tracked here.
+      <p className="mt-1.5 max-w-2xl text-[15px] leading-relaxed text-ink-muted">
+        No one knows the turn date. These are the readings worth watching, all already tracked here —
+        and each one is priced: the line below is what the model itself prints if that reading moves.
       </p>
 
       <ol className="mt-4 divide-y divide-rule border-y border-rule">
-        {items.slice(0, 5).map((item, index) => (
-          <Reveal as="li" key={item.key} className="flex gap-3 py-3.5 sm:gap-4" delay={index * 50}>
+        {watches.map((item, index) => (
+          <Reveal as="li" key={item.id} className="flex gap-3 py-3.5 sm:gap-4" delay={index * 50}>
             <span className="num mt-0.5 text-[14px] text-ink-faint">
               {String(index + 1).padStart(2, "0")}
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-ink">{item.label}</p>
+              <p className="text-[15px] font-semibold text-ink">{item.label}</p>
               <p className="num mt-0.5 break-words text-[14px] leading-relaxed text-ink-muted">
                 {item.value}
               </p>
-              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-subtle">{item.note}</p>
+              <p className="mt-1 max-w-2xl text-[14px] leading-relaxed text-ink-subtle">{item.note}</p>
+              <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[14px]">
+                <span className="chip chip-risk num font-semibold">
+                  {item.shock} &rarr; {item.effect}
+                </span>
+                <span className="text-ink-faint">until {item.threshold}</span>
+              </p>
             </div>
           </Reveal>
         ))}

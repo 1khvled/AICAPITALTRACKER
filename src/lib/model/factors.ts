@@ -197,6 +197,12 @@ export const EMPIRICAL_DESIGN_MATRIX_5X5: {
 /** Model changelog. Calibration changes are versioned here; weights are not. */
 export const CHANGELOG: { version: string; date: string; scope: string }[] = [
   {
+    version: '2.7.1',
+    date: '2026-10-20',
+    scope:
+      'published ramp constants exported and the homepage flip-watch priced live — no calibration change, the print is unchanged',
+  },
+  {
     version: '2.7.0',
     date: '2026-10-20',
     scope:
@@ -262,6 +268,36 @@ const CDS_SCORE_CEILING = 2.0; // panic ceiling: 18 × 2 = 36 composite points
  * the credit ramp.
  */
 const CDS_LEVEL_CEILING_RATIO = CDS_TAIL_ORIGIN_RATIO + CDS_TAIL_SPAN; // 7.5556×
+
+/**
+ * PUBLISHED RAMP CONSTANTS (v2.7.1).
+ *
+ * The ceilings and panic thresholds that decide when a factor stops moving are
+ * part of the published method — the methodology page prints them inside each
+ * factor's formula string. They are exported here so a page can name the real
+ * number instead of typing a second copy of it, and so a reader can be told
+ * how far a reading sits from the point where its factor stops responding.
+ */
+export const PUBLISHED_RAMP_CONSTANTS = {
+  /** Credit: the ratio at which the convex panic tail begins (the 288bp record). */
+  cdsTailOriginRatio: CDS_TAIL_ORIGIN_RATIO,
+  /** Credit: the ratio at which the level ramp saturates (×7.556 of baseline). */
+  cdsLevelCeilingRatio: CDS_LEVEL_CEILING_RATIO,
+  /** Macro: the high-yield spread above which its panic tail begins. */
+  macroHyTailOriginBps: 500,
+  /** Macro: the US10Y level at which the macro ramp saturates. */
+  macroUs10yCeilingPct: 5.25,
+  /** Valuation: the price/sales ratio at which the valuation ramp saturates. */
+  valuationPsCeiling: 60,
+  /** Debt: the debt share at which the debt ramp saturates. */
+  debtShareCeiling: 0.15,
+  /** Capex: the capex/FCF ratio at which the capex ramp saturates. */
+  capexFcfCeiling: 2.0,
+  /** Deflation: the token-price multiple at which the demand credit saturates. */
+  deflationSaturationMultiple: 500,
+} as const;
+
+
 const cdStress: ModelFactor = {
   id: 'cds_stress',
   label: 'Credit stress (CDS spreads)',

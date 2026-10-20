@@ -36,3 +36,7 @@ next-env.d.ts
 
 # browser-automation scratch (agent runs)
 .playwright-cli/
+
+# agent scratch (screenshots / dev logs)
+shot-*.png
+dev.log
