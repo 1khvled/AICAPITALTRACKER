@@ -314,6 +314,8 @@ interface ChartNav {
   onChartKeyDown: (e: React.KeyboardEvent<SVGSVGElement>, seriesId?: string) => void;
   /** Key handling for a mark in data mode. */
   onMarkKeyDown: (e: React.KeyboardEvent<SVGGElement>, markId: string) => void;
+  /** Leaving the chart returns it to browse mode (one image again). */
+  onChartBlur: (e: React.FocusEvent<HTMLElement>) => void;
 }
 
 function useChartNav(
@@ -491,6 +493,21 @@ function useChartNav(
     [moveSeries, onActivate]
   );
 
+  /**
+   * Leaving the chart returns it to browse mode — one image again.
+   *
+   * This is wired to the chart's ROOT, not to each <svg>: stepping from one
+   * pod to the next is still inside the chart, and must not throw the reader
+   * out of data mode.
+   */
+  const onChartBlur = useCallback((e: React.FocusEvent<HTMLElement>) => {
+    // A null relatedTarget means the browser will not say where the focus
+    // went, so we leave the mode alone rather than risk throwing the reader
+    // out of it.
+    const next = e.relatedTarget as Node | null;
+    if (next && !e.currentTarget.contains(next)) setActive(null);
+  }, []);
+
   return {
     dataMode: active !== null,
     activeSeriesId: active?.seriesId ?? null,
@@ -500,6 +517,7 @@ function useChartNav(
     registerSeries,
     onChartKeyDown,
     onMarkKeyDown,
+    onChartBlur,
   };
 }
 
@@ -615,7 +633,7 @@ function InteractiveBubblePod({
   const chartUid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const chartTitleId = `${chartUid}-title`;
   const chartDescId = `${chartUid}-desc`;
-  const chartTitle = `${pod.config.name} bubble pod`;
+  const chartTitle = `the ${pod.config.name} bubble pod`;
 
   const chartDescription = useMemo(
     () =>
@@ -1284,7 +1302,7 @@ function GravityArena({
   const arenaUid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const arenaTitleId = `${arenaUid}-title`;
   const arenaDescId = `${arenaUid}-desc`;
-  const arenaTitle = "Zero-gravity arena of the largest AI infrastructure deals";
+  const arenaTitle = "the zero-gravity arena of the largest AI infrastructure deals";
 
   const arenaDescription = useMemo(
     () =>
@@ -1759,7 +1777,8 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
   const chartUid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const treemapTitleId = `${chartUid}-treemap-title`;
   const treemapDescId = `${chartUid}-treemap-desc`;
-  const treemapTitle = "Capital allocation treemap of AI infrastructure deals, area proportional to disclosed amount";
+  const treemapTitle =
+    "the capital allocation treemap of AI infrastructure deals, area proportional to disclosed amount";
 
   const treemapDescription = useMemo(
     () =>
@@ -1921,6 +1940,9 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
   return (
     <div
       ref={containerRef}
+      /* Leaving the chart ends data mode: the chart goes back to being one
+         image with a name and a description. */
+      onBlur={(e) => nav.onChartBlur(e)}
       className="card card-flush overflow-hidden shadow-card"
     >
       {/* Top Header Bar & Mode Selector */}
