@@ -2,7 +2,7 @@
   {
     "dayIndex": 0,
     "date": "2026-10-18",
-    "dayLabel": "1d ago",
+    "dayLabel": "2d ago",
     "probability": 31.8,
     "burstProbability": 31.8,
     "compositeScore": 48.1,
@@ -27,7 +27,7 @@
   {
     "dayIndex": 1,
     "date": "2026-10-19",
-    "dayLabel": "Current",
+    "dayLabel": "1d ago",
     "probability": 32.3,
     "burstProbability": 32.3,
     "compositeScore": 48.3,
@@ -47,5 +47,29 @@
     "revision_min_pct": null,
     "revision_max_pct": null,
     "revision_runs": null
+  },
+  {
+    "dayIndex": 2,
+    "date": "2026-10-20",
+    "dayLabel": "Current",
+    "probability": 32.3,
+    "burstProbability": 32.3,
+    "compositeScore": 48.3,
+    "mertonDD": 5.13,
+    "altmanZ": 8.41,
+    "var95": 75.3,
+    "deltaVs90d": "+0.5 pts",
+    "deltaVsYesterday": "+0.0 pts",
+    "cdsOracleBps": 288,
+    "polymarketProb": 0.083,
+    "volumeUsd": 9173920,
+    "tokenDeflation": 670,
+    "us10yYield": 5.14,
+    "backfilled": false,
+    "modelRun": "observed",
+    "modelVersion": "2.7.0",
+    "revision_min_pct": 32.3,
+    "revision_max_pct": 32.3,
+    "revision_runs": 1
   }
 ]
