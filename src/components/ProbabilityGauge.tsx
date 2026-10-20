@@ -976,7 +976,7 @@ export function ProbabilityGauge({
                   onClick={() => setHoveredPointIndex(milestone.idx)}
                   onMouseEnter={() => setHoveredPointIndex(milestone.idx)}
                   onMouseLeave={() => setHoveredPointIndex(null)}
-                  className={`num min-h-8 px-1 ${
+                  className={`num min-h-11 px-1 ${
                     hoveredPointIndex === milestone.idx
                       ? "font-semibold text-ink"
                       : "hover:text-ink"

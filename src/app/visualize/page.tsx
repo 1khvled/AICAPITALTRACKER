@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import rawDeals from "@/data/deals.json";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import { DealBubbleChart, Deal } from "@/components/DealBubbleChart";
@@ -56,6 +56,56 @@ export type VisualTab =
 export default function VisualizePage() {
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [activeTab, setActiveTab] = useState<VisualTab>("all");
+
+  // Escape closes the deal detail panel, and focus stays inside it while it is
+  // open: a dialog a keyboard user can tab out of is not a dialog.
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const dealTriggerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!selectedDeal) return undefined;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    // Move focus into the panel so the reader is not left behind it.
+    const focusFirst = window.setTimeout(() => {
+      const focusable = dialogRef.current?.querySelector<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      (focusable ?? dialogRef.current)?.focus();
+    }, 0);
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedDeal(null);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const nodes = dialogRef.current
+        ? Array.from(
+            dialogRef.current.querySelectorAll<HTMLElement>(
+              'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])',
+            ),
+          ).filter((node) => node.offsetParent !== null || node === document.activeElement)
+        : [];
+      if (nodes.length === 0) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.clearTimeout(focusFirst);
+      window.removeEventListener("keydown", onKeyDown);
+      // Send the reader back where they were.
+      (dealTriggerRef.current ?? previouslyFocused)?.focus?.();
+    };
+  }, [selectedDeal]);
 
   const modelResult = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
   const totalDeals = rawDeals.length;
@@ -162,7 +212,6 @@ return (
         <div className="bg-surface p-3">
           <dt className="label">Total Capital</dt>
           <dd className="num mt-1 text-xl font-semibold text-ink">${totalDisclosedT}T</dd>
-          <dd className="num mt-0.5 text-[14px] text-safe-700">+482% YoY</dd>
           <dd className="num mt-0.5 truncate text-[14px] text-ink-subtle">
             {totalDeals} verified transactions
           </dd>
@@ -550,20 +599,33 @@ return (
 
       {/* Deal Details Modal */}
       {selectedDeal && (
-        <div className="fixed inset-0 bg-ink z-50 flex items-center justify-center p-4">
-          <div className="bg-surface border border-rule rounded-lg max-w-xl w-full p-6 space-y-5 relative">
+        <div
+          className="fixed inset-0 bg-ink/70 z-50 flex items-center justify-center p-4"
+          role="presentation"
+          onClick={() => setSelectedDeal(null)}
+        >
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="deal-detail-heading"
+            tabIndex={-1}
+            className="bg-surface border border-rule rounded-lg max-w-xl w-full p-6 space-y-5 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={() => setSelectedDeal(null)}
+              aria-label="Close deal detail"
               className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-lg text-ink-subtle hover:bg-surface-2 hover:text-ink"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" aria-hidden="true" />
             </button>
 
             <div className="space-y-1.5">
               <span className="text-[14px] font-mono font-semibold px-2.5 py-1 rounded bg-surface-2 text-ink-muted">
                 {selectedDeal.category}
               </span>
-              <h2 className="text-xl font-bold text-ink leading-snug">
+              <h2 id="deal-detail-heading" className="text-xl font-bold text-ink leading-snug">
                 {selectedDeal.title}
               </h2>
               <div className="num pt-1 text-2xl font-semibold text-safe-700">
@@ -581,11 +643,11 @@ return (
                 className="text-[14px] font-mono text-safe-700 hover:underline flex items-center space-x-1"
               >
                 <span>View in complete {totalDeals}-deal ledger</span>
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
               </Link>
               <button
                 onClick={() => setSelectedDeal(null)}
-                className="px-4 py-1.5 rounded-lg text-[14px] font-semibold bg-surface-2 text-canvas"
+                className="btn min-h-11 text-[14px]"
               >
                 Close
               </button>
