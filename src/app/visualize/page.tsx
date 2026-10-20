@@ -119,6 +119,22 @@ export default function VisualizePage() {
   const orclBase = DEFAULT_MODEL_INPUTS.cds?.baselineBps ?? 81;
   const orclStressPct = Math.round(((orclCds - orclBase) / orclBase) * 100);
 
+  /**
+   * Figures that used to be typed into the copy, computed instead. A figure
+   * that is typed is a figure that rots the moment the pipeline runs.
+   */
+  const topTenSharePct = (() => {
+    const sorted = [...rawDeals].sort((a, b) => (b.amount_usd || 0) - (a.amount_usd || 0));
+    const topTen = sorted.slice(0, 10).reduce((sum, d) => sum + (d.amount_usd || 0), 0);
+    return totalDisclosedUsd > 0 ? ((topTen / totalDisclosedUsd) * 100).toFixed(1) : "0.0";
+  })();
+  // The inference-cost collapse, from the live multiple the model publishes:
+  // the basis is $30 per 1M tokens, so a multiple of N means the price is 30/N.
+  const inferenceDeflationPct = (() => {
+    const multiple = DEFAULT_MODEL_INPUTS.adoption?.apiPriceDeclineMultiple ?? 670;
+    return (100 * (1 - 1 / multiple)).toFixed(2);
+  })();
+
   // Median price-to-sales across the tracked frontier labs (19 Oct 2026: 29.4×),
   // computed from the same inputs the model scores.
   const psValues = (DEFAULT_MODEL_INPUTS.valuations || [])
@@ -145,37 +161,37 @@ export default function VisualizePage() {
       id: "all",
       label: "All Visualizations",
       icon: <Layers className="w-4 h-4" />,
-      shortDesc: "Complete Institutional Deck",
+      shortDesc: "Complete diagnostic series across capital, credit, and multiples",
     },
     {
       id: "bubble-universe",
       label: "Bubble Universe",
       icon: <CircleDot className="w-4 h-4 text-safe-700" />,
-      shortDesc: "Interactive Deal Physics Map",
+      shortDesc: "169 deals mapped by capital volume and sector",
     },
     {
       id: "sensitivity-sigmoid",
       label: "Sensitivity Sigmoid",
       icon: <Activity className="w-4 h-4 text-risk-700" />,
-      shortDesc: "Non-Linear Stress Response",
+      shortDesc: "Probability response curve against composite stress",
     },
     {
       id: "frontier-multiples",
       label: "Frontier Lab Multiples",
       icon: <TrendingUp className="w-4 h-4 text-caution-700" />,
-      shortDesc: "Valuations vs Revenues 2D Scatter",
+      shortDesc: "Private valuation multiples against run-rate revenue",
     },
     {
       id: "capital-composition",
       label: "Capital Composition",
       icon: <PieChart className="w-4 h-4 text-ink-muted" />,
-      shortDesc: "Debt vs Equity Capital Stack",
+      shortDesc: "Distribution of senior debt versus first-loss equity",
     },
     {
       id: "revenue-gap",
       label: "Revenue Gap & Capex",
       icon: <Scale className="w-4 h-4 text-risk-600" />,
-      shortDesc: "Deficit & Credit Default Spreads",
+      shortDesc: "Capex deficit, CDS spreads, and inference deflation",
     },
   ];
 
@@ -259,9 +275,10 @@ return (
         </div>
       </dl>
 
-{/* Segmented view toggles / dedicated visualization tabs */}
-      <div className="mt-6 flex flex-col gap-2 rounded-lg border border-rule bg-surface-2 p-1.5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="-mx-1 flex max-w-full items-center gap-1 overflow-x-auto px-1 pb-1 scrollbar-none sm:flex-wrap">
+      {/* Quiet section switch */}
+      <nav aria-label="Visualization sections" className="mt-6 border-b border-rule">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="-mx-1 flex max-w-full items-center gap-1 overflow-x-auto px-1 scrollbar-none">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
@@ -269,10 +286,10 @@ return (
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   aria-pressed={isActive}
-                  className={`flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${
+                  className={`flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2 text-[13px] font-medium transition-colors ${
                     isActive
-                      ? "border-ink bg-ink text-canvas"
-                      : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"
+                      ? "-mb-px border-ink text-ink font-semibold"
+                      : "-mb-px border-transparent text-ink-muted hover:border-rule-strong hover:text-ink"
                   }`}
                 >
                   {tab.icon}
@@ -282,10 +299,11 @@ return (
             })}
           </div>
 
-          <p className="hidden shrink-0 px-2 text-[14px] text-ink-subtle lg:block">
+          <p className="hidden shrink-0 px-2 text-[13px] text-ink-subtle lg:block">
             {tabs.find((t) => t.id === activeTab)?.shortDesc}
           </p>
         </div>
+      </nav>
 
       {/* ==================================================================== */}
       {/* 1. BUBBLE UNIVERSE: Interactive DealBubbleChart Physics Map */}
@@ -297,16 +315,16 @@ return (
               <div className="flex items-center gap-2">
                 <CircleDot className="w-5 h-5 text-safe-700" />
                 <h2 className="text-xl sm:text-2xl font-bold text-ink">
-                  Bubble Universe: Interactive Deal Physics Map &amp; Treemap
+                  Bubble Universe: Interactive Deal Map &amp; Treemap
                 </h2>
               </div>
               <span className="text-[14px] text-ink-subtle">
-                {totalDeals} Sourced Deals • Finviz-Grade Category Pods
+                {totalDeals} verified transactions • ${totalDisclosedT} total volume (top 10 represent {topTenSharePct}%)
               </span>
             </div>
           </Reveal>
 
-          {/* Institutional Interpretation Callout for Bubble Universe */}
+          {/* Interpretation Callout for Bubble Universe */}
           <div className="notice flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-start space-x-3.5">
               <div className="p-2.5 rounded-xl bg-safe-500/10 text-safe-700 shrink-0">
@@ -315,15 +333,15 @@ return (
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[13px] font-semibold tracking-wider uppercase text-safe-700">
-                    HEDGE FUND &amp; VENTURE RISK ANALYSIS
+                    PORTFOLIO RISK ANALYSIS
                   </span>
                   <span className="text-[14px] text-ink-subtle">• Counterparty Geometry</span>
                 </div>
                 <h4 className="font-bold text-ink text-sm sm:text-base">
-                  How Portfolio Desks Read the Deal Universe Map
+                  Reading the Deal Universe Map
                 </h4>
                 <p className="text-[14px] sm:text-sm text-ink-muted leading-relaxed max-w-4xl">
-                  Analysts examine cluster density and counterparty concentration: the top 10 deals command <strong>63.8%</strong> of the total $2.87T volume.
+                  Analysts examine cluster density and counterparty concentration: the top 10 deals command <strong>{topTenSharePct}%</strong> of the total ${totalDisclosedT} volume.
                   When bubble pods group around vendor-financed take-or-pay capacity agreements (CoreWeave, Oracle, Crusoe), it signals circular capital loops
                   where equity froth is converting into debt service obligations.
                 </p>
@@ -360,12 +378,12 @@ return (
                 </h2>
               </div>
               <span className="text-[14px] text-ink-subtle">
-                Continuous Cubic Bézier • 90% Input-Sensitivity Range
+                Non-linear cubic response curve with the published input-sensitivity range
               </span>
             </div>
           </Reveal>
 
-          {/* Institutional Interpretation Callout for Sigmoid Curve */}
+          {/* Interpretation Callout for Sigmoid Curve */}
           <div className="notice notice-risk flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-start space-x-3.5">
               <div className="p-2.5 rounded-xl bg-risk-500/10 text-risk-700 shrink-0">
@@ -374,12 +392,12 @@ return (
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[13px] font-semibold tracking-wider uppercase text-risk-700">
-                    QUANTITATIVE RISK MANAGEMENT
+                    CONVEX RISK DYNAMICS
                   </span>
-                  <span className="text-[14px] text-ink-faint">• Convex Inflection Physics</span>
+                  <span className="text-[14px] text-ink-faint">• Inflection Physics</span>
                 </div>
                 <h4 className="font-bold text-ink text-sm sm:text-base">
-                  Why Risk Compounds Multiplicatively Past 55 Points
+                  Why Fragility Accelerates Past 55 Points
                 </h4>
                 <p className="text-[15px] text-ink-muted leading-relaxed max-w-4xl">
                   Linear models fail in financial super-cycles because debt refinancing fragility accelerates non-linearly. Below 50 points, liquidity absorbs shocks smoothly.
@@ -419,12 +437,12 @@ return (
                 </h2>
               </div>
               <span className="text-[14px] text-ink-subtle">
-                Log-Log &amp; Linear Projections • Benchmark Regression Lines
+                Valuation vs. revenue scatter (median {medianPs.toFixed(1)}× P/S across tracked labs)
               </span>
             </div>
           </Reveal>
 
-          {/* Institutional Interpretation Callout for Multiples */}
+          {/* Interpretation Callout for Multiples */}
           <div className="notice notice-caution flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-start space-x-3.5">
               <div className="p-2.5 rounded-xl bg-caution-500/10 text-caution-700 shrink-0">
@@ -433,7 +451,7 @@ return (
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[13px] font-semibold tracking-wider uppercase text-caution-700">
-                    LONG/SHORT EQUITY &amp; GROWTH INVESTORS
+                    VALUATION MULTIPLE COMPRESSION
                   </span>
                   <span className="text-[14px] text-ink-faint">• Multiple Compression</span>
                 </div>
@@ -474,16 +492,16 @@ return (
               <div className="flex items-center gap-2">
                 <PieChart className="w-5 h-5 text-ink-muted" />
                 <h2 className="text-xl sm:text-2xl font-bold text-ink">
-                  Capital Composition: Debt vs Equity in the $2.87T Superstructure
+                  Capital Composition: Debt vs Equity in the ${totalDisclosedT} Superstructure
                 </h2>
               </div>
               <span className="text-[14px] text-ink-subtle">
-                Interactive Proportional Stack • Capital Stack Seniority
+                Proportional capital stack: {CAPITAL_SEGMENT_TOTALS.debt.amount} senior debt vs. {CAPITAL_SEGMENT_TOTALS.equity.amount} first-loss equity
               </span>
             </div>
           </Reveal>
 
-          {/* Institutional Interpretation Callout for Capital Composition */}
+          {/* Interpretation Callout for Capital Composition */}
           <div className="p-4 sm:p-5 rounded-lg bg-surface-2/50 bg-surface-2/15 border border-rule/80 border-rule/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-start space-x-3.5">
               <div className="p-2.5 rounded-xl bg-surface-2 text-ink-muted shrink-0">
@@ -492,15 +510,15 @@ return (
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[13px] font-semibold tracking-wider uppercase text-ink-muted">
-                    CREDIT RATING AGENCIES &amp; DISTRESSED DEBT
+                    CAPITAL STACK SENIORITY
                   </span>
-                  <span className="text-[14px] text-ink-faint">• Capital Stack Seniority</span>
+                  <span className="text-[14px] text-ink-faint">• Seniority Hierarchy</span>
                 </div>
                 <h4 className="font-bold text-ink text-sm sm:text-base">
                   Senior Creditor Claims vs First-Loss Equity Cushions
                 </h4>
                 <p className="text-[14px] sm:text-sm text-ink-muted leading-relaxed max-w-4xl">
-                  Credit desks partition the $2.87T stack into two regimes: {CAPITAL_SEGMENT_TOTALS.equity.amount} in private equity acts as loss-absorbing cushion, but the {CAPITAL_SEGMENT_TOTALS.debt.amount} in borrowed debt
+                  Credit desks partition the ${totalDisclosedT} stack into two regimes: {CAPITAL_SEGMENT_TOTALS.equity.amount} in private equity acts as loss-absorbing cushion, but the {CAPITAL_SEGMENT_TOTALS.debt.amount} in borrowed debt
                   (Broadcom, Blackstone, CoreWeave) and {CAPITAL_SEGMENT_TOTALS.compute.amount} in take-or-pay compute leases carry rigid cash interest and delivery penalties.
                   When debt share crosses 8% (it stands at 7.5% today) during an era of 5% terminal rates, default cascades can be triggered even while models remain technically impressive.
                 </p>
@@ -534,12 +552,12 @@ return (
                 </h2>
               </div>
               <span className="text-[14px] text-ink-subtle">
-                -$706B Deficit • {orclCds} bp Oracle CDS • -99.85% Inference Cost
+                -$706B Deficit • {orclCds} bp Oracle CDS • -{inferenceDeflationPct}% Inference Cost
               </span>
             </div>
           </Reveal>
 
-          {/* Institutional Interpretation Callout for Revenue Gap & CDS */}
+          {/* Interpretation Callout for Revenue Gap & CDS */}
           <div className="notice flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-start space-x-3.5">
               <div className="p-2.5 rounded-xl bg-risk-50 bg-risk-50/50 text-risk-700 shrink-0">
@@ -548,17 +566,17 @@ return (
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[13px] font-semibold tracking-wider uppercase text-risk-700">
-                    MACRO CREDIT STRATEGISTS
+                    CREDIT SPREAD WARNING SIGNAL
                   </span>
-                  <span className="text-[14px] text-ink-faint">• The 90-Day Warning Window</span>
+                  <span className="text-[14px] text-ink-faint">• Leading Indicator</span>
                 </div>
                 <h4 className="font-bold text-ink text-sm sm:text-base">
                   Why Credit Default Swaps Precede Equity Deratings
                 </h4>
                 <p className="text-[14px] sm:text-sm text-ink-muted leading-relaxed max-w-4xl">
                   With hyperscalers and neoclouds deploying $865B on compute and power — $725B guided CY2026 capex (Amazon ~$220B, Alphabet $195–205B, Microsoft ~$175B, Meta $130–145B, Jul 2026 calls) plus a $140B power/depreciation run-rate — against $159B of reported enterprise AI ARR, the $706B annual cash deficit is sustained
-                  by Big Tech balance sheets. Bond investors re-price first: Oracle 5Y CDS widening +256% (from 81 bp to 288 bp) signals credit market skepticism.
-                  In both 2000 and 2008, credit widening preceded stock market contractions by 3 to 6 months. Conversely, token price collapse (-99.85% input-basis)
+                  by Big Tech balance sheets. Bond investors re-price first: Oracle 5Y CDS widening {orclStressPct}% (from {orclBase} bp to {orclCds} bp) signals credit market skepticism.
+                  In both 2000 and 2008, credit widening preceded stock market contractions by 3 to 6 months. Conversely, token price collapse (-{inferenceDeflationPct}% input-basis)
                   acts as a critical economic damper that accelerates real-world utility.
                 </p>
               </div>
@@ -664,6 +682,45 @@ return (
       )}
 
       <AdSlot placementId="visualize-bottom" className="mt-8" />
+
+      {/* Where to go next */}
+      <section className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Next steps">
+        <Link href="/ledger" className="card card-flush flex flex-col gap-1 p-4 transition-colors hover:border-rule-strong">
+          <span className="label">Raw records</span>
+          <span className="text-[15px] font-semibold text-ink">169-deal debt ledger</span>
+          <span className="mt-1 text-[14px] text-ink-subtle">
+            Every verified debt facility, cluster lease, and strategic round with source filings.
+          </span>
+          <span className="mt-2 flex items-center gap-1 text-[14px] font-medium text-ink">
+            Open ledger
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </span>
+        </Link>
+
+        <Link href="/methodology" className="card card-flush flex flex-col gap-1 p-4 transition-colors hover:border-rule-strong">
+          <span className="label">Model formula</span>
+          <span className="text-[15px] font-semibold text-ink">Factor methodology</span>
+          <span className="mt-1 text-[14px] text-ink-subtle">
+            The 10-factor mathematical specification, Merton distance-to-default, and stress weights.
+          </span>
+          <span className="mt-2 flex items-center gap-1 text-[14px] font-medium text-ink">
+            Read methodology
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </span>
+        </Link>
+
+        <Link href="/prediction-markets" className="card card-flush flex flex-col gap-1 p-4 transition-colors hover:border-rule-strong">
+          <span className="label">Live consensus</span>
+          <span className="text-[15px] font-semibold text-ink">Prediction-market board</span>
+          <span className="mt-1 text-[14px] text-ink-subtle">
+            Real-money contract pricing on AI timelines, semiconductor capacity, and company solvency.
+          </span>
+          <span className="mt-2 flex items-center gap-1 text-[14px] font-medium text-ink">
+            View contracts
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </span>
+        </Link>
+      </section>
     </div>
   );
 }

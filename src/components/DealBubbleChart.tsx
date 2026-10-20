@@ -1615,6 +1615,14 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
     return filteredDeals.reduce((sum, d) => sum + d.amount_usd, 0);
   }, [filteredDeals]);
 
+  const top10Stats = useMemo(() => {
+    const sorted = [...filteredDeals].sort((a, b) => (b.amount_usd || 0) - (a.amount_usd || 0));
+    const top10 = sorted.slice(0, 10);
+    const top10Sum = top10.reduce((s, d) => s + (d.amount_usd || 0), 0);
+    const pct = totalFilteredUsd > 0 ? ((top10Sum / totalFilteredUsd) * 100).toFixed(1) : "0.0";
+    return { sumT: (top10Sum / 1e12).toFixed(2), pct };
+  }, [filteredDeals, totalFilteredUsd]);
+
   const matchesSearch = (deal: Deal) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
@@ -1974,22 +1982,21 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
       <div className="p-5 sm:p-6 border-b border-rule space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <div className="flex items-center space-x-2 text-[14px] sm:text-sm font-semibold text-ink-subtle flex-wrap gap-y-1">
-              <span className="label">Capital Allocation Universe</span>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-subtle">
+              <span className="label">Capital Allocation</span>
               <span>•</span>
-              <span className="text-ink">100% Verified Disclosures</span>
-              <span>•</span>
-              <span className="num text-ink font-semibold">
-                {filteredDeals.length} Deals (${(totalFilteredUsd / 1e12).toFixed(2)}T)
+              <span className="num font-semibold text-ink">
+                {filteredDeals.length} deals (${(totalFilteredUsd / 1e12).toFixed(2)}T)
               </span>
-              <span>•</span>
-              <span className="num text-[14px] font-semibold text-risk-700">
-                12M Bubble Prob: {liveModelResult.burstProbability.toFixed(1)}% ({liveModelResult.band.toUpperCase()})
-              </span>
+              <span className="hidden sm:inline">•</span>
+              <span className="hidden sm:inline text-ink-muted">100% verified disclosures</span>
             </div>
             <h2 className="mt-1 text-xl font-bold tracking-tight text-ink sm:text-2xl">
-              Institutional Capital Allocation Matrix (Area = Disclosed USD)
+              Capital Allocation Universe
             </h2>
+            <p className="mt-1 text-sm text-ink-muted">
+              The 10 largest transactions represent ${top10Stats.sumT}T ({top10Stats.pct}%) of disclosed volume; tile area corresponds to transaction size.
+            </p>
           </div>
 
           {/* View Mode Segmented Controls - 2-col on mobile, flex on desktop */}
@@ -2268,6 +2275,22 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                 );
               })}
             </svg>
+
+            {/* Compact Category Key — ensures phone and desktop readers can identify colors when tile labels are hidden (<640px) */}
+            <div className="border-t border-rule bg-surface px-3 py-2.5">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 sm:grid-cols-3 md:flex md:flex-wrap md:items-center md:gap-x-4">
+                {Object.entries(CATEGORY_CONFIG).slice(0, 6).map(([key, config]) => (
+                  <div key={key} className="flex items-center gap-1.5 text-[12px] text-ink-muted">
+                    <span
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: config.accentHex }}
+                      aria-hidden="true"
+                    />
+                    <span className="truncate">{config.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 

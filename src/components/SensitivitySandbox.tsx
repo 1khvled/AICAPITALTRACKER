@@ -328,8 +328,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
       <div className="flex flex-col gap-5 border-b border-rule pb-6 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="label">Institutional Stress Lab</span>
-            <span className="pill pill-safe">Live Transparent Engine</span>
+            <span className="label">Stress Simulation Lab</span>
           </div>
           <h2 className="mt-1 text-xl font-bold tracking-tight text-ink">
             Model Sensitivity &amp; Stress Simulator

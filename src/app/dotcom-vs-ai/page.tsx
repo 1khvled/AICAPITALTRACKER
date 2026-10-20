@@ -657,43 +657,45 @@ export default function DotComVsAiPage() {
         </div>
       </div>
 
-      {/* Section tabs — 44px targets */}
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-b border-rule pb-3">
-        <div className="-mx-1 flex items-center gap-1 overflow-x-auto px-1 pb-1 scrollbar-none">
-          {(
-            [
-              { id: "scorecard", label: "Scorecard Matrix (8 Metrics)" },
-              { id: "clec-parallel", label: "The Neocloud “CLEC” Parallel" },
-              { id: "cashflows", label: "Cash Flows & Dark Fiber" },
-              { id: "simulator", label: "Regime Simulator" },
-            ] as const
-          ).map(({ id, label }) => (
-            <button
-              key={id}
-              onClick={() => setActiveTab(id)}
-              aria-pressed={activeTab === id}
-              className={`min-h-11 shrink-0 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${
-                activeTab === id
-                  ? "border-ink bg-ink text-canvas"
-                  : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+      {/* Section tabs — quiet page-level section switch */}
+      <nav aria-label="Comparison sections" className="mt-6 border-b border-rule">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="-mx-1 flex items-center gap-1 overflow-x-auto px-1 scrollbar-none">
+            {(
+              [
+                { id: "scorecard", label: "Scorecard Matrix (8 Metrics)" },
+                { id: "clec-parallel", label: "The Neocloud “CLEC” Parallel" },
+                { id: "cashflows", label: "Cash Flows & Dark Fiber" },
+                { id: "simulator", label: "Regime Simulator" },
+              ] as const
+            ).map(({ id, label }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                aria-pressed={activeTab === id}
+                className={`flex min-h-11 shrink-0 items-center whitespace-nowrap border-b-2 px-3 py-2 text-[13px] font-medium transition-colors ${
+                  activeTab === id
+                    ? "-mb-px border-ink text-ink font-semibold"
+                    : "-mb-px border-transparent text-ink-muted hover:border-rule-strong hover:text-ink"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
 
-        {/* Prediction-market link */}
-        <a
-          href={POLYMARKET_BASE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn min-h-11 whitespace-nowrap"
-        >
-          <span>Hedge Bubble Risk on Polymarket</span>
-          <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-        </a>
-      </div>
+          {/* Outbound Polymarket link — styled explicitly as an external reference link, not a tab */}
+          <a
+            href={POLYMARKET_BASE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex min-h-11 shrink-0 items-center gap-1.5 text-[13px] font-medium text-ink-muted hover:text-ink hover:underline"
+          >
+            <span>Hedge Bubble Risk on Polymarket</span>
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+          </a>
+        </div>
+      </nav>
 
       {/* TAB 1: SIDE-BY-SIDE SCORECARD MATRIX */}
       {activeTab === "scorecard" && (
@@ -701,6 +703,7 @@ export default function DotComVsAiPage() {
           {/* Category Filter Chips & Search Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="-mx-1 flex flex-wrap items-center gap-1.5 px-1">
+              <span className="label mr-1 text-ink-subtle">Filter:</span>
               {[
                 { id: "all", label: "All Dimensions" },
                 { id: "cashflows", label: "Cash Flows" },
@@ -712,10 +715,11 @@ export default function DotComVsAiPage() {
                 <button
                   key={c.id}
                   onClick={() => setSelectedCategory(c.id)}
-                  className={`min-h-11 shrink-0 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors ${
+                  aria-pressed={selectedCategory === c.id}
+                  className={`min-h-11 shrink-0 whitespace-nowrap rounded-md border px-3 py-2 text-[13px] font-semibold transition-colors ${
                     selectedCategory === c.id
                       ? "border-ink bg-ink text-canvas"
-                      : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"
+                      : "border-rule bg-surface-2 text-ink-muted hover:border-rule-strong hover:text-ink"
                   }`}
                 >
                   {c.label}

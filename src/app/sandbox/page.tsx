@@ -503,7 +503,6 @@ export default function SandboxPage() {
       <header className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
           <span className="label">Sensitivity sandbox</span>
-          <span className="pill pill-safe">Live Sandbox Engine</span>
           <Link href="/" className="text-[14px] text-ink-muted underline underline-offset-4 hover:text-ink">
             Back to Live Probability Gauge
           </Link>
@@ -570,7 +569,7 @@ export default function SandboxPage() {
         </div>
 
 {/* 6 key baseline metrics from the 24h cron execution */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
           <div className="panel space-y-1">
             <p className="label">24h Baseline Odds</p>
             <p className="num mt-1 text-xl font-semibold text-ink">
@@ -604,7 +603,7 @@ export default function SandboxPage() {
             <p className="num mt-1 text-xl font-semibold text-safe-700">
               {LIVE_TOKEN_DEFLATION}×
             </p>
-            <p className="mt-0.5 truncate text-ink-subtle">OpenRouter live, input basis</p>
+            <p className="mt-0.5 text-xs text-ink-subtle">OpenRouter input basis</p>
           </div>
 
           <div className="panel space-y-1">
@@ -621,7 +620,7 @@ export default function SandboxPage() {
           </div>
 
           <div className="panel space-y-1">
-            <p className="label">25k Monte Carlo VaR95</p>
+            <p className="label">25k MC VaR95</p>
             <p className="num mt-1 text-xl font-semibold text-ink">
               {baselineMonteCarlo.valueAtRisk95Pct}%
             </p>

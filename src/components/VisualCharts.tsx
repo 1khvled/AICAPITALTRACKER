@@ -236,6 +236,9 @@ export function SensitivityCurveChart({
             <span className="text-[14px] text-ink-subtle">Sigmoid Mathematical Response</span>
           </div>
           <h3 className="mt-1 text-lg font-bold text-ink">Burst Probability vs Composite Stress Curve</h3>
+          <p className="mt-1 text-sm text-ink-muted">
+            Current stress of {currentScore.toFixed(1)} points yields a {currentProb.toFixed(1)}% probability; risk compounds non-linearly once score crosses 55 points.
+          </p>
         </div>
 
         {/* Live status — no pulsing dot */}
@@ -805,8 +808,11 @@ export function CapitalCompositionChart() {
             </span>
           </div>
           <h3 className="text-lg sm:text-xl font-bold text-ink mt-1">
-            Institutional Capital Stack Breakdown
+            Capital Stack Seniority Breakdown
           </h3>
+          <p className="mt-1 text-sm text-ink-muted">
+            Equity absorbs {EQUITY_SHARE_PCT}% of the stack; {CAPITAL_SEGMENT_TOTALS.debt.amount} in debt and {CAPITAL_SEGMENT_TOTALS.compute.amount} in compute leases require fixed cash service.
+          </p>
         </div>
 
         <div className="flex items-center space-x-2 text-[14px] font-mono">
@@ -1033,7 +1039,7 @@ const LAB_DATA: LabPoint[] = [
     round: "Coatue Strategic AI Round",
     notes: "Largest private data & AI infrastructure provider with $7.0B revenue.",
     color: TOKEN.inkMuted,
-    labelOffset: { dx: 0, dy: -24, anchor: "middle" },
+    labelOffset: { dx: 0, dy: 26, anchor: "middle" },
   },
   {
     name: "SpaceX / xAI Colossus",
@@ -1044,7 +1050,7 @@ const LAB_DATA: LabPoint[] = [
       "Memphis 100k+ Colossus cluster: $250B is xAI's Feb 2026 all-stock merger value (distinct from SPCX's $2.05T public cap) on $3.2B FY2025 revenue disclosed in the SpaceX S-1.",
     isExtreme: true,
     color: TOKEN.risk600,
-    labelOffset: { dx: 0, dy: -24, anchor: "middle" },
+    labelOffset: { dx: 0, dy: -26, anchor: "middle" },
   },
   {
     name: "Scale AI",
@@ -1185,6 +1191,9 @@ export function LabMultiplesChart() {
             <span className="text-[14px] text-ink-subtle">Valuation vs Run-Rate Revenue</span>
           </div>
           <h3 className="mt-1 text-lg font-bold text-ink">Frontier AI Lab Multiples Scatter Plot</h3>
+          <p className="mt-1 text-sm text-ink-muted">
+            Frontier labs trade at a median {medianPs.toFixed(1)}× revenue multiple, well above historical software baselines.
+          </p>
         </div>
 
         {/* Scale Toggle & Median Metric */}
@@ -1572,6 +1581,9 @@ export function AiRevenueGapChart() {
           <h4 className="mt-0.5 text-base font-bold text-ink">
             The $706B Annual AI Infrastructure vs Revenue Gap
           </h4>
+          <p className="mt-1 text-xs text-ink-muted">
+            Hyperscaler outlays of ${totalOutlay}B exceed ${revenue}B in reported ARR by {burnRatio}×, generating a ${netDeficit}B annual cash shortfall.
+          </p>
         </div>
         <span className="chip chip-risk num">-$706B Net Deficit</span>
       </div>
@@ -1638,6 +1650,32 @@ const LIVE_DEFLATION_MULTIPLE = DEFAULT_MODEL_INPUTS.adoption?.apiPriceDeclineMu
 const LIVE_DAMPER_POINTS =
   evaluateBubbleModel(DEFAULT_MODEL_INPUTS).contributions.find((c) => c.kind === "damper")
     ?.earnedPoints ?? -5.2;
+
+/**
+ * The input-price collapse, derived from the live multiple: the basis is $30
+ * per 1M tokens, so a multiple of N means today's price is 30/N and the fall
+ * from the basis is (1 − 1/N). Typed, it rots the moment the pipeline runs.
+ */
+const INFERENCE_DEFLATION_PCT = (100 * (1 - 1 / LIVE_DEFLATION_MULTIPLE)).toFixed(2);
+
+/** Yearly disclosed capital, computed from the ledger - never typed. */
+const LEDGER_BY_YEAR_USD: Record<string, string> = (() => {
+  const buckets = new Map<number, number>();
+  for (const d of rawDeals) {
+    buckets.set(d.year, (buckets.get(d.year) ?? 0) + (d.amount_usd || 0));
+  }
+  const out: Record<string, string> = {};
+  buckets.forEach((sum, year) => {
+    out[String(year)] =
+      sum >= 1e12 ? `$${(sum / 1e12).toFixed(2)}T` : `$${(sum / 1e9).toFixed(0)}B`;
+  });
+  return out;
+})();
+
+/** The equity share of the capital stack, from the segment table the chart draws. */
+const EQUITY_SHARE_PCT = (
+  (CAPITAL_SEGMENT_TOTALS.equity.amountUsd / LEDGER_TOTAL_USD) * 100
+).toFixed(1);
 
 export function TokenPriceDeflationChart() {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
@@ -1879,6 +1917,22 @@ export function TokenPriceDeflationChart() {
     },
   ];
 
+  /**
+   * The frontier set's own worst input-price fall, computed from the rows it
+   * draws: the frontier basis is $15 per 1M tokens (the SOTA ceiling these
+   * rows are priced against), so the fall is (1 − cheapest/15).
+   */
+  const sotaDeflationPct = (() => {
+    const basis = 15;
+    const cheapest = frontierReasoningMilestones.reduce(
+      (min, row) => Math.min(min, row.cost),
+      Infinity,
+    );
+    return Number.isFinite(cheapest)
+      ? (100 * (1 - cheapest / basis)).toFixed(1)
+      : "0.0";
+  })();
+
   const currentMilestones = activeTab === "frontier-sota" ? frontierReasoningMilestones : workhorseMilestones;
   const modelsList = (liveModelsData?.models || []).filter((m) => {
     if (!searchQuery.trim()) return true;
@@ -1900,6 +1954,9 @@ export function TokenPriceDeflationChart() {
             <span className="chip">OpenRouter Snapshot</span>
           </div>
           <h4 className="mt-0.5 text-base font-bold text-ink">Token Inference Deflation (Up to {LIVE_DEFLATION_MULTIPLE.toLocaleString("en-US")}× Cheaper on Input)</h4>
+          <p className="mt-1 text-xs text-ink-muted">
+            Workhorse input pricing has deflated {INFERENCE_DEFLATION_PCT}% ({LIVE_DEFLATION_MULTIPLE.toLocaleString("en-US")}×) since 2023, expanding software adoption while compressing margins.
+          </p>
         </div>
         
 {/* Metric badge & 3-way tab toggle */}
@@ -1930,7 +1987,9 @@ export function TokenPriceDeflationChart() {
           {/* `.chip` sets its own display, so the responsive hide lives on a wrapper. */}
           <span className="hidden lg:block">
             <span className="chip chip-safe num whitespace-nowrap">
-              {activeTab === "frontier-sota" ? "-86.7% SOTA Deflation (input)" : "-99.85% Max Deflation (input)"}
+              {activeTab === "frontier-sota"
+                ? `-${sotaDeflationPct}% SOTA Deflation (input)`
+                : `-${INFERENCE_DEFLATION_PCT}% Max Deflation (input)`}
             </span>
           </span>
         </div>
@@ -2132,6 +2191,9 @@ export function YearlySurgeChart() {
           <h4 className="text-base sm:text-lg font-bold text-ink mt-0.5">
             Capital Deployment Surge by Year
           </h4>
+          <p className="mt-1 text-xs text-ink-muted">
+            Annual capital commitments jumped from ${LEDGER_BY_YEAR_USD["2023"] ?? "n/a"} in 2023 to ${LEDGER_BY_YEAR_USD["2025"] ?? "n/a"} in 2025, driven by megadeals and debt facilities.
+          </p>
         </div>
 <span className="chip num">2023 → 2026 YTD</span>
       </div>
@@ -2186,11 +2248,40 @@ export function CdsTrajectoryChart() {
   // 19 Oct 2026 fact-check: the 187bp reading (+131%) and the 155bp 90-day print
   // were stale. The 5Y Oracle CDS closed at a record 288bp on 15 Oct 2026 (S&P
   // Global Market Intelligence); the 90-day-ago print was 203bp (Jul 20–24
-  // 2026, ICE); the long-run norm assumption is 81bp. 288 / 81 − 1 = +256%.
+  // 2026, ICE); the long-run norm assumption is 81bp.
+  //
+  // 2026-10-20: all three prints are read from the live input set rather than
+  // typed. The panel's audit found the sentence and the chip carrying the same
+  // figures as the table, but every one of them was a literal waiting to rot.
+  const cdsInputs = DEFAULT_MODEL_INPUTS.cds;
+  const baselineBps = cdsInputs?.baselineBps ?? 81;
+  const priorBps = cdsInputs?.priorBps ?? 203;
+  const currentBps = cdsInputs?.currentBps ?? 288;
+  const widenPct = Math.round(((currentBps - baselineBps) / baselineBps) * 100);
+  const delta90 = currentBps - priorBps;
+
   const steps = [
-    { label: "Long-run norm", value: 81, status: "Normal", isWarning: false, note: "Historical calm anchor" },
-    { label: "90 Days Prior", value: 203, status: "Widening", isWarning: false, note: "Jul 20–24 2026 print (ICE)" },
-    { label: "Latest Reading", value: 288, status: "Extreme (+256%)", isWarning: true, note: "Record close, 15 Oct 2026" },
+    {
+      label: "Long-run norm",
+      value: baselineBps,
+      status: "Normal",
+      isWarning: false,
+      note: "Historical calm anchor",
+    },
+    {
+      label: "90 Days Prior",
+      value: priorBps,
+      status: "Widening",
+      isWarning: false,
+      note: "90-day-ago print",
+    },
+    {
+      label: "Latest Reading",
+      value: currentBps,
+      status: `Extreme (+${widenPct}%)`,
+      isWarning: true,
+      note: "Latest close",
+    },
   ];
 
   return (
@@ -2199,8 +2290,11 @@ export function CdsTrajectoryChart() {
         <div>
           <span className="label">CREDIT RADAR</span>
           <h4 className="mt-0.5 text-base font-bold text-ink">Oracle 5Y CDS Spread Trajectory</h4>
+          <p className="mt-1 text-xs text-ink-muted">
+            Oracle 5Y CDS widened +{widenPct}% from {baselineBps} bp to {currentBps} bp, signaling mounting debt-market stress on hyperscaler balance sheets.
+          </p>
         </div>
-        <span className="chip chip-risk num">+85 bp in 90 Days</span>
+        <span className="chip chip-risk num">+{delta90} bp in 90 Days</span>
       </div>
 
       <dl className="grid grid-cols-3 gap-3">
