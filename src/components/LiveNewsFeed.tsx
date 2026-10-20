@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import type { NewsItem } from "@/app/api/v1/news/route";
 import {
   Newspaper,
@@ -78,6 +78,9 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
   const [reloaded, setReloaded] = useState<NewsItem[] | null>(null);
   // The dispatch whose details are open (one at a time keeps the page short).
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string>("");
+  const isFirstNewsRender = useRef(true);
+  const statusTimer = useRef<NodeJS.Timeout | null>(null);
 
   const news = reloaded ?? items;
 
@@ -95,7 +98,10 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.news) && data.news.length > 0) {
-          setReloaded(data.news as NewsItem[]);
+          const fresh = data.news as NewsItem[];
+          const diff = Math.max(0, fresh.length - news.length);
+          setStatusMessage(diff > 0 ? `${diff} new stories` : `${fresh.length} stories updated`);
+          setReloaded(fresh);
         }
       }
     } catch {
@@ -159,6 +165,21 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
       : `${d.toISOString().replace("T", " ").slice(0, 16)} UTC`;
   }, [news]);
 
+  // Throttled summary for screen readers: "3 new stories", "5 stories updated"
+  useEffect(() => {
+    if (isFirstNewsRender.current) {
+      isFirstNewsRender.current = false;
+      return;
+    }
+    if (statusTimer.current) clearTimeout(statusTimer.current);
+    statusTimer.current = setTimeout(() => {
+      setStatusMessage(`${filteredNews.length} stories updated`);
+    }, 600);
+    return () => {
+      if (statusTimer.current) clearTimeout(statusTimer.current);
+    };
+  }, [filteredNews.length, selectedCategory]);
+
   const resetFilters = () => {
     setSearchQuery("");
     setSelectedCategory("All");
@@ -172,6 +193,11 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
 
   return (
     <div className="card card-flush overflow-hidden shadow-card transition-shadow duration-200 hover:shadow-raised">
+      {/* ONE polite status region per page (role="status", aria-live="polite", aria-atomic="true") */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {statusMessage}
+      </div>
+
       {/* Wire header — snapshot wording, no pulsing dot */}
       <div className="flex flex-col gap-3 border-b border-rule px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">

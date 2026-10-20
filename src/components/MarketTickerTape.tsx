@@ -1,8 +1,11 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 import { LIVE_STOCKS as FALLBACK_STOCKS, StockQuote } from "@/data/live-stocks";
+import { useMotionPreference } from "@/components/MotionProvider";
 import liveStocksData from "@/data/live-stocks.json";
 import liveInputsData from "@/data/live-inputs.json";
 import rawDeals from "@/data/deals.json";
@@ -49,6 +52,25 @@ function getStocks(): StockQuote[] {
 }
 
 export function MarketTickerTape() {
+  const { active } = useMotionPreference();
+  const [statusMessage, setStatusMessage] = useState("");
+  const isFirstTapeRender = useRef(true);
+  const tapeTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (isFirstTapeRender.current) {
+      isFirstTapeRender.current = false;
+      return;
+    }
+    if (tapeTimerRef.current) clearTimeout(tapeTimerRef.current);
+    tapeTimerRef.current = setTimeout(() => {
+      setStatusMessage(active ? "Market tape moving" : "Market tape paused");
+    }, 600);
+    return () => {
+      if (tapeTimerRef.current) clearTimeout(tapeTimerRef.current);
+    };
+  }, [active]);
+
   const model = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
   const inputs = DEFAULT_MODEL_INPUTS;
 
@@ -206,6 +228,10 @@ export function MarketTickerTape() {
 
   return (
     <div className="border-b border-rule bg-surface-2 text-ink-muted">
+      {/* ONE polite status region per page (role="status", aria-live="polite", aria-atomic="true") */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {statusMessage}
+      </div>
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
         <div className="flex min-w-0 items-stretch">
           <span className="label flex shrink-0 items-center border-r border-rule px-3 py-1.5">

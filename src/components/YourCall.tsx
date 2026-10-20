@@ -471,108 +471,7 @@ export function YourCall({
         </div>
       </section>
 
-      {/* ══ 3 · The personal score ═══════════════════════════════════════ */}
-      <section aria-labelledby="yc-score-heading" className="card">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h2
-            id="yc-score-heading"
-            className="inline-flex items-center gap-2 text-xl font-bold tracking-[-0.025em] text-ink"
-          >
-            <Scale className="h-5 w-5 text-ink-muted" aria-hidden="true" />
-            Your record against the model
-          </h2>
-          <span className="label">self-record, this device only</span>
-        </div>
-
-        <div className="mt-3 grid grid-cols-1 gap-px overflow-hidden rounded-md border border-rule bg-rule sm:grid-cols-3">
-          <div className="min-w-0 bg-surface p-3">
-            <dt className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">
-              Your mean error
-            </dt>
-            <dd className="num mt-0.5 text-lg font-semibold text-ink">{readerMaeText}</dd>
-            <p className="mt-1 min-h-[2.5rem] text-[13px] leading-snug text-ink-faint">
-              Your call, measured against the model print on the resolution date.
-            </p>
-          </div>
-          <div className="min-w-0 bg-surface p-3">
-            <dt className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">
-              Model mean error
-            </dt>
-            <dd className="num mt-0.5 text-lg font-semibold text-ink">{modelMaeText}</dd>
-            <p className="mt-1 min-h-[2.5rem] text-[13px] leading-snug text-ink-faint">
-              The model&apos;s own print on the day you called, measured the same way.
-            </p>
-          </div>
-          <div className="min-w-0 bg-surface p-3">
-            <dt className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">
-              Calls resolved
-            </dt>
-            <dd className="num mt-0.5 text-lg font-semibold text-ink">
-              {score.resolvedCalls}
-              <span className="text-sm font-normal text-ink-faint"> of {score.totalCalls}</span>
-            </dd>
-            <p className="mt-1 min-h-[4.25rem] text-[13px] leading-snug text-ink-faint">
-              {verdictText}
-            </p>
-          </div>
-        </div>
-
-        <p className="mt-3 text-[13px] leading-relaxed text-ink-faint">
-          This is not a Brier score. The target is the model&apos;s own probability 12 months on, not
-          a yes/no event, so it measures how closely a call tracked the model — not whether anybody
-          was right.
-        </p>
-      </section>
-
-      {/* ══ 4 · Badges ═══════════════════════════════════════════════════ */}
-      <section aria-labelledby="yc-badges-heading" className="card">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h2
-            id="yc-badges-heading"
-            className="text-xl font-bold tracking-[-0.025em] text-ink"
-          >
-            Badges
-          </h2>
-          <span className="label">
-            {earnedCount} of {badges.length} earned
-          </span>
-        </div>
-        <p className="mt-1.5 max-w-2xl text-[14px] leading-relaxed text-ink-muted">
-          Every badge is a property of the calls you have recorded. Nothing is awarded for visiting,
-          and a locked badge shows the rule that would open it.
-        </p>
-
-        <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {badges.map((badge) => (
-            <li
-              key={badge.id}
-              className="flex min-h-[8.75rem] flex-col rounded-md border border-rule bg-surface p-3"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <span className="text-[14px] font-semibold leading-snug text-ink">
-                  {badge.name}
-                </span>
-                <span className={`chip shrink-0 ${badge.earned ? "chip-safe" : ""}`}>
-                  {badge.earned ? (
-                    <Check className="h-3 w-3" aria-hidden="true" />
-                  ) : (
-                    <Lock className="h-3 w-3" aria-hidden="true" />
-                  )}
-                  {badge.earned ? "Earned" : "Locked"}
-                </span>
-              </div>
-              <p className="mt-1.5 line-clamp-2 min-h-[2.5rem] text-[13px] leading-snug text-ink-muted">
-                {badge.rule}
-              </p>
-              <p className="mt-1 line-clamp-2 min-h-[2.5rem] text-[13px] leading-snug text-ink-faint">
-                {badge.earned ? badge.progress : badge.hint}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* ══ 5 · History ══════════════════════════════════════════════════ */}
+      {/* ══ 3 · History ══════════════════════════════════════════════════ */}
       <section aria-labelledby="yc-history-heading" className="card">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h2
@@ -777,6 +676,107 @@ export function YourCall({
             for a few seconds, and so can deleting one call.
           </p>
         </div>
+      </section>
+
+      {/* ══ 4 · The personal score ═══════════════════════════════════════ */}
+      <section aria-labelledby="yc-score-heading" className="card">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <h2
+            id="yc-score-heading"
+            className="inline-flex items-center gap-2 text-xl font-bold tracking-[-0.025em] text-ink"
+          >
+            <Scale className="h-5 w-5 text-ink-muted" aria-hidden="true" />
+            Your record against the model
+          </h2>
+          <span className="label">self-record, this device only</span>
+        </div>
+
+        <dl className="mt-3 grid grid-cols-1 gap-px overflow-hidden rounded-md border border-rule bg-rule sm:grid-cols-3">
+          <div className="min-w-0 bg-surface p-3">
+            <dt className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">
+              Your mean error
+            </dt>
+            <dd className="num mt-0.5 text-lg font-semibold text-ink">{readerMaeText}</dd>
+            <p className="mt-1 min-h-[2.5rem] text-[13px] leading-snug text-ink-faint">
+              Your call, measured against the model print on the resolution date.
+            </p>
+          </div>
+          <div className="min-w-0 bg-surface p-3">
+            <dt className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">
+              Model mean error
+            </dt>
+            <dd className="num mt-0.5 text-lg font-semibold text-ink">{modelMaeText}</dd>
+            <p className="mt-1 min-h-[2.5rem] text-[13px] leading-snug text-ink-faint">
+              The model&apos;s own print on the day you called, measured the same way.
+            </p>
+          </div>
+          <div className="min-w-0 bg-surface p-3">
+            <dt className="text-[13px] uppercase tracking-[0.12em] text-ink-faint">
+              Calls resolved
+            </dt>
+            <dd className="num mt-0.5 text-lg font-semibold text-ink">
+              {score.resolvedCalls}
+              <span className="text-sm font-normal text-ink-faint"> of {score.totalCalls}</span>
+            </dd>
+            <p className="mt-1 min-h-[4.25rem] text-[13px] leading-snug text-ink-faint">
+              {verdictText}
+            </p>
+          </div>
+        </dl>
+
+        <p className="mt-3 text-[13px] leading-relaxed text-ink-faint">
+          This is not a Brier score. The target is the model&apos;s own probability 12 months on, not
+          a yes/no event, so it measures how closely a call tracked the model — not whether anybody
+          was right.
+        </p>
+      </section>
+
+      {/* ══ 5 · Badges ═══════════════════════════════════════════════════ */}
+      <section aria-labelledby="yc-badges-heading" className="card">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <h2
+            id="yc-badges-heading"
+            className="text-xl font-bold tracking-[-0.025em] text-ink"
+          >
+            Badges
+          </h2>
+          <span className="label">
+            {earnedCount} of {badges.length} earned
+          </span>
+        </div>
+        <p className="mt-1.5 max-w-2xl text-[14px] leading-relaxed text-ink-muted">
+          Every badge is a property of the calls you have recorded. Nothing is awarded for visiting,
+          and a locked badge shows the rule that would open it.
+        </p>
+
+        <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {badges.map((badge) => (
+            <li
+              key={badge.id}
+              className="flex min-h-[8.75rem] flex-col rounded-md border border-rule bg-surface p-3"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-[14px] font-semibold leading-snug text-ink">
+                  {badge.name}
+                </span>
+                <span className={`chip shrink-0 ${badge.earned ? "chip-safe" : ""}`}>
+                  {badge.earned ? (
+                    <Check className="h-3 w-3" aria-hidden="true" />
+                  ) : (
+                    <Lock className="h-3 w-3" aria-hidden="true" />
+                  )}
+                  {badge.earned ? "Earned" : "Locked"}
+                </span>
+              </div>
+              <p className="mt-1.5 line-clamp-2 min-h-[2.5rem] text-[13px] leading-snug text-ink-muted">
+                {badge.rule}
+              </p>
+              <p className="mt-1 line-clamp-2 min-h-[2.5rem] text-[13px] leading-snug text-ink-faint">
+                {badge.earned ? badge.progress : badge.hint}
+              </p>
+            </li>
+          ))}
+        </ul>
       </section>
 
       {/* ══ 6 · Disclosure ══════════════════════════════════════════════ */}

@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { ArrowRight, ChevronDown, ExternalLink, Search, Star, X } from "lucide-react";
 import { AdSlot } from "@/components/AdSlot";
 import { WatchToggle } from "@/components/WatchToggle";
@@ -110,10 +109,7 @@ function listedTicker(raw: string | undefined): string | null {
 }
 
 export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
-  const params = useSearchParams();
-  const initial = useMemo(() => fromParams(params), [params]);
-
-  const [filters, setFilters] = useState<CompanyFilters>(initial);
+  const [filters, setFilters] = useState<CompanyFilters>(EMPTY);
   const [openId, setOpenId] = useState<string | null>(null);
   const [stuck, setStuck] = useState(false);
   const sentinel = useRef<HTMLDivElement | null>(null);
@@ -127,6 +123,30 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
    */
   const { watchlist, isWatched, toggle: toggleTicker } = useWatchlist();
   const [watchOnly, setWatchOnly] = useState(false);
+
+  // Read URL query params once after mounting on the client, preserving server-rendered profiles
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const initial = fromParams(new URLSearchParams(window.location.search));
+    if (
+      initial.search ||
+      initial.sector !== "all" ||
+      initial.risk !== "all" ||
+      initial.structure !== "all"
+    ) {
+      setFilters(initial);
+    }
+  }, []);
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      const current = fromParams(new URLSearchParams(window.location.search));
+      setFilters(current);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   useEffect(() => {
     const node = sentinel.current;
@@ -142,9 +162,14 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
   }, []);
 
   // Keep the URL in step with the view.
+  const isFirstRender = useRef(true);
   const filtersRef = useRef(filters);
   filtersRef.current = filters;
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const f = filtersRef.current;
     const query = new URLSearchParams();
     if (f.search.trim()) query.set("search", f.search.trim());

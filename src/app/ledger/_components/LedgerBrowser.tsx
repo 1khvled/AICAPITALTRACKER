@@ -8,7 +8,6 @@ import React, {
   useState,
 } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import {
   ArrowRight,
   Check,
@@ -119,16 +118,47 @@ function countActive(filters: FilterState): number {
 /* ── the browser ──────────────────────────────────────────────────────────── */
 
 export default function LedgerBrowser() {
-  const params = useSearchParams();
-  const initial = useMemo(() => fromParams(params), [params]);
-
-  const [filters, setFilters] = useState<FilterState>(initial.filters);
+  const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
-  const [openIds, setOpenIds] = useState<string[]>(() => (initial.dealId ? [initial.dealId] : []));
+  const [openIds, setOpenIds] = useState<string[]>([]);
+  const [linkedDeal, setLinkedDeal] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showExtras, setShowExtras] = useState(false);
   const [showTimeline, setShowTimeline] = useState(true);
+
+  // Read URL query params once after mounting on the client, preserving server-rendered first page
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const initial = fromParams(new URLSearchParams(window.location.search));
+    if (
+      countActive(initial.filters) > 0 ||
+      initial.filters.sortField !== "date" ||
+      initial.filters.sortDir !== "desc"
+    ) {
+      setFilters(initial.filters);
+    }
+    if (initial.dealId) {
+      setLinkedDeal(initial.dealId);
+      setOpenIds([initial.dealId]);
+      setPage(1);
+    }
+  }, []);
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      const current = fromParams(new URLSearchParams(window.location.search));
+      setFilters(current.filters);
+      setLinkedDeal(current.dealId);
+      if (current.dealId) {
+        setOpenIds([current.dealId]);
+        setPage(1);
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   // Sticky condensed bar: shown once the real toolbar has scrolled away. A
   // scroll listener is used rather than an IntersectionObserver so that a fast
@@ -151,10 +181,14 @@ export default function LedgerBrowser() {
   }, []);
 
   // Keep the address bar in step so any view can be shared or bookmarked.
+  const isFirstRender = useRef(true);
   const filtersRef = useRef(filters);
   filtersRef.current = filters;
-  const linkedDeal = initial.dealId;
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const f = filtersRef.current;
     const query = new URLSearchParams();
     if (f.search.trim()) query.set("search", f.search.trim());
@@ -246,8 +280,8 @@ export default function LedgerBrowser() {
 
   // A deal opened from a citation link must be on the first page.
   useEffect(() => {
-    if (initial.dealId) setPage(1);
-  }, [initial.dealId]);
+    if (linkedDeal) setPage(1);
+  }, [linkedDeal]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
