@@ -33,7 +33,7 @@ export default function StickyFilterBar({
   return (
     <div
       className={[
-        "sticky top-[82px] z-40 -mx-4 mt-2 hidden border-y border-rule bg-surface/95 px-4 backdrop-blur sm:-mx-6 sm:px-6 md:top-14",
+        "sticky top-[82px] z-40 -mx-4 mt-2 hidden border-y border-rule bg-surface px-4 sm:-mx-6 sm:px-6 md:top-14",
         visible ? "!block" : "",
       ].join(" ")}
       aria-hidden={!visible}

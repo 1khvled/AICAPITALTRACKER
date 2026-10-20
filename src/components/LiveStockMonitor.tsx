@@ -845,11 +845,14 @@ export function LiveStockMonitor() {
                 const trend = TREND_SHAPES[macro.symbol] || FALLBACK_SHAPE;
                 return (
                   <li key={macro.symbol} className="panel flex flex-col gap-1.5 p-3">
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
                       <span className="num whitespace-nowrap text-[14px] font-semibold text-ink">
                         {macro.symbol}
                       </span>
-                      <span className={`pill ${stress ? "pill-risk" : "pill-safe"}`}>
+                      <span
+                        className={`pill ${stress ? "pill-risk" : "pill-safe"}`}
+                        title={macro.changeDisplay}
+                      >
                         {macro.changeDisplay}
                       </span>
                     </div>

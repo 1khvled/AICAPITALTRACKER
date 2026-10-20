@@ -397,13 +397,13 @@ export default function LedgerBrowser() {
                 onChange={(event) => patch({ search: event.target.value })}
                 placeholder="Search company, counterparty or note"
                 autoComplete="off"
-                className="min-h-11 w-full rounded-md border border-rule-strong bg-canvas pl-9 pr-9 text-[15px] text-ink placeholder:text-ink-faint"
+                className="min-h-11 w-full rounded-md border border-rule-strong bg-canvas pl-9 pr-11 text-[15px] text-ink placeholder:text-ink-faint"
               />
               {filters.search ? (
                 <button
                   type="button"
                   onClick={() => patch({ search: "" })}
-                  className="absolute right-1.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-ink-subtle transition-colors hover:bg-surface-2 hover:text-ink"
+                  className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-ink-subtle transition-colors hover:bg-surface-2 hover:text-ink"
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                   <span className="sr-only">Clear search</span>

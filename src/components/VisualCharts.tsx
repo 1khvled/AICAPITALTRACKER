@@ -345,8 +345,22 @@ export function SensitivityCurveChart({
                   fontWeight={isAnchor ? "bold" : "normal"}
                 >
                   {score}
-                  {isAnchor ? " (Anchor)" : ""}
                 </text>
+                {isAnchor ? (
+                  // The anchor's caption sits INSIDE the plot, above the axis. On
+                  // the axis line it collided with its neighbours and the row read
+                  // "50 55 (Anchor) 60" as one smear.
+                  <text
+                    x={x}
+                    y={height - padding.bottom - 8}
+                    textAnchor="middle"
+                    fontSize="12"
+                    style={{ fill: TOKEN.caution500 }}
+                    fontFamily="monospace"
+                  >
+                    anchor
+                  </text>
+                ) : null}
               </g>
             );
           })}
@@ -1883,7 +1897,7 @@ export function TokenPriceDeflationChart() {
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="label">REAL-USE DAMPER</span>
-            <span className="chip chip-safe">Live API Feed</span>
+            <span className="chip">OpenRouter Snapshot</span>
           </div>
           <h4 className="mt-0.5 text-base font-bold text-ink">Token Inference Deflation (Up to {LIVE_DEFLATION_MULTIPLE.toLocaleString("en-US")}× Cheaper on Input)</h4>
         </div>
@@ -1895,7 +1909,7 @@ export function TokenPriceDeflationChart() {
               [
                 { id: "workhorse", label: `Workhorse (${LIVE_DEFLATION_MULTIPLE.toLocaleString("en-US")}×)` },
                 { id: "frontier-sota", label: "Frontier Reasoning" },
-                { id: "live-feed", label: `Live Rates (${modelsList.length})` },
+                { id: "live-feed", label: `Snapshot Rates (${modelsList.length})` },
               ] as const
             ).map(({ id, label }) => (
               <button
@@ -1971,13 +1985,13 @@ export function TokenPriceDeflationChart() {
           })}
         </div>
       ) : (
-        /* Live OpenRouter Model Rates Card with Search */
+        /* OpenRouter Model Rates Snapshot with Search */
         <div className="space-y-2.5 pt-1">
           <div className="relative">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" />
             <input
               type="text"
-              placeholder="Search 10 live models (e.g. Claude, GPT-6, DeepSeek, Gemini, Flash)..."
+              placeholder="Search snapshot models (e.g. Claude, GPT, DeepSeek, Gemini, Flash)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="min-h-11 w-full rounded-lg border border-rule bg-surface py-2 pl-9 pr-3 text-[13px] text-ink placeholder:text-ink-faint"
@@ -1985,7 +1999,7 @@ export function TokenPriceDeflationChart() {
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-rule pb-1 text-[14px]">
-            <span className="label">MODEL (OCTOBER 2026 LIVE FEED)</span>
+            <span className="label">MODEL (OCTOBER 2026 SNAPSHOT)</span>
             <div className="flex gap-6">
               <span className="hidden sm:inline">PROMPT / 1M</span>
               <span>COMPLETION / 1M</span>

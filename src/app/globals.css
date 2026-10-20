@@ -1258,6 +1258,30 @@ html[data-motion="off"] .ticker-row::-webkit-scrollbar {
    it turns the mosaic into grey noise. Area and colour still carry the pattern
    at that size, every tile is still a tap target that opens the deal, and the
    data table under the chart carries every label in full. Labels return at sm. */
+/* ─────────────────────────────────────────────────────────────────────────
+   10. DARK-THEME SEMANTIC TEXT (measured, not guessed)
+   The 600/700 steps of the semantic scales are the light theme's "deep text"
+   shades. On the terminal canvas they measure:
+     risk-700 2.4:1 · caution-700 2.9:1 · safe-700 2.8:1   (below 3:1 - they
+     fail even for large bold text) and the 600 steps sit at 3.3-4.1:1, under
+     AA for body text.
+   In dark mode the same three meanings are carried by the 400 step
+   (risk 6.3:1, caution 8.1:1, safe 6.9:1). This block remaps ONLY the text
+   utilities: borders, fills and the light theme are untouched.
+   ───────────────────────────────────────────────────────────────────────── */
+html.dark .text-safe-700,
+html.dark .text-safe-600 {
+  color: #34ac80;
+}
+html.dark .text-risk-700,
+html.dark .text-risk-600 {
+  color: #e0706a;
+}
+html.dark .text-caution-700,
+html.dark .text-caution-600 {
+  color: #d89b18;
+}
+
 @media (max-width: 639px) {
   .treemap-tile-label {
     display: none;

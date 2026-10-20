@@ -133,6 +133,13 @@ export default function VisualizePage() {
       ? psValues[psMid]
       : (psValues[psMid - 1] + psValues[psMid]) / 2;
 
+  const probTone =
+    modelResult.band === "critical" || modelResult.band === "high"
+      ? "text-risk-700"
+      : modelResult.band === "elevated"
+      ? "text-caution-700"
+      : "text-ink";
+
   const tabs: { id: VisualTab; label: string; icon: React.ReactNode; shortDesc: string }[] = [
     {
       id: "all",
@@ -240,10 +247,10 @@ return (
 
         <div className="col-span-2 bg-surface p-3 md:col-span-1">
           <dt className="label">Burst Probability</dt>
-          <dd className="num mt-1 text-xl font-semibold text-risk-700">
+          <dd className={`num mt-1 text-xl font-semibold ${probTone}`}>
             {modelResult.burstProbability.toFixed(1)}%
           </dd>
-          <dd className="num mt-0.5 text-[14px] text-risk-700">
+          <dd className={`num mt-0.5 text-[14px] ${probTone}`}>
             S={modelResult.compositeScore.toFixed(1)} pts
           </dd>
           <dd className="mt-0.5 truncate text-[14px] text-ink-subtle">

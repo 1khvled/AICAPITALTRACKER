@@ -232,7 +232,9 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
 
   const chip = (active: boolean) =>
     [
-      "chip shrink-0 min-h-11 items-center whitespace-nowrap px-3 transition-colors",
+      // The gap matters: the count sits right after the label, and without it
+      // "Frontier Labs6" reads as one word.
+      "chip shrink-0 min-h-11 items-center gap-1.5 whitespace-nowrap px-3 transition-colors",
       active
         ? "border-ink bg-ink text-canvas hover:bg-ink-muted hover:border-ink-muted"
         : "hover:border-rule-strong hover:bg-surface-2",
@@ -476,13 +478,13 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
               onChange={(event) => patch({ search: event.target.value })}
               placeholder={`Search ${COMPANIES.length} companies, tickers or creditors`}
               autoComplete="off"
-              className="min-h-11 w-full rounded-md border border-rule-strong bg-canvas pl-9 pr-9 text-[15px] text-ink placeholder:text-ink-faint"
+              className="min-h-11 w-full rounded-md border border-rule-strong bg-canvas pl-9 pr-11 text-[15px] text-ink placeholder:text-ink-faint"
             />
             {filters.search ? (
               <button
                 type="button"
                 onClick={() => patch({ search: "" })}
-                className="absolute right-1.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-ink-subtle transition-colors hover:bg-surface-2 hover:text-ink"
+                className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-ink-subtle transition-colors hover:bg-surface-2 hover:text-ink"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
                 <span className="sr-only">Clear search</span>
@@ -632,7 +634,7 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
       {/* Condensed result line, pinned once the filters scroll away */}
       <div ref={sentinel} aria-hidden="true" className="h-px" />
       <div
-        className={`sticky top-[82px] z-40 -mx-4 mt-2 hidden border-y border-rule bg-surface/95 px-4 backdrop-blur sm:-mx-6 sm:px-6 md:top-14 ${
+        className={`sticky top-[82px] z-40 -mx-4 mt-2 hidden border-y border-rule bg-surface px-4 sm:-mx-6 sm:px-6 md:top-14 ${
           stuck ? "!block" : ""
         }`}
         aria-hidden={!stuck}

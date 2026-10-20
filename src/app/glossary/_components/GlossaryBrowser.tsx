@@ -173,13 +173,13 @@ export default function GlossaryBrowser({ terms }: GlossaryBrowserProps) {
                 autoComplete="off"
                 spellCheck={false}
                 aria-describedby="glossary-search-hint"
-                className="min-h-11 w-full appearance-none rounded-md border border-rule-strong bg-canvas pl-9 pr-10 text-[15px] text-ink placeholder:text-ink-faint [&::-webkit-search-cancel-button]:hidden"
+                className="min-h-11 w-full appearance-none rounded-md border border-rule-strong bg-canvas pl-9 pr-11 text-[15px] text-ink placeholder:text-ink-faint [&::-webkit-search-cancel-button]:hidden"
               />
               {query ? (
                 <button
                   type="button"
                   onClick={clearFilter}
-                  className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-ink-subtle transition-colors hover:bg-surface-2 hover:text-ink"
+                  className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-ink-subtle transition-colors hover:bg-surface-2 hover:text-ink"
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                   <span className="sr-only">Clear the search</span>

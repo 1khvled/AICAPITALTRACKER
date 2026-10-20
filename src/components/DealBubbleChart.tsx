@@ -2039,12 +2039,12 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
               placeholder="Filter company, project, or amount..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="min-h-11 w-full rounded-lg border border-rule bg-surface py-2 pl-10 pr-10 text-sm text-ink placeholder:text-ink-faint"
+              className="min-h-11 w-full rounded-lg border border-rule bg-surface py-2 pl-10 pr-11 text-sm text-ink placeholder:text-ink-faint"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-1 top-1/2 flex h-11 w-9 -translate-y-1/2 items-center justify-center text-[14px] text-ink-subtle hover:text-ink"
+                className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-[14px] text-ink-subtle hover:text-ink"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
