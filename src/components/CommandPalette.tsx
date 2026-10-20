@@ -84,6 +84,7 @@ export function CommandPalette() {
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   const [query, setQuery] = useState("");
   /** The selected item, by ID. Never by index. */
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -106,6 +107,7 @@ export function CommandPalette() {
   /** Whether the palette is open, readable synchronously from an event handler. */
   const openRef = useRef(false);
   const loadedRef = useRef(false);
+  const exitTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -149,6 +151,11 @@ export function CommandPalette() {
   /* ── Opening and closing ──────────────────────────────────────────────── */
 
   const openPalette = useCallback(() => {
+    if (exitTimeoutRef.current) {
+      window.clearTimeout(exitTimeoutRef.current);
+      exitTimeoutRef.current = null;
+    }
+    setIsExiting(false);
     /**
      * Remember where the focus came from, so it can be put back. Only the
      * FIRST open records it: a second open would record the palette's own
@@ -175,10 +182,39 @@ export function CommandPalette() {
   }, []);
 
   const closePalette = useCallback(() => {
+    if (!openRef.current && !isExiting) return;
     openRef.current = false;
-    setOpen(false);
+
+    // Check reduced-motion kill-switch: close instantly
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      if (exitTimeoutRef.current) window.clearTimeout(exitTimeoutRef.current);
+      setIsExiting(false);
+      setOpen(false);
+      setQuery("");
+      setActiveId(null);
+      return;
+    }
+
+    // Materialize out along symmetric path (Apple S12 & S7)
+    setIsExiting(true);
     setQuery("");
     setActiveId(null);
+
+    if (exitTimeoutRef.current) window.clearTimeout(exitTimeoutRef.current);
+    exitTimeoutRef.current = window.setTimeout(() => {
+      setIsExiting(false);
+      setOpen(false);
+      exitTimeoutRef.current = null;
+    }, 180);
+  }, [isExiting]);
+
+  useEffect(() => {
+    return () => {
+      if (exitTimeoutRef.current) window.clearTimeout(exitTimeoutRef.current);
+    };
   }, []);
 
   /**
@@ -256,7 +292,7 @@ export function CommandPalette() {
    * and the focus goes home.
    */
   useEffect(() => {
-    if (!open) return undefined;
+    if (!open || isExiting) return undefined;
 
     // 1. The page behind is hidden from assistive technology - with a counter,
     //    so an overlapping overlay cannot clobber this one.
@@ -285,7 +321,7 @@ export function CommandPalette() {
       release();
       restoreFocus();
     };
-  }, [open, restoreFocus]);
+  }, [open, isExiting, restoreFocus]);
 
   /**
    * The dismissable layer.
@@ -295,7 +331,7 @@ export function CommandPalette() {
    * results list a scrollbar and not a dead end.
    */
   useEffect(() => {
-    if (!open) return undefined;
+    if (!open || isExiting) return undefined;
     const onPointerDown = (event: PointerEvent) => {
       const panel = panelRef.current;
       const target = event.target;
@@ -304,7 +340,7 @@ export function CommandPalette() {
     };
     document.addEventListener("pointerdown", onPointerDown, true);
     return () => document.removeEventListener("pointerdown", onPointerDown, true);
-  }, [open, closePalette]);
+  }, [open, isExiting, closePalette]);
 
   /**
    * The focus scope. If the focus leaves the panel - a pointer press on the
@@ -312,7 +348,7 @@ export function CommandPalette() {
    * into the field.
    */
   useEffect(() => {
-    if (!open) return undefined;
+    if (!open || isExiting) return undefined;
     const onFocusIn = (event: FocusEvent) => {
       if (!openRef.current) return;
       const panel = panelRef.current;
@@ -323,7 +359,7 @@ export function CommandPalette() {
     };
     document.addEventListener("focusin", onFocusIn, true);
     return () => document.removeEventListener("focusin", onFocusIn, true);
-  }, [open]);
+  }, [open, isExiting]);
 
   // Keep the selected row inside the scroll window.
   useEffect(() => {
@@ -347,6 +383,11 @@ export function CommandPalette() {
   const choose = useCallback(
     (item: PaletteItem) => {
       openRef.current = false;
+      if (exitTimeoutRef.current) {
+        window.clearTimeout(exitTimeoutRef.current);
+        exitTimeoutRef.current = null;
+      }
+      setIsExiting(false);
       setOpen(false);
       setQuery("");
       setActiveId(null);
@@ -433,15 +474,24 @@ export function CommandPalette() {
         ? createPortal(
             <div
               ref={overlayRef}
-              className="palette-scrim palette-dim fixed inset-0 z-[70] flex justify-center px-4"
+              className={`palette-dim fixed inset-0 z-[70] flex justify-center px-4 ${
+                isExiting
+                  ? "palette-scrim-out pointer-events-none"
+                  : "palette-scrim palette-scrim-in"
+              }`}
             >
               <div
                 ref={panelRef}
                 role="dialog"
-                aria-modal="true"
+                aria-modal={isExiting ? "false" : "true"}
+                aria-hidden={isExiting ? "true" : undefined}
                 aria-label="Search the tracker"
                 onKeyDown={onPanelKeyDown}
-                className="palette-panel glass-strong mt-[10vh] flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden rounded-lg border border-rule shadow-float"
+                className={`glass-strong mt-[10vh] flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden rounded-lg border border-rule shadow-float ${
+                  isExiting
+                    ? "palette-panel-out pointer-events-none"
+                    : "palette-panel palette-panel-in"
+                }`}
               >
                 <div className="flex items-center gap-2 border-b border-rule px-3">
                   <Search className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden="true" />

@@ -3,6 +3,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Check, Clock, Info, Lock, Scale, Target, Trash2 } from "lucide-react";
+import { useMotionPreference } from "@/components/MotionProvider";
+import { useSpringValue } from "@/lib/use-spring-value";
 import {
   HORIZON_MONTHS,
   addMonthsUtc,
@@ -104,6 +106,24 @@ export function YourCall({
   const [confirmClear, setConfirmClear] = useState<boolean>(false);
   /** The action that can still be taken back, if the reader has not let it go. */
   const [pendingUndo, setPendingUndo] = useState<PendingUndo | null>(null);
+
+  /**
+   * The comparison numbers are LIVE FEEDBACK for a gesture: they answer
+   * "where does my number sit" while the thumb is still moving. A number that
+   * snaps to its new value at the end of the drag leaves the reader without
+   * any sense of the distance they just travelled, so the comparison is
+   * carried by a critically damped spring that starts from the value on
+   * screen and never overshoots.
+   *
+   * The recorded call is NOT sprung. `sliderValue` is the truth - it is what
+   * gets written to the log - and the headline number shows it exactly.
+   */
+  const { systemReduced } = useMotionPreference();
+  const comparisonValue = useSpringValue(
+    sliderValue,
+    { stiffness: 380, mass: 1 },
+    !systemReduced
+  );
 
   /**
    * The store is read AFTER mount, never during render, so the server markup
@@ -434,13 +454,13 @@ export function YourCall({
           <div className="min-w-0 rounded-md border border-rule bg-surface-2 px-3 py-2">
             <dt className="text-[13px] text-ink-muted">Your call less the model</dt>
             <dd className="num mt-0.5 text-[15px] font-semibold text-ink">
-              {signedPoints(sliderValue - modelPrintPct)} pts
+              {signedPoints(comparisonValue - modelPrintPct)} pts
             </dd>
           </div>
           <div className="min-w-0 rounded-md border border-rule bg-surface-2 px-3 py-2">
             <dt className="text-[13px] text-ink-muted">Your call less the market</dt>
             <dd className="num mt-0.5 text-[15px] font-semibold text-ink">
-              {signedPoints(sliderValue - marketPct)} pts
+              {signedPoints(comparisonValue - marketPct)} pts
             </dd>
           </div>
           <div className="min-w-0 rounded-md border border-rule bg-surface-2 px-3 py-2">

@@ -31,17 +31,33 @@ const config: Config = {
     extend: {
       fontFamily: {
         /**
-         * The fonts are self-hosted by next/font (src/app/layout.tsx) and exposed
-         * as CSS variables with an automatic size-adjusted fallback — that removes
-         * the render-blocking Google Fonts stylesheet and the font-swap shift.
+         * APPLE'S OWN TYPE.
+         *
+         * The site used to ship Inter. It is a good font, but it is not Apple's,
+         * and Apple's is already on the device: SF Pro ships with macOS, iOS and
+         * iPadOS, with the optical sizing, tracking tables and legibility
+         * tuning that a webfont cannot buy. The stack therefore asks for the
+         * system face first and falls back to the platform grotesque
+         * (Segoe UI on Windows, Roboto on Android) when there is no Apple
+         * device.
+         *
+         * SF Pro is licensed for Apple platforms and may not be redistributed
+         * as a webfont, so the honest way to ship it is to ASK for it: that is
+         * what this stack does.
+         *
+         * The figures keep their own face (see `mono` below). A number is a
+         * different object from a sentence: it wants tabular monospaced
+         * digits that never jitter, and that is a job for the mono.
          */
         sans: [
-          "var(--font-inter)",
-          "Inter",
           "-apple-system",
           "BlinkMacSystemFont",
+          '"SF Pro Display"',
+          '"SF Pro Text"',
+          '"Helvetica Neue"',
+          "Helvetica",
+          "system-ui",
           "Segoe UI",
-          "Helvetica Neue",
           "Arial",
           "sans-serif",
         ],

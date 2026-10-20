@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -11,22 +11,24 @@ import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import rawDeals from "@/data/deals.json";
 
 /**
- * Fonts — self-hosted by next/font.
+ * Fonts.
  *
- * The site used to load Inter and JetBrains Mono from Google Fonts with a
- * render-blocking <link> in the document head: two extra DNS/TLS round trips
- * before first paint, a third-party origin in the critical path, and a visible
- * reflow when the webfont replaced the fallback. next/font downloads the fonts
- * at build time, serves them from the same origin, and ships a size-adjusted
- * fallback so the swap costs almost nothing.
+ * The interface face is APPLE'S OWN: `-apple-system` resolves to SF Pro on
+ * macOS, iOS and iPadOS, so the site is typeset in the same face as the
+ * platform it is running on - with the optical sizing, tracking tables and
+ * legibility tuning that a webfont cannot buy. SF Pro cannot be redistributed
+ * as a webfont (Apple licenses it for Apple platforms), so the honest way to
+ * ship it is to ask for it, which is what the stack in tailwind.config.ts
+ * does. Everywhere else the platform grotesque answers: Segoe UI on Windows,
+ * Roboto on Android.
+ *
+ * That also removes a ~100KB font download and the third-party request behind
+ * it, so the first paint gets here sooner.
+ *
+ * The figures keep JetBrains Mono, self-hosted by next/font: a number is a
+ * different object from a sentence, and it wants tabular monospaced digits
+ * that never jitter when they change.
  */
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-inter",
-  adjustFontFallback: true,
-});
-
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   display: "swap",
@@ -186,7 +188,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" suppressHydrationWarning className={jetbrainsMono.variable}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         <script dangerouslySetInnerHTML={{ __html: revealBootScript }} />

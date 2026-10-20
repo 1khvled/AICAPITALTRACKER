@@ -689,19 +689,29 @@ export function LiveStockMonitor() {
    * FLIP: when the order changes, the rows SLIDE to their new positions
    * instead of jumping.
    *
-   * The row's box is already in its final place when the browser paints, so
-   * only a TRANSFORM is animated - no layout moves, nothing shifts (zero CLS),
-   * and the movement is the information: "these rows changed places".
-   * A reduced-motion reader gets the final state immediately.
+   * Apple S3 Interruptibility:
+   * 1. capturePositions() captures the row's LIVE on-screen position (including
+   *    any active in-flight transform) when sorting is triggered.
+   * 2. In useLayoutEffect, transitions are temporarily suspended to measure
+   *    the clean resting destination, and the new delta is calculated from
+   *    the live presentation position.
+   * 3. Each run owns its styles: a stale timer can never clear the transform
+   *    of a NEWER run, and the cleanup never yanks an in-flight row back to
+   *    zero, so two sorts in quick succession blend instead of hitting a
+   *    "brick wall".
    */
   const positionsBeforeRef = useRef<Map<string, number> | null>(null);
+  const animationTimerRef = useRef<number | null>(null);
+  /** Which run owns the inline styles right now. A timer from an older run
+   *  must not touch the styles of the run that replaced it. */
+  const animationIdRef = useRef(0);
 
   /**
    * The row element the reader can actually SEE at this width.
    *
    * The board is rendered twice: a table for a wide screen and a list for a
    * phone. Only one of them is displayed at a time, and the hidden one still
-   * has a DOM node - with no box. Picking the first node that HAS a box is
+   * has a DOM node — with no box. Picking the first node that HAS a box is
    * what makes the slide work on a phone as well as on a desktop.
    */
   const rowElement = useCallback((index: number): HTMLElement | null => {
@@ -717,6 +727,7 @@ export function LiveStockMonitor() {
     visible.forEach((stock, index) => {
       const el = rowElement(index);
       if (el) {
+        // Reads live presentation top (including in-flight transform)
         map.set(stock.ticker, el.getBoundingClientRect().top);
       }
     });
@@ -734,37 +745,76 @@ export function LiveStockMonitor() {
       return;
     }
 
-    const moved: { el: HTMLElement; delta: number }[] = [];
+    // This run owns the inline styles from here on.
+    const runId = animationIdRef.current + 1;
+    animationIdRef.current = runId;
+
+    // 1. Gather all currently visible row elements in the new order
+    const elements: { ticker: string; el: HTMLElement }[] = [];
     visible.forEach((stock, index) => {
-      const previousTop = before.get(stock.ticker);
-      if (previousTop === undefined) return;
       const el = rowElement(index);
-      if (!el) return;
-      const delta = previousTop - el.getBoundingClientRect().top;
+      if (el) elements.push({ ticker: stock.ticker, el });
+    });
+
+    // 2. Temporarily suspend transitions & transforms to measure true un-transformed destination
+    elements.forEach(({ el }) => {
+      el.style.transition = "none";
+      el.style.transform = "none";
+    });
+
+    // 3. Compute delta from live captured on-screen position to new resting destination
+    const moved: { el: HTMLElement; delta: number }[] = [];
+    elements.forEach(({ ticker, el }) => {
+      const previousTop = before.get(ticker);
+      if (previousTop === undefined) return;
+      const finalTop = el.getBoundingClientRect().top;
+      const delta = previousTop - finalTop;
       if (Math.abs(delta) > 1) moved.push({ el, delta });
     });
-    if (moved.length === 0) return;
 
-    // Frame one: put every moved row back where it was.
+    if (moved.length === 0) {
+      elements.forEach(({ el }) => {
+        el.style.transition = "";
+        el.style.transform = "";
+      });
+      return;
+    }
+
+    // 4. Invert: place moved rows at their captured live on-screen locations
     moved.forEach(({ el, delta }) => {
-      el.style.transition = "none";
       el.style.transform = `translateY(${delta}px)`;
     });
-    // Make the browser register that position before we release it.
+
+    // Force synchronous layout commit before browser paint
     void document.body.offsetHeight;
-    // Frame two: release, and the row travels home.
+
+    // 5. Play: transition smoothly towards resting layout destination
     moved.forEach(({ el }) => {
       el.style.transition = "transform 420ms cubic-bezier(0.22, 1, 0.36, 1)";
       el.style.transform = "";
     });
-    const timer = window.setTimeout(() => {
-      moved.forEach(({ el }) => {
+
+    // 6. Hand the styles back when this run ends - but ONLY if this run still
+    //    owns them. A second sort that started while this one was in flight has
+    //    its own styles on the rows now, and a stale timer clearing them would
+    //    yank the rows to their resting boxes mid-slide: the "brick wall" the
+    //    Apple rules warn about.
+    if (animationTimerRef.current) {
+      window.clearTimeout(animationTimerRef.current);
+    }
+    animationTimerRef.current = window.setTimeout(() => {
+      if (animationIdRef.current !== runId) return;
+      elements.forEach(({ el }) => {
         el.style.transition = "";
         el.style.transform = "";
       });
+      animationTimerRef.current = null;
     }, 460);
-    return () => window.clearTimeout(timer);
-  }, [visible]);
+
+    // The cleanup deliberately does NOT touch the rows: the inline styles
+    // belong to the run that is on screen, and the next run re-measures them
+    // from their live position anyway.
+  }, [visible, rowElement]);
 
   const onSort = useCallback(
     (key: SortKey) => {
@@ -1134,7 +1184,7 @@ export function LiveStockMonitor() {
                           onFocus={() => {
                             if (activeIndexRef.current !== index) setActive(index);
                           }}
-                          className={isCurrent ? "bg-surface-2" : undefined}
+                          className={`board-row ${isCurrent ? "bg-surface-2" : ""}`}
                         >
                           <td
                             className={`border-l-2 py-3 pr-3 align-top ${
@@ -1215,7 +1265,7 @@ export function LiveStockMonitor() {
                       onFocus={() => {
                         if (activeIndexRef.current !== index) setActive(index);
                       }}
-                      className={`border-l-2 py-3 ${
+                      className={`board-row border-l-2 py-3 ${
                         isCurrent ? "border-l-ink bg-surface-2" : "border-l-transparent"
                       }`}
                     >

@@ -122,11 +122,11 @@ html {
 body {
   background-color: rgb(var(--c-canvas));
   color: rgb(var(--c-ink));
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI",
-    "Helvetica Neue", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Helvetica Neue", Helvetica, system-ui, "Segoe UI", Arial, sans-serif;
   font-size: 1.0625rem; /* 17px — reading size for plain-language copy */
   line-height: 1.6;
-  letter-spacing: -0.005em;
+  letter-spacing: 0; /* was -0.005em; Apple S15: body prose sits near zero */
   overflow-x: hidden;
   min-height: 100dvh;
 }
@@ -140,15 +140,27 @@ table {
   max-width: 100%;
 }
 
-h1,
-h2,
+h1 {
+  font-weight: 700;
+  letter-spacing: -0.03em; /* was -0.022em; Apple S15: display headings tightened */
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+h2 {
+  font-weight: 700;
+  letter-spacing: -0.025em; /* was -0.022em */
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
 h3,
 h4,
 h5,
 h6 {
   font-weight: 700;
-  letter-spacing: -0.022em;
-  line-height: 1.15;
+  letter-spacing: -0.02em; /* was -0.022em */
+  line-height: 1.2;
   text-wrap: balance;
 }
 
@@ -332,7 +344,7 @@ html.dark .notice-caution {
   font-size: 0.8125rem; /* 13px — was 11px (2026-10-19 size-floor pass) */
   font-weight: 500;
   line-height: 1.35;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em; /* was 0.08em; Apple S15: 13px uppercase status given room to breathe */
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -486,7 +498,7 @@ html.dark .chip-caution {
   font-size: 0.75rem; /* 12px — was 11px (2026-10-19 size-floor pass) */
   font-weight: 500;
   line-height: 1.2;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em; /* was 0.14em; Apple S15: 12-13px uppercase metadata given room to breathe */
   text-transform: uppercase;
   color: rgb(var(--c-ink-faint));
 }
@@ -525,6 +537,7 @@ html.dark .chip-caution {
   max-width: 68ch;
   font-size: 1.0625rem;
   line-height: 1.7;
+  letter-spacing: 0;
   color: rgb(var(--c-ink-muted));
 }
 .prose-lead {
@@ -855,6 +868,7 @@ html.dark .chip-caution {
    ───────────────────────────────────────────────────────────────────────── */
 :root {
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-quint: cubic-bezier(0.64, 0, 0.78, 0);
   --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
   --ease-spring: cubic-bezier(0.34, 1.42, 0.64, 1);
   --dur-micro: 140ms;
@@ -898,8 +912,9 @@ html.dark .chip-caution {
 }
 /* The masthead is opaque - see the note above. */
 
-/* The command palette arrives the way a panel should: the scrim fades, the
-   panel rises a few pixels and settles. Transform and opacity only. */
+/* The command palette arrives and exits the way a panel should: the scrim
+   fades, the panel rises/falls along a symmetric path (Apple S7), and blur
+   radius and scale animate TOGETHER (Apple S12: "materialize, don't just fade"). */
 @keyframes palette-scrim-in {
   from {
     opacity: 0;
@@ -908,21 +923,95 @@ html.dark .chip-caution {
     opacity: 1;
   }
 }
+@keyframes palette-scrim-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
 @keyframes palette-panel-in {
   from {
     opacity: 0;
     transform: translateY(-10px) scale(0.985);
+    -webkit-backdrop-filter: blur(0px) saturate(100%);
+    backdrop-filter: blur(0px) saturate(100%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    -webkit-backdrop-filter: blur(20px) saturate(170%);
+    backdrop-filter: blur(20px) saturate(170%);
+  }
+}
+@keyframes palette-panel-out {
+  from {
+    opacity: 1;
+    transform: none;
+    -webkit-backdrop-filter: blur(20px) saturate(170%);
+    backdrop-filter: blur(20px) saturate(170%);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.985);
+    -webkit-backdrop-filter: blur(0px) saturate(100%);
+    backdrop-filter: blur(0px) saturate(100%);
+  }
+}
+.palette-scrim,
+.palette-scrim-in {
+  animation: palette-scrim-in 200ms ease-out both;
+}
+.palette-scrim-out {
+  animation: palette-scrim-out 180ms var(--ease-in-quint) both;
+}
+.palette-panel,
+.palette-panel-in {
+  animation: palette-panel-in 260ms var(--ease-out-quint) both;
+}
+.palette-panel-out {
+  animation: palette-panel-out 180ms var(--ease-in-quint) both;
+}
+
+/* The creative's arrival. The slot reserves its exact height before anything
+   loads, so the page never shifts - but a creative that simply APPEARS reads
+   as a glitch. It is placed instead: a short fade and rise, transform and
+   opacity only, applied to the element the ad network itself created. */
+@keyframes ad-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.995);
   }
   to {
     opacity: 1;
     transform: none;
   }
 }
-.palette-scrim {
-  animation: palette-scrim-in 200ms ease-out both;
+.ad-slot__frame[data-loaded="true"] > * {
+  animation: ad-arrive 380ms var(--ease-out-quint) both;
 }
-.palette-panel {
-  animation: palette-panel-in 260ms var(--ease-out-quint) both;
+
+/* The nav's active marker: it slides under the destination the reader is on.
+   The marker is out of the flow, so its width can change without anything
+   around it moving. */
+.nav-marker {
+  transition: transform 320ms var(--ease-out-quint), width 320ms var(--ease-out-quint);
+}
+
+/* The route transition: a cross-fade on navigation. Opacity only - a transform
+   here would become the containing block for every sticky descendant and the
+   ledger's filter bar would jump for the length of the animation. */
+@keyframes route-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.route-enter {
+  animation: route-enter 180ms var(--ease-out-quint) both;
 }
 
 /* The command palette dims the page it floats over: the panel is glass, and
@@ -1152,12 +1241,35 @@ html.js-reveal .fade-in.fade-in-done {
     transform 180ms cubic-bezier(0.2, 0, 0, 1), visibility 0s linear 0s;
 }
 
-/* Press feedback — a 150ms squeeze on active controls. */
-.press {
-  transition: transform 150ms cubic-bezier(0.2, 0, 0, 1);
+/* Press feedback — Apple S1: respond on pointer-DOWN.
+   1. touch-action: manipulation opts out of iOS Safari ~300ms double-tap delay.
+   2. Instant press (75ms) on pointer-down (:active), slower release easing back
+      (220ms var(--ease-out-quint)).
+   3. Critically damped spring, subtle scale (0.98), strictly NO overshoot. */
+:where(a, button, [role="button"], input, select, textarea, summary, [tabindex], .btn, .chip, .press, .lift-on-hover, .board-row) {
+  touch-action: manipulation;
 }
-.press:active {
-  transform: scale(0.97);
+
+.press,
+.btn,
+.chip[role="button"],
+button.chip,
+summary,
+.board-row {
+  transition: transform 220ms var(--ease-out-quint),
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.press:active,
+.btn:active,
+.chip[role="button"]:active,
+button.chip:active,
+summary:active,
+.board-row:active {
+  transform: scale(0.98);
+  transition-duration: 75ms;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -1301,6 +1413,56 @@ html.js-reveal .fade-in.fade-in-done {
   .nav-panel {
     transition: none !important;
     transform: none !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   8b. REDUCED TRANSPARENCY (Apple S14)
+   Translucent materials become solid; backdrop-filter dropped.
+   ───────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-transparency: reduce) {
+  .glass-strong {
+    background-color: rgb(var(--c-surface)) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   8c. HIGH CONTRAST (Apple S14)
+   Surfaces become near-solid with defined, contrasting borders.
+   ───────────────────────────────────────────────────────────────────────── */
+@media (prefers-contrast: more) {
+  :root {
+    --c-rule: 150 158 168;
+    --c-rule-strong: 80 90 102;
+    --c-ink-muted: 36 42 50;
+    --c-ink-subtle: 46 52 60;
+    --c-ink-faint: 60 68 78;
+  }
+  html.dark {
+    --c-rule: 90 98 108;
+    --c-rule-strong: 150 160 172;
+    --c-ink-muted: 220 225 232;
+    --c-ink-subtle: 205 212 220;
+    --c-ink-faint: 190 198 206;
+  }
+  .card,
+  .panel,
+  .notice,
+  .glass-strong,
+  .btn,
+  .chip,
+  .pill,
+  table,
+  th,
+  td {
+    border-color: rgb(var(--c-rule-strong)) !important;
+  }
+  .glass-strong {
+    background-color: rgb(var(--c-surface)) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
   }
 }
 

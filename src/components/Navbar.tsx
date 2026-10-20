@@ -102,6 +102,52 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname === href || pathname?.startsWith(`${href}/`);
 
+  /**
+   * The active-page marker SLIDES.
+   *
+   * One element, positioned out of the flow, is moved under whichever
+   * destination the reader is on. It is the difference between a page that
+   * changes and a page that arrives: the reader can see where they went.
+   *
+   * The marker is absolutely positioned, so animating its width cannot reflow
+   * anything around it - the nav's own layout never moves, so there is no
+   * layout shift (the one rule the motion layer keeps without exception).
+   */
+  const navListRef = React.useRef<HTMLUListElement | null>(null);
+  const linkRefs = React.useRef<Map<string, HTMLAnchorElement>>(new Map());
+  const [marker, setMarker] = React.useState<{ left: number; width: number } | null>(null);
+
+  const measureMarker = React.useCallback(() => {
+    const list = navListRef.current;
+    if (!list) return;
+    const activeLink = PRIMARY_LINKS.find((link) => isActive(link.href));
+    const element = activeLink ? linkRefs.current.get(activeLink.href) : undefined;
+    if (!element) {
+      setMarker(null);
+      return;
+    }
+    // Measured from the LIST, not from offsetParent: the list item is
+    // positioned, so offsetLeft would be relative to the item and always 0.
+    const listRect = list.getBoundingClientRect();
+    const itemRect = element.getBoundingClientRect();
+    setMarker({
+      left: itemRect.left - listRect.left + list.scrollLeft,
+      width: itemRect.width,
+    });
+  }, [pathname]);
+
+  React.useLayoutEffect(() => {
+    measureMarker();
+    // The webfont can land after the first paint and change the widths.
+    if (typeof document !== "undefined" && document.fonts?.ready) {
+      void document.fonts.ready.then(measureMarker).catch(() => undefined);
+    }
+    if (typeof ResizeObserver === "undefined") return undefined;
+    const observer = new ResizeObserver(() => measureMarker());
+    if (navListRef.current) observer.observe(navListRef.current);
+    return () => observer.disconnect();
+  }, [measureMarker]);
+
   const hasProbability = typeof burstProbability === "number" && !Number.isNaN(burstProbability);
   const tone = BAND_TONE[(band || "").toLowerCase()] ?? "bg-ink-400";
 
@@ -134,20 +180,32 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
             aria-label="Primary"
             className="order-3 -mx-1 hidden w-full min-w-0 overflow-x-auto scrollbar-none sm:order-none sm:mx-0 sm:block sm:w-auto sm:overflow-visible"
           >
-            <ul className="flex items-center gap-0.5 px-1 sm:gap-1">
+            <ul ref={navListRef} className="relative flex items-center gap-0.5 px-1 sm:gap-1">
+              {marker ? (
+                <span
+                  aria-hidden="true"
+                  className="nav-marker pointer-events-none absolute left-0 top-0 z-0 rounded-md bg-white/10 shadow-[inset_0_-2px_0_0_rgb(255_255_255)]"
+                  style={{
+                    width: marker.width,
+                    transform: `translateX(${marker.left}px)`,
+                  }}
+                />
+              ) : null}
               {PRIMARY_LINKS.map((link) => {
                 const active = isActive(link.href);
                 return (
-                  <li key={link.href} className="shrink-0">
+                  <li key={link.href} className="relative z-10 shrink-0">
                     <Link
                       href={link.href}
                       title={link.hint}
                       aria-current={active ? "page" : undefined}
+                      ref={(element) => {
+                        if (element) linkRefs.current.set(link.href, element);
+                        else linkRefs.current.delete(link.href);
+                      }}
                       className={[
                         "flex min-h-11 items-center rounded-md px-2.5 text-[14px] font-medium tracking-tight transition-colors",
-                        active
-                          ? "bg-white/10 text-white shadow-[inset_0_-2px_0_0_rgb(255_255_255)]"
-                          : "text-header-muted hover:bg-white/5 hover:text-white",
+                        active ? "text-white" : "text-header-muted hover:bg-white/5 hover:text-white",
                       ].join(" ")}
                     >
                       {link.label}

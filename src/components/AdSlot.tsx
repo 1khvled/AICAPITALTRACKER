@@ -4,6 +4,8 @@ import {
   type PlacementId,
 } from "@/lib/ads";
 import { AdScript } from "@/components/AdScript";
+import { AdCreativeFrame } from "@/components/AdCreativeFrame";
+import { buildAtOptionsDoc } from "@/lib/ad-isolation-doc";
 
 /**
  * ─────────────────────────────────────────────────────────────────────────────
@@ -85,57 +87,6 @@ import { AdScript } from "@/components/AdScript";
 /** Legacy `format` values kept only so un-migrated pages still typecheck. */
 export type LegacyAdFormat = "leaderboard" | "in-feed" | "rectangle" | "banner";
 
-/**
- * ─────────────────────────────────────────────────────────────────────────────
- * buildAtOptionsDoc — the `/22/` isolation document.
- * ─────────────────────────────────────────────────────────────────────────────
- * Adsterra's classic-banner snippet is two scripts:
- *
- *     <script>atOptions = { key: '<zoneKey>', format: 'iframe',
- *                          height: 600, width: 160, params: {} };</script>
- *     <script async data-cfasync="false" src="https://<host>/22/<zoneKey>"></script>
- *
- * The second one ends in `document.write('<iframe …>')`. Run in the page that
- * React owns, that replaces the entire document (and React's DOM with it).
- * So we hand both snippets to a nested iframe instead: the child document
- * parses the inline `atOptions` assignment first, then fetches and runs the
- * invocation script, and whatever it writes lands inside the child.
- *
- * Everything that could break out of the attribute context is stripped from the
- * URL — it has already passed `normalizeScriptUrl`, this is belt and braces.
- */
-export function buildAtOptionsDoc(args: {
-  scriptSrc: string;
-  zoneKey: string;
-  width: number;
-  height: number;
-}): string {
-  const { scriptSrc, zoneKey, width, height } = args;
-  const safeSrc = scriptSrc.replace(/[<>"'`]/g, "");
-  const safeKey = zoneKey.replace(/[^A-Za-z0-9_-]/g, "");
-  const options = JSON.stringify({
-    key: safeKey,
-    format: "iframe",
-    height,
-    width,
-    params: {},
-  });
-  return (
-    "<!doctype html><html><head><meta charset=\"utf-8\">" +
-    "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">" +
-    "<style>html,body{margin:0;padding:0;background:transparent;overflow:hidden}" +
-    "iframe{border:0;display:block}</style>" +
-    "</head><body>" +
-    // `window.atOptions = {...}` and NOT `var atOptions = {...}`: a var
-    // declaration creates a NON-configurable global, and Adsterra's invocation
-    // script does `delete window.atOptions` when it finishes — which throws on a
-    // non-configurable property and takes the rest of their script down with it
-    // ("Cannot delete property 'atOptions' of #<Window>").
-    `<script>window.atOptions=${options};</script>` +
-    `<script async data-cfasync="false" src="${safeSrc}"></script>` +
-    "</body></html>"
-  );
-}
 
 export interface AdSlotProps {
   /**
@@ -197,55 +148,27 @@ export function AdSlot({
     const tooWideForPhone = width > 320;
     const hideBelowMd = !mobile && tooWideForPhone;
 
-    const creative = (variant: {
-      scriptSrc: string;
-      zoneKey: string;
-      size: { width: number; height: number };
-    }) => (
-      <iframe
-        title="Advertisement"
-        srcDoc={buildAtOptionsDoc({
-          scriptSrc: variant.scriptSrc,
-          zoneKey: variant.zoneKey,
+    const creative = (
+      variant: {
+        scriptSrc: string;
+        zoneKey: string;
+        size: { width: number; height: number };
+      },
+      frame: { id?: string; className: string }
+    ) => (
+      <AdCreativeFrame
+        id={frame.id}
+        className={frame.className}
+        iframe={{
+          srcDoc: buildAtOptionsDoc({
+            scriptSrc: variant.scriptSrc,
+            zoneKey: variant.zoneKey,
+            width: variant.size.width,
+            height: variant.size.height,
+          }),
           width: variant.size.width,
           height: variant.size.height,
-        })}
-        width={variant.size.width}
-        height={variant.size.height}
-        style={{
-          width: variant.size.width,
-          height: variant.size.height,
-          border: "0",
-          display: "block",
-          margin: 0,
         }}
-        scrolling="no"
-        frameBorder={0}
-        marginWidth={0}
-        marginHeight={0}
-        loading="lazy"
-        referrerPolicy="no-referrer"
-        /*
-          WHAT THIS SANDBOX GUARANTEES
-          - `allow-top-navigation` is NOT granted, so a creative can open its own
-            tab on a click but can never redirect this page. That is the promise
-            the non-intrusive policy makes, and it holds.
-          - Autoplay is not granted, so nothing ever makes noise on load.
-          - `allow-forms` and popups cover ad destinations that submit or open
-            in new tabs.
-
-          WHAT IT DOES NOT
-          `allow-same-origin` IS granted, and it has to be: Adsterra's invocation
-          script reads `document.cookie` and throws a SecurityError without it,
-          which kills the creative entirely (measured in a browser, not
-          assumed). So the sandboxed document is same-origin with the page: the
-          ad network's code could in principle read this page's localStorage or
-          rewrite its DOM. That is the trade Adsterra's model forces, and it is
-          stated here rather than glossed over. What we can still do is refuse
-          to hand over the page address: `referrerPolicy="no-referrer"` above
-          means the creative never learns which page it is sitting on.
-        */
-        sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms"
       />
     );
 
@@ -271,17 +194,20 @@ export function AdSlot({
         </span>
         {mobile ? (
           <>
-            <div id={ad.containerId} className="ad-slot__frame hidden md:flex">
-              {creative({ scriptSrc: ad.scriptSrc, zoneKey: ad.zoneKey, size: ad.size })}
-            </div>
-            <div className="ad-slot__frame md:hidden">
-              {creative({ scriptSrc: mobile.scriptSrc, zoneKey: mobile.zoneKey, size: mobile.size })}
-            </div>
+            {creative(
+              { scriptSrc: ad.scriptSrc, zoneKey: ad.zoneKey, size: ad.size },
+              { id: ad.containerId, className: "ad-slot__frame hidden md:flex" }
+            )}
+            {creative(
+              { scriptSrc: mobile.scriptSrc, zoneKey: mobile.zoneKey, size: mobile.size },
+              { className: "ad-slot__frame md:hidden" }
+            )}
           </>
         ) : (
-          <div id={ad.containerId} className="ad-slot__frame">
-            {creative({ scriptSrc: ad.scriptSrc, zoneKey: ad.zoneKey, size: ad.size })}
-          </div>
+          creative(
+            { scriptSrc: ad.scriptSrc, zoneKey: ad.zoneKey, size: ad.size },
+            { id: ad.containerId, className: "ad-slot__frame" }
+          )
         )}
       </aside>
     );
@@ -299,7 +225,9 @@ export function AdSlot({
       <span className="ad-label" aria-hidden="true">
         Advertisement
       </span>
-      <div id={ad.containerId} className="ad-slot__frame" />
+      {/* The frame watches its own container: when the ad network writes the
+          creative into it, the frame fades it in. */}
+      <AdCreativeFrame id={ad.containerId} className="ad-slot__frame" />
       {/* Viewport-gated loader: the third-party script is only injected once
           the slot nears the viewport (see AdScript). The reserved box above
           already exists, so nothing shifts when the creative arrives. */}
