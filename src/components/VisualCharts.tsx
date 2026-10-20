@@ -1806,26 +1806,16 @@ export function TokenPriceDeflationChart() {
       multiple: "670× Cheaper",
       badge: "-99.85%",
       color: "bg-safe-500",
-      notes: "V4.1 Flash base live Sep 10, 2026: $0.0448/$0.08 on OpenRouter's aggregated open-weights serving (DeepSeek first-party API: $0.15/$0.60 off-peak). 30 / 0.0448 ≈ 670× input-basis. The Oct 17, 2026 V4.1 Flash 1017 checkpoint costs more: $0.30/$1.20. Sources: OpenRouter live + api-docs.deepseek.com."
+      notes: "V4.1 Flash base live Sep 10, 2026: $0.0448/$0.08 on OpenRouter's aggregated open-weights serving (DeepSeek first-party API: $0.15/$0.60 off-peak). 30 / 0.0448 ≈ 670× input-basis, which is the multiple the model publishes. INTRADAY DISCLOSURE (Oct 19-20 2026): the spot on this same base row was observed swinging to $0.0344 and a later scan saw $0.028 - both outside the ±25% tolerance the pipeline applies to the verified print - so the published multiple stays pinned to $0.0448 and is therefore the CONSERVATIVE end of what the market was charging. The Oct 17, 2026 V4.1 Flash 1017 checkpoint costs more: $0.30/$1.20. Sources: OpenRouter live + api-docs.deepseek.com."
     },
     {
-      // 2026-10-20: the pipeline's live OpenRouter scan matched the base row at
-      // $0.028/1M in and $0.08/1M out. That is outside the ±25% tolerance the
-      // scanner applies to the verified $0.0448 pair, so the model publishes the
-      // scanned price as scanned and says so. This row is that price, and it is
-      // the one the published multiple comes from.
-      date: "Oct 2026",
-      model: "DeepSeek V4.1 Flash (today's scan)",
-      provider: "DeepSeek",
-      cost: 0.028,
-      display: "$0.028",
-      outDisplay: "$0.08",
-      multiple: `${LIVE_DEFLATION_MULTIPLE.toLocaleString("en-US")}× Cheaper`,
-      badge: "-99.91%",
-      color: "bg-safe-500",
-      notes: "The 20 Oct 2026 OpenRouter scan matched the base row at $0.028 in / $0.08 out. That is 37.5% below the verified $0.0448 pair - outside the scanner's ±25% tolerance - so the published multiple uses the scanned price as scanned, with the drift disclosed rather than smoothed. 30 / 0.028 ≈ 1,071× input-basis. Source: the daily pipeline's OpenRouter scan (src/data/live-inputs.json, adoption.apiPriceDeclineMultiple)."
-    },
-    {
+      // 2026-10-20: the intraday spot on the same base row was observed swinging
+      // to $0.0344/1M, and a later scan saw $0.028 - both outside the ±25%
+      // tolerance the pipeline applies to the verified $0.0448 print. The
+      // published multiple therefore stays PINNED to the verified print, which
+      // makes it the conservative end of the observed range. This row was
+      // previously drawn at the $0.028 scan with a 1,071x multiple - a figure
+      // the model does not publish. The disclosure lives in the row's note.
       date: "Oct 2026",
       model: "Anthropic Claude Haiku 5.5",
       provider: "Anthropic",
