@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Moon, Sun, Menu, X } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { CommandPalette } from "./CommandPalette";
+import { MotionToggle } from "./MotionProvider";
 
 /**
  * Navbar — the only five destinations most readers ever need.
@@ -141,6 +142,10 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
 
             {/* Global search — one keyboard entry point to every graph on the site */}
             <CommandPalette />
+
+            {/* Motion: follow the system, force it on, force it off. The OS
+                preference is the default; this is the reader's override. */}
+            <MotionToggle />
 
             <button
               type="button"

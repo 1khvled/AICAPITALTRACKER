@@ -1178,6 +1178,9 @@ html.js-reveal .fade-in.fade-in-done {
   .marquee-dup {
     display: none !important;
   }
+  html .marquee-dup {
+    display: none !important;
+  }
   .ticker-row {
     overflow-x: auto;
     scrollbar-width: none;
@@ -1201,6 +1204,35 @@ html.js-reveal .fade-in.fade-in-done {
     transition: none !important;
     transform: none !important;
   }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   9. MOTION OVERRIDE
+   The prefers-reduced-motion block above is the DEFAULT, not a verdict. A
+   reader whose OS has "reduce motion" on system-wide may still want the
+   market tape to move — and a reader whose OS setting is stuck on should not
+   be stuck with a dead top bar. `<html data-motion="on">` re-enables the
+   tape only; the reveal and fade machinery stays as the system asked for it,
+   because that is the part that can actually make someone unwell.
+   ───────────────────────────────────────────────────────────────────────── */
+html[data-motion="on"] .marquee {
+  animation: marqueeSlide 110s linear infinite !important;
+}
+html[data-motion="on"] .animate-marquee {
+  animation: marquee 110s linear infinite !important;
+}
+html[data-motion="on"] .marquee-dup {
+  display: flex !important;
+}
+html[data-motion="on"] .ticker-row {
+  overflow: hidden;
+}
+html[data-motion="off"] .marquee,
+html[data-motion="off"] .animate-marquee {
+  animation: none !important;
+}
+html[data-motion="off"] .marquee-dup {
+  display: none !important;
 }
 
 @media print {

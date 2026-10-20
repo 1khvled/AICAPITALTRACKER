@@ -29,6 +29,7 @@ const DIRECTORY: { title: string; links: { label: string; href: string; note?: s
     links: [
       { label: "Verdict", href: "/", note: "12-month burst probability" },
       { label: "Method", href: "/methodology", note: "Every formula and weight" },
+      { label: "Guides", href: "/guides", note: "Plain-language explainers" },
       { label: "2000 vs 2026", href: "/dotcom-vs-ai", note: "Dot-com bubble comparison" },
     ],
   },
@@ -41,6 +42,12 @@ const DIRECTORY: { title: string; links: { label: string; href: string; note?: s
       { label: "Charts", href: "/visualize", note: "Interactive figures" },
       { label: "Simulator", href: "/sandbox", note: "Change an input, see the result" },
       { label: "News", href: "/news", note: "Research wire" },
+    ],
+  },
+  {
+    title: "Yours",
+    links: [
+      { label: "Your call", href: "/your-call", note: "Score yourself against the model" },
     ],
   },
 ];

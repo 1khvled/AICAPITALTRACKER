@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { MotionProvider } from "@/components/MotionProvider";
 import { MarketTickerTape } from "@/components/MarketTickerTape";
 import { MobileActionBar } from "@/components/MobileActionBar";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
@@ -128,6 +129,15 @@ const themeBootScript = `(function(){try{var t=localStorage.getItem("theme");doc
  */
 const revealBootScript = `(function(){try{if(typeof window.IntersectionObserver!=="function")return;var d=document.documentElement;d.classList.add("js-reveal");window.__aictRevealFailsafe=window.setTimeout(function(){d.classList.remove("js-reveal");},4000);}catch(e){}})();`;
 
+/**
+ * Motion boot (2026-10-20).
+ *
+ * The OS preference is the default (the stylesheet's prefers-reduced-motion
+ * block handles it). This only applies an EXPLICIT reader choice, before first
+ * paint, so a reader who forced motion on never sees a frozen tape first.
+ */
+const motionBootScript = `(function(){try{var m=localStorage.getItem("aict-motion");if(m==="on"||m==="off"){document.documentElement.setAttribute("data-motion",m);}}catch(e){}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -180,6 +190,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         <script dangerouslySetInnerHTML={{ __html: revealBootScript }} />
+        <script dangerouslySetInnerHTML={{ __html: motionBootScript }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -188,8 +199,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-dvh bg-canvas font-sans text-ink antialiased">
-        <ThemeProvider>
-          <div className="flex min-h-dvh flex-col">
+        <MotionProvider>
+          <ThemeProvider>
+            <div className="flex min-h-dvh flex-col">
             <a href="#main" className="skip-link">
               Skip to content
             </a>
@@ -212,7 +224,8 @@ export default function RootLayout({
             {/* Phones only: the thumb bar for search, verdict, ledger and markets */}
             <MobileActionBar />
           </div>
-        </ThemeProvider>
+          </ThemeProvider>
+        </MotionProvider>
       </body>
     </html>
   );

@@ -1,4 +1,6 @@
 import React from "react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 import rawDeals from "@/data/deals.json";
 import trajectoryHistory from "@/data/trajectory-history.json";
@@ -140,6 +142,33 @@ export default function HomePage() {
       <AdSlot placementId="home-mid" className="mt-8" />
 
       <ModelNote asOf={asOf} />
+
+      {/* ── 5 · Your own call ───────────────────────────────────────────────── */}
+      {/* The model publishes its number; the reader may disagree. This is the
+          invitation to say so and keep a private scoreboard against it. */}
+      <section aria-labelledby="your-call-heading" className="mt-10">
+        <div className="card card-flush shadow-card">
+          <div className="card-header flex-wrap gap-x-4 gap-y-2">
+            <div className="min-w-0">
+              <p className="label">Your call</p>
+              <h2 id="your-call-heading" className="mt-1 text-[15px] font-bold tracking-tight text-ink">
+                Put your own number on the record
+              </h2>
+            </div>
+            <Link href="/your-call" className="btn btn-primary min-h-11 shrink-0">
+              Make your call
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="px-4 py-4">
+            <p className="prose prose-p max-w-reading text-[15px]">
+              The model prints {result.burstProbability.toFixed(1)}% from the inputs it can verify.
+              If you think that is wrong, say so: your number is stored on this device, scored
+              against the model&rsquo;s own print as the window resolves, and never uploaded.
+            </p>
+          </div>
+        </div>
+      </section>
 
       <AdSlot placementId="home-footer" />
     </div>
