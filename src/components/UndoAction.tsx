@@ -225,7 +225,12 @@ export function UndoAction({
     >
       {visible ? (
         <>
-          <span className="min-w-0 flex-1 truncate text-[13px] leading-snug text-ink-muted">
+          <span
+            className={[
+              "min-w-0 truncate text-[13px] leading-snug text-ink-muted",
+              placement === "anchored" ? "flex-1" : "",
+            ].join(" ")}
+          >
             {message}
           </span>
           <button

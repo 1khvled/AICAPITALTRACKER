@@ -101,7 +101,6 @@ export function CommandPalette() {
   const panelRef = useRef<HTMLDivElement | null>(null);
   /** The portal wrapper. It is the one thing that stays visible. */
   const overlayRef = useRef<HTMLDivElement | null>(null);
-  const triggerRef = useRef<HTMLButtonElement | null>(null);
   /** Where the focus came from, so it can be put back. */
   const restoreFocusRef = useRef<HTMLElement | null>(null);
   /** Whether the palette is open, readable synchronously from an event handler. */
@@ -150,7 +149,12 @@ export function CommandPalette() {
   /* ── Opening and closing ──────────────────────────────────────────────── */
 
   const openPalette = useCallback(() => {
-    if (typeof document !== "undefined") {
+    /**
+     * Remember where the focus came from, so it can be put back. Only the
+     * FIRST open records it: a second open would record the palette's own
+     * field, which is gone by the time the palette closes.
+     */
+    if (!openRef.current && typeof document !== "undefined") {
       const active = document.activeElement;
       restoreFocusRef.current = active instanceof HTMLElement ? active : null;
     }
@@ -412,7 +416,6 @@ export function CommandPalette() {
   return (
     <>
       <button
-        ref={triggerRef}
         type="button"
         onClick={openPalette}
         aria-label="Search the tracker"
