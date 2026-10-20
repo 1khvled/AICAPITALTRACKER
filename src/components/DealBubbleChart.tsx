@@ -173,7 +173,11 @@ export const CATEGORY_CONFIG: Record<
     tileBgHover: "",
     badgeBg: "bg-surface-3",
     textColor: "text-ink-muted",
-    accentHex: "#0C0E11", // ink
+    /* Was #0C0E11, which is 2/255 from the dark canvas (10 11 13): the 19 M&A
+       tiles — including the largest deals on the page — read as holes in the
+       treemap and as empty outlines in the bubble pods. A mid neutral keeps
+       the category in the ink ramp and visible in both themes. */
+    accentHex: "#8A929C", // ink, one step lighter than ink-subtle
   },
   "Big construction": {
     name: "Hyperscale Capex",
@@ -259,6 +263,27 @@ function formatUsd(value: number): string {
   if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
   if (value >= 1e6) return `$${Math.round(value / 1e6)}M`;
   return `$${Math.round(value)}`;
+}
+
+/**
+ * Fit a treemap tile label into the width the tile actually has.
+ *
+ * The tile used to cut the string at a fixed character count, so
+ * "SoftBank $100 Billion ..." was drawn as "SoftBank $100 Bil" — mid-word, with
+ * no ellipsis, which reads as data rather than as a shortened label. This cuts
+ * between words and always marks the cut. Width is estimated in viewBox units
+ * (the SVG is 1000 units wide and the label is drawn at 13-15 units); an empty
+ * string means "no room for a label", and the caller skips the text node.
+ */
+function fitTileLabel(text: string, maxWidth: number, fontSize: number): string {
+  const charWidth = fontSize * 0.62;
+  const maxChars = Math.floor(maxWidth / charWidth);
+  if (maxChars <= 0) return "";
+  if (text.length <= maxChars) return text;
+  const cut = text.slice(0, Math.max(0, maxChars - 1));
+  const lastSpace = cut.lastIndexOf(" ");
+  const stem = lastSpace > 3 ? cut.slice(0, lastSpace) : cut;
+  return `${stem.trimEnd()}…`;
 }
 
 /**
@@ -2117,10 +2142,13 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
         {/* VIEW 1: SQUARIFIED CAPITAL TREEMAP */}
         {viewMode === "treemap" && (
           <div className="relative w-full overflow-hidden rounded-lg border border-rule bg-surface">
+            {/* The height comes from the viewBox aspect ratio alone. A fixed
+                min-height used to letterbox this chart on a phone: at 330px of
+                width the plot is ~185px tall, so a 440px floor left five
+                eighths of the box empty above and below the picture. */}
             <svg
               viewBox="0 0 1000 560"
               className="w-full h-auto block select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-              style={{ minHeight: "440px" }}
               ref={setTreemapSvgRef}
               tabIndex={0}
               {...treemapAria}
@@ -2155,8 +2183,19 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                 else if (tile.deal.title.includes("xAI")) shortTitle = "xAI Colossus";
                 else if (tile.deal.title.includes("Three Mile")) shortTitle = "Three Mile Island";
 
-                const canShowAmount = tile.w >= 50 && tile.h >= 32;
-                const canShowTitle = tile.w >= 70 && tile.h >= 45;
+                const titleFontSize = Math.min(15, Math.max(13, tile.w / 11));
+                const amountFontSize = Math.min(14, Math.max(13, tile.w / 12));
+                /* The label is measured in the same units it is drawn in, so a
+                   short tile shows a shortened, ellipsised word rather than a
+                   half-word, and a tile too small for text shows none. */
+                const titleLabel =
+                  tile.w >= 70 && tile.h >= 45
+                    ? fitTileLabel(shortTitle, tile.w - 10, titleFontSize)
+                    : "";
+                const amountFits =
+                  tile.w >= 50 &&
+                  tile.h >= 32 &&
+                  tile.deal.amount_display.length * amountFontSize * 0.62 <= tile.w - 8;
 
                 return (
                   <g
@@ -2195,32 +2234,32 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
                       rx={3}
                     />
 
-                    {canShowTitle && (
+                    {titleLabel !== "" && (
                       <text
                         x={tile.x + tile.w / 2}
-                        y={canShowAmount ? tile.y + tile.h / 2 - 5 : tile.y + tile.h / 2 + 4}
+                        y={amountFits ? tile.y + tile.h / 2 - 5 : tile.y + tile.h / 2 + 4}
                         textAnchor="middle"
                         fill="#ffffff"
-                        fontSize={Math.min(15, Math.max(13, tile.w / 11))}
+                        fontSize={titleFontSize}
                         fontWeight="800"
                         fontFamily="Inter, sans-serif"
-                        className="pointer-events-none select-none drop-shadow-sm"
+                        className="treemap-tile-label pointer-events-none select-none drop-shadow-sm"
                       >
-                        {shortTitle.slice(0, Math.floor(tile.w / 7.5))}
+                        {titleLabel}
                       </text>
                     )}
 
-                    {canShowAmount && (
+                    {amountFits && (
                       <text
                         x={tile.x + tile.w / 2}
-                        y={tile.y + tile.h / 2 + (canShowTitle ? 13 : 4)}
+                        y={tile.y + tile.h / 2 + (titleLabel !== "" ? 13 : 4)}
                         textAnchor="middle"
                         fill="#ffffff"
-                        fontSize={Math.min(14, Math.max(13, tile.w / 12))}
+                        fontSize={amountFontSize}
                         fontWeight="800"
                         fontFamily="JetBrains Mono, monospace"
                         opacity={1}
-                        className="pointer-events-none select-none drop-shadow-sm"
+                        className="treemap-tile-label pointer-events-none select-none drop-shadow-sm"
                       >
                         {tile.deal.amount_display}
                       </text>

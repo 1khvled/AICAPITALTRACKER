@@ -1251,3 +1251,15 @@ html[data-motion="off"] .ticker-row::-webkit-scrollbar {
     background: #fff;
   }
 }
+
+/* ── TREEMAP READABILITY (2026-10-20, design panel) ─────────────────────────
+   On a phone the capital treemap is drawn at roughly a third of its 1000-unit
+   canvas, so a 13-unit tile label lands at about 4px on screen: illegible, and
+   it turns the mosaic into grey noise. Area and colour still carry the pattern
+   at that size, every tile is still a tap target that opens the deal, and the
+   data table under the chart carries every label in full. Labels return at sm. */
+@media (max-width: 639px) {
+  .treemap-tile-label {
+    display: none;
+  }
+}

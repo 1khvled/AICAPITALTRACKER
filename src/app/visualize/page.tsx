@@ -257,7 +257,7 @@ return (
                 <Target className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[13px] font-semibold tracking-wider uppercase text-safe-700">
                     HEDGE FUND &amp; VENTURE RISK ANALYSIS
                   </span>
@@ -310,13 +310,13 @@ return (
           </Reveal>
 
           {/* Institutional Interpretation Callout for Sigmoid Curve */}
-          <div className="p-4 sm:p-5 rounded-lg bg-risk-50/50 bg-risk-50/15 border border-risk-200/80 border-risk-500/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="notice notice-risk flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-start space-x-3.5">
-              <div className="p-2.5 rounded-xl bg-risk-50 text-risk-700 shrink-0">
+              <div className="p-2.5 rounded-xl bg-risk-500/10 text-risk-700 shrink-0">
                 <Activity className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[13px] font-semibold tracking-wider uppercase text-risk-700">
                     QUANTITATIVE RISK MANAGEMENT
                   </span>
@@ -325,7 +325,7 @@ return (
                 <h4 className="font-bold text-ink text-sm sm:text-base">
                   Why Risk Compounds Multiplicatively Past 55 Points
                 </h4>
-                <p className="text-[14px] sm:text-sm text-ink-muted leading-relaxed max-w-4xl">
+                <p className="text-[15px] text-ink-muted leading-relaxed max-w-4xl">
                   Linear models fail in financial super-cycles because debt refinancing fragility accelerates non-linearly. Below 50 points, liquidity absorbs shocks smoothly.
                   Beyond the 55-point Kelly anchor, probability spikes hyperbolically (moving from 55 to 61.2 points vaults probability from 50.0% to 68.4%).
                   Quantitative desks use first derivative dP/dS to dynamically ramp tail-risk hedge ratios before markets re-price credit illiquidity.
@@ -369,13 +369,13 @@ return (
           </Reveal>
 
           {/* Institutional Interpretation Callout for Multiples */}
-          <div className="p-4 sm:p-5 rounded-lg bg-caution-50/50 bg-caution-50/15 border border-caution-200/80 border-caution-500/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="notice notice-caution flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-start space-x-3.5">
-              <div className="p-2.5 rounded-xl bg-caution-50 text-caution-700 shrink-0">
+              <div className="p-2.5 rounded-xl bg-caution-500/10 text-caution-700 shrink-0">
                 <Scale className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[13px] font-semibold tracking-wider uppercase text-caution-700">
                     LONG/SHORT EQUITY &amp; GROWTH INVESTORS
                   </span>
@@ -384,7 +384,7 @@ return (
                 <h4 className="font-bold text-ink text-sm sm:text-base">
                   The Impossibility of Sustaining 30×+ P/S at a 5.1% Risk-Free Rate
                 </h4>
-                <p className="text-[14px] sm:text-sm text-ink-muted leading-relaxed max-w-4xl">
+                <p className="text-[15px] text-ink-muted leading-relaxed max-w-4xl">
                   Frontier labs trade at a {medianPs.toFixed(1)}× median P/S multiple (with labs like Mistral at 53.3× and Perplexity at 40×). Even with OpenAI scaling to $50.0B ARR and Anthropic to $65.0B ARR, justifying these valuations
                   without massive multiple contraction toward the 10× historical SaaS equilibrium requires continuous hypergrowth.
                   In a 5.10% US10Y regime, tech cash flows face severe duration discount penalties whenever growth deceleration hits.
@@ -434,7 +434,7 @@ return (
                 <ShieldAlert className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[13px] font-semibold tracking-wider uppercase text-ink-muted">
                     CREDIT RATING AGENCIES &amp; DISTRESSED DEBT
                   </span>
@@ -490,7 +490,7 @@ return (
                 <Flame className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[13px] font-semibold tracking-wider uppercase text-risk-700">
                     MACRO CREDIT STRATEGISTS
                   </span>
