@@ -48,10 +48,10 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
   /**
-   * The masthead is glass: the page shows through it, and it tightens once the
-   * reader has started scrolling (a hairline arrives, the blur deepens). It is
-   * the one surface on the site that floats over the content, so it is the one
-   * surface that gets the treatment.
+   * The masthead is the terminal's own black and it tightens once the reader
+   * has started scrolling (a hairline arrives). It is the one surface on the
+   * site that floats over the content, and it is deliberately opaque: see the
+   * note on the scroll listener below.
    */
   const [scrolled, setScrolled] = React.useState(false);
   /**
@@ -68,6 +68,10 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
   // flag, so it runs straight from the scroll event: a browser withholds
   // animation frames from a tab that is not being painted, and a masthead that
   // only tightens while the tab is visible is a masthead that lies.
+  //
+  // The masthead itself is OPAQUE - the terminal's own black, nothing behind
+  // it. A translucent black over a light page does not read as black, it reads
+  // as gray, and a gray masthead is a grayer site.
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -104,8 +108,8 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
   return (
     <header
       className={[
-        "glass-dark sticky top-0 z-50 w-full border-b text-header-ink",
-        "transition-[background-color,border-color] duration-200 ease-out",
+        "sticky top-0 z-50 w-full border-b bg-[rgb(12_14_17)] text-header-ink",
+        "transition-[border-color] duration-200 ease-out",
         scrolled ? "border-white/15" : "border-white/10",
       ].join(" ")}
     >

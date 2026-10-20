@@ -75,7 +75,7 @@ export function MobileActionBar() {
     <nav
       aria-label="Quick actions"
       className={[
-        "glass fixed inset-x-0 bottom-0 z-40 border-t border-rule sm:hidden",
+        "fixed inset-x-0 bottom-0 z-40 border-t border-rule bg-surface sm:hidden",
         "transition-transform duration-300 ease-out",
         hidden ? "translate-y-full" : "translate-y-0",
       ].join(" ")}

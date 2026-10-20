@@ -870,29 +870,33 @@ html.dark .chip-caution {
    behind a high-opacity tint (text contrast is unchanged), and a browser
    without backdrop-filter gets a solid panel instead of a hole.
    ───────────────────────────────────────────────────────────────────────── */
-.glass {
-  background-color: color-mix(in srgb, rgb(var(--c-surface)) 74%, transparent);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  backdrop-filter: blur(16px) saturate(180%);
+/* ─────────────────────────────────────────────────────────────────────────
+   6b. THE MATERIAL LAYER (2026-10-20)
+   Exactly ONE surface on this site is translucent: the command palette, which
+   is a modal floating over a dimmed page. That is Apple's own pattern - "dim
+   to focus" - and the only pattern where translucency reads as a material
+   rather than as a gray film.
+
+   Everything else that floats over the content - the masthead, the phone
+   action bar - is OPAQUE. A translucent black over a light page does not read
+   as black, it reads as gray, and a gray masthead is a grayer site.
+
+   The palette carries more of the surface colour than a plain glass would
+   (.glass-strong, 93%), because its text has to pass contrast on its own
+   against whatever the reader was looking at.
+   ───────────────────────────────────────────────────────────────────────── */
+.glass-strong {
+  background-color: color-mix(in srgb, rgb(var(--c-surface)) 93%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  backdrop-filter: blur(20px) saturate(170%);
   border-color: rgb(var(--c-rule));
 }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .glass {
+  .glass-strong {
     background-color: rgb(var(--c-surface));
   }
 }
-/* The masthead is always the terminal's own black, so its glass is that black
-   at 74% with the page showing through. */
-.glass-dark {
-  background-color: rgba(12, 14, 17, 0.74);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-  backdrop-filter: blur(18px) saturate(160%);
-}
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .glass-dark {
-    background-color: rgb(12, 14, 17);
-  }
-}
+/* The masthead is opaque - see the note above. */
 
 /* The command palette arrives the way a panel should: the scrim fades, the
    panel rises a few pixels and settles. Transform and opacity only. */
@@ -919,21 +923,6 @@ html.dark .chip-caution {
 }
 .palette-panel {
   animation: palette-panel-in 260ms var(--ease-out-quint) both;
-}
-
-/* The command palette floats over whatever the reader was looking at, so it
-   carries more of the surface colour than the other glass panels: the blur is
-   the finish, the text still has to pass contrast on its own. */
-.glass-strong {
-  background-color: color-mix(in srgb, rgb(var(--c-surface)) 93%, transparent);
-  -webkit-backdrop-filter: blur(20px) saturate(170%);
-  backdrop-filter: blur(20px) saturate(170%);
-  border-color: rgb(var(--c-rule));
-}
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .glass-strong {
-    background-color: rgb(var(--c-surface));
-  }
 }
 
 /* The command palette dims the page it floats over: the panel is glass, and
