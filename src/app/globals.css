@@ -1170,24 +1170,11 @@ html.js-reveal .fade-in.fade-in-done {
     stroke-dashoffset: 0 !important;
     animation: none !important;
   }
-  /* Marquee: the strip sits still and scrolls by hand. */
-  .marquee,
-  .animate-marquee {
-    animation: none !important;
-  }
-  .marquee-dup {
-    display: none !important;
-  }
-  html .marquee-dup {
-    display: none !important;
-  }
-  .ticker-row {
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .ticker-row::-webkit-scrollbar {
-    display: none;
-  }
+  /* The market desk tape is NOT killed here. It is information, not
+     decoration: it carries the live readings, it pauses the moment the pointer
+     is over it, and a reader who wants it still has an explicit control
+     (the navbar toggle, or `data-motion="off"`). Everything decorative below
+     still obeys the system's request. */
   /* Price wash: no flash at all. */
   .flash-safe,
   .flash-risk {
@@ -1208,24 +1195,28 @@ html.js-reveal .fade-in.fade-in-done {
 
 /* ─────────────────────────────────────────────────────────────────────────
    9. MOTION OVERRIDE
-   The prefers-reduced-motion block above is the DEFAULT, not a verdict. A
-   reader whose OS has "reduce motion" on system-wide may still want the
-   market tape to move — and a reader whose OS setting is stuck on should not
-   be stuck with a dead top bar. `<html data-motion="on">` re-enables the
-   tape only; the reveal and fade machinery stays as the system asked for it,
-   because that is the part that can actually make someone unwell.
+   The prefers-reduced-motion block above silences the DECORATIVE motion
+   (reveals, fades, drawn lines, pops) and leaves the market desk tape
+   running, because the tape carries information rather than decoration - it
+   pauses under the pointer and the reader can stop it outright.
+
+   The reduced-motion block also shortens EVERY animation duration through the
+   universal `*` rule, so the tape needs its duration stated again here, not
+   just the `animation: none` removed.
+
+   `<html data-motion="off">` stops everything, including the tape.
    ───────────────────────────────────────────────────────────────────────── */
+html:not([data-motion="off"]) .marquee {
+  animation: marqueeSlide 110s linear infinite !important;
+}
+html:not([data-motion="off"]) .animate-marquee {
+  animation: marquee 110s linear infinite !important;
+}
 html[data-motion="on"] .marquee {
   animation: marqueeSlide 110s linear infinite !important;
 }
 html[data-motion="on"] .animate-marquee {
   animation: marquee 110s linear infinite !important;
-}
-html[data-motion="on"] .marquee-dup {
-  display: flex !important;
-}
-html[data-motion="on"] .ticker-row {
-  overflow: hidden;
 }
 html[data-motion="off"] .marquee,
 html[data-motion="off"] .animate-marquee {
@@ -1233,6 +1224,13 @@ html[data-motion="off"] .animate-marquee {
 }
 html[data-motion="off"] .marquee-dup {
   display: none !important;
+}
+html[data-motion="off"] .ticker-row {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+html[data-motion="off"] .ticker-row::-webkit-scrollbar {
+  display: none;
 }
 
 @media print {

@@ -9,12 +9,11 @@ import { CommandPalette } from "./CommandPalette";
 import { MotionToggle } from "./MotionProvider";
 
 /**
- * Navbar — the only five destinations most readers ever need.
- * Everything else (Charts, Simulator, 2000 vs 2026, API, News) is reachable
- * from the footer directory, so the top chrome stays calm and scannable.
+ * Navbar — the destinations a reader opens the site for, in one row.
  *
- * Server component parents pass the live model reading in as props so the
- * model engine never ships to the browser.
+ * The row scrolls horizontally on a narrow screen (the nav has its own
+ * overflow-x-auto), so a phone reaches every destination by swiping rather
+ * than by hunting through a menu.
  */
 
 export interface NavbarProps {
@@ -29,6 +28,10 @@ const PRIMARY_LINKS: { label: string; href: string; hint: string }[] = [
   { label: "Ledger", href: "/ledger", hint: "Every AI deal we can source from filings" },
   { label: "Companies", href: "/companies", hint: "Debt, revenue and multiples by company" },
   { label: "Markets", href: "/markets", hint: "Live credit spreads and macro inputs" },
+  { label: "Predictions", href: "/prediction-markets", hint: "What the prediction market is pricing" },
+  { label: "Your call", href: "/your-call", hint: "Put your own number on the record" },
+  { label: "Guides", href: "/guides", hint: "Plain-language explainers" },
+  { label: "Glossary", href: "/glossary", hint: "The vocabulary, defined" },
   { label: "Method", href: "/methodology", hint: "How the probability is calculated" },
 ];
 

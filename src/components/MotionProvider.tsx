@@ -4,25 +4,20 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { Activity, Check } from "lucide-react";
 
 /**
- * Motion preference.
+ * Motion preference — the market desk tape.
  *
- * The stylesheet kills every animation when the reader's OS asks for reduced
- * motion — that is correct and it stays the DEFAULT. But an OS-level switch is
- * a blunt instrument: a reader who has "reduce motion" on system-wide may
- * still want the market tape to move, and a reader whose OS setting is stuck
- * on gets a site that looks broken ("why is the top bar dead?").
+ * The stylesheet silences the DECORATIVE motion when the reader's OS asks for
+ * reduced motion: that is correct and it stays. The tape is different — it
+ * carries the live readings, so it is information, not decoration. It runs by
+ * default, it pauses the moment the pointer is over it, and a reader who wants
+ * it still has this control.
  *
- * So the OS preference is only the default here. The reader can override it:
- * follow the system, force motion on, or force it off. The choice is stored on
- * the device and applied to <html data-motion="..."> BEFORE first paint by the
- * boot script in the layout, so there is no flash of the wrong state.
- *
- * An explicit "on" re-enables the tape only. The reveal/fade machinery stays
- * as the system asked for it — that is the part that can actually make someone
- * unwell, and a reader who wants it can still scroll.
+ * So the preference here is simply: is the tape moving? The choice is stored
+ * on the device and applied to <html data-motion="off"> before first paint by
+ * the boot script in the layout, so there is no flash of the wrong state.
  */
 
-export type MotionPreference = "auto" | "on" | "off";
+export type MotionPreference = "on" | "off";
 
 const STORAGE_KEY = "aict-motion";
 const MOTION_EVENT = "aict:motion-change";
@@ -30,9 +25,9 @@ const MOTION_EVENT = "aict:motion-change";
 interface MotionContextValue {
   preference: MotionPreference;
   setPreference: (value: MotionPreference) => void;
-  /** True when motion is actually running right now. */
+  /** True when the tape is actually running right now. */
   active: boolean;
-  /** True when the OS asked for reduced motion and the reader has not overridden it. */
+  /** True when the OS asked for reduced motion (the decorative motion obeys it). */
   systemReduced: boolean;
 }
 
@@ -41,29 +36,28 @@ const MotionContext = createContext<MotionContextValue | null>(null);
 function readStoredPreference(): MotionPreference {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw === "on" || raw === "off" || raw === "auto") return raw;
+    if (raw === "off") return "off";
   } catch {
-    /* private mode: fall back to the system preference */
+    /* private mode: the tape runs */
   }
-  return "auto";
+  return "on";
 }
 
 /**
- * Apply the preference to the document. `auto` removes the attribute so the
- * stylesheet's own prefers-reduced-motion block takes over.
+ * Apply the preference to the document. "on" removes the attribute so the
+ * stylesheet's default applies (the tape runs); "off" stops it.
  */
-export function applyMotionPreference(preference: MotionPreference, systemReduced: boolean) {
+export function applyMotionPreference(preference: MotionPreference) {
   const root = document.documentElement;
-  if (preference === "auto") {
-    if (systemReduced) root.setAttribute("data-motion", "off");
-    else root.removeAttribute("data-motion");
+  if (preference === "off") {
+    root.setAttribute("data-motion", "off");
     return;
   }
-  root.setAttribute("data-motion", preference);
+  root.removeAttribute("data-motion");
 }
 
 export function MotionProvider({ children }: { children: React.ReactNode }) {
-  const [preference, setPreferenceState] = useState<MotionPreference>("auto");
+  const [preference, setPreferenceState] = useState<MotionPreference>("on");
   const [systemReduced, setSystemReduced] = useState(false);
 
   useEffect(() => {
@@ -71,12 +65,9 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
     const stored = readStoredPreference();
     setSystemReduced(query.matches);
     setPreferenceState(stored);
-    applyMotionPreference(stored, query.matches);
+    applyMotionPreference(stored);
 
-    const onChange = (event: MediaQueryListEvent) => {
-      setSystemReduced(event.matches);
-      applyMotionPreference(readStoredPreference(), event.matches);
-    };
+    const onChange = (event: MediaQueryListEvent) => setSystemReduced(event.matches);
     if (typeof query.addEventListener === "function") {
       query.addEventListener("change", onChange);
       return () => query.removeEventListener("change", onChange);
@@ -91,8 +82,7 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
     } catch {
       /* private mode: the choice simply does not persist */
     }
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    applyMotionPreference(value, reduced);
+    applyMotionPreference(value);
     window.dispatchEvent(new CustomEvent(MOTION_EVENT));
   }, []);
 
@@ -101,7 +91,7 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
       preference,
       setPreference,
       systemReduced,
-      active: preference === "on" || (preference === "auto" && !systemReduced),
+      active: preference === "on",
     }),
     [preference, setPreference, systemReduced],
   );
@@ -113,7 +103,7 @@ export function useMotionPreference(): MotionContextValue {
   const context = useContext(MotionContext);
   if (!context) {
     return {
-      preference: "auto",
+      preference: "on",
       setPreference: () => undefined,
       systemReduced: false,
       active: true,
@@ -123,36 +113,23 @@ export function useMotionPreference(): MotionContextValue {
 }
 
 /**
- * The control. A single button that cycles follow-system → always on → always
- * off, with the current state in its accessible name and a visible label in the
- * footer copy (the icon alone would not explain the three states).
+ * The control: one button that starts and stops the tape. The icon alone
+ * would not explain the two states, so the accessible name says it in words.
  */
 export function MotionToggle({ className = "" }: { className?: string }) {
   const { preference, setPreference, active } = useMotionPreference();
 
-  /**
-   * The cycle is deliberately independent of what the OS asks for:
-   * follow the system → always on → always off → follow the system.
-   * A reader whose system has motion off must always be able to reach "on"
-   * in one press, and the label must never depend on a value that only
-   * arrives after hydration.
-   */
-  const next: MotionPreference =
-    preference === "auto" ? "on" : preference === "on" ? "off" : "auto";
-
-  const label =
-    preference === "auto"
-      ? "Motion: follow the system. Activate to force motion on."
-      : preference === "on"
-        ? "Motion: always on. Activate to turn motion off."
-        : "Motion: always off. Activate to follow the system again.";
+  const label = active
+    ? "Market tape: moving. Activate to stop it."
+    : "Market tape: still. Activate to move it.";
 
   return (
     <button
       type="button"
-      onClick={() => setPreference(next)}
+      onClick={() => setPreference(active ? "off" : "on")}
       title={label}
       aria-label={label}
+      aria-pressed={active}
       className={[
         "flex h-11 w-11 items-center justify-center rounded-md border border-white/15 text-header-ink transition-colors hover:bg-white/5 hover:text-white",
         className,
