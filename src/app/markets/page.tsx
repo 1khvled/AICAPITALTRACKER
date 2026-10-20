@@ -137,6 +137,17 @@ export default function MarketsPage() {
             <div className="mt-3">
               <PolymarketCharts />
             </div>
+            <p className="mt-3 text-[14px] text-ink-subtle">
+              <Link
+                href="/prediction-markets"
+                className="inline-flex min-h-11 items-center text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
+              >
+                Open the full prediction-market board
+                <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+              </Link>
+              &mdash; every contract we track, what it resolves on, and how the crowd&rsquo;s
+              price compares with the model&rsquo;s own print.
+            </p>
           </section>
         </div>
 

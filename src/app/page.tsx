@@ -14,6 +14,8 @@ import { FlipSection } from "@/components/home/FlipSection";
 import { ReceiptsBand } from "@/components/home/ReceiptsBand";
 import { ModelNote } from "@/components/home/ModelNote";
 import { formatAsOf, formatTrillions } from "@/components/home/copy";
+import liveInputs from "@/data/live-inputs.json";
+import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 
 interface TrajectoryPointLite {
   date?: string;
@@ -33,6 +35,12 @@ export default function HomePage() {
   const totalDeals = rawDeals.length;
   const totalDisclosedUsd = rawDeals.reduce((sum, deal) => sum + (deal.amount_usd || 0), 0);
   const trackedLabel = formatTrillions(totalDisclosedUsd);
+
+  // ── The crowd's live price (the daily Polymarket snapshot) ─────────────────
+  const crowd = liveInputs.crowd;
+  const crowd2027 = crowd.bubble2027Probability ?? crowd.yesProbability ?? 0;
+  const crowdVolumeUsd = crowd.volumeUsd ?? 0;
+  const crowdGap = result.burstProbability - crowd2027 * 100;
 
   // ── Published 90-day trajectory: the "as of" date and the 90-day move ──────
   const history = Array.isArray(trajectoryHistory)
@@ -143,7 +151,89 @@ export default function HomePage() {
 
       <ModelNote asOf={asOf} />
 
-      {/* ── 5 · Your own call ───────────────────────────────────────────────── */}
+      {/* ── 5 · What the market is pricing ──────────────────────────────────── */}
+      {/* The one live price for this exact question, next to the model's own
+          print. The gap between them is published, not hidden. */}
+      <section aria-labelledby="market-price-heading" className="mt-10">
+        <div className="card card-flush shadow-card">
+          <div className="card-header flex-wrap gap-x-4 gap-y-2">
+            <div className="min-w-0">
+              <p className="label">The market&rsquo;s price</p>
+              <h2
+                id="market-price-heading"
+                className="mt-1 text-[15px] font-bold tracking-tight text-ink"
+              >
+                What money is betting on this question
+              </h2>
+            </div>
+            <Link href="/prediction-markets" className="btn min-h-11 shrink-0">
+              Full board
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="px-4 py-4">
+            <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="panel">
+                <dt className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-faint">
+                  This model
+                </dt>
+                <dd className="num mt-1 text-[17px] font-semibold text-ink">
+                  {result.burstProbability.toFixed(1)}%
+                </dd>
+                <dd className="mt-1 text-[14px] leading-snug text-ink-subtle">
+                  12-month probability, from filed receipts and daily credit prints
+                </dd>
+              </div>
+              <div className="panel">
+                <dt className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-faint">
+                  Prediction market
+                </dt>
+                <dd className="num mt-1 text-[17px] font-semibold text-ink">
+                  {(crowd2027 * 100).toFixed(1)}%
+                </dd>
+                <dd className="mt-1 text-[14px] leading-snug text-ink-subtle">
+                  Contract closing Jun 2027 &middot; ${(crowdVolumeUsd / 1e6).toFixed(2)}M traded
+                </dd>
+              </div>
+              <div className="panel">
+                <dt className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-faint">
+                  The gap
+                </dt>
+                <dd className="num mt-1 text-[17px] font-semibold text-ink">
+                  {crowdGap >= 0 ? "+" : ""}
+                  {crowdGap.toFixed(1)} pts
+                </dd>
+                <dd className="mt-1 text-[14px] leading-snug text-ink-subtle">
+                  How far the model sits above the market&rsquo;s price
+                </dd>
+              </div>
+            </dl>
+            <p className="prose prose-p mt-3 max-w-reading text-[15px]">
+              The market reads this question faster and with less machinery than we do, and it is
+              published here because a research site that hides its disagreement with the crowd is
+              not doing research. It enters our model as one factor of eight, and its resolution
+              criteria are not identical to ours.
+            </p>
+            <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[14px] text-ink-subtle">
+              <a
+                href={`https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`}
+                target="_blank"
+                rel="noopener noreferrer sponsored"
+                className="inline-flex min-h-11 items-center rounded-md border border-rule-strong px-3 text-[14px] font-medium text-ink transition-colors hover:bg-surface-2"
+              >
+                Read the live book on Polymarket
+                <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+              </a>
+              <span className="max-w-reading">
+                Outbound links carry our referral code ({POLYMARKET_REFERRAL_CODE}) and we may be paid.
+                They never change a number on this site.
+              </span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 6 · Your own call ───────────────────────────────────────────────── */}
       {/* The model publishes its number; the reader may disagree. This is the
           invitation to say so and keep a private scoreboard against it. */}
       <section aria-labelledby="your-call-heading" className="mt-10">

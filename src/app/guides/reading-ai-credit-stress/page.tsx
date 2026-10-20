@@ -8,6 +8,7 @@ import {
   HISTORICAL_BACKTESTS,
 } from "@/lib/model/engine";
 import { MODEL_FACTORS } from "@/lib/model/factors";
+import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 import { MARKET_IMPLIED_12M_BAND, crowdDivergencePoints } from "@/lib/model/documentFormulas";
 import { deals, formatTotal } from "@/app/ledger/_components/ledgerData";
 import { getGuide, nextGuide } from "@/lib/guides";
@@ -659,6 +660,32 @@ export default function CreditStressGuidePage() {
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          {/* The outbound affiliate links and the disclosure that goes with them.
+              The reader should be able to go and argue with the market. */}
+          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <Link
+              href="/prediction-markets"
+              className="inline-flex min-h-11 items-center text-[15px] font-medium text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
+            >
+              See the full prediction-market board
+              <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+            </Link>
+            <a
+              href={`https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`}
+              target="_blank"
+              rel="noopener noreferrer sponsored"
+              className="inline-flex min-h-11 items-center text-[15px] font-medium text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
+            >
+              Open the live market
+              <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+            </a>
+            <span className="max-w-measure text-[14px] leading-relaxed text-ink-subtle">
+              Outbound links carry our referral code ({POLYMARKET_REFERRAL_CODE}) and we may be paid
+              a fee. It does not change a number on this site, and the model never reads the
+              referral.
+            </span>
           </div>
 
           <div className="max-w-measure space-y-4 text-[15px] leading-relaxed text-ink-muted">
