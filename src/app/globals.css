@@ -1820,3 +1820,20 @@ html.dark .text-caution-600 {
     display: none;
   }
 }
+
+/* ── NEWS FEED DENSITY SWITCH (zero-CLS, pre-paint execution) ───────────────
+   Applied via html[data-news-density] attribute before first paint.
+   Compact mode aligns headline, publisher, and impact on a single line.
+   Comfortable mode preserves full vertical stacked layout with summary. */
+html[data-news-density="compact"] .news-view-comfortable {
+  display: none !important;
+}
+html[data-news-density="compact"] .news-view-compact {
+  display: flex !important;
+}
+html:not([data-news-density="compact"]) .news-view-compact {
+  display: none !important;
+}
+html:not([data-news-density="compact"]) .news-view-comfortable {
+  display: block !important;
+}

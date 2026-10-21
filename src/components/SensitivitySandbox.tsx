@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useMemo, useCallback, useRef } from "react";
+import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { BubbleModelInputs, BubbleModelResult } from "@/lib/model/types";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import latestModel from "@/data/latest-model.json";
 import { UndoAction } from "@/components/UndoAction";
 import {
   RotateCcw,
+  Undo2,
   SlidersHorizontal,
   TrendingUp,
   TrendingDown,
@@ -172,18 +173,115 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
     setScenarioName("baseline");
   }, [inputs, scenarioName, getModifiedSliderCount]);
 
+  interface SliderHistoryEntry {
+    inputs: BubbleModelInputs;
+    scenarioName: string;
+    label: string;
+  }
+  const [sliderHistory, setSliderHistory] = useState<SliderHistoryEntry[]>([]);
+  const lastInteractionInputs = useRef<BubbleModelInputs>(inputs);
+  const interactionTimer = useRef<NodeJS.Timeout | null>(null);
+  const currentInteractionLabel = useRef<string | null>(null);
+
+  /** Commit any ongoing slider interaction to the undo stack immediately */
+  const flushPendingInteraction = useCallback(() => {
+    if (interactionTimer.current) {
+      clearTimeout(interactionTimer.current);
+      interactionTimer.current = null;
+    }
+    if (currentInteractionLabel.current !== null) {
+      const prev = lastInteractionInputs.current;
+      const lbl = currentInteractionLabel.current;
+      currentInteractionLabel.current = null;
+      if (prev !== inputsRef.current) {
+        setSliderHistory((prevStack) => [
+          ...prevStack.slice(-19),
+          { inputs: prev, scenarioName: scenarioNameRef.current, label: lbl },
+        ]);
+      }
+    }
+  }, []);
+
+  /** Update a slider value, debouncing stack entry capture across rapid drags */
+  const updateSlider = useCallback(
+    (label: string, nextInputs: BubbleModelInputs) => {
+      // If switching to a different slider, flush the previous one first
+      if (currentInteractionLabel.current !== null && currentInteractionLabel.current !== label) {
+        flushPendingInteraction();
+      }
+      if (currentInteractionLabel.current === null) {
+        currentInteractionLabel.current = label;
+        lastInteractionInputs.current = inputsRef.current;
+      }
+      setScenarioName("custom");
+      setInputs(nextInputs);
+
+      if (interactionTimer.current) clearTimeout(interactionTimer.current);
+      interactionTimer.current = setTimeout(() => {
+        const prev = lastInteractionInputs.current;
+        const lbl = currentInteractionLabel.current || label;
+        currentInteractionLabel.current = null;
+        interactionTimer.current = null;
+        if (prev !== nextInputs) {
+          setSliderHistory((prevStack) => [
+            ...prevStack.slice(-19),
+            { inputs: prev, scenarioName: "custom", label: lbl },
+          ]);
+        }
+      }, 500);
+    },
+    [flushPendingInteraction]
+  );
+
+  /** Step back one change from the slider undo stack */
+  const handleUndoLastSlider = useCallback(() => {
+    if (interactionTimer.current) {
+      clearTimeout(interactionTimer.current);
+      interactionTimer.current = null;
+    }
+    currentInteractionLabel.current = null;
+
+    if (sliderHistory.length === 0) return;
+    const entry = sliderHistory[sliderHistory.length - 1];
+    setSliderHistory((prevStack) => prevStack.slice(0, prevStack.length - 1));
+    setInputs(entry.inputs);
+    setScenarioName(entry.scenarioName);
+    setUndoMessage(`Undid change to ${entry.label}.`);
+  }, [sliderHistory]);
+
   const handleUndo = useCallback(() => {
-    if (!pendingUndo) return;
-    setInputs(pendingUndo.inputs);
-    setScenarioName(pendingUndo.scenarioName);
-    setPendingUndo(null);
-    setUndoMessage("");
-  }, [pendingUndo]);
+    if (pendingUndo) {
+      setInputs(pendingUndo.inputs);
+      setScenarioName(pendingUndo.scenarioName);
+      setPendingUndo(null);
+      setUndoMessage("");
+      return;
+    }
+    if (sliderHistory.length > 0) {
+      handleUndoLastSlider();
+    }
+  }, [pendingUndo, sliderHistory, handleUndoLastSlider]);
 
   const handleUndoExpired = useCallback(() => {
     setPendingUndo(null);
     setUndoMessage("");
   }, []);
+
+  // Keyboard shortcut: Cmd+Z / Ctrl+Z (outside text inputs) triggers slider undo
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "z" && !e.shiftKey) {
+        const target = e.target as HTMLElement | null;
+        if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+        if (sliderHistory.length > 0) {
+          e.preventDefault();
+          handleUndoLastSlider();
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [sliderHistory, handleUndoLastSlider]);
 
   React.useEffect(() => {
     if (externalResetTrigger !== undefined && externalResetTrigger > 0) {
@@ -544,8 +642,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                   value={currentCds}
                   onChange={(e) => {
                     const val = Math.max(50, Math.min(400, parseInt(e.target.value, 10) || baseCds));
-                    setScenarioName("custom");
-                    setInputs({ ...inputs, cds: { ...inputs.cds!, currentBps: val } });
+                    updateSlider("Oracle 5Y CDS", { ...inputs, cds: { ...inputs.cds!, currentBps: val } });
                   }}
                   className="num h-11 w-20 rounded-lg border border-rule-strong bg-surface px-2 text-right text-[14px] font-semibold text-ink"
                 />
@@ -570,8 +667,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
               value={currentCds}
               onChange={(e) => {
                 const val = parseInt(e.target.value, 10);
-                setScenarioName("custom");
-                setInputs({ ...inputs, cds: { ...inputs.cds!, currentBps: val } });
+                updateSlider("Oracle 5Y CDS", { ...inputs, cds: { ...inputs.cds!, currentBps: val } });
               }}
               className="h-11 w-full cursor-pointer accent-risk-500"
             />
@@ -608,8 +704,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                   value={currentDebt}
                   onChange={(e) => {
                     const val = Math.max(0, Math.min(50, parseFloat(e.target.value) || 0));
-                    setScenarioName("custom");
-                    setInputs({ ...inputs, ledger: { ...inputs.ledger!, debtShare: val / 100 } });
+                    updateSlider("Borrowed share", { ...inputs, ledger: { ...inputs.ledger!, debtShare: val / 100 } });
                   }}
                   className="num h-11 w-16 rounded-lg border border-rule-strong bg-surface px-2 text-right text-[14px] font-semibold text-ink"
                 />
@@ -634,8 +729,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
               value={currentDebt}
               onChange={(e) => {
                 const val = parseFloat(e.target.value);
-                setScenarioName("custom");
-                setInputs({ ...inputs, ledger: { ...inputs.ledger!, debtShare: val / 100 } });
+                updateSlider("Borrowed share", { ...inputs, ledger: { ...inputs.ledger!, debtShare: val / 100 } });
               }}
               className="h-11 w-full cursor-pointer accent-caution-500"
             />
@@ -669,8 +763,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                   value={currentUs10y}
                   onChange={(e) => {
                     const val = parseFloat(e.target.value) || baseUs10y;
-                    setScenarioName("custom");
-                    setInputs({
+                    updateSlider("US 10Y yield", {
                       ...inputs,
                       macro: { ...(inputs.macro || DEFAULT_MODEL_INPUTS.macro!), us10yYieldPct: val },
                     });
@@ -698,8 +791,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
               value={Math.round(currentUs10y * 100)}
               onChange={(e) => {
                 const val = parseInt(e.target.value, 10) / 100;
-                setScenarioName("custom");
-                setInputs({
+                updateSlider("US 10Y yield", {
                   ...inputs,
                   macro: { ...(inputs.macro || DEFAULT_MODEL_INPUTS.macro!), us10yYieldPct: val },
                 });
@@ -736,8 +828,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                   value={currentAnnualDebtB}
                   onChange={(e) => {
                     const val = Math.max(10, Math.min(160, parseInt(e.target.value, 10) || baseAnnualDebtB));
-                    setScenarioName("custom");
-                    setInputs({
+                    updateSlider("Annual debt issuance", {
                       ...inputs,
                       aiDebt: { ...(inputs.aiDebt || DEFAULT_MODEL_INPUTS.aiDebt!), annualDebtIssuanceUsd: val * 1e9 },
                     });
@@ -765,8 +856,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
               value={currentAnnualDebtB}
               onChange={(e) => {
                 const val = parseInt(e.target.value, 10);
-                setScenarioName("custom");
-                setInputs({
+                updateSlider("Annual debt issuance", {
                   ...inputs,
                   aiDebt: { ...(inputs.aiDebt || DEFAULT_MODEL_INPUTS.aiDebt!), annualDebtIssuanceUsd: val * 1e9 },
                 });
@@ -803,8 +893,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                   value={currentTokenDiscount}
                   onChange={(e) => {
                     const val = Math.max(1, Math.min(700, parseInt(e.target.value, 10) || baseTokenDiscount));
-                    setScenarioName("custom");
-                    setInputs({
+                    updateSlider("Token API deflation", {
                       ...inputs,
                       adoption: { ...inputs.adoption!, apiPriceDeclineMultiple: val },
                     });
@@ -836,8 +925,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
               value={currentTokenDiscount}
               onChange={(e) => {
                 const val = parseInt(e.target.value, 10);
-                setScenarioName("custom");
-                setInputs({
+                updateSlider("Token API deflation", {
                   ...inputs,
                   adoption: { ...inputs.adoption!, apiPriceDeclineMultiple: val },
                 });
@@ -874,8 +962,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                   value={currentUserGrowth}
                   onChange={(e) => {
                     const val = Math.max(0, Math.min(150, parseInt(e.target.value, 10) || 0));
-                    setScenarioName("custom");
-                    setInputs({
+                    updateSlider("User growth", {
                       ...inputs,
                       adoption: { ...inputs.adoption!, annualUserGrowth: val / 100 },
                     });
@@ -903,8 +990,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
               value={currentUserGrowth}
               onChange={(e) => {
                 const val = parseInt(e.target.value, 10);
-                setScenarioName("custom");
-                setInputs({
+                updateSlider("User growth", {
                   ...inputs,
                   adoption: { ...inputs.adoption!, annualUserGrowth: val / 100 },
                 });
@@ -941,8 +1027,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
                   value={currentOdds}
                   onChange={(e) => {
                     const val = Math.max(1, Math.min(90, parseFloat(e.target.value) || baseOddsPct));
-                    setScenarioName("custom");
-                    setInputs({
+                    updateSlider("Prediction crowd odds", {
                       ...inputs,
                       crowd: {
                         ...inputs.crowd!,
@@ -974,8 +1059,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
               value={currentOdds}
               onChange={(e) => {
                 const val = parseFloat(e.target.value);
-                setScenarioName("custom");
-                setInputs({
+                updateSlider("Prediction crowd odds", {
                   ...inputs,
                   crowd: {
                     ...inputs.crowd!,
@@ -1014,6 +1098,25 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
               <span className="text-[14px] text-ink-subtle">12-Month Real-Time Evaluation</span>
             </div>
             <div className="relative flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleUndoLastSlider}
+                disabled={sliderHistory.length === 0}
+                className="btn min-h-11 cursor-pointer active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label={
+                  sliderHistory.length > 0
+                    ? `Undo last slider change: ${sliderHistory[sliderHistory.length - 1].label}`
+                    : "Undo last slider change (no recent changes)"
+                }
+                title={
+                  sliderHistory.length > 0
+                    ? `Undo last change: ${sliderHistory[sliderHistory.length - 1].label}`
+                    : "No slider changes to undo"
+                }
+              >
+                <Undo2 className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Undo slider</span>
+              </button>
               <button
                 type="button"
                 onClick={handleResetAll}

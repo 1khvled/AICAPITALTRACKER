@@ -79,6 +79,7 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
   // The dispatch whose details are open (one at a time keeps the page short).
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>("");
+  const [density, setDensity] = useState<"comfortable" | "compact">("comfortable");
   const isFirstNewsRender = useRef(true);
   const statusTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -86,7 +87,22 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
 
   useEffect(() => {
     setNow(Date.now());
+    try {
+      const stored = window.localStorage.getItem("aict-news-density");
+      if (stored === "compact" || stored === "comfortable") {
+        setDensity(stored);
+        document.documentElement.setAttribute("data-news-density", stored);
+      }
+    } catch {}
   }, []);
+
+  const handleDensityChange = (nextDensity: "comfortable" | "compact") => {
+    setDensity(nextDensity);
+    try {
+      window.localStorage.setItem("aict-news-density", nextDensity);
+    } catch {}
+    document.documentElement.setAttribute("data-news-density", nextDensity);
+  };
 
   // Reload the same daily snapshot from the API. The endpoint serves the
   // ingestion file, so this can never fabricate a newer headline — it only
@@ -262,7 +278,7 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1 scrollbar-none">
             <button
               type="button"
@@ -287,16 +303,53 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
             ))}
           </div>
 
-          <p className="text-[14px] text-ink-subtle" aria-live="polite">
-            Showing <span className="num font-semibold text-ink">{filteredNews.length}</span> of{" "}
-            <span className="num font-semibold text-ink">{news.length}</span> dispatches
-            {snapshotLabel ? (
-              <>
-                {" "}
-                · <span className="num">newest {snapshotLabel}</span>
-              </>
-            ) : null}
-          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Density Switch: Accessible segmented control */}
+            <div
+              className="flex items-center gap-1.5"
+              role="group"
+              aria-label="Feed display density"
+            >
+              <span className="label text-[13px]">Density</span>
+              <div className="flex items-center rounded-lg border border-rule bg-surface p-0.5">
+                <button
+                  type="button"
+                  onClick={() => handleDensityChange("comfortable")}
+                  aria-pressed={density === "comfortable"}
+                  className={`min-h-11 rounded-md px-3 text-[13px] font-semibold transition-colors ${
+                    density === "comfortable"
+                      ? "border border-ink bg-ink text-canvas"
+                      : "text-ink-muted hover:text-ink"
+                  }`}
+                >
+                  Comfortable
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDensityChange("compact")}
+                  aria-pressed={density === "compact"}
+                  className={`min-h-11 rounded-md px-3 text-[13px] font-semibold transition-colors ${
+                    density === "compact"
+                      ? "border border-ink bg-ink text-canvas"
+                      : "text-ink-muted hover:text-ink"
+                  }`}
+                >
+                  Compact
+                </button>
+              </div>
+            </div>
+
+            <p className="text-[14px] text-ink-subtle" aria-live="polite">
+              Showing <span className="num font-semibold text-ink">{filteredNews.length}</span> of{" "}
+              <span className="num font-semibold text-ink">{news.length}</span> dispatches
+              {snapshotLabel ? (
+                <>
+                  {" "}
+                  · <span className="num">newest {snapshotLabel}</span>
+                </>
+              ) : null}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -341,10 +394,11 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
               return (
                 <li key={item.id}>
                   <Reveal as="div" delay={Math.min(index, 6) * 40} className="py-4">
+                    {/* 1. Comfortable View (Default full card layout) */}
                     <article
                       tabIndex={0}
                       aria-labelledby={titleId}
-                      className="rounded-md focus-visible:bg-surface-2"
+                      className="news-view-comfortable rounded-md focus-visible:bg-surface-2"
                     >
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
                         {/* The publisher, exactly as the feed records it. */}
@@ -410,6 +464,84 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
                           id={detailsId}
                           className="mt-2 border-t border-rule pt-3"
                         >
+                          <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
+                            <div className="flex items-baseline justify-between gap-3 sm:block">
+                              <dt className="label">Publisher</dt>
+                              <dd className="text-[14px] text-ink sm:mt-0.5">{item.publisher}</dd>
+                            </div>
+                            <div className="flex items-baseline justify-between gap-3 sm:block">
+                              <dt className="label">Category</dt>
+                              <dd className="text-[14px] text-ink sm:mt-0.5">{item.category}</dd>
+                            </div>
+                            <div className="flex items-baseline justify-between gap-3 sm:block">
+                              <dt className="label">Impact</dt>
+                              <dd className="text-[14px] text-ink sm:mt-0.5">{item.impact}</dd>
+                            </div>
+                            <div className="flex items-baseline justify-between gap-3 sm:block">
+                              <dt className="label">Published</dt>
+                              <dd className="num text-[14px] text-ink sm:mt-0.5">
+                                {formatPublished(item.publishedAt, item.timeAgo)}
+                              </dd>
+                            </div>
+                          </dl>
+                        </div>
+                      ) : null}
+                    </article>
+
+                    {/* 2. Compact View: fits headline, publisher and impact on ONE single line */}
+                    <article
+                      tabIndex={0}
+                      aria-labelledby={`compact-${titleId}`}
+                      className="news-view-compact flex-col gap-2 rounded-md focus-visible:bg-surface-2"
+                    >
+                      <div className="flex min-h-11 items-center justify-between gap-3">
+                        <div className="flex min-w-0 flex-1 items-center gap-2">
+                          <span className="chip shrink-0 text-[12px]">{item.publisher}</span>
+                          {isHighImpact ? (
+                            <span className="chip chip-risk shrink-0 text-[12px]">HIGH IMPACT</span>
+                          ) : null}
+                          <a
+                            href={safeHref(item.link)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group min-w-0 flex-1 truncate py-1"
+                          >
+                            <span
+                              id={`compact-${titleId}`}
+                              className="truncate text-[14px] font-semibold leading-snug text-ink underline decoration-rule underline-offset-4 group-hover:decoration-ink"
+                            >
+                              {item.title}
+                            </span>
+                          </a>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          <span className="num hidden text-[13px] text-ink-subtle sm:inline">
+                            {formatAge(item.publishedAt, now, item.timeAgo)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setExpandedId(expanded ? null : item.id)}
+                            aria-expanded={expanded}
+                            aria-controls={`compact-${detailsId}`}
+                            className="btn btn-ghost min-h-11 shrink-0 px-2 text-[12px] text-ink-muted hover:text-ink"
+                            title={expanded ? "Hide detail" : "Show detail"}
+                          >
+                            <ChevronDown
+                              className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`}
+                              aria-hidden="true"
+                            />
+                            <span className="sr-only">{expanded ? "Hide detail" : "Show detail"}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {expanded ? (
+                        <div id={`compact-${detailsId}`} className="border-t border-rule pt-2">
+                          {item.summary ? (
+                            <p className="prose text-[14px] text-ink-muted mb-2">
+                              {item.summary}
+                            </p>
+                          ) : null}
                           <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
                             <div className="flex items-baseline justify-between gap-3 sm:block">
                               <dt className="label">Publisher</dt>

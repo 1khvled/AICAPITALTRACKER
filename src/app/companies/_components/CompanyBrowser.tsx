@@ -48,6 +48,45 @@ const EMPTY: CompanyFilters = { search: "", sector: "all", risk: "all", structur
 
 const RISK_TIERS = ["Critical", "High", "Elevated", "Guarded"] as const;
 
+/**
+ * Compute the leverage (debt share of disclosed volume) for a company row.
+ * If a company has no debt involved (or no disclosed volume to divide by),
+ * returns null so the meter reads empty rather than pretending to be zero.
+ */
+function getDebtShare(company: CompanyProfile): number | null {
+  if (!company.debtInvolvedUsd || company.debtInvolvedUsd <= 0) return null;
+  if (!company.totalVolumeUsd || company.totalVolumeUsd <= 0) return null;
+  return (company.debtInvolvedUsd / company.totalVolumeUsd) * 100;
+}
+
+/**
+ * Semantic track fill for the leverage meter hairline track:
+ * >= 50% = mostly debt-funded (bg-risk-500)
+ * >= 20% = moderate leverage (bg-caution-500)
+ * < 20% = low leverage / mostly equity (bg-safe-500)
+ */
+function leverageTone(debtSharePct: number): string {
+  if (debtSharePct >= 50) return "bg-risk-500";
+  if (debtSharePct >= 20) return "bg-caution-500";
+  return "bg-safe-500";
+}
+
+/**
+ * Circularity tier rank (4 to 0) for legible tier mark display:
+ * 4 = Severe (Circular)
+ * 3 = High (Circular)
+ * 2 = Elevated
+ * 1 = Moderate
+ * 0 = Low (Arm's Length)
+ */
+function circularTierRank(level: CompanyProfile["circularRiskLevel"]): number {
+  if (level.indexOf("Severe") === 0) return 4;
+  if (level.indexOf("High") === 0) return 3;
+  if (level.indexOf("Elevated") === 0) return 2;
+  if (level.indexOf("Moderate") === 0) return 1;
+  return 0;
+}
+
 function fromParams(params: URLSearchParams | null): CompanyFilters {
   if (!params) return { ...EMPTY };
   const sector = params.get("sector") ?? "";
@@ -283,6 +322,8 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
      */
     const watchTicker = listedTicker(company.ticker);
     const saved = watchTicker ? isWatched(watchTicker) : false;
+    const debtSharePct = getDebtShare(company);
+    const tierRank = circularTierRank(company.circularRiskLevel);
     return (
       <li key={company.name} className="min-w-0">
         <article
@@ -342,12 +383,71 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
               </div>
             </dl>
 
-            <p className="mt-3 text-[14px] leading-relaxed text-ink-muted">
-              <span className="text-ink-subtle">Circular risk:</span>{" "}
-              <span className={`chip ${circularTone(company.circularRiskLevel)}`}>
-                {company.circularRiskLevel}
-              </span>
-            </p>
+            {/* Inline Leverage Meter: DEBT SHARE of disclosed volume */}
+            <div className="mt-3 space-y-1">
+              <div className="flex items-baseline justify-between text-[13px]">
+                <span className="label">Debt share</span>
+                <span className="num font-semibold text-ink">
+                  {debtSharePct !== null ? `${debtSharePct.toFixed(1)}%` : "empty"}
+                </span>
+              </div>
+              <div
+                className="h-1.5 w-full overflow-hidden rounded-full bg-surface-3"
+                role="progressbar"
+                aria-valuenow={debtSharePct !== null ? Math.round(debtSharePct) : 0}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`${company.name} debt share of disclosed volume`}
+              >
+                {debtSharePct !== null ? (
+                  <div
+                    className={`h-full ${leverageTone(debtSharePct)} transition-all duration-300`}
+                    style={{ width: `${Math.min(100, Math.max(0, debtSharePct))}%` }}
+                  />
+                ) : null}
+              </div>
+            </div>
+
+            {/* Circularity Tier Mark & Classification */}
+            <div className="mt-3 flex items-center justify-between gap-2 text-[14px] leading-relaxed text-ink-muted">
+              <div className="flex min-w-0 items-center gap-1.5 truncate">
+                <span className="text-ink-subtle">Circular risk:</span>{" "}
+                <span className={`chip truncate ${circularTone(company.circularRiskLevel)}`}>
+                  {company.circularRiskLevel}
+                </span>
+              </div>
+              {/* Legible tier mark: 4-segment pip indicator */}
+              <div
+                className="flex shrink-0 items-center gap-1.5"
+                title={`Circularity Tier: ${company.circularRiskLevel} (T${tierRank}/4)`}
+                aria-label={`Circularity Tier ${tierRank} of 4: ${company.circularRiskLevel}`}
+              >
+                <span className="num text-[12px] font-semibold text-ink-subtle">
+                  T{tierRank}
+                </span>
+                <span className="flex items-center gap-0.5" aria-hidden="true">
+                  {[1, 2, 3, 4].map((step) => {
+                    const isFilled = step <= tierRank;
+                    const pipColor =
+                      tierRank >= 4
+                        ? "bg-risk-500"
+                        : tierRank === 3
+                        ? "bg-caution-500"
+                        : tierRank === 2
+                        ? "bg-ink-muted"
+                        : "bg-safe-500";
+                    return (
+                      <span
+                        key={step}
+                        className={`h-2.5 w-1 rounded-xs ${
+                          isFilled ? pipColor : "bg-surface-3"
+                        }`}
+                      />
+                    );
+                  })}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Footer: expand + cross-links + the watchlist */}

@@ -174,6 +174,7 @@ const revealBootScript = `(function(){try{if(typeof window.IntersectionObserver!
  * paint, so a reader who forced motion on never sees a frozen tape first.
  */
 const motionBootScript = `(function(){try{var m=localStorage.getItem("aict-motion");if(m==="on"||m==="off"){document.documentElement.setAttribute("data-motion",m);}}catch(e){}})();`;
+const newsDensityBootScript = `(function(){try{var d=localStorage.getItem("aict-news-density");if(d==="compact"||d==="comfortable"){document.documentElement.setAttribute("data-news-density",d);}}catch(e){}})();`;
 
 export default function RootLayout({
   children,
@@ -233,6 +234,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         <script dangerouslySetInnerHTML={{ __html: revealBootScript }} />
         <script dangerouslySetInnerHTML={{ __html: motionBootScript }} />
+        <script dangerouslySetInnerHTML={{ __html: newsDensityBootScript }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

@@ -6,6 +6,7 @@ import {
   Search,
   LayoutGrid,
   CircleDot,
+  BarChart3,
   Calendar,
   Sparkles,
   X,
@@ -100,7 +101,7 @@ interface DealBubbleChartProps {
   onCategoryChange?: (category: string) => void;
 }
 
-export type ViewMode = "treemap" | "bubbles" | "arena" | "timeline";
+export type ViewMode = "treemap" | "bubbles" | "arena" | "timeline" | "ranked";
 
 /**
  * Category colours.
@@ -1585,7 +1586,20 @@ export function DealBubbleChart({
   const [isDriftEnabled, setIsDriftEnabled] = useState(false);
   const [resetCounter, setResetCounter] = useState(0);
   const [resetAnnouncement, setResetAnnouncement] = useState<string>("");
+  const [viewAnnouncement, setViewAnnouncement] = useState<string>("");
   const router = useRouter();
+
+  const handleViewChange = useCallback((mode: ViewMode) => {
+    setViewMode(mode);
+    const announcements: Record<ViewMode, string> = {
+      treemap: "Capital treemap view active: tile area corresponds to transaction size.",
+      bubbles: "Bubble pods view active: grouped by category with interactive physics.",
+      arena: "Gravity arena view active: deals in central gravitational cluster.",
+      timeline: "Timeline flow view active: deals mapped across time columns.",
+      ranked: "Ranked bar chart view active: deals ordered largest first with disclosed amount on each bar.",
+    };
+    setViewAnnouncement(announcements[mode] ?? `Switched to ${mode} view.`);
+  }, []);
 
   const handleResetUniverse = useCallback(() => {
     setViewMode("treemap");
@@ -1597,6 +1611,7 @@ export function DealBubbleChart({
     setIsDriftEnabled(false);
     setResetCounter((c) => c + 1);
     setResetAnnouncement("Bubble universe reset to default view.");
+    setViewAnnouncement("Reset universe to Capital Treemap view.");
   }, [onCategoryChange]);
 
   useEffect(() => {
@@ -1680,6 +1695,14 @@ export function DealBubbleChart({
     const pct = totalFilteredUsd > 0 ? ((top10Sum / totalFilteredUsd) * 100).toFixed(1) : "0.0";
     return { sumT: (top10Sum / 1e12).toFixed(2), pct };
   }, [filteredDeals, totalFilteredUsd]);
+
+  const rankedDeals = useMemo(() => {
+    return [...filteredDeals].sort((a, b) => (b.amount_usd || 0) - (a.amount_usd || 0));
+  }, [filteredDeals]);
+
+  const maxRankedUsd = useMemo(() => {
+    return rankedDeals.length > 0 ? (rankedDeals[0].amount_usd || 1) : 1;
+  }, [rankedDeals]);
 
   const matchesSearch = (deal: Deal) => {
     if (!searchQuery.trim()) return true;
@@ -1916,8 +1939,20 @@ export function DealBubbleChart({
       ];
     }
 
+    if (viewMode === "ranked") {
+      return [
+        {
+          id: "ranked-bars",
+          marks: rankedDeals.map((deal) => ({
+            id: deal.id,
+            value: deal.amount_usd,
+          })),
+        },
+      ];
+    }
+
     return [];
-  }, [viewMode, treemapTiles, categoryPods, filteredDeals]);
+  }, [viewMode, treemapTiles, categoryPods, filteredDeals, rankedDeals]);
 
   /**
    * The keyboard model walks the marks of the current view — but only the
@@ -1998,19 +2033,24 @@ export function DealBubbleChart({
         row(deal, categoryName(deal.category))
       );
     }
+    if (viewMode === "ranked") {
+      return rankedDeals.map((deal) => row(deal, categoryName(deal.category)));
+    }
     return timelineColumns.flatMap((col) =>
       col.deals.slice(0, 10).map((deal) => row(deal, col.label))
     );
-  }, [viewMode, treemapTiles, categoryPods, filteredDeals, timelineColumns]);
+  }, [viewMode, treemapTiles, categoryPods, filteredDeals, timelineColumns, rankedDeals]);
 
   const viewLabel =
     viewMode === "treemap"
       ? "capital treemap"
-      : viewMode === "bubbles"
-        ? "bubble pods"
-        : viewMode === "arena"
-          ? "gravity arena"
-          : "timeline flow";
+      : viewMode === "ranked"
+        ? "ranked bar chart"
+        : viewMode === "bubbles"
+          ? "bubble pods"
+          : viewMode === "arena"
+            ? "gravity arena"
+            : "timeline flow";
 
   /** The filter readout, announced politely when it changes. */
   const filterAnnouncement = useMemo(() => {
@@ -2061,7 +2101,7 @@ export function DealBubbleChart({
           <div className="flex flex-wrap items-center gap-2">
             <div className="grid w-full grid-cols-2 items-center gap-1 rounded-lg border border-rule bg-surface-2 p-1 sm:flex sm:w-auto sm:p-1.5">
               <button
-                onClick={() => setViewMode("treemap")}
+                onClick={() => handleViewChange("treemap")}
                 aria-pressed={viewMode === "treemap"}
                 className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${viewMode === "treemap" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
               >
@@ -2069,7 +2109,15 @@ export function DealBubbleChart({
                 <span>Capital Treemap</span>
               </button>
               <button
-                onClick={() => setViewMode("bubbles")}
+                onClick={() => handleViewChange("ranked")}
+                aria-pressed={viewMode === "ranked"}
+                className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${viewMode === "ranked" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
+              >
+                <BarChart3 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>Ranked Bars</span>
+              </button>
+              <button
+                onClick={() => handleViewChange("bubbles")}
                 aria-pressed={viewMode === "bubbles"}
                 className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${viewMode === "bubbles" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
               >
@@ -2077,7 +2125,7 @@ export function DealBubbleChart({
                 <span>Bubble Pods</span>
               </button>
               <button
-                onClick={() => setViewMode("arena")}
+                onClick={() => handleViewChange("arena")}
                 aria-pressed={viewMode === "arena"}
                 className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${viewMode === "arena" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
               >
@@ -2085,7 +2133,7 @@ export function DealBubbleChart({
                 <span>Gravity Arena</span>
               </button>
               <button
-                onClick={() => setViewMode("timeline")}
+                onClick={() => handleViewChange("timeline")}
                 aria-pressed={viewMode === "timeline"}
                 className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${viewMode === "timeline" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
               >
@@ -2102,7 +2150,7 @@ export function DealBubbleChart({
             >
               <RotateCcw className="h-3.5 w-3.5 shrink-0 text-ink-subtle" aria-hidden="true" />
               <span>Reset universe</span>
-              <kbd className="hidden sm:inline-block rounded border border-rule px-1 py-0.5 text-[11px] font-mono text-ink-faint">Esc</kbd>
+              <kbd className="hidden sm:inline-block rounded border border-rule px-1 py-0.5 text-[12px] font-mono text-ink-faint">Esc</kbd>
             </button>
           </div>
         </div>
@@ -2371,6 +2419,136 @@ export function DealBubbleChart({
           </div>
         )}
 
+        {/* VIEW 5: RANKED BAR CHART VIEW */}
+        {viewMode === "ranked" && (
+          <div className="relative w-full overflow-hidden rounded-lg border border-rule bg-surface p-4 sm:p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-rule pb-3">
+              <div>
+                <h3 className="text-base font-bold text-ink tracking-tight">
+                  Ranked Capital Allocation Disclosures ({rankedDeals.length} transactions)
+                </h3>
+                <p className="text-[13px] text-ink-muted">
+                  Every transaction ranked largest first by verified disclosed amount. The amount is printed directly on each bar.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="num font-mono text-[13px] font-semibold text-ink-subtle">
+                  Top Deal: {rankedDeals[0]?.amount_display || "—"}
+                </span>
+                <span className="text-ink-faint">·</span>
+                <span className="num font-mono text-[13px] font-semibold text-safe-700">
+                  Total: ${(totalFilteredUsd / 1e12).toFixed(2)}T
+                </span>
+              </div>
+            </div>
+
+            {rankedDeals.length === 0 ? (
+              <div className="py-12 text-center text-[14px] text-ink-muted">
+                No deals match current filter criteria.
+              </div>
+            ) : (
+              <ol className="space-y-2 max-h-[620px] overflow-y-auto pr-1" role="list">
+                {rankedDeals.map((deal, idx) => {
+                  const config = CATEGORY_CONFIG[deal.category] || CATEGORY_CONFIG["Other"];
+                  const pct = Math.max(8, Math.min(100, ((deal.amount_usd || 0) / maxRankedUsd) * 100));
+                  const isHovered = hoveredDeal?.id === deal.id;
+
+                  return (
+                    <li key={deal.id}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (hoveredDeal?.id === deal.id) {
+                            onSelectDeal(deal);
+                          } else {
+                            setHoveredDeal(deal);
+                          }
+                        }}
+                        onMouseEnter={() => setHoveredDeal(deal)}
+                        className={`w-full text-left rounded-lg p-2.5 transition-colors min-h-11 border ${
+                          isHovered
+                            ? "border-ink bg-surface-3 shadow-xs"
+                            : "border-rule bg-surface hover:border-rule-strong hover:bg-surface-2"
+                        }`}
+                        aria-label={`Rank #${idx + 1}: ${deal.title}, amount ${deal.amount_display}, category ${deal.category}`}
+                      >
+                        <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1 mb-1.5">
+                          <div className="flex min-w-0 items-center gap-2 flex-1">
+                            <span className="num font-mono text-[13px] font-bold text-ink-subtle shrink-0">
+                              #{idx + 1}
+                            </span>
+                            <span
+                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: config.accentHex }}
+                              aria-hidden="true"
+                            />
+                            <span className="text-[14px] font-semibold text-ink truncate">
+                              {deal.title}
+                            </span>
+                            <span className="chip shrink-0 text-[12px] hidden sm:inline-flex">
+                              {config.name}
+                            </span>
+                            {deal.is_debt && (
+                              <span className="chip chip-risk shrink-0 text-[12px]">
+                                Debt
+                              </span>
+                            )}
+                            {deal.is_circular && (
+                              <span className="chip chip-caution shrink-0 text-[12px]">
+                                Circular
+                              </span>
+                            )}
+                          </div>
+                          <span className="num font-mono text-[13px] text-ink-subtle shrink-0">
+                            {deal.year || (deal.announced_date ? deal.announced_date.slice(0, 4) : "")}
+                          </span>
+                        </div>
+
+                        {/* Hairline track with filled bar and amount printed directly ON the bar */}
+                        <div
+                          className="h-7 w-full rounded-md bg-surface-3 overflow-hidden relative flex items-center"
+                          role="progressbar"
+                          aria-valuenow={Math.round(pct)}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                        >
+                          <div
+                            className="h-full flex items-center px-2.5 transition-all duration-300 rounded-md"
+                            style={{
+                              width: `${pct}%`,
+                              backgroundColor: config.accentHex,
+                            }}
+                          >
+                            <span className="num font-mono font-bold text-[13px] text-canvas whitespace-nowrap drop-shadow-xs">
+                              {deal.amount_display}
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+
+            {/* Category Key Footer */}
+            <div className="border-t border-rule bg-surface pt-2.5">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 sm:grid-cols-3 md:flex md:flex-wrap md:items-center md:gap-x-4">
+                {Object.entries(CATEGORY_CONFIG).slice(0, 6).map(([key, config]) => (
+                  <div key={key} className="flex items-center gap-1.5 text-[12px] text-ink-muted">
+                    <span
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: config.accentHex }}
+                      aria-hidden="true"
+                    />
+                    <span className="truncate">{config.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* VIEW 2: CATEGORY BUBBLE PODS WITH DRAGGABLE PHYSICS */}
         {viewMode === "bubbles" && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -2549,8 +2727,8 @@ export function DealBubbleChart({
         rows={tableRows}
       />
 
-      {/* The filter readout, announced politely when it changes. */}
-      <ChartAnnouncer message={resetAnnouncement || filterAnnouncement} />
+      {/* The filter and view readout, announced politely when it changes. */}
+      <ChartAnnouncer message={viewAnnouncement || resetAnnouncement || filterAnnouncement} />
 
       {/* Footer Meta & Stats */}
       <div className="flex flex-col items-center justify-between gap-3 border-t border-rule bg-surface-2 px-4 py-4 md:flex-row">

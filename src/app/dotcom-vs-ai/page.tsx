@@ -761,7 +761,7 @@ export default function DotComVsAiPage() {
                     <TrendingDown className="h-4 w-4 shrink-0" aria-hidden="true" />
                     <span>1999–2000 DOT-COM BUBBLE</span>
                   </div>
-                  <span className="chip chip-risk text-[11px] py-0.5">HISTORICAL CRASH</span>
+                  <span className="chip chip-risk text-[12px] py-0.5">HISTORICAL CRASH</span>
                 </div>
 
                 {/* AI 2026 Column Header */}
@@ -770,7 +770,7 @@ export default function DotComVsAiPage() {
                     <TrendingUp className="h-4 w-4 shrink-0 text-safe-700" aria-hidden="true" />
                     <span>2025–2026 AI SUPERSTRUCTURE</span>
                   </div>
-                  <span className="chip chip-safe text-[11px] py-0.5">SOLVENT BUFFER / CREDIT WATCH</span>
+                  <span className="chip chip-safe text-[12px] py-0.5">SOLVENT BUFFER / CREDIT WATCH</span>
                 </div>
               </div>
 
@@ -779,11 +779,11 @@ export default function DotComVsAiPage() {
                 <div className="flex items-center gap-1 text-risk-700">
                   <TrendingDown className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                   <span>1999–00 Dot-Com</span>
-                  <span className="chip chip-risk text-[10px] px-1.5 py-0">Crash</span>
+                  <span className="chip chip-risk text-[12px] px-1.5 py-0">Crash</span>
                 </div>
-                <span className="text-ink-faint text-[11px] font-mono">vs</span>
+                <span className="text-ink-faint text-[12px] font-mono">vs</span>
                 <div className="flex items-center gap-1 text-ink">
-                  <span className="chip chip-safe text-[10px] px-1.5 py-0">Buffer</span>
+                  <span className="chip chip-safe text-[12px] px-1.5 py-0">Buffer</span>
                   <span>2025–26 AI</span>
                   <TrendingUp className="h-3.5 w-3.5 shrink-0 text-safe-700" aria-hidden="true" />
                 </div>
