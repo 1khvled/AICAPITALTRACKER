@@ -45,12 +45,12 @@ export function FactorContributionChart({
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-rule pb-3">
         <div>
           <p className="label">Contribution breakdown</p>
-          <h3
+          <h2
             id={`${chartId}-heading`}
             className="text-[16px] font-bold tracking-tight text-ink sm:text-[18px]"
           >
             Factor contributions to the composite print
-          </h3>
+          </h2>
         </div>
         <div className="flex items-center gap-2">
           <span className="pill pill-risk text-[13px]">

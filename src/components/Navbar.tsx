@@ -164,7 +164,7 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
           {/* Brand */}
           <Link
             href="/"
-            className="flex shrink-0 items-center gap-2.5 py-1"
+            className="flex min-h-11 shrink-0 items-center gap-2.5 py-1"
             aria-label="AI Capital Tracker, home"
           >
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-white/15 bg-white/5">

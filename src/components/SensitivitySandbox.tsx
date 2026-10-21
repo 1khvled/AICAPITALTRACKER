@@ -570,7 +570,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
   const activeBand = bandStyles[currentResult.band] || bandStyles.high;
 
   return (
-    <div className="card space-y-7 shadow-card">
+    <div className="space-y-7">
       {/* Title & Scenario Preset Buttons */}
       <div className="flex flex-col gap-5 border-b border-rule pb-6 lg:flex-row lg:items-start lg:justify-between">
         <div>

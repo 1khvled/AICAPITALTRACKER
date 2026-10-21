@@ -348,6 +348,15 @@ p {
   outline: none;
 }
 
+/* Masthead: the chrome is black in both themes. The focus ring is white (20:1 contrast). */
+header {
+  --c-focus: rgb(var(--c-header-ink));
+}
+header :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid rgb(var(--c-header-ink)) !important;
+  outline-offset: 2px !important;
+}
+
 /* Hairline scrollbars — present, but quiet. */
 * {
   scrollbar-width: thin;
@@ -378,6 +387,9 @@ p {
   left: -9999px;
   top: 0;
   z-index: 100;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   padding: 0.625rem 1rem;
   background: rgb(var(--c-ink));
   color: rgb(var(--c-canvas));
@@ -539,7 +551,7 @@ html.dark .notice-caution {
 }
 .notice-title {
   font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.8125rem; /* 13px — was 11px (2026-10-19 size-floor pass) */
+  font-size: 0.875rem; /* 14px — meets 14px body text floor when used in paragraphs */
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1775,13 +1787,38 @@ html[data-motion="off"] .ticker-row::-webkit-scrollbar {
   header,
   footer,
   .ad-slot,
-  .skip-link {
+  .skip-link,
+  .no-print {
     display: none !important;
   }
   .card,
-  .panel {
+  .panel,
+  .notice {
     border-color: #999;
     background: #fff;
+    break-inside: avoid;
+  }
+  /* Usable print: no clipped columns, full printable width */
+  .overflow-x-auto,
+  table {
+    overflow: visible !important;
+    max-width: 100% !important;
+  }
+  table {
+    width: 100% !important;
+    table-layout: auto !important;
+  }
+  th,
+  td {
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+  /* No hidden disclosures in print */
+  details {
+    display: block !important;
+  }
+  details > * {
+    display: block !important;
   }
 }
 

@@ -81,7 +81,7 @@ export function CompanyPeerComparison({ currentCompany }: CompanyPeerComparisonP
                         {peer.name}
                       </Link>
                       {isCurrent ? (
-                        <span className="rounded-xs bg-surface-3 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-ink">
+                        <span className="rounded-xs bg-surface-3 px-1.5 py-0.5 text-[12px] font-bold uppercase tracking-wider text-ink">
                           This company
                         </span>
                       ) : null}

@@ -124,7 +124,7 @@ export default function CompanyDossierPage({ params }: PageProps) {
             <div className="num text-2xl font-bold tracking-tight text-ink">
               {company.totalVolumeUsd > 0 ? formatUsd(company.totalVolumeUsd) : "\u2014"}
             </div>
-            <div className="space-y-1 border-t border-rule pt-2 text-[13px] leading-snug">
+            <div className="space-y-1 border-t border-rule pt-2 text-[14px] leading-snug">
               <p className="text-ink font-medium">
                 {company.totalVolumeUsd > 0
                   ? `Sum of public transactions where ${company.name} is a named party.`
@@ -146,7 +146,7 @@ export default function CompanyDossierPage({ params }: PageProps) {
             >
               {company.debtInvolvedUsd > 0 ? formatUsd(company.debtInvolvedUsd) : "None"}
             </div>
-            <div className="space-y-1 border-t border-rule pt-2 text-[13px] leading-snug">
+            <div className="space-y-1 border-t border-rule pt-2 text-[14px] leading-snug">
               <p className="text-ink font-medium">
                 {company.debtInvolvedUsd > 0
                   ? `Sum of ${company.debtTranches.length} disclosed debt tranches and filed borrowings.`
@@ -164,7 +164,7 @@ export default function CompanyDossierPage({ params }: PageProps) {
             <div className="num text-2xl font-bold tracking-tight text-ink">
               {formatUsd(company.valuationUsd)}
             </div>
-            <div className="space-y-1 border-t border-rule pt-2 text-[13px] leading-snug">
+            <div className="space-y-1 border-t border-rule pt-2 text-[14px] leading-snug">
               <p className="text-ink font-medium">
                 {company.ticker && !company.ticker.startsWith("Private")
                   ? "Public market capitalisation based on SEC share count and recent close."
@@ -182,7 +182,7 @@ export default function CompanyDossierPage({ params }: PageProps) {
             <div className="num text-2xl font-bold tracking-tight text-ink">
               {company.psMultiple ? `${company.psMultiple}\u00d7 P/S` : "n/a"}
             </div>
-            <div className="space-y-1 border-t border-rule pt-2 text-[13px] leading-snug">
+            <div className="space-y-1 border-t border-rule pt-2 text-[14px] leading-snug">
               <p className="text-ink font-medium">
                 {company.runRateRevenueUsd
                   ? `Valuation divided by ${formatUsd(company.runRateRevenueUsd)} annual run-rate revenue.`
@@ -200,7 +200,7 @@ export default function CompanyDossierPage({ params }: PageProps) {
             <div className="num text-2xl font-bold tracking-tight text-ink">
               {matchedDeals.length}
             </div>
-            <div className="space-y-1 border-t border-rule pt-2 text-[13px] leading-snug">
+            <div className="space-y-1 border-t border-rule pt-2 text-[14px] leading-snug">
               <p className="text-ink font-medium">
                 Transactions catalogued in the AI Capital Tracker 169-deal ledger.
               </p>
@@ -218,7 +218,7 @@ export default function CompanyDossierPage({ params }: PageProps) {
                 {company.circularRiskLevel}
               </span>
             </div>
-            <div className="space-y-1 border-t border-rule pt-2 text-[13px] leading-snug">
+            <div className="space-y-1 border-t border-rule pt-2 text-[14px] leading-snug">
               <p className="text-ink font-medium">
                 {company.circularityConnections.length} disclosed counterparties in compute or financing loops.
               </p>
@@ -305,7 +305,7 @@ export default function CompanyDossierPage({ params }: PageProps) {
                       {deal.amount_display}
                     </td>
                     <td className="py-3 pr-3 text-center whitespace-nowrap">
-                      <span className="rounded-xs bg-surface-3 px-1.5 py-0.5 text-[11px] font-medium text-ink-muted">
+                      <span className="rounded-xs bg-surface-3 px-1.5 py-0.5 text-[12px] font-medium text-ink-muted">
                         {deal.status}
                       </span>
                     </td>
@@ -346,7 +346,7 @@ export default function CompanyDossierPage({ params }: PageProps) {
               <p className="text-[14px] font-semibold text-ink">
                 {company.polymarketOdds.marketName}
               </p>
-              <p className="num text-[13px] text-ink-muted">
+              <p className="num text-[14px] text-ink-muted">
                 Current market implied odds: <span className="font-bold text-ink">{company.polymarketOdds.oddsDisplay}</span>
               </p>
             </div>

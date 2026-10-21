@@ -194,12 +194,9 @@ export function CompanyCircularityGraph({ company }: CompanyCircularityGraphProp
             }
           }}
         >
-          <title id={graphTitleId}>
-            Circularity network for {company.name} ({company.circularRiskLevel})
-          </title>
+          <title id={graphTitleId}>{`Circularity network for ${company.name} (${company.circularRiskLevel})`}</title>
           <desc id={graphDescId}>
-            Radial connectivity graph showing {company.name} at the center connected to{" "}
-            {connectionDetails.map((c) => `${c.name} (${c.disclosedAmount})`).join(", ")}.
+            {`Radial connectivity graph showing ${company.name} at the center connected to ${connectionDetails.map((c) => `${c.name} (${c.disclosedAmount})`).join(", ")}.`}
           </desc>
 
           {/* Background concentric guidelines */}
@@ -254,7 +251,7 @@ export function CompanyCircularityGraph({ company }: CompanyCircularityGraphProp
                       x="0"
                       y="4"
                       textAnchor="middle"
-                      className="num font-bold text-[11px]"
+                      className="num font-bold text-[12px]"
                       fill={conn.isCircular ? "#d1433c" : "rgb(var(--c-ink))"}
                     >
                       {conn.disclosedAmount}
@@ -276,7 +273,7 @@ export function CompanyCircularityGraph({ company }: CompanyCircularityGraphProp
                       x="0"
                       y="3.5"
                       textAnchor="middle"
-                      className="text-[9px]"
+                      className="text-[12px]"
                       fill="rgb(var(--c-ink-subtle))"
                     >
                       Disclosed
@@ -308,7 +305,7 @@ export function CompanyCircularityGraph({ company }: CompanyCircularityGraphProp
               x="0"
               y="12"
               textAnchor="middle"
-              className="text-[10px] font-mono uppercase tracking-wider"
+              className="text-[12px] font-mono uppercase tracking-wider"
               fill="rgb(var(--c-ink-subtle))"
             >
               {company.riskTier}
@@ -375,7 +372,7 @@ export function CompanyCircularityGraph({ company }: CompanyCircularityGraphProp
                   x="0"
                   y="12"
                   textAnchor="middle"
-                  className="text-[10px] font-mono text-ink-subtle"
+                  className="text-[12px] font-mono text-ink-subtle"
                   fill={conn.isRegistered ? "var(--c-cat-cyan)" : "rgb(var(--c-ink-subtle))"}
                 >
                   {conn.isRegistered ? "Profile ↗" : "Counterparty"}
@@ -441,7 +438,7 @@ export function CompanyCircularityGraph({ company }: CompanyCircularityGraphProp
                   {conn.isRegistered ? (
                     <span className="pill pill-compact">Tracked Profile</span>
                   ) : (
-                    <span className="rounded-xs bg-surface-3 px-1.5 py-0.5 text-[11px] text-ink-subtle">
+                    <span className="rounded-xs bg-surface-3 px-1.5 py-0.5 text-[12px] text-ink-subtle">
                       External Entity
                     </span>
                   )}
@@ -468,7 +465,7 @@ export function CompanyCircularityGraph({ company }: CompanyCircularityGraphProp
       </div>
 
       {/* Honest Scope Disclosure */}
-      <p className="flex items-start gap-2 text-[13px] text-ink-subtle">
+      <p className="flex items-start gap-2 text-[14px] text-ink-subtle">
         <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
         <span>
           A disclosed connection demonstrates counterparty exposure, joint infrastructure agreements, or

@@ -124,7 +124,7 @@ export function Footer({
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="group block leading-snug transition-colors hover:text-ink"
+                      className="group block min-h-[44px] py-1 leading-snug transition-colors hover:text-ink"
                     >
                       <span className="font-medium text-ink underline decoration-rule underline-offset-4 group-hover:decoration-ink">
                         {link.label}
@@ -144,7 +144,7 @@ export function Footer({
             <h2 className="label">For developers</h2>
             <ul className="mt-4 space-y-3">
               <li>
-                <Link href="/api" className="font-medium text-ink underline decoration-rule underline-offset-4 hover:decoration-ink">
+                <Link href="/api" className="inline-flex min-h-[44px] items-center font-medium text-ink underline decoration-rule underline-offset-4 hover:decoration-ink">
                   API overview
                 </Link>
                 <span className="mt-0.5 block text-[14px] text-ink-subtle">
@@ -169,7 +169,7 @@ export function Footer({
                     href={endpoint.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="num text-[14px] text-ink-muted underline decoration-rule underline-offset-4 hover:text-ink hover:decoration-ink"
+                    className="inline-flex min-h-[44px] items-center num text-[14px] text-ink-muted underline decoration-rule underline-offset-4 hover:text-ink hover:decoration-ink"
                   >
                     {endpoint.label}
                   </a>

@@ -1192,9 +1192,9 @@ export function LiveStockMonitor() {
         {showMacro ? (
           <section aria-label="Rates and credit metrics" className="mb-6">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h3 className="text-[15px] font-semibold tracking-tight text-ink">
+              <h2 className="text-[15px] font-semibold tracking-tight text-ink">
                 Rates and credit
-              </h3>
+              </h2>
               <p className="text-[14px] text-ink-subtle">
                 The cost of money, and the price lenders charge for AI credit risk.
               </p>
@@ -1255,9 +1255,9 @@ export function LiveStockMonitor() {
         {/* Equities */}
         <section aria-label="Listed AI companies">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h3 className="text-[15px] font-semibold tracking-tight text-ink">
+            <h2 className="text-[15px] font-semibold tracking-tight text-ink">
               Listed AI companies
-            </h3>
+            </h2>
             <p className="text-[14px] text-ink-subtle">
               <span className="num">{scoped.length}</span> name
               {scoped.length === 1 ? "" : "s"} in{" "}

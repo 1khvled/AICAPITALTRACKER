@@ -264,6 +264,8 @@ export function SensitivityCurveChart({
       <div className="relative select-none overflow-hidden rounded-xl border border-rule bg-surface-2 p-2 sm:p-4">
         <svg
           ref={svgRef}
+          role="img"
+          aria-label="Model sensitivity sigmoid curve showing non-linear fragility as a function of composite score"
           viewBox={`0 0 ${width} ${height}`}
           className="w-full h-auto cursor-crosshair touch-none"
           onMouseMove={handleMouseMove}
@@ -822,7 +824,7 @@ export function CapitalCompositionChart() {
               CAPITAL ALLOCATION
             </span>
             <span className="text-[14px] font-mono text-ink-subtle">
-              $2.87T across {LEDGER_DEAL_COUNT} Verified Deals
+              ${(LEDGER_TOTAL_USD / 1e12).toFixed(2)}T across {LEDGER_DEAL_COUNT} Verified Deals
             </span>
           </div>
           <h3 className="text-lg sm:text-xl font-bold text-ink mt-1">
@@ -1287,7 +1289,7 @@ export function LabMultiplesChart() {
 
       {/* 2D Interactive Scatter Plot SVG */}
       <div className="relative select-none overflow-hidden rounded-xl border border-rule bg-surface-2 p-2 sm:p-4">
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto cursor-default">
+        <svg role="img" aria-label="Frontier AI lab valuation versus run-rate revenue scatter chart" viewBox={`0 0 ${width} ${height}`} className="w-full h-auto cursor-default">
           {/* Gridlines for Y Axis (Valuation $B) */}
           {(scaleMode === "log" ? [5, 20, 100, 500, 1000, 2000] : [0, 500, 1000, 1500, 2000]).map(
             (val) => {

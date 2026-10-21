@@ -236,10 +236,10 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
       <div className="space-y-4 border-b border-rule px-4 py-4 sm:px-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight text-ink">
+            <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight text-ink">
               <Newspaper className="h-5 w-5 text-ink-subtle" aria-hidden="true" />
               <span>AI Capital, Debt &amp; Infrastructure Coverage</span>
-            </h3>
+            </h2>
             <p className="prose prose-p max-w-2xl text-sm">
               Publicly reported market coverage on cloud debt issuances, GPU purchase orders, and
               frontier lab capitalization. Headlines are collected once a day and are reproduced
@@ -417,12 +417,12 @@ export function LiveNewsFeed({ items = [] }: { items?: NewsItem[] }) {
                         rel="noopener noreferrer"
                         className="group mt-1 block min-h-11 py-0.5"
                       >
-                        <h4
+                        <h3
                           id={titleId}
                           className="text-[15px] font-semibold leading-snug text-ink underline decoration-rule underline-offset-4 group-hover:decoration-ink"
                         >
                           {item.title}
-                        </h4>
+                        </h3>
                       </a>
 
                       {item.summary ? (

@@ -307,7 +307,7 @@ export function PolymarketCharts() {
       : "";
 
   return (
-<div className="card card-flush overflow-hidden shadow-card">
+<div className="space-y-6">
       {/* Polymarket Partner Integration Header */}
       <div className="border-b border-rule px-4 py-4 sm:px-5 sm:py-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

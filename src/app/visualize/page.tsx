@@ -402,9 +402,9 @@ return (
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-rule pb-2.5">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-[var(--c-accent)]" aria-hidden="true" />
-            <h3 className="text-[14px] font-bold text-ink uppercase tracking-wider">
+            <h2 className="text-[14px] font-bold text-ink uppercase tracking-wider">
               Unified Ledger Filter Instrument
-            </h3>
+            </h2>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="pill text-[12px] font-semibold text-ink">
@@ -649,9 +649,9 @@ return (
                   </span>
                   <span className="text-[14px] text-ink-subtle">• Counterparty Geometry</span>
                 </div>
-                <h4 className="font-bold text-ink text-sm sm:text-base">
+                <h3 className="font-bold text-ink text-sm sm:text-base">
                   Reading the Deal Universe Map
-                </h4>
+                </h3>
                 <p className="text-[14px] sm:text-sm text-ink-muted leading-relaxed max-w-4xl">
                   Analysts examine cluster density and counterparty concentration: the top 10 deals command <strong>{topTenSharePct}%</strong> of the total ${totalDisclosedT} volume.
                   When bubble pods group around vendor-financed take-or-pay capacity agreements (CoreWeave, Oracle, Crusoe), it signals circular capital loops
@@ -710,9 +710,9 @@ return (
                   </span>
                   <span className="text-[14px] text-ink-faint">• Inflection Physics</span>
                 </div>
-                <h4 className="font-bold text-ink text-sm sm:text-base">
+                <h3 className="font-bold text-ink text-sm sm:text-base">
                   Why Fragility Accelerates Past 55 Points
-                </h4>
+                </h3>
                 <p className="text-[15px] text-ink-muted leading-relaxed max-w-4xl">
                   Linear models fail in financial super-cycles because debt refinancing fragility accelerates non-linearly. Below 50 points, liquidity absorbs shocks smoothly.
                   Beyond the 55-point Kelly anchor, probability spikes hyperbolically (moving from 55 to 61.2 points vaults probability from 50.0% to 68.4%).
@@ -769,9 +769,9 @@ return (
                   </span>
                   <span className="text-[14px] text-ink-faint">• Multiple Compression</span>
                 </div>
-                <h4 className="font-bold text-ink text-sm sm:text-base">
+                <h3 className="font-bold text-ink text-sm sm:text-base">
                   The Impossibility of Sustaining 30×+ P/S at a 5.1% Risk-Free Rate
-                </h4>
+                </h3>
                 <p className="text-[15px] text-ink-muted leading-relaxed max-w-4xl">
                   Frontier labs trade at a {medianPs.toFixed(1)}× median P/S multiple (with labs like Mistral at 53.3× and Perplexity at 40×). Even with OpenAI scaling to $50.0B ARR and Anthropic to $65.0B ARR, justifying these valuations
                   without massive multiple contraction toward the 10× historical SaaS equilibrium requires continuous hypergrowth.
@@ -828,9 +828,9 @@ return (
                   </span>
                   <span className="text-[14px] text-ink-faint">• Seniority Hierarchy</span>
                 </div>
-                <h4 className="font-bold text-ink text-sm sm:text-base">
+                <h3 className="font-bold text-ink text-sm sm:text-base">
                   Senior Creditor Claims vs First-Loss Equity Cushions
-                </h4>
+                </h3>
                 <p className="text-[14px] sm:text-sm text-ink-muted leading-relaxed max-w-4xl">
                   Credit desks partition the ${totalDisclosedT} stack into two regimes: {CAPITAL_SEGMENT_TOTALS.equity.amount} in private equity acts as loss-absorbing cushion, but the {CAPITAL_SEGMENT_TOTALS.debt.amount} in borrowed debt
                   (Broadcom, Blackstone, CoreWeave) and {CAPITAL_SEGMENT_TOTALS.compute.amount} in take-or-pay compute leases carry rigid cash interest and delivery penalties.
@@ -884,9 +884,9 @@ return (
                   </span>
                   <span className="text-[14px] text-ink-faint">• Leading Indicator</span>
                 </div>
-                <h4 className="font-bold text-ink text-sm sm:text-base">
+                <h3 className="font-bold text-ink text-sm sm:text-base">
                   Why Credit Default Swaps Precede Equity Deratings
-                </h4>
+                </h3>
                 <p className="text-[14px] sm:text-sm text-ink-muted leading-relaxed max-w-4xl">
                   With hyperscalers and neoclouds deploying $865B on compute and power — $725B guided CY2026 capex (Amazon ~$220B, Alphabet $195–205B, Microsoft ~$175B, Meta $130–145B, Jul 2026 calls) plus a $140B power/depreciation run-rate — against $159B of reported enterprise AI ARR, the $706B annual cash deficit is sustained
                   by Big Tech balance sheets. Bond investors re-price first: Oracle 5Y CDS widening {orclStressPct}% (from {orclBase} bp to {orclCds} bp) signals credit market skepticism.

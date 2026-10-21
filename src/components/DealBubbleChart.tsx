@@ -2427,7 +2427,7 @@ export function DealBubbleChart({
                 <h3 className="text-base font-bold text-ink tracking-tight">
                   Ranked Capital Allocation Disclosures ({rankedDeals.length} transactions)
                 </h3>
-                <p className="text-[13px] text-ink-muted">
+                <p className="text-[14px] text-ink-muted">
                   Every transaction ranked largest first by verified disclosed amount. The amount is printed directly on each bar.
                 </p>
               </div>
@@ -2443,8 +2443,15 @@ export function DealBubbleChart({
             </div>
 
             {rankedDeals.length === 0 ? (
-              <div className="py-12 text-center text-[14px] text-ink-muted">
-                No deals match current filter criteria.
+              <div className="py-12 text-center text-[14px] text-ink-muted space-y-3">
+                <p>No deals match current filter criteria.</p>
+                <button
+                  type="button"
+                  onClick={() => handleSelectCat("All")}
+                  className="btn btn-ghost inline-flex min-h-11 items-center px-3 py-1.5 text-xs"
+                >
+                  Reset category filter
+                </button>
               </div>
             ) : (
               <ol className="space-y-2 max-h-[620px] overflow-y-auto pr-1" role="list">

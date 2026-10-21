@@ -1101,7 +1101,7 @@ export function ProbabilityGauge({
           type="button"
           onClick={() => setShowPlainEnglishGuide(!showPlainEnglishGuide)}
           aria-expanded={showPlainEnglishGuide}
-          className="flex min-h-11 w-full items-center justify-between gap-3 rounded-sm border border-rule px-3 py-2 text-left hover:border-rule-strong"
+          className="flex min-h-11 w-full items-center justify-between gap-3 rounded-sm border border-rule px-3 py-2 text-left hover:border-rule-strong print:hidden"
         >
           <span className="min-w-0">
             <span className="block text-sm font-semibold text-ink">In plain English</span>
@@ -1118,8 +1118,8 @@ export function ProbabilityGauge({
           </span>
         </button>
 
-        {showPlainEnglishGuide && (
-          <div className="notice mt-2">
+        <div className={`notice mt-2 ${showPlainEnglishGuide ? "block" : "hidden print:block"}`}>
+            <div className="print:block">
             <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
               <div>
                 <p className="font-semibold text-ink">What does {currentProb.toFixed(1)}% mean?</p>
@@ -1151,8 +1151,8 @@ export function ProbabilityGauge({
                 </p>
               </div>
             </div>
+            </div>
           </div>
-        )}
       </div>
 
       {/* ── Crowd comparison ────────────────────────────────────────────────── */}
@@ -1302,6 +1302,55 @@ export function ProbabilityGauge({
           </div>
         </div>
       </div>
+
+      {/* ── Accessible Table Fallback: Gauge Readings, Levers & Trajectory ── */}
+      <table className="sr-only">
+        <caption>
+          Model Burst Probability, Composite Score, Risk Band, Levers and 90-Day Trajectory
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Metric / Parameter</th>
+            <th scope="col">Value</th>
+            <th scope="col">Context / Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">12-Month Burst Probability</th>
+            <td>{currentProb.toFixed(1)}%</td>
+            <td>Band: {currentBand}</td>
+          </tr>
+          <tr>
+            <th scope="row">Composite Stress Score</th>
+            <td>{currentComposite.toFixed(1)} pts</td>
+            <td>0-100 scale, calibrated across 6 historical episodes</td>
+          </tr>
+          <tr>
+            <th scope="row">Fragility Index</th>
+            <td>{currentFragility.toFixed(1)}</td>
+            <td>Minsky financial fragility score</td>
+          </tr>
+          {whatIfScenarios.map((sc) => {
+            const res = sc.modify(initialInputs);
+            const ev = evaluateBubbleModel(res);
+            return (
+              <tr key={sc.id}>
+                <th scope="row">What-If: {sc.label}</th>
+                <td>{ev.burstProbability.toFixed(1)}%</td>
+                <td>{sc.description}</td>
+              </tr>
+            );
+          })}
+          {trajectoryPoints.slice(-10).map((pt) => (
+            <tr key={pt.date}>
+              <th scope="row">Historical Print ({pt.date})</th>
+              <td>{pt.probability.toFixed(1)}%</td>
+              <td>Daily canonical model trajectory</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
