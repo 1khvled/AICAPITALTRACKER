@@ -25,6 +25,9 @@ import rawLiveInputs from "@/data/live-inputs.json";
 import { CrowdTrendChart, type CrowdTrendPoint } from "./_components/CrowdTrendChart";
 import { LiveBookTable } from "./_components/LiveBookTable";
 import { ReferralCodeCopy } from "./_components/ReferralCodeCopy";
+import { ModelVsMarketGapChart } from "./_components/ModelVsMarketGapChart";
+import { ContractMapChart, type ContractPoint } from "./_components/ContractMapChart";
+import { CategoryTrajectoryChart } from "./_components/CategoryTrajectoryChart";
 
 /**
  * /prediction-markets — what the crowd is pricing, what the model prints, and
@@ -280,6 +283,36 @@ const bookRows: BookRow[] = liveMarkets.map((m) => {
   };
 });
 
+const mapContracts: ContractPoint[] = liveMarkets.map((m) => {
+  const feat = POLYMARKET_FEATURED_MARKETS.find(
+    (f) => f.slug === m.slug || f.id === m.id || m.question.toLowerCase().includes(f.title.toLowerCase())
+  );
+  let category: string = feat?.category ?? "Bubble & Downturn";
+  const q = m.question.toLowerCase();
+  if (!feat) {
+    if (q.includes("recession") || q.includes("fed") || q.includes("macro")) {
+      category = "Macro Tech";
+    } else if (q.includes("ipo") || q.includes("agi") || q.includes("anthropic") || q.includes("openai")) {
+      category = "Frontier Labs";
+    } else if (q.includes("oracle") || q.includes("debt") || q.includes("cds")) {
+      category = "Debt & Sovereign";
+    }
+  }
+  const deadlineMs = parseDeadline(m.endDate);
+  const { closed } = classifyContract(m, deadlineMs);
+  return {
+    id: m.id,
+    title: m.question,
+    category,
+    yesProbabilityPct: m.yesProbabilityPct,
+    volumeUsd: m.volumeUsd,
+    liquidityUsd: m.liquidityUsd ?? feat?.liquidityUsd ?? Math.round(m.volumeUsd * 0.05),
+    referralUrl: polymarketOutcomeUrl(m.referralUrl, "Yes"),
+    closed,
+    deadline: formatDeadline(deadlineMs, m.endDate),
+  };
+});
+
 const byVolume = (a: BookRow, b: BookRow) =>
   (b.market.volumeUsd ?? 0) - (a.market.volumeUsd ?? 0);
 
@@ -496,6 +529,18 @@ export default function PredictionMarketsPage() {
         title="The model and the market, side by side"
         lead="One number is computed from filed receipts and daily market prints. The other is computed from money that people put at risk. They are answering slightly different questions, and they disagree."
       >
+        <ModelVsMarketGapChart
+          modelProbability={model.burstProbability}
+          modelScore={model.compositeScore}
+          contract2026Prob={sixMonthPct}
+          contract2027Prob={twelveMonthPct}
+          marketBandLow={liveMarketBand.lowPct}
+          marketBandHigh={liveMarketBand.highPct}
+          marketBandCentral={liveMarketBand.centralPct}
+          contract2026Label="December 2026 Contract"
+          contract2027Label="June 2027 Contract"
+        />
+
         <div className="overflow-x-auto rounded-xl border border-rule">
           <table className="w-full text-left text-[14px]">
             <caption className="sr-only">
@@ -772,6 +817,8 @@ export default function PredictionMarketsPage() {
         title="The live book"
         lead="Every tracked contract, with the price the market is printing right now and the money behind it. Closed contracts stay in the table and are marked as closed — they are not quietly dropped."
       >
+        <ContractMapChart contracts={mapContracts} />
+
         <LiveBookTable openRows={openRows} closedRows={closedRows} />
 
         <div className="notice">
@@ -807,9 +854,15 @@ export default function PredictionMarketsPage() {
       <Section
         id="price-history"
         kicker="Section 03 · The history"
-        title="How the crowd's price has moved"
-        lead="Two series, drawn from the published history: what the December 2026 and June 2027 contracts have been priced at since the first of them."
+        title="Category trajectory: how the crowd's price has moved"
+        lead="The four tracked series across bubble contracts, Oracle CDS refinancing stress, and OpenAI milestones over their published 10-point trajectory, with the live snapshot bound to the terminal point."
       >
+        <CategoryTrajectoryChart
+          live2026Pct={live2026Pct}
+          live2027Pct={live2027Pct}
+          liveNote={`last point = live snapshot ${SNAPSHOT_DATE}`}
+        />
+
         <CrowdTrendChart
           points={trendPoints}
           liveNote={`last point = live snapshot ${SNAPSHOT_DATE}`}

@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import rawDeals from "@/data/deals.json";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import { DealBubbleChart, Deal } from "@/components/DealBubbleChart";
+import { CapitalWheelChart } from "@/components/CapitalWheelChart";
+import { CircularFinancingChart } from "@/components/CircularFinancingChart";
 import {
   SensitivityCurveChart,
   AiRevenueGapChart,
@@ -47,6 +49,8 @@ import Link from "next/link";
 
 export type VisualTab =
   | "all"
+  | "capital-wheel"
+  | "circular-financing"
   | "bubble-universe"
   | "sensitivity-sigmoid"
   | "frontier-multiples"
@@ -162,6 +166,18 @@ export default function VisualizePage() {
       label: "All Visualizations",
       icon: <Layers className="w-4 h-4" />,
       shortDesc: "Complete diagnostic series across capital, credit, and multiples",
+    },
+    {
+      id: "capital-wheel",
+      label: "Capital Wheel",
+      icon: <PieChart className="w-4 h-4 text-cat-teal" />,
+      shortDesc: "Radial architecture of the 169-deal ledger by category & debt seniority",
+    },
+    {
+      id: "circular-financing",
+      label: "Circular Financing",
+      icon: <ShieldAlert className="w-4 h-4 text-caution-700" />,
+      shortDesc: "7 counterparty loops ($77.8B disclosed of $2.87T total book)",
     },
     {
       id: "bubble-universe",
@@ -306,7 +322,51 @@ return (
       </nav>
 
       {/* ==================================================================== */}
-      {/* 1. BUBBLE UNIVERSE: Interactive DealBubbleChart Physics Map */}
+      {/* 1. THE CAPITAL WHEEL: Radial Architecture of the 169-Deal Ledger */}
+      {/* ==================================================================== */}
+      {(activeTab === "all" || activeTab === "capital-wheel") && (
+        <section id="capital-wheel" className="space-y-4">
+          <Reveal>
+            <div className="flex flex-col gap-2 border-b border-rule pb-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <PieChart className="w-5 h-5 text-cat-teal" />
+                <h2 className="text-xl sm:text-2xl font-bold text-ink">
+                  The Capital Wheel: Radial Architecture of the ${totalDisclosedT}T Ledger
+                </h2>
+              </div>
+              <span className="text-[14px] text-ink-subtle">
+                9 Ledger Categories • Share of Capital • Senior Debt Inner Band • Circular Notches
+              </span>
+            </div>
+          </Reveal>
+          <CapitalWheelChart />
+        </section>
+      )}
+
+      {/* ==================================================================== */}
+      {/* 2. CIRCULAR FINANCING: Counterparty Capital Loops */}
+      {/* ==================================================================== */}
+      {(activeTab === "all" || activeTab === "circular-financing") && (
+        <section id="circular-financing" className="space-y-4">
+          <Reveal>
+            <div className="flex flex-col gap-2 border-b border-rule pb-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-caution-700" />
+                <h2 className="text-xl sm:text-2xl font-bold text-ink">
+                  Circular Financing: Counterparty Capital Loops
+                </h2>
+              </div>
+              <span className="text-[14px] text-ink-subtle">
+                7 of 169 Records • Vendor Leases &amp; Warrants • Closed Financial Feedback Loops
+              </span>
+            </div>
+          </Reveal>
+          <CircularFinancingChart />
+        </section>
+      )}
+
+      {/* ==================================================================== */}
+      {/* 3. BUBBLE UNIVERSE: Interactive DealBubbleChart Physics Map */}
       {/* ==================================================================== */}
       {(activeTab === "all" || activeTab === "bubble-universe") && (
         <section id="bubble-universe" className="space-y-4">
