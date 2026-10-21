@@ -1303,8 +1303,12 @@ export function ProbabilityGauge({
         </div>
       </div>
 
-      {/* ── Accessible Table Fallback: Gauge Readings, Levers & Trajectory ── */}
-      <table className="sr-only">
+      {/* ── Accessible Table Fallback: Gauge Readings, Levers & Trajectory ──
+          The sr-only class goes on a WRAPPER, not on the table: a table's box
+          is sized by its content, so a table carrying sr-only itself grows to
+          its natural width and pushes the page sideways. A div clips it. */}
+      <div className="sr-only">
+        <table>
         <caption>
           Model Burst Probability, Composite Score, Risk Band, Levers and 90-Day Trajectory
         </caption>
@@ -1351,6 +1355,7 @@ export function ProbabilityGauge({
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

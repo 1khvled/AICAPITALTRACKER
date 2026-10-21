@@ -354,23 +354,19 @@ export function LiveBookTable({
                       href={row.yesUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label={`Trade on Polymarket: ${row.market.question} — YES`}
                       className="btn min-h-11 whitespace-nowrap"
                     >
                       <span aria-hidden="true">YES</span>
-                      <span className="sr-only">
-                        Trade on Polymarket: {row.market.question} — YES
-                      </span>
                     </a>
                     <a
                       href={row.noUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label={`Trade on Polymarket: ${row.market.question} — NO`}
                       className="btn min-h-11 whitespace-nowrap"
                     >
                       <span aria-hidden="true">NO</span>
-                      <span className="sr-only">
-                        Trade on Polymarket: {row.market.question} — NO
-                      </span>
                     </a>
                   </div>
                 </td>
@@ -457,23 +453,19 @@ export function LiveBookTable({
                       href={row.yesUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label={`Trade on Polymarket: ${row.market.question} — YES`}
                       className="btn min-h-11 whitespace-nowrap"
                     >
                       <span aria-hidden="true">YES</span>
-                      <span className="sr-only">
-                        Trade on Polymarket: {row.market.question} — YES
-                      </span>
                     </a>
                     <a
                       href={row.noUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label={`Trade on Polymarket: ${row.market.question} — NO`}
                       className="btn min-h-11 whitespace-nowrap"
                     >
                       <span aria-hidden="true">NO</span>
-                      <span className="sr-only">
-                        Trade on Polymarket: {row.market.question} — NO
-                      </span>
                     </a>
                   </div>
                 </td>

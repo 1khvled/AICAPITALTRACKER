@@ -312,8 +312,12 @@ export function WhatChangedChart() {
         </div>
       </div>
 
-      {/* Accessible Table Fallback */}
-      <table className="sr-only">
+      {/* Accessible Table Fallback. The sr-only class goes on a WRAPPER, not
+          on the table: a table's box is sized by its content, so a table
+          carrying sr-only itself grows to its natural width and pushes the
+          page sideways. A div clips it. */}
+      <div className="sr-only">
+        <table>
         <caption>
           Published model trajectory: burst probability and composite score across published dates.
         </caption>
@@ -338,6 +342,7 @@ export function WhatChangedChart() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
