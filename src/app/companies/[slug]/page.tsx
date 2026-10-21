@@ -131,7 +131,11 @@ export default function CompanyDossierPage({ params }: PageProps) {
                   : "Announced infrastructure partnership; financial terms not disclosed."}
               </p>
               <p className="text-ink-subtle">
-                What this is NOT: Not total company capex, cash reserves, or balance-sheet equity.
+                What this is NOT: Not total company capex (capital expenditure: cash spent to build physical data centers and buy chips), cash reserves, or balance-sheet equity. See{" "}
+                <Link href="/glossary#capex-to-free-cash-flow" className="underline hover:text-ink">
+                  capex in glossary
+                </Link>
+                .
               </p>
             </div>
           </div>
@@ -185,11 +189,15 @@ export default function CompanyDossierPage({ params }: PageProps) {
             <div className="space-y-1 border-t border-rule pt-2 text-[14px] leading-snug">
               <p className="text-ink font-medium">
                 {company.runRateRevenueUsd
-                  ? `Valuation divided by ${formatUsd(company.runRateRevenueUsd)} annual run-rate revenue.`
+                  ? `P/S multiple (price to sales: valuation divided by ${formatUsd(company.runRateRevenueUsd)} annual run-rate revenue; revenue valued at ${company.psMultiple}\u00d7).`
                   : "Run-rate revenue not separately broken out in public disclosures."}
               </p>
               <p className="text-ink-subtle">
-                What this is NOT: A multiple is not a valuation, nor does it measure net margin or debt service ability.
+                What this is NOT: A P/S multiple is not a valuation, nor does it measure net profit margin or debt service ability. See{" "}
+                <Link href="/glossary#price-to-sales" className="underline hover:text-ink">
+                  P/S multiple in glossary
+                </Link>
+                .
               </p>
             </div>
           </div>

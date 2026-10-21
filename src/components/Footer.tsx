@@ -29,6 +29,9 @@ const DIRECTORY: { title: string; links: { label: string; href: string; note?: s
     title: "The read",
     links: [
       { label: "Verdict", href: "/", note: "12-month burst probability" },
+      { label: "Will it burst?", href: "/will-the-ai-bubble-burst", note: "The 12-month outlook" },
+      { label: "AI spending", href: "/how-much-is-being-spent-on-ai", note: "All $2.87T tracked" },
+      { label: "AI debt", href: "/how-much-ai-debt-there-is", note: "Loans, bonds & refinancing" },
       { label: "Method", href: "/methodology", note: "Every formula and weight" },
       { label: "Guides", href: "/guides", note: "Plain-language explainers" },
       { label: "Glossary", href: "/glossary", note: "The vocabulary, defined" },

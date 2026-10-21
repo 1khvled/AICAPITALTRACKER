@@ -85,11 +85,11 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: "AI Capital Tracker — Will the AI Bubble Burst in the Next 12 Months?",
+    default: "Will the AI Bubble Burst? — 12-Month Outlook & Spending Tracker | AI Capital Tracker",
     template: "%s | AI Capital Tracker",
   },
   description:
-    "The chance the AI bubble bursts within 12 months, read from filings and daily credit spreads — plus the full ledger of sourced AI deals. No spin.",
+    "An independent research desk tracking $2.87T in AI spending and $214.9B in debt to calculate one number: the chance the AI bubble bursts within 12 months. No hype, just verified filings.",
   keywords: [
     "AI bubble",
     "AI bubble burst probability",
@@ -118,9 +118,9 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "AI Capital Tracker — Will the AI Bubble Burst in the Next 12 Months?",
+    title: "Will the AI Bubble Burst? — 12-Month Outlook & Spending Tracker | AI Capital Tracker",
     description:
-      "A receipt-backed model that converts SEC filings, credit default swap spreads, lab revenue and token economics into a 12-month bubble burst probability.",
+      "A receipt-backed model that tracks $2.87T of AI spending, $214.9B of debt, and turns SEC filings and credit spreads into a 12-month bubble burst probability.",
     url: baseUrl,
     siteName: "AI Capital Tracker",
     locale: "en_US",
@@ -128,9 +128,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AI Capital Tracker — Will the AI Bubble Burst in the Next 12 Months?",
+    title: "Will the AI Bubble Burst? — 12-Month Outlook & Spending Tracker | AI Capital Tracker",
     description:
-      "An empirical model that turns SEC filings and debt commitments into a 12-month AI bubble burst probability.",
+      "An empirical model that turns corporate filings, Big Tech capex, and debt commitments into a 12-month AI bubble burst probability.",
     creator: "@aicapitaltracker",
   },
   robots: {

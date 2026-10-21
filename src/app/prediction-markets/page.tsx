@@ -568,13 +568,16 @@ export default function PredictionMarketsPage() {
                 <td className="num p-3 text-right font-semibold text-ink">
                   {model.burstProbability.toFixed(1)}%
                   <span className="block text-[14px] font-normal text-ink-subtle">
-                    composite {model.compositeScore.toFixed(1)} · model v{model.modelVersion}
+                    <Link href="/glossary#composite-score" className="underline hover:text-ink">
+                      composite score
+                    </Link>{" "}
+                    {model.compositeScore.toFixed(1)} · model v{model.modelVersion}
                   </span>
                 </td>
                 <td className="p-3 text-ink-muted">
                   The site&rsquo;s own estimate that an AI capital bubble bursts inside twelve
                   months, computed from {RISK_FACTOR_COUNT} weighted risk factors less one
-                  real-use damper. It is the number this site publishes everywhere else.
+                  real-use damper. The composite score (0–100, higher is worse) maps through a logistic curve to produce this probability.
                 </td>
               </tr>
               <tr>
@@ -855,7 +858,7 @@ export default function PredictionMarketsPage() {
         id="price-history"
         kicker="Section 03 · The history"
         title="Category trajectory: how the crowd's price has moved"
-        lead="The four tracked series across bubble contracts, Oracle CDS refinancing stress, and OpenAI milestones over their published 10-point trajectory, with the live snapshot bound to the terminal point."
+        lead="The four tracked series across bubble contracts, Oracle CDS refinancing stress (credit default swap: the market cost of insuring Oracle's debt against default), and OpenAI milestones over their published 10-point trajectory, with the live snapshot bound to the terminal point."
       >
         <CategoryTrajectoryChart
           live2026Pct={live2026Pct}

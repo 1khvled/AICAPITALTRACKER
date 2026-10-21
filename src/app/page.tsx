@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowDown, ArrowRight } from "lucide-react";
 
 import rawDeals from "@/data/deals.json";
 import trajectoryHistory from "@/data/trajectory-history.json";
@@ -13,8 +13,9 @@ import { DriverSection } from "@/components/home/DriverSection";
 import { FlipSection } from "@/components/home/FlipSection";
 import { ReceiptsBand } from "@/components/home/ReceiptsBand";
 import { ModelNote } from "@/components/home/ModelNote";
-import { formatAsOf, formatTrillions } from "@/components/home/copy";
+import { formatAsOf, formatTrillions, formatBillions } from "@/components/home/copy";
 import { WhatChangedChart } from "@/components/home/WhatChangedChart";
+import { FactorContributionChart } from "@/components/home/FactorContributionChart";
 import { marketImplied12mBand } from "@/lib/model/factors";
 import liveInputs from "@/data/live-inputs.json";
 import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
@@ -22,6 +23,7 @@ import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 interface TrajectoryPointLite {
   date?: string;
   probability?: number;
+  originalPrintPct?: number;
   /** True when the pipeline seeded the point instead of observing it. */
   backfilled?: boolean;
 }
@@ -37,6 +39,11 @@ export default function HomePage() {
   const totalDeals = rawDeals.length;
   const totalDisclosedUsd = rawDeals.reduce((sum, deal) => sum + (deal.amount_usd || 0), 0);
   const trackedLabel = formatTrillions(totalDisclosedUsd);
+
+  // ── Debt aggregates (computed directly from tracked deals) ────────────────
+  const debtDeals = rawDeals.filter((deal) => deal.is_debt);
+  const totalDebtUsd = debtDeals.reduce((sum, deal) => sum + (deal.amount_usd || 0), 0);
+  const debtLabel = formatBillions(totalDebtUsd);
 
   // ── The crowd's live price (the daily Polymarket snapshot) ─────────────────
   const crowd = liveInputs.crowd;
@@ -62,8 +69,6 @@ export default function HomePage() {
     typeof latestPoint?.probability === "number" && typeof firstPoint?.probability === "number"
       ? Math.round((latestPoint.probability - firstPoint.probability) * 10) / 10
       : null;
-  // 2026-10-19 (round-2 consolidation): the pipeline seeds the early part of the 90-day
-  // curve (flagged "backfilled": true in trajectory-history.json) instead of observing it.
   // The count is disclosed next to the 90-day delta so the move is never read as 90 days
   // of recorded market history.
   const backfilledCount = history.filter((p) => p.backfilled === true).length;
@@ -74,24 +79,14 @@ export default function HomePage() {
     .sort((a, b) => b.earnedPoints - a.earnedPoints);
   const damper = result.contributions.find((factor) => factor.kind === "damper") ?? null;
 
-  const headlineDrivers = riskFactors
-    .slice(0, HEADLINE_DRIVER_COUNT)
-    .map((factor) => ({ id: factor.id, points: factor.earnedPoints }));
-
-  // Lightest reading first, heaviest last — the list escalates to the top driver.
-  //
-  // 2026-10-20: the detail list shows EVERY risk factor, not the top five. A
-  // page that says "9/9 factors priced" while showing five of them makes the
-  // reader hunt for the other four, and a model that hides 40% of itself is
-  // less credible than one that shows all of it. The sort axis is stated on the
-  // list: by CONTRIBUTION to the print, not by published weight.
+  // Detail list shows all factors ordered by contribution
   const detailDrivers = [...riskFactors].sort((a, b) => a.earnedPoints - b.earnedPoints);
 
   const pricedFactors = result.contributions.filter((factor) => factor.reading.coverage > 0).length;
 
   return (
     <div className="space-y-10 sm:space-y-14">
-      {/* ── 1 · The answer, above the fold ─────────────────────────────────── */}
+      {/* ── 1 · The answer, above the fold (in plain English) ──────────────── */}
       <AnswerBlock
         probability={result.burstProbability}
         band={result.band}
@@ -99,32 +94,37 @@ export default function HomePage() {
         delta90={delta90}
         backfilledCount={backfilledCount}
         trackedLabel={trackedLabel}
+        debtLabel={debtLabel}
         dealsCount={totalDeals}
+        debtDealsCount={debtDeals.length}
         pricedFactors={pricedFactors}
         totalFactors={result.contributions.length}
-        drivers={headlineDrivers}
-        contributions={result.contributions}
-        compositeScore={result.compositeScore}
-        systemicContagionPoints={result.systemicContagionPoints}
       />
 
-      {/* ── 1b · What changed, and what this number is not ─────────────────────
-          The caveats used to live on /methodology, which is where a reader who
-          goes looking for them finds them. The number is here, so the
-          qualifications belong here too: what moved, and what the print is not. */}
+      {/* ── 1b · Why the print moved, and what this number is not ──────────── */}
       <Reveal>
         <div className="panel space-y-4 rule-accent-left pl-4">
           <WhatChangedChart />
-          <p className="label flex items-center gap-1.5 pt-2"><span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--c-accent)]" aria-hidden="true" />Why the print moved</p>
+          <p className="label flex items-center gap-1.5 pt-2">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--c-accent)]" aria-hidden="true" />
+            Why the print moved
+          </p>
           <p className="text-[15px] leading-relaxed text-ink-muted">
-            Model v2.7.0 raised the credit factor&apos;s ramp ceiling from ×3 to ×7.556 of
-            baseline after the factor was found <em>pinned at its maximum</em>. It had been
-            adding a flat 18 of 18 points — 46.3 of the 72.3 probability points — for every
-            print above 243bp, so a record credit spread and a merely elevated one scored
-            identically. The print moved{" "}
-            <strong className="font-semibold text-ink">72.3% → 32.3%</strong> with no input
-            change. The factor moves again across the range that matters now, and the published
-            band follows the market.{" "}
+            The print moved because the credit reading was found to be scoring two very different situations the same way, and it now separates them.
+            {firstPoint?.originalPrintPct && (
+              <span>
+                {" "}The model recalibrated from{" "}
+                <strong className="font-semibold text-ink">
+                  {firstPoint.originalPrintPct.toFixed(1)}%
+                </strong>{" "}
+                to{" "}
+                <strong className="font-semibold text-ink">
+                  {result.burstProbability.toFixed(1)}%
+                </strong>{" "}
+                with no change in underlying market data, restoring sensitivity above extreme credit spreads so the published band follows the market.
+              </span>
+            )}
+            {" "}
             <Link href="/methodology#sigmoid" className="text-ink underline decoration-rule underline-offset-4 hover:decoration-ink">
               See the method
             </Link>
@@ -133,18 +133,13 @@ export default function HomePage() {
           <p className="label pt-1">What {result.burstProbability.toFixed(1)}% is not</p>
           <ul className="not-this-body space-y-1.5 text-[15px] leading-relaxed text-ink-muted">
             <li>
-              It is not a validated probability. The composite maps through a chosen sigmoid
-              (anchor 55, slope 9) — a published judgement, not a parameter set fitted to
-              outcomes.
+              It is not a certainty, market timing signal, or trading recommendation. It calculates statistical odds of an infrastructure correction from filed debt and corporate cash flows.
             </li>
             <li>
-              It carries no false-positive record. All five resolved episodes in the
-              consistency table burst; there is no episode in which a stressed regime failed to
-              break, so the table cannot tell you how often the model cries wolf.
+              It does not predict that artificial intelligence technology is overhyped or unviable; it measures whether the current corporate borrowing and hardware build-out can sustain itself without defaults or severe cutbacks.
             </li>
             <li>
-              The range beside it is an input-sensitivity range, not a confidence interval: it
-              is how far the print moves when the inputs move, not a 95% interval.
+              The published range beside it is an input-sensitivity range (showing how far the score shifts when interest rates or credit default swaps change), not a statistical confidence interval.
             </li>
           </ul>
         </div>
@@ -153,7 +148,7 @@ export default function HomePage() {
       {/* Leaderboard sits BELOW the answer — this page's promise is "the answer, above the fold" */}
       <AdSlot placementId="home-leaderboard" />
 
-      {/* ── 2 · The full breakdown: the model, then what it is made of ──────── */}
+      {/* ── 2 · Demoted machinery: factor weights, composite scores & models ─ */}
       <section id="breakdown" aria-labelledby="breakdown-heading">
         <Reveal>
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
@@ -161,15 +156,29 @@ export default function HomePage() {
               id="breakdown-heading"
               className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-2xl"
             >
-              The full breakdown
+              The quantitative machinery
             </h2>
-            <span className="label">12-month horizon</span>
+            <Link
+              href="/methodology"
+              className="inline-flex min-h-[44px] items-center gap-1 text-[13px] font-medium text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
+            >
+              See full mathematical methodology &amp; formulas
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
           </div>
-          <p className="mb-4 mt-1.5 max-w-2xl text-sm leading-relaxed text-ink-muted">
-            Eight risk factors plus one damper, each with a fixed published weight. The scenarios below
-            flex one input at a time.
+          <p className="mb-4 mt-1.5 max-w-2xl text-[15px] leading-relaxed text-ink-muted">
+            For researchers and quantitative analysts: the composite score (0–100, combining 8 financial risk factors and 1 real-use adoption damper; higher score means greater stress), Minsky fragility index (partitioning debt into hedge, speculative, and Ponzi regimes), and systemic contagion points that produce the {result.burstProbability.toFixed(1)}% print.
           </p>
         </Reveal>
+
+        {/* Factor contributions chart: demoted from hero to machinery section */}
+        <div className="mb-6">
+          <FactorContributionChart
+            contributions={result.contributions}
+            compositeScore={result.compositeScore}
+            systemicContagionPoints={result.systemicContagionPoints}
+          />
+        </div>
 
         <ProbabilityGauge
           probability={result.burstProbability}
@@ -271,8 +280,7 @@ export default function HomePage() {
             <p className="prose prose-p mt-3 max-w-reading text-[15px]">
               The market reads this question faster and with less machinery than we do, and it is
               published here because a research site that hides its disagreement with the crowd is
-              not doing research. It enters our model as one factor of eight, and its resolution
-              criteria are not identical to ours.
+              not doing research. Prediction-market odds reflect the real-money trading price of contracts on Polymarket, not an analyst&rsquo;s opinion. It enters our model as one factor of eight, and its resolution criteria are not identical to ours.
             </p>
             <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[14px] text-ink-subtle">
               <a
@@ -285,8 +293,8 @@ export default function HomePage() {
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </a>
               <span className="max-w-reading">
-                Outbound links carry our referral code ({POLYMARKET_REFERRAL_CODE}) and we may be paid.
-                They never change a number on this site.
+                Outbound links carry our referral code ({POLYMARKET_REFERRAL_CODE}) and we may be paid a referral fee.
+                Referral arrangements never change a number or model probability on this site.
               </span>
             </p>
           </div>

@@ -1,12 +1,12 @@
 import React from "react";
-import { ArrowDown } from "lucide-react";
-import type { BubbleBand, FactorContribution } from "@/lib/model/types";
-import { BAND_LABEL, BAND_TONE, BAND_VERDICT, factorPlain, formatAsOf } from "./copy";
+import Link from "next/link";
+import { ArrowDown, ArrowRight, ChevronDown, Info } from "lucide-react";
+import type { BubbleBand } from "@/lib/model/types";
+import { BAND_LABEL, BAND_TONE, BAND_VERDICT, formatAsOf } from "./copy";
 import { ScrollLink } from "./ScrollLink";
 import { CountUp } from "@/components/CountUp";
 import { Reveal } from "@/components/Reveal";
 import rawTrajectoryHistory from "@/data/trajectory-history.json";
-import { FactorContributionChart } from "./FactorContributionChart";
 
 export interface HeadlineDriver {
   id: string;
@@ -25,13 +25,11 @@ interface AnswerBlockProps {
    */
   backfilledCount: number;
   trackedLabel: string;
+  debtLabel: string;
   dealsCount: number;
+  debtDealsCount: number;
   pricedFactors: number;
   totalFactors: number;
-  drivers: HeadlineDriver[];
-  contributions?: FactorContribution[];
-  compositeScore?: number;
-  systemicContagionPoints?: number;
 }
 
 interface TrajectoryRowLite {
@@ -88,13 +86,11 @@ export function AnswerBlock({
   delta90,
   backfilledCount,
   trackedLabel,
+  debtLabel,
   dealsCount,
+  debtDealsCount,
   pricedFactors,
   totalFactors,
-  drivers,
-  contributions,
-  compositeScore,
-  systemicContagionPoints,
 }: AnswerBlockProps) {
   const firstObservedDate = FIRST_OBSERVED?.date ?? null;
 
@@ -133,34 +129,16 @@ export function AnswerBlock({
         )}
       </div>
 
-      {/* 2026-10-19 (lane 2b): the history disclosure. The seeded 90-day interpolation
-          is retired, so the answer never implies a reconstructed path: the history is
-          a run of observed canonical prints, and the day it covers carries a published
-          revision range. 12px metadata floor, existing ink tokens only. */}
-      <div className="mt-1.5 space-y-0.5 text-[12px] leading-tight text-ink-faint">
-        <p>
-          Trajectory history: canonical daily runs begin {formatAsOf(CANONICAL_HISTORY_START)}
-          {firstObservedDate ? ` (first observed point ${formatAsOf(firstObservedDate)})` : ""}.
-          Prior seeded interpolation retired per algorithm summit (model v2.6.0).
-        </p>
-        {revisionRangeText && <p>{revisionRangeText}</p>}
-        {backfilledCount > 0 && (
-          <p>
-            {backfilledCount} seeded backfill points are still present in the history file
-          </p>
-        )}
-      </div>
-
-      {/* Question */}
+      {/* The Question */}
       <h1
         id="answer-heading"
         className="mt-2 text-[30px] font-bold leading-[1.08] tracking-[-0.03em] text-ink sm:text-[44px] sm:leading-[1.04]"
       >
-        Will the AI bubble burst?
+        Will the AI bubble burst in the next 12 months?
       </h1>
 
-      {/* Number + plain-English meaning */}
-      <div className="mt-3 flex items-end gap-3 sm:gap-5">
+      {/* Number + ONE plain-English meaning sentence */}
+      <div className="mt-3 flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-5">
         <CountUp
           value={probability}
           decimals={1}
@@ -169,16 +147,12 @@ export function AnswerBlock({
           duration={800}
           className="num text-[46px] font-bold leading-none tracking-[-0.045em] text-ink sm:text-[60px]"
         />
-        <span className="max-w-[13rem] pb-1 text-[14px] leading-snug text-ink-muted sm:max-w-xs sm:text-sm">
-          Chance the AI build-out breaks, measured over the next 12 months.
-        </span>
+        <p className="max-w-xl pb-1 text-[15px] leading-snug text-ink-muted">
+          There is an estimated <strong className="font-semibold text-ink">{probability.toFixed(1)}% chance</strong> the artificial intelligence build-out suffers a sharp market contraction or credit crisis in the next 12 months.
+        </p>
       </div>
 
-      {/* The same number as a share of the twelve months: one rule, filled to
-          the published probability, in the band's own tone. It is a meter,
-          not decoration — the reader can see where the odds sit against the
-          full range without reading the digits. The track is a fixed height,
-          so the fill can never move the page. */}
+      {/* Meter bar */}
       <Reveal as="div" className="reveal-flat" delay={160}>
         <div
           className="mt-3.5 h-1.5 w-full max-w-2xl bg-surface-3"
@@ -191,25 +165,109 @@ export function AnswerBlock({
         </div>
       </Reveal>
 
-      {/* Verdict */}
-      <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-muted">
-        <span className="font-semibold text-accent-strong dark:text-accent-ink">{BAND_LABEL[band]} risk.</span>{" "}
-        {BAND_VERDICT[band]}
-      </p>
+      {/* The Band in plain words */}
+      <div className="mt-4 max-w-2xl text-[15px] leading-relaxed text-ink-muted">
+        <p>
+          <span className="font-semibold text-accent-strong dark:text-accent-ink">{BAND_LABEL[band]} risk:</span>{" "}
+          {BAND_VERDICT[band]}
+        </p>
+        <p className="mt-1 text-[14px] text-ink-subtle">
+          In plain English: Big Tech giants (Microsoft, Alphabet, Amazon, Meta) earn enough operating cash flow to fund chip purchases today, but heavy corporate borrowing and extreme lab valuations leave little margin for error if AI adoption slows.
+        </p>
+      </div>
 
-      {/* Single primary action */}
-      <div className="mt-4">
+      {/* What it means in dollars: from the ledger */}
+      <div className="mt-5 panel border-l-2 border-l-ink p-4 space-y-1.5 max-w-2xl">
+        <p className="label">What it means in dollars</p>
+        <p className="text-[15px] leading-relaxed text-ink-muted">
+          Behind this probability is <strong className="font-semibold text-ink">{trackedLabel}</strong> of tracked spending and <strong className="font-semibold text-ink">{debtLabel}</strong> of debt across <strong className="font-semibold text-ink">{dealsCount}</strong> verified transactions ({debtDealsCount} involving debt): companies are building data centers faster than AI software produces cash.
+        </p>
+      </div>
+
+      {/* The provenance of the print. It stays on the page and stays honest -
+          it just does not stand between the reader and the answer any more. */}
+      <details className="mt-5 max-w-2xl border-t border-rule pt-3">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-[14px] text-ink-muted [&::-webkit-details-marker]:hidden">
+          <Info className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden="true" />
+          <span className="font-semibold text-ink">How this print was produced</span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden="true" />
+        </summary>
+        <div className="mt-2 space-y-1.5 text-[12px] leading-relaxed text-ink-faint">
+          <p>
+            Trajectory history: canonical daily runs begin {formatAsOf(CANONICAL_HISTORY_START)}
+            {firstObservedDate ? ` (first observed point ${formatAsOf(firstObservedDate)})` : ""}.
+            Prior seeded interpolation retired per algorithm summit (model v2.6.0).
+          </p>
+          {revisionRangeText && <p>{revisionRangeText}</p>}
+          {backfilledCount > 0 && (
+            <p>{backfilledCount} seeded backfill points are still present in the history file</p>
+          )}
+        </div>
+      </details>
+
+      {/* Three plain-answer pages: the queries people actually search */}
+      <div className="mt-6 space-y-2.5 max-w-3xl">
+        <p className="label">Answers to what readers search for</p>
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+          <Link
+            href="/will-the-ai-bubble-burst"
+            className="card card-flush card-lift p-3.5 transition-shadow hover:shadow-raised"
+          >
+            <span className="text-[14px] font-semibold text-ink flex items-center justify-between">
+              Will the bubble burst?
+              <ArrowRight className="h-3.5 w-3.5 text-ink-muted shrink-0" aria-hidden="true" />
+            </span>
+            <span className="mt-1 block text-[13px] text-ink-subtle leading-snug">
+              The 12-month outlook, trajectory, and what would flip the odds
+            </span>
+          </Link>
+          <Link
+            href="/how-much-is-being-spent-on-ai"
+            className="card card-flush card-lift p-3.5 transition-shadow hover:shadow-raised"
+          >
+            <span className="text-[14px] font-semibold text-ink flex items-center justify-between">
+              How much is being spent?
+              <ArrowRight className="h-3.5 w-3.5 text-ink-muted shrink-0" aria-hidden="true" />
+            </span>
+            <span className="mt-1 block text-[13px] text-ink-subtle leading-snug">
+              All {trackedLabel} tracked across compute, data centers, and GPU hardware
+            </span>
+          </Link>
+          <Link
+            href="/how-much-ai-debt-there-is"
+            className="card card-flush card-lift p-3.5 transition-shadow hover:shadow-raised"
+          >
+            <span className="text-[14px] font-semibold text-ink flex items-center justify-between">
+              How much AI debt is there?
+              <ArrowRight className="h-3.5 w-3.5 text-ink-muted shrink-0" aria-hidden="true" />
+            </span>
+            <span className="mt-1 block text-[13px] text-ink-subtle leading-snug">
+              {debtLabel} in 24 loans, convertible bonds, and credit facilities
+            </span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Single primary action to demoted machinery */}
+      <div className="mt-6 flex flex-wrap items-center gap-3">
         <ScrollLink
           targetId="breakdown"
           className="btn btn-primary min-h-11 w-full text-sm sm:w-auto"
         >
-          <span>See the full breakdown</span>
+          <span>Inspect the quantitative machinery</span>
           <ArrowDown className="h-4 w-4" aria-hidden="true" />
         </ScrollLink>
+        <Link
+          href="/methodology"
+          className="btn min-h-11 w-full text-sm sm:w-auto"
+        >
+          <span>Read the mathematical methodology</span>
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
       </div>
 
       {/* Context rule: tracked volume, deal count, priced factors */}
-      <dl className="mt-5 grid grid-cols-3 gap-3 border-t border-rule pt-4 sm:mt-6">
+      <dl className="mt-6 grid grid-cols-3 gap-3 border-t border-rule pt-4 max-w-2xl">
         <div className="min-w-0">
           <dt className="label">Tracked capital</dt>
           <dd className="num mt-0.5 text-base font-semibold text-ink">{trackedLabel}</dd>
@@ -225,36 +283,6 @@ export function AnswerBlock({
           </dd>
         </div>
       </dl>
-
-      {/* Factor contributions chart: one horizontal bar per factor, ordered by contribution */}
-      {contributions && contributions.length > 0 ? (
-        <div className="mt-5">
-          <FactorContributionChart
-            contributions={contributions}
-            compositeScore={compositeScore ?? 48.5}
-            systemicContagionPoints={systemicContagionPoints ?? 2.8}
-          />
-        </div>
-      ) : drivers.length > 0 ? (
-        <div className="mt-3.5 flex flex-wrap items-center gap-x-2 gap-y-1.5">
-          <span className="label">Pushing it up</span>
-          <ul className="flex flex-wrap gap-1.5">
-            {drivers.map((driver, index) => {
-              const { short, gloss } = factorPlain(driver.id);
-              return (
-                <li key={driver.id}>
-                  <Reveal as="span" className="inline-block" delay={index * 40}>
-                    <span title={gloss} className="chip chip-risk">
-                      {short}
-                      <span className="num font-semibold">+{driver.points.toFixed(1)}</span>
-                    </span>
-                  </Reveal>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ) : null}
     </section>
   );
 }

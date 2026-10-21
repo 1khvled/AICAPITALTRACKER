@@ -33,7 +33,7 @@ const ledgerLinks = buildLedgerLinks(COMPANIES.map((c) => c.name));
 // from both sides, so the profile sum runs above the ledger sum.
 const committedRatio = `${(stats.totalVolumeUsd / ledger.totalUsd).toFixed(2)}\u00d7`;
 
-const TERMS: { term: string; plain: string }[] = [
+const TERMS: { term: string; plain: string; href?: string }[] = [
   {
     term: "Committed",
     plain: "The total value of the disclosed transactions attributed to this company in our ledger.",
@@ -41,18 +41,32 @@ const TERMS: { term: string; plain: string }[] = [
   {
     term: "Debt",
     plain: "Borrowed money — loans, bonds and convertible notes that must be repaid with interest.",
+    href: "/glossary#debt-share",
   },
   {
     term: "P/S multiple",
-    plain: "Price to sales: what investors pay for each dollar of a company's annual revenue. High multiples mean expectations, not cash.",
+    plain: "Price to sales: revenue valued at this many times by investors; what investors pay for each dollar of annual revenue.",
+    href: "/glossary#price-to-sales",
+  },
+  {
+    term: "Capex",
+    plain: "Capital expenditure: what a company spends to build data centers, acquire real estate, and buy GPU servers.",
+    href: "/glossary#capex-to-free-cash-flow",
+  },
+  {
+    term: "CDS spread",
+    plain: "Credit default swap: the market cost of insuring a company's debt against default.",
+    href: "/glossary#cds-spread",
   },
   {
     term: "Debt tranche",
     plain: "One slice of a company's borrowing, with its own lenders, size and terms.",
+    href: "/glossary#convertible-note",
   },
   {
     term: "Circular financing",
     plain: "A company funds a customer who then spends that money straight back with the same company or its partner.",
+    href: "/glossary#circular-financing",
   },
   {
     term: "Risk tier",
@@ -159,7 +173,14 @@ export default function CompaniesPage() {
         <dl className="mt-3 divide-y divide-rule border-y border-rule">
           {TERMS.map((item) => (
             <div key={item.term} className="grid grid-cols-1 gap-1 py-2.5 sm:grid-cols-[11rem_1fr] sm:gap-4">
-              <dt className="text-[14px] font-semibold text-ink">{item.term}</dt>
+              <dt className="text-[14px] font-semibold text-ink flex items-center justify-between sm:justify-start sm:gap-2">
+                <span>{item.term}</span>
+                {item.href && (
+                  <Link href={item.href} className="text-[12px] font-normal text-ink-muted underline hover:text-ink">
+                    Glossary &rarr;
+                  </Link>
+                )}
+              </dt>
               <dd className="text-[14px] leading-relaxed text-ink-muted">{item.plain}</dd>
             </div>
           ))}

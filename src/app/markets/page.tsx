@@ -57,7 +57,7 @@ export const metadata: Metadata = {
   },
 };
 
-const TERMS: { term: string; plain: string }[] = [
+const TERMS: { term: string; plain: string; href?: string }[] = [
   {
     term: "24h change",
     plain: "How far the last price sits from the previous close. A direction, not a forecast.",
@@ -75,12 +75,29 @@ const TERMS: { term: string; plain: string }[] = [
     plain: "What the government pays to borrow for ten years. It is the floor every risky investment has to beat.",
   },
   {
-    term: "High-yield spread",
-    plain: "The extra interest lenders demand over Treasuries to lend to risky borrowers. A wider spread means lenders expect more losses.",
+    term: "High-yield OAS",
+    plain: "Option-adjusted spread: the extra interest rate risky corporate borrowers pay above safe Treasuries. A wider spread means lenders demand more compensation for default risk.",
+    href: "/glossary#high-yield-oas",
+  },
+  {
+    term: "CDS spread",
+    plain: "Credit default swap: the market cost of insuring a company's debt against default. Higher spreads reflect rising default anxiety.",
+    href: "/glossary#cds-spread",
+  },
+  {
+    term: "Capex",
+    plain: "Capital expenditure: cash spent to build physical data centers, power lines, and server racks.",
+    href: "/glossary#capex-to-free-cash-flow",
+  },
+  {
+    term: "P/S multiple",
+    plain: "Price-to-sales: revenue valued at this many times by the stock market. High multiples mean high future expectations rather than current cash.",
+    href: "/glossary#price-to-sales",
   },
   {
     term: "AI debt issuance",
     plain: "Bonds, convertible notes and private credit lines raised for AI infrastructure over the past year, annualised.",
+    href: "/glossary#debt-issuance-velocity",
   },
 ];
 
@@ -100,7 +117,7 @@ export default function MarketsPage() {
 
         <p className="prose prose-lead max-w-reading">
           {stockCount} listed AI companies with their last close, plus the macro numbers that decide
-          what a borrowed dollar costs: the {us10y} Treasury yield, a {hyOas} high-yield spread, and{" "}
+          what a borrowed dollar costs: the {us10y} Treasury yield, a {hyOas} high-yield OAS spread (the extra interest risky borrowers pay over government debt), and{" "}
           {aiDebt} of annual AI debt issuance.
         </p>
 
@@ -162,7 +179,14 @@ export default function MarketsPage() {
             <dl className="mt-3 space-y-2.5">
               {TERMS.map((term) => (
                 <div key={term.term}>
-                  <dt className="text-[14px] font-semibold text-ink">{term.term}</dt>
+                  <dt className="text-[14px] font-semibold text-ink flex items-center justify-between">
+                    <span>{term.term}</span>
+                    {term.href && (
+                      <Link href={term.href} className="text-[12px] font-normal text-ink-muted underline hover:text-ink">
+                        Glossary &rarr;
+                      </Link>
+                    )}
+                  </dt>
                   <dd className="mt-0.5 text-[14px] leading-relaxed text-ink-muted">{term.plain}</dd>
                 </div>
               ))}
@@ -173,9 +197,13 @@ export default function MarketsPage() {
             <p className="notice-title">Reading the credit side</p>
             <p className="mt-1.5 text-[14px] leading-relaxed">
               Equity prices move first and loudest, but lenders reprice quietly. When the{" "}
-              {hyOas} high-yield spread widens, borrowers are being asked for more interest on the
+              {hyOas} high-yield OAS spread (the extra interest rate risky corporate borrowers pay above safe government Treasuries) widens, borrowers are being asked for more interest on the
               same debt — the pressure shows up in interest expense long before it shows up in a
-              share price.
+              share price. See the{" "}
+              <Link href="/glossary#high-yield-oas" className="underline hover:text-ink">
+                high-yield OAS definition
+              </Link>
+              .
             </p>
           </div>
         </aside>

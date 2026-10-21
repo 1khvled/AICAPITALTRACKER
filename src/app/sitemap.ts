@@ -13,6 +13,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
+      url: `${baseUrl}/will-the-ai-bubble-burst`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/how-much-is-being-spent-on-ai`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/how-much-ai-debt-there-is`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.95,
+    },
+    {
       url: `${baseUrl}/dotcom-vs-ai`,
       lastModified: now,
       changeFrequency: "daily",
