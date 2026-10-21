@@ -40,7 +40,7 @@ export function GuideHeader({
         <span className="pill">{eyebrow}</span>
         <span className="pill">{readTime}</span>
         {meta.map((m) => (
-          <span key={m} className="num text-[14px] text-ink-faint">
+          <span key={m} className="num text-[14px] font-medium text-ink-subtle">
             {m}
           </span>
         ))}

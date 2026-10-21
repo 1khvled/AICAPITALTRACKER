@@ -44,16 +44,17 @@ interface LiveCrowdMarket {
 }
 
 /**
- * Chart series palette — the design tokens from tailwind.config.ts (19 Oct 2026).
- * SVG needs literal colours, so the semantic token values (safe / risk /
- * caution) and the ink ramp are mirrored here once. The indigo/green hexes
- * this file used before were off-palette: violet and off-token green are not
- * part of the system.
+ * Chart series palette — categorical palette from globals.css.
+ * SVG can use CSS variables via var(--c-cat-*), which resolves correctly in
+ * both light and dark themes. The four series are mapped to categorical hues:
+ * teal, navy, olive, and cyan, with distinct dash patterns and point markers
+ * so the series remain legible in greyscale print.
  */
 const SERIES = {
-  risk500: "#D1433C", // tailwind risk-500
-  caution500: "#B57F0A", // tailwind caution-500
-  safe500: "#0E9F6E", // tailwind safe-500
+  catTeal: "var(--c-cat-teal)", // AI Bubble 2026: solid + circle
+  catNavy: "var(--c-cat-navy)", // AI Bubble 2027: dashed + square
+  catOlive: "var(--c-cat-olive)", // Oracle CDS stress: dash-dot + diamond
+  catCyan: "var(--c-cat-cyan)", // OpenAI AGI odds: dotted + triangle
   inkSubtle: "rgb(var(--c-ink-subtle))", // globals.css --c-ink-subtle
   inkFaint: "rgb(var(--c-ink-faint))", // globals.css --c-ink-faint
 } as const;
@@ -188,7 +189,7 @@ export function PolymarketCharts() {
   // SVG Chart dimensions for Historical Trajectory
   const chartWidth = 720;
   const chartHeight = 260;
-  const padding = { top: 20, right: 30, bottom: 40, left: 45 };
+  const padding = { top: 20, right: 75, bottom: 40, left: 45 };
   const innerWidth = chartWidth - padding.left - padding.right;
   const innerHeight = chartHeight - padding.top - padding.bottom;
   const maxPct = 50;
@@ -854,25 +855,37 @@ export function PolymarketCharts() {
                 </p>
               </div>
 
-              {/* Chart legend — swatch colours are the chart's own series colours */}
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[14px]">
+              {/* Chart legend — swatch colours match the chart's categorical series, dash patterns, and markers */}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[14px]">
                 <span className="flex items-center gap-1.5 whitespace-nowrap text-ink-muted">
-                  <span className="h-0.5 w-3" style={{ backgroundColor: SERIES.risk500 }} aria-hidden="true" />
+                  <svg width="24" height="12" className="inline-block shrink-0" aria-hidden="true">
+                    <line x1="0" y1="6" x2="24" y2="6" stroke={SERIES.catTeal} strokeWidth="2.5" />
+                    <circle cx="12" cy="6" r="3" fill={SERIES.catTeal} />
+                  </svg>
                   <span>AI Bubble 2026 ({bubble2026Prob.toFixed(1)}%)</span>
                 </span>
                 <span className="flex items-center gap-1.5 whitespace-nowrap text-ink-muted">
-                  <span className="h-0.5 w-3" style={{ backgroundColor: SERIES.caution500 }} aria-hidden="true" />
+                  <svg width="24" height="12" className="inline-block shrink-0" aria-hidden="true">
+                    <line x1="0" y1="6" x2="24" y2="6" stroke={SERIES.catNavy} strokeWidth="2.5" strokeDasharray="6 3" />
+                    <rect x="9.5" y="3.5" width="5" height="5" fill={SERIES.catNavy} />
+                  </svg>
                   <span>AI Bubble 2027 ({bubble2027Prob.toFixed(1)}%)</span>
                 </span>
                 <span className="flex items-center gap-1.5 whitespace-nowrap text-ink-muted">
-                  <span className="h-0.5 w-3" style={{ backgroundColor: SERIES.inkSubtle }} aria-hidden="true" />
+                  <svg width="24" height="12" className="inline-block shrink-0" aria-hidden="true">
+                    <line x1="0" y1="6" x2="24" y2="6" stroke={SERIES.catOlive} strokeWidth="2.5" strokeDasharray="4 2 1 2" />
+                    <polygon points="12,2.5 15.5,6 12,9.5 8.5,6" fill={SERIES.catOlive} />
+                  </svg>
                   <span>
                     Oracle CDS Stress (
                     {(points[points.length - 1]?.oracleCdsStress ?? 38.0).toFixed(1)}%)
                   </span>
                 </span>
                 <span className="flex items-center gap-1.5 whitespace-nowrap text-ink-muted">
-                  <span className="h-0.5 w-3" style={{ backgroundColor: SERIES.safe500 }} aria-hidden="true" />
+                  <svg width="24" height="12" className="inline-block shrink-0" aria-hidden="true">
+                    <line x1="0" y1="6" x2="24" y2="6" stroke={SERIES.catCyan} strokeWidth="2.5" strokeDasharray="2 3" />
+                    <polygon points="12,2.5 15.5,9.5 8.5,9.5" fill={SERIES.catCyan} />
+                  </svg>
                   <span>
                     OpenAI AGI Odds (
                     {(points[points.length - 1]?.openaiAgiOdds ?? 8.5).toFixed(1)}%)
@@ -938,11 +951,11 @@ export function PolymarketCharts() {
                   })}
                 </g>
 
-                {/* Series Lines — each one draws itself in when the tab opens */}
+                {/* Series Lines — each one draws itself in with categorical hues and distinct dash patterns */}
                 <path
                   d={bubble2026Path}
                   fill="none"
-                  stroke={SERIES.risk500}
+                  stroke={SERIES.catTeal}
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   className="draw-in draw-in-in"
@@ -950,32 +963,41 @@ export function PolymarketCharts() {
                 <path
                   d={bubble2027Path}
                   fill="none"
-                  stroke={SERIES.caution500}
+                  stroke={SERIES.catNavy}
                   strokeWidth="2.5"
+                  strokeDasharray="6 3"
                   strokeLinecap="round"
                   className="draw-in draw-in-in"
                 />
                 <path
                   d={oracleCdsPath}
                   fill="none"
-                  style={{ stroke: SERIES.inkSubtle }}
+                  stroke={SERIES.catOlive}
                   strokeWidth="2.5"
+                  strokeDasharray="4 2 1 2"
                   strokeLinecap="round"
                   className="draw-in draw-in-in"
                 />
                 <path
                   d={openaiAgiPath}
                   fill="none"
-                  stroke={SERIES.safe500}
+                  stroke={SERIES.catCyan}
                   strokeWidth="2.5"
+                  strokeDasharray="2 3"
                   strokeLinecap="round"
                   className="draw-in draw-in-in"
                 />
 
-                {/* Data Points / Interactive nodes */}
+                {/* Data Points / Interactive nodes with distinct shapes for print/greyscale */}
                 {points.map((p, i) => {
                   const x = getX(i);
                   const isHovered = hoveredPoint === i;
+                  const y2026 = getY(p.aiBubble2026);
+                  const y2027 = getY(p.aiBubble2027);
+                  const yOracle = getY(p.oracleCdsStress);
+                  const yAgi = getY(p.openaiAgiOdds);
+                  const r = isHovered ? 5 : 3;
+
                   return (
                     <g
                       key={p.date}
@@ -998,30 +1020,100 @@ export function PolymarketCharts() {
                       <title>
                         {`${p.date} — Bubble 2026 ${p.aiBubble2026}%, Bubble 2027 ${p.aiBubble2027}%, Oracle CDS stress ${p.oracleCdsStress}%, OpenAI AGI ${p.openaiAgiOdds}%`}
                       </title>
-                      <circle cx={x} cy={getY(p.aiBubble2026)} r={isHovered ? 5 : 3} fill={SERIES.risk500} />
-                      <circle cx={x} cy={getY(p.aiBubble2027)} r={isHovered ? 5 : 3} fill={SERIES.caution500} />
-                      <circle cx={x} cy={getY(p.oracleCdsStress)} r={isHovered ? 5 : 3} style={{ fill: SERIES.inkSubtle }} />
-                      <circle cx={x} cy={getY(p.openaiAgiOdds)} r={isHovered ? 5 : 3} fill={SERIES.safe500} />
+                      {/* 1. Bubble 2026: filled circle */}
+                      <circle cx={x} cy={y2026} r={r} fill={SERIES.catTeal} />
+                      {/* 2. Bubble 2027: filled rect (square) */}
+                      <rect
+                        x={x - (isHovered ? 4.5 : 2.5)}
+                        y={y2027 - (isHovered ? 4.5 : 2.5)}
+                        width={isHovered ? 9 : 5}
+                        height={isHovered ? 9 : 5}
+                        fill={SERIES.catNavy}
+                      />
+                      {/* 3. Oracle CDS: filled diamond */}
+                      <polygon
+                        points={`${x},${yOracle - (isHovered ? 5.5 : 3.5)} ${x + (isHovered ? 5.5 : 3.5)},${yOracle} ${x},${yOracle + (isHovered ? 5.5 : 3.5)} ${x - (isHovered ? 5.5 : 3.5)},${yOracle}`}
+                        fill={SERIES.catOlive}
+                      />
+                      {/* 4. OpenAI AGI: filled triangle */}
+                      <polygon
+                        points={`${x},${yAgi - (isHovered ? 5.5 : 3.5)} ${x + (isHovered ? 5.5 : 3.5)},${yAgi + (isHovered ? 4.5 : 3)} ${x - (isHovered ? 5.5 : 3.5)},${yAgi + (isHovered ? 4.5 : 3)}`}
+                        fill={SERIES.catCyan}
+                      />
                     </g>
                   );
                 })}
+
+                {/* Endpoint Chips — reading directly at the line for each series */}
+                {(() => {
+                  const last = points[points.length - 1];
+                  if (!last) return null;
+                  const endX = getX(points.length - 1);
+                  const chipX = endX + 7;
+                  const chipW = 58;
+                  const chipH = 18;
+
+                  // Vertical positions for endpoints
+                  const yOracle = getY(last.oracleCdsStress);
+                  const y2027 = getY(last.aiBubble2027);
+                  const y2026 = getY(last.aiBubble2026);
+                  const yAgi = getY(last.openaiAgiOdds);
+
+                  // Prevent overlap between 2026 and AGI which have close readings
+                  const chipYOracle = Math.round(yOracle - chipH / 2);
+                  const chipY2027 = Math.round(y2027 - chipH / 2);
+                  const chipY2026 = Math.round(y2026 - chipH - 1);
+                  const chipYAgi = Math.round(yAgi + 3);
+
+                  return (
+                    <g aria-hidden="true" className="endpoint-chips">
+                      {/* Oracle CDS chip */}
+                      <line x1={endX} y1={yOracle} x2={chipX} y2={chipYOracle + chipH / 2} stroke={SERIES.catOlive} strokeWidth="1" strokeOpacity="0.5" />
+                      <rect x={chipX} y={chipYOracle} width={chipW} height={chipH} rx="3" fill="rgb(var(--c-surface))" stroke={SERIES.catOlive} strokeWidth="1" />
+                      <text x={chipX + chipW / 2} y={chipYOracle + 13} textAnchor="middle" className="num text-[11px] font-semibold" fill={SERIES.catOlive}>
+                        ◆ {last.oracleCdsStress.toFixed(1)}%
+                      </text>
+
+                      {/* Bubble 2027 chip */}
+                      <line x1={endX} y1={y2027} x2={chipX} y2={chipY2027 + chipH / 2} stroke={SERIES.catNavy} strokeWidth="1" strokeOpacity="0.5" />
+                      <rect x={chipX} y={chipY2027} width={chipW} height={chipH} rx="3" fill="rgb(var(--c-surface))" stroke={SERIES.catNavy} strokeWidth="1" />
+                      <text x={chipX + chipW / 2} y={chipY2027 + 13} textAnchor="middle" className="num text-[11px] font-semibold" fill={SERIES.catNavy}>
+                        ■ {last.aiBubble2027.toFixed(1)}%
+                      </text>
+
+                      {/* Bubble 2026 chip */}
+                      <line x1={endX} y1={y2026} x2={chipX} y2={chipY2026 + chipH / 2} stroke={SERIES.catTeal} strokeWidth="1" strokeOpacity="0.5" />
+                      <rect x={chipX} y={chipY2026} width={chipW} height={chipH} rx="3" fill="rgb(var(--c-surface))" stroke={SERIES.catTeal} strokeWidth="1" />
+                      <text x={chipX + chipW / 2} y={chipY2026 + 13} textAnchor="middle" className="num text-[11px] font-semibold" fill={SERIES.catTeal}>
+                        ● {last.aiBubble2026.toFixed(1)}%
+                      </text>
+
+                      {/* OpenAI AGI chip */}
+                      <line x1={endX} y1={yAgi} x2={chipX} y2={chipYAgi + chipH / 2} stroke={SERIES.catCyan} strokeWidth="1" strokeOpacity="0.5" />
+                      <rect x={chipX} y={chipYAgi} width={chipW} height={chipH} rx="3" fill="rgb(var(--c-surface))" stroke={SERIES.catCyan} strokeWidth="1" />
+                      <text x={chipX + chipW / 2} y={chipYAgi + 13} textAnchor="middle" className="num text-[11px] font-semibold" fill={SERIES.catCyan}>
+                        ▲ {last.openaiAgiOdds.toFixed(1)}%
+                      </text>
+                    </g>
+                  );
+                })()}
               </svg>
 
 {/* Tooltip Readout */}
               {hoveredPoint !== null && (
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg border border-rule bg-surface px-3 py-2 text-[14px]">
                   <span className="num font-semibold text-ink">{points[hoveredPoint].date}</span>
-                  <span className="num text-risk-600">
-                    Bubble 2026: {points[hoveredPoint].aiBubble2026}%
+                  <span className="num font-semibold" style={{ color: SERIES.catTeal }}>
+                    ● Bubble 2026: {points[hoveredPoint].aiBubble2026}%
                   </span>
-                  <span className="num text-caution-700">
-                    Bubble 2027: {points[hoveredPoint].aiBubble2027}%
+                  <span className="num font-semibold" style={{ color: SERIES.catNavy }}>
+                    ■ Bubble 2027: {points[hoveredPoint].aiBubble2027}%
                   </span>
-                  <span className="num text-ink-muted">
-                    Oracle CDS Stress: {points[hoveredPoint].oracleCdsStress}%
+                  <span className="num font-semibold" style={{ color: SERIES.catOlive }}>
+                    ◆ Oracle CDS: {points[hoveredPoint].oracleCdsStress}%
                   </span>
-                  <span className="num text-safe-700">
-                    OpenAI AGI: {points[hoveredPoint].openaiAgiOdds}%
+                  <span className="num font-semibold" style={{ color: SERIES.catCyan }}>
+                    ▲ OpenAI AGI: {points[hoveredPoint].openaiAgiOdds}%
                   </span>
                   <span className="num text-ink-subtle">
                     Cumulative Vol: ${points[hoveredPoint].volumeCumulativeMillions}M
@@ -1047,10 +1139,10 @@ export function PolymarketCharts() {
               caption="The historical consensus trajectory: the crowd probability of the AI bubble 2026 and 2027 contracts, Oracle CDS refinancing stress and OpenAI AGI, with cumulative traded volume, at each observation date."
               columns={[
                 "Date",
-                "AI Bubble 2026",
-                "AI Bubble 2027",
-                "Oracle CDS stress",
-                "OpenAI AGI odds",
+                "AI Bubble 2026 (● solid)",
+                "AI Bubble 2027 (■ dashed)",
+                "Oracle CDS stress (◆ dash-dot)",
+                "OpenAI AGI odds (▲ dotted)",
                 "Cumulative volume",
               ]}
               numericColumns={[1, 2, 3, 4, 5]}

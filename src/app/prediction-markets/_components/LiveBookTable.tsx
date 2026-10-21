@@ -194,6 +194,32 @@ export function LiveBookTable({
     [closedRows, sortComparator]
   );
 
+  const maxVolume = useMemo(() => {
+    let max = 1;
+    for (const r of openRows) {
+      const v = r.market.volumeUsd ?? 0;
+      if (v > max) max = v;
+    }
+    for (const r of closedRows) {
+      const v = r.market.volumeUsd ?? 0;
+      if (v > max) max = v;
+    }
+    return max;
+  }, [openRows, closedRows]);
+
+  const maxLiquidity = useMemo(() => {
+    let max = 1;
+    for (const r of openRows) {
+      const l = r.market.liquidityUsd ?? 0;
+      if (l > max) max = l;
+    }
+    for (const r of closedRows) {
+      const l = r.market.liquidityUsd ?? 0;
+      if (l > max) max = l;
+    }
+    return max;
+  }, [openRows, closedRows]);
+
   return (
     <div className="overflow-x-auto rounded-xl border border-rule">
       <table className="w-full text-left text-[14px]">
@@ -283,12 +309,44 @@ export function LiveBookTable({
                   {fmtPct(row.market.noProbabilityPct)}
                 </td>
                 <td className="num p-3 text-right text-ink-muted">
-                  {fmtUsd(row.market.volumeUsd)}
+                  <div className="flex flex-col items-end gap-1">
+                    <span>{fmtUsd(row.market.volumeUsd)}</span>
+                    <div
+                      className="h-[3px] w-20 rounded-full bg-rule/70 overflow-hidden"
+                      aria-hidden="true"
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${Math.min(100, Math.max(0, ((row.market.volumeUsd ?? 0) / maxVolume) * 100))}%`,
+                          backgroundColor: "var(--c-cat-teal)",
+                        }}
+                      />
+                    </div>
+                  </div>
                 </td>
                 <td className="num p-3 text-right text-ink-muted">
-                  {typeof row.market.liquidityUsd === "number"
-                    ? fmtUsd(row.market.liquidityUsd)
-                    : "—"}
+                  <div className="flex flex-col items-end gap-1">
+                    <span>
+                      {typeof row.market.liquidityUsd === "number"
+                        ? fmtUsd(row.market.liquidityUsd)
+                        : "—"}
+                    </span>
+                    <div
+                      className="h-[3px] w-16 rounded-full bg-rule/70 overflow-hidden"
+                      aria-hidden="true"
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: typeof row.market.liquidityUsd === "number"
+                            ? `${Math.min(100, Math.max(0, (row.market.liquidityUsd / maxLiquidity) * 100))}%`
+                            : "0%",
+                          backgroundColor: "var(--c-cat-cyan)",
+                        }}
+                      />
+                    </div>
+                  </div>
                 </td>
                 <td className="p-3">
                   <div className="flex flex-wrap justify-end gap-2">
@@ -354,12 +412,44 @@ export function LiveBookTable({
                   {fmtPct(row.market.noProbabilityPct)}
                 </td>
                 <td className="num p-3 text-right text-ink-subtle">
-                  {fmtUsd(row.market.volumeUsd)}
+                  <div className="flex flex-col items-end gap-1">
+                    <span>{fmtUsd(row.market.volumeUsd)}</span>
+                    <div
+                      className="h-[3px] w-20 rounded-full bg-rule/70 overflow-hidden"
+                      aria-hidden="true"
+                    >
+                      <div
+                        className="h-full rounded-full opacity-60"
+                        style={{
+                          width: `${Math.min(100, Math.max(0, ((row.market.volumeUsd ?? 0) / maxVolume) * 100))}%`,
+                          backgroundColor: "var(--c-cat-teal)",
+                        }}
+                      />
+                    </div>
+                  </div>
                 </td>
                 <td className="num p-3 text-right text-ink-subtle">
-                  {typeof row.market.liquidityUsd === "number"
-                    ? fmtUsd(row.market.liquidityUsd)
-                    : "—"}
+                  <div className="flex flex-col items-end gap-1">
+                    <span>
+                      {typeof row.market.liquidityUsd === "number"
+                        ? fmtUsd(row.market.liquidityUsd)
+                        : "—"}
+                    </span>
+                    <div
+                      className="h-[3px] w-16 rounded-full bg-rule/70 overflow-hidden"
+                      aria-hidden="true"
+                    >
+                      <div
+                        className="h-full rounded-full opacity-60"
+                        style={{
+                          width: typeof row.market.liquidityUsd === "number"
+                            ? `${Math.min(100, Math.max(0, (row.market.liquidityUsd / maxLiquidity) * 100))}%`
+                            : "0%",
+                          backgroundColor: "var(--c-cat-cyan)",
+                        }}
+                      />
+                    </div>
+                  </div>
                 </td>
                 <td className="p-3">
                   <div className="flex flex-wrap justify-end gap-2">

@@ -258,6 +258,128 @@ function marketCapMagnitude(display: string): number | null {
   return value * unit;
 }
 
+interface MacroSemantics {
+  tone: "risk" | "safe" | "neutral";
+  cardRule: string;
+  pillClass: string;
+  wordTag: string;
+  displayBadge: string;
+}
+
+function getMacroSemantics(macro: MacroIndicator): MacroSemantics {
+  const cd = macro.changeDisplay.toLowerCase();
+  const isSpread = macro.symbol.includes("SPREAD") || macro.symbol.includes("OAS");
+  const isYield = macro.symbol.startsWith("US");
+
+  // Flat / unchanged detection
+  if (
+    cd.includes("+0 bps") ||
+    cd.includes("+0.0") ||
+    cd.includes("0.0 bps") ||
+    cd.includes("no yoy") ||
+    (macro.changePct === 0 && (cd.includes("+0") || cd.includes("0 bps")))
+  ) {
+    if (cd.includes("no yoy")) {
+      return {
+        tone: "neutral",
+        cardRule: "rule-neutral-left",
+        pillClass: "",
+        wordTag: "Baseline",
+        displayBadge: "Baseline pace",
+      };
+    }
+    return {
+      tone: "neutral",
+      cardRule: "rule-neutral-left",
+      pillClass: "",
+      wordTag: "Flat",
+      displayBadge: `${macro.changeDisplay.replace(" (HYG proxy)", "")} · Flat`,
+    };
+  }
+
+  // Spreads: widening (+ bps) is RISK, tightening (- bps) is SAFE
+  if (isSpread) {
+    if (cd.startsWith("+") || macro.changePct > 0) {
+      return {
+        tone: "risk",
+        cardRule: "rule-risk-left",
+        pillClass: "pill-risk",
+        wordTag: "Widening",
+        displayBadge: `${macro.changeDisplay} · Widening`,
+      };
+    } else {
+      return {
+        tone: "safe",
+        cardRule: "rule-safe-left",
+        pillClass: "pill-safe",
+        wordTag: "Tightening",
+        displayBadge: `${macro.changeDisplay} · Tightening`,
+      };
+    }
+  }
+
+  // Yields (rates): rising (+ bps) is RISK, falling (- bps) is SAFE (tightening/easing)
+  if (isYield) {
+    if (cd.startsWith("+") || macro.changePct > 0) {
+      return {
+        tone: "risk",
+        cardRule: "rule-risk-left",
+        pillClass: "pill-risk",
+        wordTag: "Rising",
+        displayBadge: `${macro.changeDisplay} · Rising`,
+      };
+    } else {
+      return {
+        tone: "safe",
+        cardRule: "rule-safe-left",
+        pillClass: "pill-safe",
+        wordTag: "Tightening",
+        displayBadge: `${macro.changeDisplay} · Tightening`,
+      };
+    }
+  }
+
+  if (macro.symbol === "CPI") {
+    return {
+      tone: "risk",
+      cardRule: "rule-risk-left",
+      pillClass: "pill-risk",
+      wordTag: "Elevated",
+      displayBadge: "+0.8pp · Elevated",
+    };
+  }
+
+  if (macro.symbol === "FEDFUNDS") {
+    return {
+      tone: "safe",
+      cardRule: "rule-safe-left",
+      pillClass: "pill-safe",
+      wordTag: "Easing",
+      displayBadge: "-100 bps · Easing",
+    };
+  }
+
+  if (macro.symbol === "VIX") {
+    const isUp = macro.changePct > 0;
+    return {
+      tone: isUp ? "risk" : "safe",
+      cardRule: isUp ? "rule-risk-left" : "rule-safe-left",
+      pillClass: isUp ? "pill-risk" : "pill-safe",
+      wordTag: isUp ? "Spiking" : "Calming",
+      displayBadge: `${macro.changeDisplay} · ${isUp ? "Spiking" : "Calming"}`,
+    };
+  }
+
+  const isRisk = macro.isRiskPositive ? macro.changePct >= 0 : macro.changePct < 0;
+  return {
+    tone: isRisk ? "risk" : "safe",
+    cardRule: isRisk ? "rule-risk-left" : "rule-safe-left",
+    pillClass: isRisk ? "pill-risk" : "pill-safe",
+    wordTag: isRisk ? "Widening" : "Tightening",
+    displayBadge: `${macro.changeDisplay} · ${isRisk ? "Widening" : "Tightening"}`,
+  };
+}
+
 function compareQuotes(a: StockQuote, b: StockQuote, key: SortKey): number {
   switch (key) {
     case "ticker":
@@ -1008,19 +1130,23 @@ export function LiveStockMonitor() {
 
             <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               {INITIAL_MACRO.map((macro) => {
-                const stress = macro.isRiskPositive;
+                const semantics = getMacroSemantics(macro);
+                const isStress = semantics.tone === "risk";
                 const trend = TREND_SHAPES[macro.symbol] || FALLBACK_SHAPE;
                 return (
-                  <li key={macro.symbol} className="panel flex flex-col gap-1.5 p-3">
+                  <li
+                    key={macro.symbol}
+                    className={`panel ${semantics.cardRule} flex flex-col gap-1.5 p-3`}
+                  >
                     <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
                       <span className="num whitespace-nowrap text-[14px] font-semibold text-ink">
                         {macro.symbol}
                       </span>
                       <span
-                        className={`pill ${stress ? "pill-risk" : "pill-safe"}`}
-                        title={macro.changeDisplay}
+                        className={`pill ${semantics.pillClass}`}
+                        title={`${macro.name}: ${semantics.displayBadge}`}
                       >
-                        {macro.changeDisplay}
+                        {semantics.displayBadge}
                       </span>
                     </div>
                     <div className="flex items-end justify-between gap-2">
@@ -1029,7 +1155,7 @@ export function LiveStockMonitor() {
                       </span>
                       <TrendLine
                         points={trend}
-                        rising={!stress}
+                        rising={!isStress}
                         width={44}
                         height={16}
                         label={`${macro.name} recent trend`}
@@ -1042,7 +1168,7 @@ export function LiveStockMonitor() {
             </ul>
             <p className="mt-2 text-[14px] text-ink-subtle">
               Red marks a series whose current move raises risk — a higher borrowing rate, a wider
-              credit spread, a faster debt pace.
+              credit spread, a faster debt pace. Green marks tightening or easing.
             </p>
           </section>
         ) : null}
