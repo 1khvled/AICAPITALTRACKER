@@ -829,7 +829,7 @@ export function YourCall({
       </section>
 
       {/* ══ 6 · Disclosure ══════════════════════════════════════════════ */}
-      <section aria-labelledby="yc-disclosure-heading" className="notice notice-caution">
+      <section aria-labelledby="yc-disclosure-heading" className="notice notice-caution not-this-body">
         <h3
           id="yc-disclosure-heading"
           className="notice-title inline-flex items-center gap-1.5"

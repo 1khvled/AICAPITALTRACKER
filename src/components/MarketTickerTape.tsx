@@ -227,7 +227,7 @@ export function MarketTickerTape() {
   );
 
   return (
-    <div className="border-b border-rule bg-surface-2 text-ink-muted">
+    <div className="border-b border-rule bg-surface-2 text-ink-muted overflow-hidden">
       {/* ONE polite status region per page (role="status", aria-live="polite", aria-atomic="true") */}
       <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
         {statusMessage}

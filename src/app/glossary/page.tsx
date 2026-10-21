@@ -116,7 +116,7 @@ export default function GlossaryPage() {
       </section>
 
       {/* ── What this is not ──────────────────────────────────────────────── */}
-      <div className="notice mt-8 max-w-measure">
+      <div className="notice mt-8 max-w-measure not-this-body">
         <p className="notice-title">What this glossary is not</p>
         <ul className="mt-2 space-y-1.5 text-[14px] leading-relaxed text-ink-muted">
           <li>

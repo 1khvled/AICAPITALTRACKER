@@ -126,7 +126,7 @@ export default function HomePage() {
             .
           </p>
           <p className="label pt-1">What {result.burstProbability.toFixed(1)}% is not</p>
-          <ul className="space-y-1.5 text-[15px] leading-relaxed text-ink-muted">
+          <ul className="not-this-body space-y-1.5 text-[15px] leading-relaxed text-ink-muted">
             <li>
               It is not a validated probability. The composite maps through a chosen sigmoid
               (anchor 55, slope 9) — a published judgement, not a parameter set fitted to

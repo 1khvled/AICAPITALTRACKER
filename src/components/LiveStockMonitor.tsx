@@ -1211,7 +1211,7 @@ export function LiveStockMonitor() {
           ) : (
             <>
               {/* Desktop: a real, sortable table */}
-              <div className="mt-3 hidden md:block">
+              <div className="mt-3 hidden md:block overflow-x-auto">
                 <table className="w-full table-fixed border-collapse text-[14px]">
                   <caption className="sr-only">
                     Listed AI companies with the last close, the 24-hour change, the drawdown from

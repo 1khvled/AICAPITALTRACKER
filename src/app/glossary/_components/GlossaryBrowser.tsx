@@ -285,11 +285,11 @@ export default function GlossaryBrowser({ terms }: GlossaryBrowserProps) {
                               {term.term}
                             </h3>
 
-                            <p className="mt-1.5 text-[15px] leading-relaxed text-ink">
+                            <p className="mt-1.5 text-[15px] leading-relaxed text-ink glossary-explanation">
                               {term.short}
                             </p>
 
-                            <p className="mt-2 text-[15px] leading-relaxed text-ink-muted">
+                            <p className="mt-2 text-[15px] leading-relaxed text-ink-muted glossary-explanation">
                               {term.body}
                             </p>
 

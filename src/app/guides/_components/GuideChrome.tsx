@@ -99,7 +99,7 @@ export function GuideSection({
  */
 export function NotThisPanel({ items, title }: { items: string[]; title?: string }) {
   return (
-    <div className="panel space-y-2.5">
+    <div className="panel space-y-2.5 not-this-body">
       <span className="label">{title ?? "What this is not"}</span>
       <ul className="space-y-1.5 text-[14px] leading-relaxed text-ink-muted">
         {items.map((item) => (

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { JetBrains_Mono } from "next/font/google";
+import { IBM_Plex_Sans, Source_Serif_4, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -11,24 +11,59 @@ import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import rawDeals from "@/data/deals.json";
 
 /**
- * Fonts.
+ * Type system.
  *
- * The interface face is APPLE'S OWN: `-apple-system` resolves to SF Pro on
- * macOS, iOS and iPadOS, so the site is typeset in the same face as the
- * platform it is running on - with the optical sizing, tracking tables and
- * legibility tuning that a webfont cannot buy. SF Pro cannot be redistributed
- * as a webfont (Apple licenses it for Apple platforms), so the honest way to
- * ship it is to ask for it, which is what the stack in tailwind.config.ts
- * does. Everywhere else the platform grotesque answers: Segoe UI on Windows,
- * Roboto on Android.
+ * 1. Interface & Data: IBM Plex Sans, self-hosted through next/font.
+ *    Technical, compact, precise terminal temperament that fits dense tables
+ *    without overflow.
+ *    Fallback chain preserves Apple's system stack: -apple-system,
+ *    BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", ...
  *
- * That also removes a ~100KB font download and the third-party request behind
- * it, so the first paint gets here sooner.
+ * 2. Long-Form Prose: Source Serif 4, self-hosted through next/font.
+ *    The "broadsheet" half of the publication identity: used strictly for
+ *    reading arguments (guides body, methodology prose, glossary explanations,
+ *    disclosure panels). Never touches tables, figures, chips or nav.
  *
- * The figures keep JetBrains Mono, self-hosted by next/font: a number is a
- * different object from a sentence, and it wants tabular monospaced digits
- * that never jitter when they change.
+ * 3. Figures & Numerals: JetBrains Mono, self-hosted through next/font.
+ *    Tabular monospaced digits with tnum + zero features so numbers never
+ *    jitter when market ticks or slider updates fire.
  */
+const ibmPlexSans = IBM_Plex_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-sans",
+  adjustFontFallback: true,
+  fallback: [
+    "-apple-system",
+    "BlinkMacSystemFont",
+    "SF Pro Display",
+    "SF Pro Text",
+    "Helvetica Neue",
+    "Helvetica",
+    "system-ui",
+    "Segoe UI",
+    "Arial",
+    "sans-serif",
+  ],
+});
+
+const sourceSerif4 = Source_Serif_4({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--font-serif",
+  adjustFontFallback: true,
+  fallback: [
+    "Georgia",
+    "Cambria",
+    "Times New Roman",
+    "Times",
+    "serif",
+  ],
+});
+
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   display: "swap",
@@ -188,7 +223,12 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" suppressHydrationWarning className={jetbrainsMono.variable} data-band={model.band}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${ibmPlexSans.variable} ${sourceSerif4.variable} ${jetbrainsMono.variable}`}
+      data-band={model.band}
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         <script dangerouslySetInnerHTML={{ __html: revealBootScript }} />

@@ -1070,28 +1070,28 @@ export function PolymarketCharts() {
                       {/* Oracle CDS chip */}
                       <line x1={endX} y1={yOracle} x2={chipX} y2={chipYOracle + chipH / 2} stroke={SERIES.catOlive} strokeWidth="1" strokeOpacity="0.5" />
                       <rect x={chipX} y={chipYOracle} width={chipW} height={chipH} rx="3" fill="rgb(var(--c-surface))" stroke={SERIES.catOlive} strokeWidth="1" />
-                      <text x={chipX + chipW / 2} y={chipYOracle + 13} textAnchor="middle" className="num text-[11px] font-semibold" fill={SERIES.catOlive}>
+                      <text x={chipX + chipW / 2} y={chipYOracle + 13} textAnchor="middle" className="num text-[12px] font-semibold" fill={SERIES.catOlive}>
                         ◆ {last.oracleCdsStress.toFixed(1)}%
                       </text>
 
                       {/* Bubble 2027 chip */}
                       <line x1={endX} y1={y2027} x2={chipX} y2={chipY2027 + chipH / 2} stroke={SERIES.catNavy} strokeWidth="1" strokeOpacity="0.5" />
                       <rect x={chipX} y={chipY2027} width={chipW} height={chipH} rx="3" fill="rgb(var(--c-surface))" stroke={SERIES.catNavy} strokeWidth="1" />
-                      <text x={chipX + chipW / 2} y={chipY2027 + 13} textAnchor="middle" className="num text-[11px] font-semibold" fill={SERIES.catNavy}>
+                      <text x={chipX + chipW / 2} y={chipY2027 + 13} textAnchor="middle" className="num text-[12px] font-semibold" fill={SERIES.catNavy}>
                         ■ {last.aiBubble2027.toFixed(1)}%
                       </text>
 
                       {/* Bubble 2026 chip */}
                       <line x1={endX} y1={y2026} x2={chipX} y2={chipY2026 + chipH / 2} stroke={SERIES.catTeal} strokeWidth="1" strokeOpacity="0.5" />
                       <rect x={chipX} y={chipY2026} width={chipW} height={chipH} rx="3" fill="rgb(var(--c-surface))" stroke={SERIES.catTeal} strokeWidth="1" />
-                      <text x={chipX + chipW / 2} y={chipY2026 + 13} textAnchor="middle" className="num text-[11px] font-semibold" fill={SERIES.catTeal}>
+                      <text x={chipX + chipW / 2} y={chipY2026 + 13} textAnchor="middle" className="num text-[12px] font-semibold" fill={SERIES.catTeal}>
                         ● {last.aiBubble2026.toFixed(1)}%
                       </text>
 
                       {/* OpenAI AGI chip */}
                       <line x1={endX} y1={yAgi} x2={chipX} y2={chipYAgi + chipH / 2} stroke={SERIES.catCyan} strokeWidth="1" strokeOpacity="0.5" />
                       <rect x={chipX} y={chipYAgi} width={chipW} height={chipH} rx="3" fill="rgb(var(--c-surface))" stroke={SERIES.catCyan} strokeWidth="1" />
-                      <text x={chipX + chipW / 2} y={chipYAgi + 13} textAnchor="middle" className="num text-[11px] font-semibold" fill={SERIES.catCyan}>
+                      <text x={chipX + chipW / 2} y={chipYAgi + 13} textAnchor="middle" className="num text-[12px] font-semibold" fill={SERIES.catCyan}>
                         ▲ {last.openaiAgiOdds.toFixed(1)}%
                       </text>
                     </g>

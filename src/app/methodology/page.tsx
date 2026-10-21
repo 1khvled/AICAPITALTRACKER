@@ -226,7 +226,7 @@ export default function MethodologyPage() {
   const tocItems = METHODOLOGY_SECTIONS;
 
 return (
-    <div className="section-sm">
+    <div className="section-sm methodology-prose">
       {/* Top banner ad */}
       <AdSlot placementId="methodology-top" />
 

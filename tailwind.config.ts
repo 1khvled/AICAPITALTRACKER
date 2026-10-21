@@ -50,6 +50,7 @@ const config: Config = {
          * digits that never jitter, and that is a job for the mono.
          */
         sans: [
+          "var(--font-sans)",
           "-apple-system",
           "BlinkMacSystemFont",
           '"SF Pro Display"',
@@ -60,6 +61,15 @@ const config: Config = {
           "Segoe UI",
           "Arial",
           "sans-serif",
+        ],
+        serif: [
+          "var(--font-serif)",
+          '"Source Serif 4"',
+          "Georgia",
+          "Cambria",
+          '"Times New Roman"',
+          "Times",
+          "serif",
         ],
         mono: [
           "var(--font-mono)",

@@ -222,18 +222,78 @@ html {
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
   scroll-padding-top: 5rem; /* sticky header offset for in-page anchors */
+  overflow-x: hidden;
 }
 
 body {
   background-color: rgb(var(--c-canvas));
   color: rgb(var(--c-ink));
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
     "Helvetica Neue", Helvetica, system-ui, "Segoe UI", Arial, sans-serif;
   font-size: 1.0625rem; /* 17px — reading size for plain-language copy */
   line-height: 1.6;
-  letter-spacing: 0; /* was -0.005em; Apple S15: body prose sits near zero */
+  letter-spacing: 0; /* Apple S15: body prose sits near zero */
   overflow-x: hidden;
+  max-width: 100vw;
   min-height: 100dvh;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   2b. BROADSHEET SERIF — READING PROSE ONLY
+   Applied strictly to long-form prose:
+   - The guides' body copy
+   - The methodology's prose
+   - The glossary's explanations
+   - The "what this is not" disclosure panels
+   ───────────────────────────────────────────────────────────────────────── */
+.font-serif,
+.prose-serif,
+.prose-broadsheet,
+[data-guide-body] p:not(.label):not(.num):not(.pill):not(.chip):not(.btn),
+[data-guide-body] li:not(.chip):not(.pill):not(.label):not(.num),
+.methodology-prose p:not(.label):not(.num):not(.pill):not(.chip):not(.btn),
+.methodology-prose li:not(.chip):not(.pill):not(.label):not(.num),
+.glossary-explanation,
+.disclosure-prose,
+.not-this-body,
+.not-this-body p,
+.not-this-body li {
+  font-family: var(--font-serif), "Source Serif 4", Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+/* Hard guard: Tables, figures, chips, labels, nav, buttons, charts, and mono NEVER inherit serif */
+table,
+table th,
+table td,
+table p,
+caption,
+.prose-table,
+.prose-table th,
+.prose-table td,
+.prose-table p,
+.chip,
+.btn,
+nav,
+.nav-panel,
+.command-palette,
+header,
+svg text {
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, system-ui, "Segoe UI", Arial, sans-serif !important;
+}
+
+.num,
+.label,
+.pill,
+.font-tabular,
+.prose-mono,
+table .num,
+table th,
+.prose-table th,
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--font-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace !important;
 }
 
 /* Nothing on this site may cause sideways scroll on a 360px phone. */
@@ -494,6 +554,13 @@ html.dark .notice-caution {
   text-transform: uppercase;
   white-space: nowrap;
 }
+@media (max-width: 640px) {
+  .chip {
+    white-space: normal;
+    word-break: break-word;
+    max-width: 100%;
+  }
+}
 .pill-safe {
   color: #0a6648;
   background-color: #eaf7f1;
@@ -559,6 +626,13 @@ html.dark .pill-ink {
   font-weight: 500;
   line-height: 1.4;
   white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .chip {
+    white-space: normal;
+    word-break: break-word;
+    max-width: 100%;
+  }
 }
 .chip-safe {
   color: #0a6648;
