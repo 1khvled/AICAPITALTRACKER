@@ -346,7 +346,7 @@ export function ProbabilityGauge({
     },
     guarded: {
       label: "Guarded (25–44%)",
-      pillTone: "",
+      pillTone: "pill-guarded",
       desc: "Moderate multiple expansion adequately covered by real utility, commercial software enterprise adoption, and healthy balance sheets.",
     },
     calm: {
@@ -635,17 +635,17 @@ export function ProbabilityGauge({
   const marketImplied12m = marketImplied12mBand(polyOdds2027);
   const divergenceDelta = Math.round((currentProb - marketImplied12m.centralPct) * 10) / 10;
 
-  // Flat, ink-first palette for the arc. Token values: the safe / caution /
-  // risk scales from tailwind.config.ts, and the ink ramp for the guarded
-  // band (read from the CSS variable so it follows the theme).
+  // Five-band palette: Watchful Bronze for guarded (#A9743A / dark #C68B45),
+  // safe emerald for calm, caution amber for elevated, and risk red for high/critical.
+  // The live model band uses var(--c-accent) so it follows the theme automatically.
   const ARC_HEX: Record<BubbleBand, string> = {
-    calm: "#0E9F6E", // safe-500
-    guarded: "rgb(var(--c-ink-subtle))", // --c-ink-subtle
-    elevated: "#B57F0A", // caution-500
-    high: "#D1433C", // risk-500
-    critical: "#B7352F", // risk-600
+    calm: "#0E9F6E",
+    guarded: "#A9743A",
+    elevated: "#B57F0A",
+    high: "#D1433C",
+    critical: "#B7352F",
   };
-  const arcColor = ARC_HEX[currentBand] ?? ARC_HEX.guarded;
+  const arcColor = currentBand === baseBand ? "var(--c-accent)" : (ARC_HEX[currentBand] ?? "var(--c-accent)");
 
   const fragilityBand =
     currentFragility > 65 ? "Fragile" : currentFragility >= 35 ? "Moderate" : "Resilient";
@@ -655,7 +655,10 @@ export function ProbabilityGauge({
   const factorCount = (currentContributions ?? []).length;
 
   return (
-    <div ref={gaugeRef} className="card card-flush rounded-lg shadow-card transition-shadow duration-200 hover:shadow-raised">
+    <div
+      ref={gaugeRef}
+      className="card card-flush rounded-lg shadow-card rule-accent-top transition-shadow duration-200 hover:shadow-raised"
+    >
       {/* ── Provenance strip ───────────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-rule px-4 py-2.5 sm:px-6">
         <div className="flex flex-wrap items-center gap-1.5">
@@ -859,7 +862,7 @@ export function ProbabilityGauge({
             <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[14px] text-ink-faint">
               <div className="flex gap-1.5">
                 <dt>band</dt>
-                <dd className="num font-semibold uppercase text-ink-muted">{currentBand}</dd>
+                <dd className="num font-semibold uppercase text-accent-strong dark:text-accent-ink">{currentBand}</dd>
               </div>
               <div className="flex gap-1.5">
                 <dt>fragility</dt>

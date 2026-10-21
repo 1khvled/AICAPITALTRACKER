@@ -42,7 +42,7 @@ export const BAND_VERDICT: Record<BubbleBand, string> = {
  */
 export const BAND_TONE: Record<BubbleBand, { pillTone: string; barTone: string }> = {
   calm: { pillTone: "pill-safe", barTone: "bg-safe-500" },
-  guarded: { pillTone: "", barTone: "bg-ink-faint" },
+  guarded: { pillTone: "pill-guarded", barTone: "bg-[#A9743A] dark:bg-[#C68B45]" },
   elevated: { pillTone: "pill-caution", barTone: "bg-caution-500" },
   high: { pillTone: "pill-risk", barTone: "bg-risk-500" },
   critical: { pillTone: "pill-risk", barTone: "bg-risk-600" },

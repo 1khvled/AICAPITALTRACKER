@@ -425,7 +425,14 @@ const CREDIT_FREEZE_INPUTS: BubbleModelInputs = {
 const ALT_DOTCOM_2000 = { x1: 0.08, x2: -0.28, x3: 0.01, x4: 0.75 };
 const ALT_CREDIT_FREEZE = { x1: 0.08, x2: -0.25, x3: 0.02, x4: 1.35 };
 
-/** Engine band -> display label + the site's semantic tone tokens. */
+/**
+ * Engine band -> display label + the site's semantic tone tokens.
+ *
+ * The badge uses the dedicated `.pill-*` classes rather than utility strings:
+ * `.pill` lives OUTSIDE @layer in globals.css, and unlayered CSS beats
+ * Tailwind's utilities, so a `bg-[#FAF3EA] text-[#754813]` utility on a pill
+ * is silently ignored and the badge falls back to the neutral surface.
+ */
 const BAND_DISPLAY: Record<
   BubbleBand,
   { label: string; bandColor: string; badgeColor: string }
@@ -433,27 +440,27 @@ const BAND_DISPLAY: Record<
   calm: {
     label: "CALM",
     bandColor: "text-safe-700",
-    badgeColor: "bg-safe-500/10 text-safe-700 border-safe-300/20",
+    badgeColor: "pill-safe",
   },
   guarded: {
     label: "GUARDED",
-    bandColor: "text-caution-700",
-    badgeColor: "bg-caution-500/10 text-caution-700 border-caution-300/20",
+    bandColor: "text-[#754813] dark:text-[#E0A968]",
+    badgeColor: "pill-guarded",
   },
   elevated: {
     label: "ELEVATED",
     bandColor: "text-caution-700",
-    badgeColor: "bg-caution-500/10 text-caution-700 border-caution-300/20",
+    badgeColor: "pill-caution",
   },
   high: {
     label: "HIGH",
     bandColor: "text-risk-700",
-    badgeColor: "bg-risk-500/10 text-risk-700 border-risk-300/20",
+    badgeColor: "pill-risk",
   },
   critical: {
     label: "CRITICAL",
     bandColor: "text-risk-700",
-    badgeColor: "bg-risk-500/10 text-risk-700 border-risk-300/20",
+    badgeColor: "pill-risk",
   },
 };
 

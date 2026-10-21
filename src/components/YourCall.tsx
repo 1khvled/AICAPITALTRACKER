@@ -451,24 +451,51 @@ export function YourCall({
         </div>
 
         <dl className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <div className="min-w-0 rounded-md border border-rule bg-surface-2 px-3 py-2">
-            <dt className="text-[13px] text-ink-muted">Your call less the model</dt>
-            <dd className="num mt-0.5 text-[15px] font-semibold text-ink">
-              {signedPoints(comparisonValue - modelPrintPct)} pts
-            </dd>
-          </div>
-          <div className="min-w-0 rounded-md border border-rule bg-surface-2 px-3 py-2">
-            <dt className="text-[13px] text-ink-muted">Your call less the market</dt>
-            <dd className="num mt-0.5 text-[15px] font-semibold text-ink">
-              {signedPoints(comparisonValue - marketPct)} pts
-            </dd>
-          </div>
-          <div className="min-w-0 rounded-md border border-rule bg-surface-2 px-3 py-2">
-            <dt className="text-[13px] text-ink-muted">Model less the market</dt>
-            <dd className="num mt-0.5 text-[15px] font-semibold text-ink">
-              {signedPoints(modelPrintPct - marketPct)} pts
-            </dd>
-          </div>
+          {(() => {
+            const diffModel = comparisonValue - modelPrintPct;
+            const diffMarket = comparisonValue - marketPct;
+            const diffModelMarket = modelPrintPct - marketPct;
+            const tone = (d: number) =>
+              d > 0.05
+                ? {
+                    card: "rule-risk-left bg-[#FDF0EF]/60 dark:bg-[rgb(209_67_60/0.10)]",
+                    num: "text-risk-700 dark:text-risk-300",
+                  }
+                : d < -0.05
+                ? {
+                    card: "rule-safe-left bg-[#EAF7F1]/60 dark:bg-[rgb(14_159_110/0.10)]",
+                    num: "text-safe-700 dark:text-safe-300",
+                  }
+                : {
+                    card: "rule-neutral-left bg-surface-2",
+                    num: "text-ink",
+                  };
+            const tModel = tone(diffModel);
+            const tMarket = tone(diffMarket);
+            const tMM = tone(diffModelMarket);
+            return (
+              <>
+                <div className={`min-w-0 rounded-md border border-rule px-3 py-2 transition-colors ${tModel.card}`}>
+                  <dt className="text-[13px] text-ink-muted">Your call less the model</dt>
+                  <dd className={`num mt-0.5 text-[15px] font-semibold ${tModel.num}`}>
+                    {signedPoints(diffModel)} pts
+                  </dd>
+                </div>
+                <div className={`min-w-0 rounded-md border border-rule px-3 py-2 transition-colors ${tMarket.card}`}>
+                  <dt className="text-[13px] text-ink-muted">Your call less the market</dt>
+                  <dd className={`num mt-0.5 text-[15px] font-semibold ${tMarket.num}`}>
+                    {signedPoints(diffMarket)} pts
+                  </dd>
+                </div>
+                <div className={`min-w-0 rounded-md border border-rule px-3 py-2 transition-colors ${tMM.card}`}>
+                  <dt className="text-[13px] text-ink-muted">Model less the market</dt>
+                  <dd className={`num mt-0.5 text-[15px] font-semibold ${tMM.num}`}>
+                    {signedPoints(diffModelMarket)} pts
+                  </dd>
+                </div>
+              </>
+            );
+          })()}
         </dl>
 
         <p className="mt-3 text-[13px] leading-relaxed text-ink-faint">
@@ -594,8 +621,10 @@ export function YourCall({
                     <td className="num px-1 py-2 text-[14px] text-ink-muted">
                       {row.record.modelPrintPct.toFixed(1)}%
                     </td>
-                    <td className="num px-1 py-2 text-[14px] text-ink-muted">
-                      {signedPoints(row.gap)}
+                    <td className="num px-1 py-2 text-[14px]">
+                      <span className={`chip ${row.gap > 0 ? "chip-risk" : row.gap < 0 ? "chip-safe" : ""}`}>
+                        {signedPoints(row.gap)}
+                      </span>
                     </td>
                     <td className="px-2 py-2 text-[14px] leading-snug text-ink-muted">
                       {row.outcome ? (

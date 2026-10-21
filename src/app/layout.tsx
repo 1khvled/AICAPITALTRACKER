@@ -188,7 +188,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" suppressHydrationWarning className={jetbrainsMono.variable}>
+    <html lang="en" suppressHydrationWarning className={jetbrainsMono.variable} data-band={model.band}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         <script dangerouslySetInnerHTML={{ __html: revealBootScript }} />

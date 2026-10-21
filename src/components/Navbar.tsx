@@ -184,7 +184,7 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
               {marker ? (
                 <span
                   aria-hidden="true"
-                  className="nav-marker pointer-events-none absolute left-0 top-0 z-0 rounded-md bg-white/10 shadow-[inset_0_-2px_0_0_rgb(255_255_255)]"
+                  className="nav-marker pointer-events-none absolute left-0 top-0 z-0 rounded-md bg-white/10 shadow-[inset_0_-2px_0_0_var(--c-accent)]"
                   style={{
                     width: marker.width,
                     transform: `translateX(${marker.left}px)`,
@@ -227,8 +227,11 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
                 <span className="hidden text-[13px] font-medium uppercase tracking-[0.14em] text-header-muted lg:inline">
                   12-mo risk
                 </span>
-                <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${tone}`} aria-hidden="true" />
-                <span className="num text-[14px] font-semibold text-white">
+                <span
+                  className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--c-accent)]"
+                  aria-hidden="true"
+                />
+                <span className="num text-[14px] font-semibold text-[var(--c-accent-ink)]">
                   {burstProbability!.toFixed(1)}%
                 </span>
               </Link>

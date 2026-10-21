@@ -109,8 +109,8 @@ export default function HomePage() {
           goes looking for them finds them. The number is here, so the
           qualifications belong here too: what moved, and what the print is not. */}
       <Reveal>
-        <div className="panel space-y-3">
-          <p className="label">What changed on 20 Oct 2026</p>
+        <div className="panel space-y-3 rule-accent-left pl-4">
+          <p className="label flex items-center gap-1.5"><span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--c-accent)]" aria-hidden="true" />What changed on 20 Oct 2026</p>
           <p className="text-[15px] leading-relaxed text-ink-muted">
             Model v2.7.0 raised the credit factor&apos;s ramp ceiling from ×3 to ×7.556 of
             baseline after the factor was found <em>pinned at its maximum</em>. It had been

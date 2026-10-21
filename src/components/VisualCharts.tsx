@@ -58,6 +58,16 @@ const TOKEN = {
   surface3: "rgb(var(--c-surface-3))", // globals.css --c-surface-3
   rule: "rgb(var(--c-rule))", // globals.css --c-rule
   ruleStrong: "rgb(var(--c-rule-strong))", // globals.css --c-rule-strong
+  accent: "var(--c-accent)", // globals.css --c-accent
+  accentStrong: "var(--c-accent-strong)", // globals.css --c-accent-strong
+  accentSoft: "var(--c-accent-soft)", // globals.css --c-accent-soft
+  accentInk: "var(--c-accent-ink)", // globals.css --c-accent-ink
+  catTeal: "var(--c-cat-teal)", // categorical palette: teal #0F6E6A (dark #1E9A92)
+  catNavy: "var(--c-cat-navy)", // categorical palette: navy #3A4E7A (dark #6A82B8)
+  catOlive: "var(--c-cat-olive)", // categorical palette: olive #4E6B2F (dark #7FA35C)
+  catSteel: "var(--c-cat-steel)", // categorical palette: steel #55606D (dark #8A96A3)
+  catSand: "var(--c-cat-sand)", // categorical palette: sand #A98B57 (dark #C9A870)
+  catCyan: "var(--c-cat-cyan)", // categorical palette: cyan #1F6F8B (dark #3E9CB8)
 } as const;
 
 // ============================================================================
@@ -390,7 +400,7 @@ export function SensitivityCurveChart({
               cx={toX(currentScore)}
               cy={toY(currentProb)}
               r="6"
-              fill={TOKEN.risk500}
+              fill={TOKEN.accent}
               style={{ stroke: TOKEN.canvas }}
               strokeWidth="2.5"
             />
@@ -401,7 +411,7 @@ export function SensitivityCurveChart({
                   width="160"
                   height="26"
                   rx="5"
-                  style={{ fill: TOKEN.ink, stroke: TOKEN.risk500 }}
+                  style={{ fill: TOKEN.ink, stroke: TOKEN.accent }}
                   strokeWidth="1.2"
                   opacity="0.95"
                 />
@@ -429,7 +439,7 @@ export function SensitivityCurveChart({
                 y1={padding.top}
                 x2={activeX}
                 y2={height - padding.bottom}
-                stroke={TOKEN.risk500}
+                stroke={TOKEN.accent}
                 strokeWidth="1.5"
                 strokeDasharray="3 3"
                 opacity="0.8"
@@ -441,7 +451,7 @@ export function SensitivityCurveChart({
                 y1={activeY}
                 x2={width - padding.right}
                 y2={activeY}
-                stroke={TOKEN.risk500}
+                stroke={TOKEN.accent}
                 strokeWidth="1.5"
                 strokeDasharray="3 3"
                 opacity="0.8"
@@ -452,7 +462,7 @@ export function SensitivityCurveChart({
                 cx={activeX}
                 cy={activeY}
                 r="7"
-                style={{ fill: TOKEN.canvas, stroke: TOKEN.risk500 }}
+                style={{ fill: TOKEN.canvas, stroke: TOKEN.accent }}
                 strokeWidth="3"
               />
 
@@ -648,7 +658,7 @@ const CAPITAL_SEGMENTS: CapitalSegment[] = [
     amount: "$751.1B",
     amountUsd: 751_102_880_000,
     dealCount: 28,
-    color: TOKEN.ink,
+    color: TOKEN.catCyan,
     labelInk: "text-canvas",
     riskTier: "Medium",
     description:
@@ -663,7 +673,7 @@ const CAPITAL_SEGMENTS: CapitalSegment[] = [
     amount: "$669.0B",
     amountUsd: 668_960_000_000,
     dealCount: 16,
-    color: TOKEN.inkMuted,
+    color: TOKEN.catNavy,
     labelInk: "text-canvas",
     riskTier: "Medium",
     description:
@@ -678,7 +688,7 @@ const CAPITAL_SEGMENTS: CapitalSegment[] = [
     amount: "$519.2B",
     amountUsd: 519_249_580_000,
     dealCount: 52,
-    color: TOKEN.inkSubtle,
+    color: TOKEN.catTeal,
     labelInk: "text-canvas",
     riskTier: "Medium",
     description:
@@ -693,8 +703,8 @@ const CAPITAL_SEGMENTS: CapitalSegment[] = [
     amount: "$431.5B",
     amountUsd: 431_495_300_000,
     dealCount: 16,
-    color: TOKEN.inkFaint,
-    labelInk: "text-canvas",
+    color: TOKEN.catSand,
+    labelInk: "text-ink",
     riskTier: "Neutral",
     description:
       "Consolidation acquisitions of AI silicon developers and enterprise SaaS pipelines (ledger category: Buyouts & mergers).",
@@ -708,8 +718,8 @@ const CAPITAL_SEGMENTS: CapitalSegment[] = [
     amount: "$225.1B",
     amountUsd: 225_100_000_000,
     dealCount: 8,
-    color: TOKEN.ruleStrong,
-    labelInk: "text-ink",
+    color: TOKEN.catSteel,
+    labelInk: "text-canvas",
     riskTier: "Neutral",
     description:
       "Chip-vendor capacity commitments, licensing-and-hire deals and venture vehicles (ledger category: Other). Several are letters of intent, not closed capital.",
@@ -723,7 +733,7 @@ const CAPITAL_SEGMENTS: CapitalSegment[] = [
     amount: "$214.9B",
     amountUsd: 214_890_400_000,
     dealCount: 24,
-    color: TOKEN.risk600,
+    color: TOKEN.catOlive,
     labelInk: "text-canvas",
     riskTier: "High",
     description:
@@ -738,8 +748,8 @@ const CAPITAL_SEGMENTS: CapitalSegment[] = [
     amount: "$46.5B",
     amountUsd: 46_475_000_000,
     dealCount: 21,
-    color: TOKEN.surface3,
-    labelInk: "text-ink",
+    color: TOKEN.catNavy,
+    labelInk: "text-canvas",
     riskTier: "Neutral",
     description:
       "20-year off-grid nuclear power purchase agreements, SMR co-locations, and sub-stations (ledger category: Power & land).",
@@ -753,8 +763,8 @@ const CAPITAL_SEGMENTS: CapitalSegment[] = [
     amount: "$15.6B",
     amountUsd: 15_600_000_000,
     dealCount: 4,
-    color: TOKEN.rule,
-    labelInk: "text-ink",
+    color: TOKEN.catTeal,
+    labelInk: "text-canvas",
     riskTier: "Neutral",
     description:
       "Employee liquidity events and strategic cross-holdings (ledger category: Share sales).",

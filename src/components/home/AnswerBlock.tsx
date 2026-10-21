@@ -186,7 +186,7 @@ export function AnswerBlock({
 
       {/* Verdict */}
       <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-muted">
-        <span className="font-semibold text-ink">{BAND_LABEL[band]} risk.</span>{" "}
+        <span className="font-semibold text-accent-strong dark:text-accent-ink">{BAND_LABEL[band]} risk.</span>{" "}
         {BAND_VERDICT[band]}
       </p>
 

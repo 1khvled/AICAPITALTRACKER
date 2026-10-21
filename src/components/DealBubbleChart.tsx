@@ -127,13 +127,13 @@ export const CATEGORY_CONFIG: Record<
 > = {
   "Borrowed": {
     name: "Debt & Facilities",
-    pillBg: "chip chip-risk",
-    border: "border-risk-200",
-    tileBg: "bg-risk-50",
+    pillBg: "chip",
+    border: "border-rule",
+    tileBg: "bg-surface-2",
     tileBgHover: "",
-    badgeBg: "bg-risk-500",
-    textColor: "text-risk-700",
-    accentHex: "#D1433C", // risk-500
+    badgeBg: "bg-cat-teal",
+    textColor: "text-ink",
+    accentHex: "var(--c-cat-teal)", // categorical teal #0F6E6A (dark #1E9A92)
   },
   "Bets & rounds": {
     name: "Equity & Strategic Bets",
@@ -141,9 +141,9 @@ export const CATEGORY_CONFIG: Record<
     border: "border-rule",
     tileBg: "bg-surface-2",
     tileBgHover: "",
-    badgeBg: "bg-surface-3",
-    textColor: "text-ink-muted",
-    accentHex: "#4A525C", // ink-muted
+    badgeBg: "bg-cat-navy",
+    textColor: "text-ink",
+    accentHex: "var(--c-cat-navy)", // categorical navy #3A4E7A (dark #6A82B8)
   },
   "Compute contracts": {
     name: "Compute & Cloud Clusters",
@@ -151,19 +151,19 @@ export const CATEGORY_CONFIG: Record<
     border: "border-rule",
     tileBg: "bg-surface-2",
     tileBgHover: "",
-    badgeBg: "bg-surface-3",
-    textColor: "text-ink-muted",
-    accentHex: "#646C76", // ink-faint
+    badgeBg: "bg-cat-cyan",
+    textColor: "text-ink",
+    accentHex: "var(--c-cat-cyan)", // categorical cyan #1F6F8B (dark #3E9CB8)
   },
   "Power & land": {
     name: "Power & Clean Energy",
-    pillBg: "chip chip-caution",
-    border: "border-caution-200",
-    tileBg: "bg-caution-50",
+    pillBg: "chip",
+    border: "border-rule",
+    tileBg: "bg-surface-2",
     tileBgHover: "",
-    badgeBg: "bg-caution-500",
-    textColor: "text-caution-700",
-    accentHex: "#966A08", // caution-600
+    badgeBg: "bg-cat-olive",
+    textColor: "text-ink",
+    accentHex: "var(--c-cat-olive)", // categorical olive #4E6B2F (dark #7FA35C)
   },
   "Buyouts & mergers": {
     name: "M&A & Buyouts",
@@ -171,43 +171,39 @@ export const CATEGORY_CONFIG: Record<
     border: "border-rule",
     tileBg: "bg-surface-2",
     tileBgHover: "",
-    badgeBg: "bg-surface-3",
-    textColor: "text-ink-muted",
-    /* Was #0C0E11, which is 2/255 from the dark canvas (10 11 13): the 19 M&A
-       tiles — including the largest deals on the page — read as holes in the
-       treemap and as empty outlines in the bubble pods. A mid neutral keeps
-       the category in the ink ramp and visible in both themes. */
-    accentHex: "#8A929C", // ink, one step lighter than ink-subtle
+    badgeBg: "bg-cat-sand",
+    textColor: "text-ink",
+    accentHex: "var(--c-cat-sand)", // categorical sand #A98B57 (dark #C9A870)
   },
   "Big construction": {
     name: "Hyperscale Capex",
-    pillBg: "chip chip-caution",
-    border: "border-caution-200",
-    tileBg: "bg-caution-50",
-    tileBgHover: "",
-    badgeBg: "bg-caution-500",
-    textColor: "text-caution-700",
-    accentHex: "#94271F", // risk-700
-  },
-  "Share sales": {
-    name: "Secondary Share Sales",
-    pillBg: "chip chip-safe",
-    border: "border-safe-200",
-    tileBg: "bg-safe-50",
-    tileBgHover: "",
-    badgeBg: "bg-safe-500",
-    textColor: "text-safe-700",
-    accentHex: "#0A6648", // safe-700
-  },
-  "Other": {
-    name: "Ecosystem Deals",
-    pillBg: "bg-surface-2 text-ink-muted border-rule",
+    pillBg: "chip",
     border: "border-rule",
     tileBg: "bg-surface-2",
     tileBgHover: "",
-    badgeBg: "bg-ink",
-    textColor: "text-ink-muted",
-    accentHex: "#545C66", // ink-subtle
+    badgeBg: "bg-cat-steel",
+    textColor: "text-ink",
+    accentHex: "var(--c-cat-steel)", // categorical steel #55606D (dark #8A96A3)
+  },
+  "Share sales": {
+    name: "Secondary Share Sales",
+    pillBg: "chip",
+    border: "border-rule",
+    tileBg: "bg-surface-2",
+    tileBgHover: "",
+    badgeBg: "bg-cat-teal",
+    textColor: "text-ink",
+    accentHex: "var(--c-cat-teal)", // categorical teal
+  },
+  "Other": {
+    name: "Ecosystem Deals",
+    pillBg: "chip",
+    border: "border-rule",
+    tileBg: "bg-surface-2",
+    tileBgHover: "",
+    badgeBg: "bg-cat-steel",
+    textColor: "text-ink",
+    accentHex: "var(--c-cat-steel)", // categorical steel
   },
 };
 

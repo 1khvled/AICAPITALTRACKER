@@ -94,6 +94,24 @@ const config: Config = {
         "header-muted": "rgb(var(--c-header-muted) / <alpha-value>)",
         "header-rule": "rgb(var(--c-header-rule) / <alpha-value>)",
 
+        /* ── Model Reading Accent (follows data-band on <html>) ───────────── */
+        accent: {
+          DEFAULT: "var(--c-accent)",
+          strong: "var(--c-accent-strong)",
+          soft: "var(--c-accent-soft)",
+          ink: "var(--c-accent-ink)",
+        },
+
+        /* ── Categorical Palette (neutral chart data: categories, sectors) ─ */
+        cat: {
+          teal: "var(--c-cat-teal)",
+          navy: "var(--c-cat-navy)",
+          olive: "var(--c-cat-olive)",
+          steel: "var(--c-cat-steel)",
+          sand: "var(--c-cat-sand)",
+          cyan: "var(--c-cat-cyan)",
+        },
+
         /* ── Semantic: SAFE (emerald) ──────────────────────────────────────── */
         safe: {
           50: "#EAF7F1",

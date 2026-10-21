@@ -459,8 +459,8 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
     },
     guarded: {
       label: "Guarded",
-      badge: "bg-surface-2 text-ink-muted border-rule",
-      text: "text-ink-muted",
+      badge: "bg-[#FAF3EA] text-[#754813] border-[#e5cdb0] dark:bg-[rgb(198_139_69/0.16)] dark:text-[#E0A968] dark:border-[rgb(198_139_69/0.42)]",
+      text: "text-[#754813] dark:text-[#E0A968]",
     },
     calm: {
       label: "Low Risk",

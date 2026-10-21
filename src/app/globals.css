@@ -55,11 +55,26 @@
 
   /* Support colours */
   --c-shadow: 16 20 26;
-  --c-focus: 12 14 17;
+  --c-focus: var(--c-accent);
   --c-header: 12 14 17; /* terminal chrome */
   --c-header-ink: 244 245 247;
   --c-header-rule: 38 42 48;
   --c-header-muted: 150 157 166;
+
+  /* Default band accent: Watchful Bronze (guarded baseline) */
+  --c-accent: #A9743A;
+  --c-accent-strong: #754813;
+  --c-accent-soft: #FAF3EA;
+  --c-accent-ink: #E0A968;
+  --c-accent-btn-ink: #0B0D12;
+
+  /* Categorical chart palette (neutral data: deals, sectors, periods) */
+  --c-cat-teal: #0F6E6A;
+  --c-cat-navy: #3A4E7A;
+  --c-cat-olive: #4E6B2F;
+  --c-cat-steel: #55606D;
+  --c-cat-sand: #A98B57;
+  --c-cat-cyan: #1F6F8B;
 
   /* Section rhythm */
   --space-section-sm: 2rem;
@@ -79,32 +94,122 @@
 html.dark {
   color-scheme: dark;
 
-  --c-canvas: 10 11 13;
-  --c-surface: 17 19 22;
-  --c-surface-2: 23 26 30;
-  --c-surface-3: 32 36 41;
+  /* Dark canvas: slight cool cast around #0B0D12, lifted surface separation */
+  --c-canvas: 11 13 18;
+  --c-surface: 18 21 28;
+  --c-surface-2: 25 29 39;
+  --c-surface-3: 35 40 52;
 
-  /* (2026-10-19 contrast pass: faint 111,118,127 was 4.29:1 on canvas /
-     3.40:1 on surface-3 — lifted to 132,139,148 = 5.72 / 5.07 / 4.53.) */
+  /* Ink ramp — AA verified across canvas and surface-3 */
   --c-ink: 244 245 247;
   --c-ink-muted: 173 179 187;
-  --c-ink-subtle: 143 150 159;
-  --c-ink-faint: 132 139 148;
+  --c-ink-subtle: 145 152 163;
+  --c-ink-faint: 136 144 154;
 
-  --c-rule: 36 40 46;
-  --c-rule-strong: 58 63 71;
+  --c-rule: 38 43 54;
+  --c-rule-strong: 62 69 82;
 
   --c-shadow: 0 0 0;
-  --c-focus: 244 245 247;
-  --c-header: 8 9 11;
+  --c-focus: var(--c-accent);
+  --c-header: 8 9 13;
   --c-header-ink: 245 246 248;
-  --c-header-rule: 32 36 41;
-  --c-header-muted: 140 147 156;
+  --c-header-rule: 34 38 48;
+  --c-header-muted: 142 149 160;
+
+  /* Dark theme band default (guarded baseline) */
+  --c-accent: #C68B45;
+  --c-accent-strong: #E0A968;
+  --c-accent-soft: rgb(198 139 69 / 0.12);
+  --c-accent-ink: #E0A968;
+  --c-accent-btn-ink: #0B0D12;
+
+  /* Dark-theme steps for categorical chart palette */
+  --c-cat-teal: #1E9A92;
+  --c-cat-navy: #6A82B8;
+  --c-cat-olive: #7FA35C;
+  --c-cat-steel: #8A96A3;
+  --c-cat-sand: #C9A870;
+  --c-cat-cyan: #3E9CB8;
 
   /* Elevation on graphite: a shadow has to be a darker halo, not a glow. */
   --elev-card: 0 1px 2px 0 rgb(0 0 0 / 0.4), 0 2px 6px -2px rgb(0 0 0 / 0.3);
   --elev-raised: 0 4px 10px -2px rgb(0 0 0 / 0.45), 0 10px 22px -8px rgb(0 0 0 / 0.4);
   --elev-float: 0 14px 34px -12px rgb(0 0 0 / 0.6), 0 3px 8px -3px rgb(0 0 0 / 0.45);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   1b. BAND-MAPPED ACCENT TOKENS (The accent follows data-band)
+   ───────────────────────────────────────────────────────────────────────── */
+html[data-band="calm"], [data-band="calm"] {
+  --c-accent: #0E9F6E;
+  --c-accent-strong: #0A6648;
+  --c-accent-soft: #EAF7F1;
+  --c-accent-ink: #6FC9A4;
+  --c-accent-btn-ink: #052015;
+}
+html[data-band="guarded"], [data-band="guarded"] {
+  --c-accent: #A9743A;
+  --c-accent-strong: #754813;
+  --c-accent-soft: #FAF3EA;
+  --c-accent-ink: #E0A968;
+  --c-accent-btn-ink: #0B0D12;
+}
+html[data-band="elevated"], [data-band="elevated"] {
+  --c-accent: #B57F0A;
+  --c-accent-strong: #7A5506;
+  --c-accent-soft: #FEF8EA;
+  --c-accent-ink: #EFC050;
+  --c-accent-btn-ink: #0B0D12;
+}
+html[data-band="high"], [data-band="high"] {
+  --c-accent: #D1433C;
+  --c-accent-strong: #94271F;
+  --c-accent-soft: #FDF0EF;
+  --c-accent-ink: #EE9C96;
+  --c-accent-btn-ink: #FFFFFF;
+}
+html[data-band="critical"], [data-band="critical"] {
+  --c-accent: #B7352F;
+  --c-accent-strong: #851F1A;
+  --c-accent-soft: #FDF0EF;
+  --c-accent-ink: #F2A29D;
+  --c-accent-btn-ink: #FFFFFF;
+}
+
+html.dark[data-band="calm"], html.dark [data-band="calm"] {
+  --c-accent: #12B981;
+  --c-accent-strong: #34D399;
+  --c-accent-soft: rgb(18 185 129 / 0.12);
+  --c-accent-ink: #6FC9A4;
+  --c-accent-btn-ink: #0B0D12;
+}
+html.dark[data-band="guarded"], html.dark [data-band="guarded"] {
+  --c-accent: #C68B45;
+  --c-accent-strong: #E0A968;
+  --c-accent-soft: rgb(198 139 69 / 0.12);
+  --c-accent-ink: #E0A968;
+  --c-accent-btn-ink: #0B0D12;
+}
+html.dark[data-band="elevated"], html.dark [data-band="elevated"] {
+  --c-accent: #D89B18;
+  --c-accent-strong: #EFC050;
+  --c-accent-soft: rgb(216 155 24 / 0.12);
+  --c-accent-ink: #EFC050;
+  --c-accent-btn-ink: #0B0D12;
+}
+html.dark[data-band="high"], html.dark [data-band="high"] {
+  --c-accent: #E05A52;
+  --c-accent-strong: #EE9C96;
+  --c-accent-soft: rgb(224 90 82 / 0.12);
+  --c-accent-ink: #EE9C96;
+  --c-accent-btn-ink: #0B0D12;
+}
+html.dark[data-band="critical"], html.dark [data-band="critical"] {
+  --c-accent: #C7443D;
+  --c-accent-strong: #F2A29D;
+  --c-accent-soft: rgb(199 68 61 / 0.12);
+  --c-accent-ink: #F2A29D;
+  --c-accent-btn-ink: #0B0D12;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -175,7 +280,7 @@ p {
 
 /* One focus treatment, applied everywhere, high contrast in both themes. */
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
-  outline: 2px solid rgb(var(--c-focus));
+  outline: 2px solid var(--c-focus);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -290,6 +395,36 @@ p {
   padding: 0;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   A RULE ON A SURFACE
+   The site's .card and .panel rules live OUTSIDE @layer, and unlayered CSS
+   beats Tailwind's utilities: a `border-t-2 border-t-[var(--c-accent)]`
+   utility on a card is silently ignored, because the card's own
+   `border: 1px solid ...` shorthand wins. These classes are the reliable way
+   to put a rule on a surface. They come after .card and .panel, so they win.
+   ───────────────────────────────────────────────────────────────────────── */
+.rule-accent-top {
+  border-top: 2px solid var(--c-accent);
+}
+.rule-accent-left {
+  border-left: 3px solid var(--c-accent);
+}
+.rule-risk-left {
+  border-left: 3px solid #d1433c;
+}
+html.dark .rule-risk-left {
+  border-left-color: #e05a52;
+}
+.rule-safe-left {
+  border-left: 3px solid #0e9f6e;
+}
+html.dark .rule-safe-left {
+  border-left-color: #12b981;
+}
+.rule-neutral-left {
+  border-left: 3px solid rgb(var(--c-rule-strong));
+}
+
 /* Notice — a ruled callout. Tone via modifier class. */
 .notice {
   background-color: rgb(var(--c-surface-2));
@@ -301,25 +436,36 @@ p {
   line-height: 1.6;
 }
 .notice-safe {
-  border-left-color: #0e9f6e;
+  border-left: 3px solid #0e9f6e;
   background-color: #eaf7f1;
 }
+.notice-guarded {
+  border-left: 3px solid #a9743a;
+  background-color: #faf3ea;
+}
 .notice-risk {
-  border-left-color: #d1433c;
+  border-left: 3px solid #d1433c;
   background-color: #fdf0ef;
 }
 .notice-caution {
-  border-left-color: #b57f0a;
+  border-left: 3px solid #b57f0a;
   background-color: #fef8ea;
 }
 html.dark .notice-safe {
-  background-color: rgb(14 159 110 / 0.1);
+  border-left-color: #12b981;
+  background-color: rgb(18 185 129 / 0.12);
+}
+html.dark .notice-guarded {
+  border-left-color: #c68b45;
+  background-color: rgb(198 139 69 / 0.12);
 }
 html.dark .notice-risk {
-  background-color: rgb(209 67 60 / 0.12);
+  border-left-color: #e05a52;
+  background-color: rgb(224 90 82 / 0.12);
 }
 html.dark .notice-caution {
-  background-color: rgb(181 127 10 / 0.12);
+  border-left-color: #d89b18;
+  background-color: rgb(216 155 24 / 0.12);
 }
 .notice-title {
   font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -353,6 +499,11 @@ html.dark .notice-caution {
   background-color: #eaf7f1;
   border-color: #a7dfc5;
 }
+.pill-guarded {
+  color: #754813;
+  background-color: #faf3ea;
+  border-color: #e5cdb0;
+}
 .pill-risk {
   color: #94271f;
   background-color: #fdf0ef;
@@ -372,6 +523,11 @@ html.dark .pill-safe {
   color: #6fc9a4;
   background-color: rgb(14 159 110 / 0.16);
   border-color: rgb(14 159 110 / 0.42);
+}
+html.dark .pill-guarded {
+  color: #e0a968;
+  background-color: rgb(198 139 69 / 0.16);
+  border-color: rgb(198 139 69 / 0.42);
 }
 html.dark .pill-risk {
   color: #ee9c96;
@@ -405,19 +561,28 @@ html.dark .pill-ink {
   white-space: nowrap;
 }
 .chip-safe {
-  color: #0b7f58;
+  color: #0a6648;
   border-color: #a7dfc5;
   background-color: #eaf7f1;
+  border-left: 3px solid #0e9f6e;
+}
+.chip-guarded {
+  color: #754813;
+  border-color: #e5cdb0;
+  background-color: #faf3ea;
+  border-left: 3px solid #a9743a;
 }
 .chip-risk {
-  color: #b7352f;
+  color: #94271f;
   border-color: #f6c3bf;
   background-color: #fdf0ef;
+  border-left: 3px solid #d1433c;
 }
 .chip-caution {
-  color: #966a08;
+  color: #7a5506;
   border-color: #f6d88c;
   background-color: #fef8ea;
+  border-left: 3px solid #b57f0a;
 }
 /* The ACTIVE filter chip — the same ink fill the primary button uses.
    It needs its own modifier: the plain Tailwind `bg-ink` utility is emitted
@@ -436,16 +601,25 @@ html.dark .chip-safe {
   color: #6fc9a4;
   border-color: rgb(14 159 110 / 0.42);
   background-color: rgb(14 159 110 / 0.12);
+  border-left: 3px solid #12b981;
+}
+html.dark .chip-guarded {
+  color: #e0a968;
+  border-color: rgb(198 139 69 / 0.42);
+  background-color: rgb(198 139 69 / 0.12);
+  border-left: 3px solid #c68b45;
 }
 html.dark .chip-risk {
   color: #ee9c96;
   border-color: rgb(209 67 60 / 0.42);
   background-color: rgb(209 67 60 / 0.12);
+  border-left: 3px solid #e05a52;
 }
 html.dark .chip-caution {
   color: #efc050;
   border-color: rgb(181 127 10 / 0.42);
   background-color: rgb(181 127 10 / 0.12);
+  border-left: 3px solid #d89b18;
 }
 
 /* Buttons — flat, ruled, high-contrast primary. */
@@ -472,13 +646,15 @@ html.dark .chip-caution {
   border-color: rgb(var(--c-ink-faint));
 }
 .btn-primary {
-  background-color: rgb(var(--c-ink));
-  border-color: rgb(var(--c-ink));
-  color: rgb(var(--c-canvas));
+  background-color: var(--c-accent);
+  border-color: var(--c-accent);
+  color: var(--c-accent-btn-ink);
 }
 .btn-primary:hover {
-  background-color: rgb(var(--c-ink-muted));
-  border-color: rgb(var(--c-ink-muted));
+  filter: brightness(0.92);
+}
+html.dark .btn-primary:hover {
+  filter: brightness(1.1);
 }
 .btn-ghost {
   background-color: transparent;
