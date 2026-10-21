@@ -118,7 +118,11 @@ export function MethodologyToc({ sections }: MethodologyTocProps) {
       const entry = known.get(node.id);
       const heading = node.querySelector("h2")?.textContent?.trim();
       if (entry) {
-        reconciled.push({ ...entry, heading: heading || entry.label });
+        reconciled.push({
+          ...entry,
+          label: heading || entry.label,
+          heading: heading || entry.label,
+        });
         known.delete(node.id);
         return;
       }
@@ -459,12 +463,12 @@ export function MethodologyToc({ sections }: MethodologyTocProps) {
                     aria-current={isActive ? "true" : undefined}
                     title={item.heading ?? item.label}
                     className={classNames(
-                      "chip min-h-11 no-underline",
+                      "chip min-h-11 max-w-[280px] no-underline",
                       isActive && "chip-on",
                     )}
                   >
-                    <span className="num text-[13px]">{item.number}</span>
-                    <span>{item.label}</span>
+                    <span className="num text-[13px] shrink-0">{item.number}</span>
+                    <span className="truncate">{item.label}</span>
                   </a>
                 </li>
               );
@@ -511,14 +515,14 @@ export function MethodologyToc({ sections }: MethodologyTocProps) {
                     onClick={(event) => onLinkClick(event, item.id)}
                     aria-current={isActive ? "true" : undefined}
                     className={classNames(
-                      "flex min-h-11 items-center gap-3 px-4 py-2 text-[14px] no-underline transition-colors",
+                      "flex min-h-11 items-center gap-3 px-4 py-2.5 text-[14px] no-underline transition-colors",
                       isActive
                         ? "bg-surface-2 font-semibold text-ink"
                         : "text-ink-muted hover:bg-surface-2 hover:text-ink",
                     )}
                   >
-                    <span className="num text-[13px] text-ink-faint">{item.number}</span>
-                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                    <span className="num text-[13px] shrink-0 text-ink-faint">{item.number}</span>
+                    <span className="min-w-0 flex-1 leading-snug">{item.label}</span>
                   </a>
                 </li>
               );

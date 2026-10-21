@@ -33,15 +33,51 @@ export interface MethodologySection {
 }
 
 export const METHODOLOGY_SECTIONS: readonly MethodologySection[] = [
-  { id: "thesis", number: "01", label: "Empirical Thesis & Axioms" },
-  { id: "sigmoid", number: "02", label: "Sigmoid Calibration & Odds" },
-  { id: "factors", number: "03", label: "The 9 Mathematical Factors" },
-  { id: "contagion", number: "04", label: "Systemic Contagion Synergy" },
-  { id: "degradation", number: "05", label: "Degradation Honesty Protocol" },
-  { id: "backtests", number: "06", label: "Historical Crisis Backtests" },
-  { id: "classical-models", number: "07", label: "Merton, Altman & LPPLS Models" },
-  { id: "continuous-pipeline", number: "08", label: "24h Autonomous Execution" },
-  { id: "minsky-shiller", number: "09", label: "Minsky Hypothesis & Shiller CAPE" },
+  {
+    id: "thesis",
+    number: "01",
+    label: "Why Sentiment Surveys & Wall Street Pundit Forecasts Fail",
+  },
+  {
+    id: "sigmoid",
+    number: "02",
+    label: "Mapping Composite Stress Score S ∈ [0, 100] to 12-Month Burst Probability P(burst)",
+  },
+  {
+    id: "factors",
+    number: "03",
+    label: "Specification of All 9 Model Factors",
+  },
+  {
+    id: "contagion",
+    number: "04",
+    label: "Super-Additive Risk Cascades: Why Linear Weighting Underestimates Crisis Probability",
+  },
+  {
+    id: "degradation",
+    number: "05",
+    label: "Transparent Handling of Missing Primary Disclosures",
+  },
+  {
+    id: "backtests",
+    number: "06",
+    label: "Case-Enriched Historical Consistency Across Previous Speculative Epochs",
+  },
+  {
+    id: "classical-models",
+    number: "07",
+    label: "Merton (1974), Altman Z'' (2002), LPPLS, Minsky (1986) & Shiller CAPE Models",
+  },
+  {
+    id: "continuous-pipeline",
+    number: "08",
+    label: "Automated Daily Ingestion, Quantitative Recalibration & Git-Backed Audit Trail",
+  },
+  {
+    id: "minsky-shiller",
+    number: "09",
+    label: "Structural Credit Regimes, Equity Risk Premia & Historical Consistency Matrix",
+  },
 ];
 
 /** The id of a section by its position, so the page can bind anchors to data. */

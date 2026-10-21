@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback, useRef } from "react";
 import { BubbleModelInputs, BubbleModelResult } from "@/lib/model/types";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import latestModel from "@/data/latest-model.json";
+import { UndoAction } from "@/components/UndoAction";
 import {
   RotateCcw,
   SlidersHorizontal,
@@ -37,13 +38,6 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
   const currentResult = useMemo(() => evaluateBubbleModel(inputs), [inputs]);
 
   const delta = Math.round((currentResult.burstProbability - baselineResult.burstProbability) * 10) / 10;
-
-  React.useEffect(() => {
-    if (externalResetTrigger !== undefined && externalResetTrigger > 0) {
-      setInputs(DEFAULT_MODEL_INPUTS);
-      setScenarioName("baseline");
-    }
-  }, [externalResetTrigger]);
 
   React.useEffect(() => {
     onStateChange?.({
@@ -113,6 +107,105 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
   // Live median price/sales (computed from the live valuation set).
   const baseMedianPs = medianPsMultiple(DEFAULT_MODEL_INPUTS);
 
+  interface PendingUndo {
+    inputs: BubbleModelInputs;
+    scenarioName: string;
+    count: number;
+  }
+  const [pendingUndo, setPendingUndo] = useState<PendingUndo | null>(null);
+  const [undoMessage, setUndoMessage] = useState<string>("");
+
+  const inputsRef = useRef(inputs);
+  inputsRef.current = inputs;
+  const scenarioNameRef = useRef(scenarioName);
+  scenarioNameRef.current = scenarioName;
+
+  /** Count how many of the 7 interactive sliders differ from baseline. */
+  const getModifiedSliderCount = useCallback(
+    (candidate: BubbleModelInputs): number => {
+      let count = 0;
+      if ((candidate.cds?.currentBps || baseCds) !== baseCds) count++;
+      if (
+        Math.round((candidate.ledger?.debtShare ?? 0) * 1000) / 10 !==
+        Math.round(baseDebtPct * 10) / 10
+      )
+        count++;
+      if ((candidate.macro?.us10yYieldPct ?? baseUs10y) !== baseUs10y) count++;
+      if (
+        Math.round((candidate.aiDebt?.annualDebtIssuanceUsd ?? 0) / 1e9) !==
+        baseAnnualDebtB
+      )
+        count++;
+      if (
+        (candidate.adoption?.apiPriceDeclineMultiple || baseTokenDiscount) !==
+        baseTokenDiscount
+      )
+        count++;
+      if (
+        Math.round((candidate.adoption?.annualUserGrowth ?? 0) * 100) !==
+        baseUserGrowth
+      )
+        count++;
+      const candOdds =
+        Math.round(
+          (candidate.crowd?.yesProbability ??
+            candidate.crowd?.bubble2026Probability ??
+            baseOddsPct / 100) * 1000
+        ) / 10;
+      if (candOdds !== Math.round(baseOddsPct * 10) / 10) count++;
+      return count;
+    },
+    [baseCds, baseDebtPct, baseUs10y, baseAnnualDebtB, baseTokenDiscount, baseUserGrowth, baseOddsPct]
+  );
+
+  const handleResetAll = useCallback(() => {
+    const count = getModifiedSliderCount(inputs);
+    if (count > 0) {
+      setPendingUndo({ inputs, scenarioName, count });
+      setUndoMessage(
+        count === 1
+          ? "1 slider reset to baseline."
+          : `${count} sliders reset to baseline.`
+      );
+    }
+    setInputs(DEFAULT_MODEL_INPUTS);
+    setScenarioName("baseline");
+  }, [inputs, scenarioName, getModifiedSliderCount]);
+
+  const handleUndo = useCallback(() => {
+    if (!pendingUndo) return;
+    setInputs(pendingUndo.inputs);
+    setScenarioName(pendingUndo.scenarioName);
+    setPendingUndo(null);
+    setUndoMessage("");
+  }, [pendingUndo]);
+
+  const handleUndoExpired = useCallback(() => {
+    setPendingUndo(null);
+    setUndoMessage("");
+  }, []);
+
+  React.useEffect(() => {
+    if (externalResetTrigger !== undefined && externalResetTrigger > 0) {
+      const current = inputsRef.current;
+      const count = getModifiedSliderCount(current);
+      if (count > 0) {
+        setPendingUndo({
+          inputs: current,
+          scenarioName: scenarioNameRef.current,
+          count,
+        });
+        setUndoMessage(
+          count === 1
+            ? "1 slider reset to baseline."
+            : `${count} sliders reset to baseline.`
+        );
+      }
+      setInputs(DEFAULT_MODEL_INPUTS);
+      setScenarioName("baseline");
+    }
+  }, [externalResetTrigger, getModifiedSliderCount]);
+
   // 2026-10-19 (round-2 consolidation): the scenario preset set was REBUILT to mirror the
   // sandbox page's published stress table (src/app/sandbox/page.tsx → stressScenarios), which
   // is itself recomputed from the live model inputs at render time. The old presets were pinned
@@ -172,12 +265,22 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
 
   // Preset scenarios handler
   const applyPreset = (preset: PresetId) => {
-    setScenarioName(preset);
-
     if (preset === "baseline") {
-      setInputs(DEFAULT_MODEL_INPUTS);
+      handleResetAll();
       return;
     }
+
+    const count = getModifiedSliderCount(inputs);
+    if (count > 0) {
+      setPendingUndo({ inputs, scenarioName, count });
+      setUndoMessage(
+        count === 1
+          ? "Preset applied. Undo restores 1 slider."
+          : `Preset applied. Undo restores ${count} sliders.`
+      );
+    }
+
+    setScenarioName(preset);
 
     const next = JSON.parse(JSON.stringify(DEFAULT_MODEL_INPUTS)) as BubbleModelInputs;
     const medianPs = medianPsMultiple(DEFAULT_MODEL_INPUTS);
@@ -228,6 +331,10 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
 
   // Individual reset helpers
   const resetCds = () => {
+    if ((inputs.cds?.currentBps || baseCds) !== baseCds) {
+      setPendingUndo({ inputs, scenarioName, count: 1 });
+      setUndoMessage("Oracle 5Y CDS reset to baseline.");
+    }
     setScenarioName("custom");
     setInputs((prev) => ({
       ...prev,
@@ -236,6 +343,13 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
   };
 
   const resetDebt = () => {
+    if (
+      Math.round((inputs.ledger?.debtShare ?? 0) * 1000) / 10 !==
+      Math.round(baseDebtPct * 10) / 10
+    ) {
+      setPendingUndo({ inputs, scenarioName, count: 1 });
+      setUndoMessage("Borrowed share reset to baseline.");
+    }
     setScenarioName("custom");
     setInputs((prev) => ({
       ...prev,
@@ -245,6 +359,10 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
   };
 
   const resetUs10y = () => {
+    if ((inputs.macro?.us10yYieldPct ?? baseUs10y) !== baseUs10y) {
+      setPendingUndo({ inputs, scenarioName, count: 1 });
+      setUndoMessage("US 10Y yield reset to baseline.");
+    }
     setScenarioName("custom");
     setInputs((prev) => ({
       ...prev,
@@ -253,6 +371,13 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
   };
 
   const resetAnnualDebt = () => {
+    if (
+      Math.round((inputs.aiDebt?.annualDebtIssuanceUsd ?? 0) / 1e9) !==
+      baseAnnualDebtB
+    ) {
+      setPendingUndo({ inputs, scenarioName, count: 1 });
+      setUndoMessage("Debt issuance run-rate reset to baseline.");
+    }
     setScenarioName("custom");
     setInputs((prev) => ({
       ...prev,
@@ -261,6 +386,13 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
   };
 
   const resetTokenDiscount = () => {
+    if (
+      (inputs.adoption?.apiPriceDeclineMultiple || baseTokenDiscount) !==
+      baseTokenDiscount
+    ) {
+      setPendingUndo({ inputs, scenarioName, count: 1 });
+      setUndoMessage("Token API deflation reset to baseline.");
+    }
     setScenarioName("custom");
     setInputs((prev) => ({
       ...prev,
@@ -269,6 +401,13 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
   };
 
   const resetUserGrowth = () => {
+    if (
+      Math.round((inputs.adoption?.annualUserGrowth ?? 0) * 100) !==
+      baseUserGrowth
+    ) {
+      setPendingUndo({ inputs, scenarioName, count: 1 });
+      setUndoMessage("User growth reset to baseline.");
+    }
     setScenarioName("custom");
     setInputs((prev) => ({
       ...prev,
@@ -277,6 +416,16 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
   };
 
   const resetOdds = () => {
+    const candOdds =
+      Math.round(
+        (inputs.crowd?.yesProbability ??
+          inputs.crowd?.bubble2026Probability ??
+          baseOddsPct / 100) * 1000
+      ) / 10;
+    if (candOdds !== Math.round(baseOddsPct * 10) / 10) {
+      setPendingUndo({ inputs, scenarioName, count: 1 });
+      setUndoMessage("Prediction market odds reset to baseline.");
+    }
     setScenarioName("custom");
     setInputs((prev) => ({
       ...prev,
@@ -864,13 +1013,25 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
               <span className="label block">Simulated Burst Probability</span>
               <span className="text-[14px] text-ink-subtle">12-Month Real-Time Evaluation</span>
             </div>
-            <button
-              onClick={() => applyPreset("baseline")}
-              className="btn min-h-11 cursor-pointer active:scale-[0.98]"
-            >
-              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Reset All</span>
-            </button>
+            <div className="relative flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleResetAll}
+                className="btn min-h-11 cursor-pointer active:scale-[0.98]"
+                aria-label="Reset all 7 factors to baseline"
+              >
+                <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Reset All</span>
+              </button>
+              <UndoAction
+                message={undoMessage}
+                onUndo={handleUndo}
+                onExpire={handleUndoExpired}
+                placement="anchored"
+                undoLabel="Undo"
+                undoDescription="restore previous slider values"
+              />
+            </div>
           </div>
 
           {/* Primary Simulated Metric & Dynamic Delta Badge */}
