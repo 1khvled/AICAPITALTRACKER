@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Check, Clock, Info, Lock, Scale, Target, Trash2 } from "lucide-react";
+import { Check, Clock, Copy, Info, Lock, Scale, Share2, Target, Trash2, X } from "lucide-react";
 import { useMotionPreference } from "@/components/MotionProvider";
 import { useSpringValue } from "@/lib/use-spring-value";
 import {
@@ -21,7 +21,7 @@ import {
   type CallRecord,
   type ObservedPrint,
 } from "@/lib/predictions";
-import { formatAsOf } from "@/components/home/copy";
+import { formatAsOf, BAND_LABEL } from "@/components/home/copy";
 import { UndoAction } from "@/components/UndoAction";
 import { YourCallRecordChart } from "./YourCallRecordChart";
 
@@ -88,6 +88,15 @@ function signedPoints(value: number): string {
   return `${value >= 0 ? "+" : "-"}${Math.abs(value).toFixed(1)}`;
 }
 
+export interface CallReceiptData {
+  callPct: number;
+  date: string;
+  modelPrintPct: number;
+  modelBand: string;
+  marketPct?: number;
+  source: "link" | "history" | "new";
+}
+
 export function YourCall({
   modelPrintPct,
   modelBand,
@@ -107,6 +116,11 @@ export function YourCall({
   const [confirmClear, setConfirmClear] = useState<boolean>(false);
   /** The action that can still be taken back, if the reader has not let it go. */
   const [pendingUndo, setPendingUndo] = useState<PendingUndo | null>(null);
+
+  /** Active shareable call receipt (from URL query, new submission, or history row). */
+  const [activeReceipt, setActiveReceipt] = useState<CallReceiptData | null>(null);
+  const [copiedLink, setCopiedLink] = useState<boolean>(false);
+  const [copiedText, setCopiedText] = useState<boolean>(false);
 
   /**
    * The comparison numbers are LIVE FEEDBACK for a gesture: they answer
@@ -133,7 +147,34 @@ export function YourCall({
    */
   useEffect(() => {
     setRecords(readCalls());
-  }, []);
+
+    // Check for shared receipt in URL query parameters (?call=..&date=..&model=..)
+    // Note: this NEVER leaks or writes into localStorage. It is purely read into component state.
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const callParam = params.get("call");
+      const dateParam = params.get("date");
+      const modelParam = params.get("model");
+      const bandParam = params.get("band");
+      const marketParam = params.get("market");
+
+      if (callParam !== null && dateParam && modelParam !== null) {
+        const callNum = Number.parseFloat(callParam);
+        const modelNum = Number.parseFloat(modelParam);
+        const marketNum = marketParam ? Number.parseFloat(marketParam) : undefined;
+        if (!Number.isNaN(callNum) && !Number.isNaN(modelNum)) {
+          setActiveReceipt({
+            callPct: callNum,
+            date: dateParam,
+            modelPrintPct: modelNum,
+            modelBand: bandParam || modelBand,
+            marketPct: marketNum && !Number.isNaN(marketNum) ? marketNum : undefined,
+            source: "link",
+          });
+        }
+      }
+    }
+  }, [modelBand]);
 
   /* ── Derived state ───────────────────────────────────────────────────── */
 
@@ -204,12 +245,138 @@ export function YourCall({
     // The message is kept short on purpose: the status line is a fixed two
     // lines high, and a message that ran to three lines would push the page
     // down by a line. Two names at most, a count beyond that.
+    const day = utcDayKey(record.submittedAt);
+    const receiptData: CallReceiptData = {
+      callPct: record.probabilityPct,
+      date: day || new Date().toISOString().slice(0, 10),
+      modelPrintPct: record.modelPrintPct,
+      modelBand: record.modelBand,
+      marketPct: record.marketPct,
+      source: "new",
+    };
+    setActiveReceipt(receiptData);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("call", String(receiptData.callPct));
+      url.searchParams.set("date", receiptData.date);
+      url.searchParams.set("model", String(receiptData.modelPrintPct));
+      if (receiptData.modelBand) url.searchParams.set("band", receiptData.modelBand);
+      if (receiptData.marketPct !== undefined) url.searchParams.set("market", String(receiptData.marketPct));
+      window.history.replaceState({}, "", url.toString());
+    }
+
     let message = `Call recorded at ${record.probabilityPct}%.`;
     if (unlocked.length === 1) message += ` Badge unlocked: ${unlocked[0]}.`;
     else if (unlocked.length > 1) message += ` ${unlocked.length} badges unlocked.`;
     if (!persisted) message += " This browser would not save it.";
     setStatus(message);
   }, [sliderValue, modelPrintPct, modelBand, marketPct, earnedIds]);
+
+  const getReceiptUrl = useCallback((receipt: CallReceiptData) => {
+    if (typeof window === "undefined") return "";
+    const origin = window.location.origin;
+    const params = new URLSearchParams();
+    params.set("call", String(receipt.callPct));
+    params.set("date", receipt.date);
+    params.set("model", String(receipt.modelPrintPct));
+    if (receipt.modelBand) params.set("band", receipt.modelBand);
+    if (receipt.marketPct !== undefined) params.set("market", String(receipt.marketPct));
+    return `${origin}/your-call?${params.toString()}`;
+  }, []);
+
+  const getReceiptText = useCallback((receipt: CallReceiptData) => {
+    const url = getReceiptUrl(receipt);
+    const bandName = BAND_LABEL[receipt.modelBand as keyof typeof BAND_LABEL] || receipt.modelBand;
+    const spreadModel = receipt.callPct - receipt.modelPrintPct;
+    const lines = [
+      "AI CAPITAL TRACKER — VERIFIED CALL RECEIPT",
+      "─────────────────────────────────────────",
+      `Reader's Call:           ${receipt.callPct.toFixed(1)}% (12-month burst probability)`,
+      `Record Date (UTC):       ${receipt.date} (${formatAsOf(receipt.date)})`,
+      `Model Print at Entry:    ${receipt.modelPrintPct.toFixed(1)}% (${bandName})`,
+      `Spread vs Model:         ${spreadModel >= 0 ? "+" : ""}${spreadModel.toFixed(1)} pts`,
+    ];
+    if (receipt.marketPct !== undefined) {
+      const spreadMarket = receipt.callPct - receipt.marketPct;
+      lines.push(
+        `Market Price at Entry:   ${receipt.marketPct.toFixed(1)}%`,
+        `Spread vs Market:        ${spreadMarket >= 0 ? "+" : ""}${spreadMarket.toFixed(1)} pts`
+      );
+    }
+    lines.push(
+      "─────────────────────────────────────────",
+      "SITE DOCTRINE DISCLOSURE — WHAT THIS NUMBER IS NOT:",
+      "• This figure is a 12-month model probability, NOT a forecast of a specific event.",
+      "• The model print is the published record on the date of entry, NOT today's live print.",
+      "• Calls are stored locally on the reader's device; no personal data or account is required.",
+      "─────────────────────────────────────────",
+      `Verify Receipt Link: ${url}`
+    );
+    return lines.join("\n");
+  }, [getReceiptUrl]);
+
+  const handleCopyLink = useCallback(async () => {
+    if (!activeReceipt) return;
+    const url = getReceiptUrl(activeReceipt);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch {
+      // Fallback
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    }
+  }, [activeReceipt, getReceiptUrl]);
+
+  const handleCopyText = useCallback(async () => {
+    if (!activeReceipt) return;
+    const text = getReceiptText(activeReceipt);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedText(true);
+      setTimeout(() => setCopiedText(false), 2500);
+    } catch {
+      // Fallback
+      setCopiedText(true);
+      setTimeout(() => setCopiedText(false), 2500);
+    }
+  }, [activeReceipt, getReceiptText]);
+
+  const handleDismissReceipt = useCallback(() => {
+    setActiveReceipt(null);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("call");
+      url.searchParams.delete("date");
+      url.searchParams.delete("model");
+      url.searchParams.delete("band");
+      url.searchParams.delete("market");
+      window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""));
+    }
+  }, []);
+
+  const handleShowReceipt = useCallback((record: CallRecord) => {
+    const day = utcDayKey(record.submittedAt);
+    const data: CallReceiptData = {
+      callPct: record.probabilityPct,
+      date: day || "2026-10-21",
+      modelPrintPct: record.modelPrintPct,
+      modelBand: record.modelBand,
+      marketPct: record.marketPct,
+      source: "history",
+    };
+    setActiveReceipt(data);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("call", String(data.callPct));
+      url.searchParams.set("date", data.date);
+      url.searchParams.set("model", String(data.modelPrintPct));
+      if (data.modelBand) url.searchParams.set("band", data.modelBand);
+      if (data.marketPct !== undefined) url.searchParams.set("market", String(data.marketPct));
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, []);
 
   const handleClear = useCallback(() => {
     const cleared = clearCalls();
@@ -306,6 +473,172 @@ export function YourCall({
 
   return (
     <div className="space-y-6">
+      {/* ══ Verified Shareable Receipt ═════════════════════════════════ */}
+      {activeReceipt && (
+        <section
+          aria-labelledby="yc-receipt-heading"
+          className="card rule-accent-top space-y-4 shadow-sm"
+        >
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-rule pb-3">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="label">Call Receipt</span>
+                <span className="chip chip-safe">Verified Record</span>
+                <span className="pill text-[12px] font-mono">Date: {activeReceipt.date} (UTC)</span>
+              </div>
+              <h2
+                id="yc-receipt-heading"
+                className="mt-1 text-xl font-bold tracking-[-0.025em] text-ink sm:text-2xl"
+              >
+                {activeReceipt.source === "link"
+                  ? "Shared Call Receipt"
+                  : activeReceipt.source === "new"
+                  ? "Your Call is on the Record"
+                  : "Call Receipt from Your Archive"}
+              </h2>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleDismissReceipt}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-md text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink"
+              aria-label="Close receipt"
+              title="Close receipt"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+
+          {activeReceipt.source === "link" && (
+            <p className="text-[13px] text-ink-muted bg-surface-2 px-3 py-2 rounded-md border border-rule">
+              Viewing a call recorded on <strong>{formatAsOf(activeReceipt.date)}</strong>. This is read directly from the shared receipt link and does not alter your device&apos;s personal records.
+            </p>
+          )}
+
+          {/* Metric Comparison Grid */}
+          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-md border border-rule bg-rule sm:grid-cols-3">
+            {/* The Call */}
+            <div className="bg-surface p-3">
+              <span className="label inline-flex items-center gap-1.5">
+                <Target className="h-3.5 w-3.5 text-ink-muted" aria-hidden="true" />
+                Recorded Call
+              </span>
+              <p className="num mt-1 text-2xl font-bold text-ink">
+                {activeReceipt.callPct.toFixed(1)}
+                <span className="text-base font-normal text-ink-faint">%</span>
+              </p>
+              <p className="mt-1 text-[13px] text-ink-faint">
+                12-month burst probability
+              </p>
+            </div>
+
+            {/* Model Print at Record Date */}
+            <div className="bg-surface p-3">
+              <span className="label">Model Print on Record Date</span>
+              <p className="num mt-1 text-2xl font-bold text-ink">
+                {activeReceipt.modelPrintPct.toFixed(1)}
+                <span className="text-base font-normal text-ink-faint">%</span>
+              </p>
+              <p className="mt-1 text-[13px] text-ink-faint">
+                {BAND_LABEL[activeReceipt.modelBand as keyof typeof BAND_LABEL] || activeReceipt.modelBand} band on {formatAsOf(activeReceipt.date)}
+              </p>
+            </div>
+
+            {/* Spread vs Model */}
+            <div className="bg-surface p-3">
+              <span className="label">Spread vs Model</span>
+              {(() => {
+                const spread = activeReceipt.callPct - activeReceipt.modelPrintPct;
+                return (
+                  <>
+                    <p
+                      className={`num mt-1 text-2xl font-bold ${
+                        spread > 0 ? "text-risk-700 dark:text-risk-300" : spread < 0 ? "text-safe-700 dark:text-safe-300" : "text-ink"
+                      }`}
+                    >
+                      {signedPoints(spread)}
+                      <span className="text-base font-normal text-ink-faint"> pts</span>
+                    </p>
+                    <p className="mt-1 text-[13px] text-ink-faint">
+                      {spread > 0 ? "Higher stress than model" : spread < 0 ? "Lower stress than model" : "Exact match"}
+                    </p>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* Site Doctrine Disclosure */}
+          <div className="rounded-lg border border-rule bg-surface-2 p-3.5 text-[13px] leading-relaxed text-ink-muted space-y-1.5">
+            <div className="flex items-center gap-1.5 font-semibold text-ink">
+              <Info className="h-4 w-4 text-ink-subtle" aria-hidden="true" />
+              <span>Site Doctrine Disclosure: What this number is NOT</span>
+            </div>
+            <ul className="list-disc pl-4 space-y-1 text-ink-muted">
+              <li>
+                This figure is a <strong>12-month model probability</strong>, <strong>NOT a forecast of a specific event</strong>.
+              </li>
+              <li>
+                The model print is the published record <strong>on the date of entry</strong> ({activeReceipt.date}), <strong>NOT today&apos;s live print</strong>.
+              </li>
+              <li>
+                Calls are stored locally on the reader&apos;s device — no accounts, no leaderboard, no server profile.
+              </li>
+            </ul>
+          </div>
+
+          {/* Receipt Action Buttons */}
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="btn btn-primary min-h-11 px-4 text-[14px] flex items-center gap-2"
+              aria-label="Copy shareable receipt link"
+            >
+              {copiedLink ? (
+                <>
+                  <Check className="h-4 w-4 text-white" aria-hidden="true" />
+                  <span>Link copied!</span>
+                </>
+              ) : (
+                <>
+                  <Share2 className="h-4 w-4" aria-hidden="true" />
+                  <span>Copy share link</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCopyText}
+              className="btn min-h-11 px-4 text-[14px] flex items-center gap-2 border border-rule bg-surface hover:bg-surface-2 text-ink"
+              aria-label="Copy plain text receipt"
+            >
+              {copiedText ? (
+                <>
+                  <Check className="h-4 w-4 text-safe-700" aria-hidden="true" />
+                  <span>Receipt text copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 text-ink-muted" aria-hidden="true" />
+                  <span>Copy text receipt</span>
+                </>
+              )}
+            </button>
+
+            {activeReceipt.source === "link" && (
+              <a
+                href="#yc-call-heading"
+                className="btn btn-ghost min-h-11 px-3 text-[14px] text-ink-muted hover:text-ink"
+              >
+                Make your own call &darr;
+              </a>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* ══ 1 · The call ═══════════════════════════════════════════════ */}
       <section aria-labelledby="yc-call-heading" className="card">
         <div className="flex flex-wrap items-center gap-2">
@@ -604,7 +937,7 @@ export function YourCall({
                   scope="col"
                   className="px-1 py-2 text-right text-[13px] font-medium uppercase tracking-[0.1em] text-ink-faint"
                 >
-                  <span className="sr-only">Delete this call</span>
+                  <span className="sr-only">Receipt and delete actions</span>
                 </th>
               </tr>
             </thead>
@@ -659,16 +992,28 @@ export function YourCall({
                         </>
                       )}
                     </td>
-                    <td className="px-1 py-2 text-right align-middle">
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteCall(row.record)}
-                        aria-label={`Delete the call from ${row.fullDate}`}
-                        title={`Delete the call from ${row.fullDate}`}
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-md text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink"
-                      >
-                        <Trash2 className="h-4 w-4" aria-hidden="true" />
-                      </button>
+                    <td className="px-1 py-2 text-right align-middle whitespace-nowrap">
+                      <div className="inline-flex items-center gap-1 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleShowReceipt(row.record)}
+                          aria-label={`Share receipt for call from ${row.fullDate}`}
+                          title="Share receipt"
+                          className="inline-flex h-11 items-center gap-1.5 px-2.5 rounded-md text-[13px] font-medium text-ink-muted transition-colors hover:bg-surface-2 hover:text-ink min-w-[44px]"
+                        >
+                          <Share2 className="h-3.5 w-3.5 text-accent-strong dark:text-accent-ink" aria-hidden="true" />
+                          <span className="hidden sm:inline">Receipt</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCall(row.record)}
+                          aria-label={`Delete the call from ${row.fullDate}`}
+                          title={`Delete the call from ${row.fullDate}`}
+                          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink"
+                        >
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

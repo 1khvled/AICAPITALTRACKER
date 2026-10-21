@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useId } from "react";
+import React, { useState, useMemo, useId, useEffect } from "react";
 import {
   POLYMARKET_REFERRAL_CODE,
   POLYMARKET_FEATURED_MARKETS,
@@ -29,6 +29,7 @@ import {
   Flame,
   RefreshCw,
   Layers,
+  X,
 } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 
@@ -64,6 +65,16 @@ export function PolymarketCharts() {
   const [marketFilter, setMarketFilter] = useState<"All" | "Bubble & Downturn" | "Frontier Labs" | "Macro Tech">("All");
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setHoveredPoint(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // Read automated 24h data from live-inputs.json
   const crowdData = liveInputsData?.crowd;
@@ -1001,10 +1012,34 @@ export function PolymarketCharts() {
                   return (
                     <g
                       key={p.date}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`${p.date}: Bubble 2026 ${p.aiBubble2026}%, Bubble 2027 ${p.aiBubble2027}%, Oracle CDS stress ${p.oracleCdsStress}%, OpenAI AGI ${p.openaiAgiOdds}%`}
+                      className="cursor-pointer focus:outline-none"
+                      onClick={() => setHoveredPoint(hoveredPoint === i ? null : i)}
                       onMouseEnter={() => setHoveredPoint(i)}
                       onMouseLeave={() => setHoveredPoint(null)}
+                      onFocus={() => setHoveredPoint(i)}
+                      onBlur={() => setHoveredPoint(null)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setHoveredPoint(hoveredPoint === i ? null : i);
+                        } else if (e.key === "Escape") {
+                          e.preventDefault();
+                          setHoveredPoint(null);
+                        }
+                      }}
                     >
-                      {/* Vertical highlight line on hover — decorative chrome. */}
+                      {/* Touch target padding for phone readers */}
+                      <rect
+                        x={x - 18}
+                        y={padding.top}
+                        width={36}
+                        height={chartHeight - padding.top - padding.bottom}
+                        fill="transparent"
+                      />
+                      {/* Vertical highlight line on hover/active — decorative chrome. */}
                       {isHovered && (
                         <line
                           aria-hidden="true"
@@ -1099,25 +1134,36 @@ export function PolymarketCharts() {
                 })()}
               </svg>
 
-{/* Tooltip Readout */}
+              {/* Tooltip Readout */}
               {hoveredPoint !== null && (
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg border border-rule bg-surface px-3 py-2 text-[14px]">
-                  <span className="num font-semibold text-ink">{points[hoveredPoint].date}</span>
-                  <span className="num font-semibold" style={{ color: SERIES.catTeal }}>
-                    ● Bubble 2026: {points[hoveredPoint].aiBubble2026}%
-                  </span>
-                  <span className="num font-semibold" style={{ color: SERIES.catNavy }}>
-                    ■ Bubble 2027: {points[hoveredPoint].aiBubble2027}%
-                  </span>
-                  <span className="num font-semibold" style={{ color: SERIES.catOlive }}>
-                    ◆ Oracle CDS: {points[hoveredPoint].oracleCdsStress}%
-                  </span>
-                  <span className="num font-semibold" style={{ color: SERIES.catCyan }}>
-                    ▲ OpenAI AGI: {points[hoveredPoint].openaiAgiOdds}%
-                  </span>
-                  <span className="num text-ink-subtle">
-                    Cumulative Vol: ${points[hoveredPoint].volumeCumulativeMillions}M
-                  </span>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border border-rule bg-surface p-3 text-[14px]">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 flex-1">
+                    <span className="num font-semibold text-ink">{points[hoveredPoint].date}</span>
+                    <span className="num font-semibold" style={{ color: SERIES.catTeal }}>
+                      ● Bubble 2026: {points[hoveredPoint].aiBubble2026}%
+                    </span>
+                    <span className="num font-semibold" style={{ color: SERIES.catNavy }}>
+                      ■ Bubble 2027: {points[hoveredPoint].aiBubble2027}%
+                    </span>
+                    <span className="num font-semibold" style={{ color: SERIES.catOlive }}>
+                      ◆ Oracle CDS: {points[hoveredPoint].oracleCdsStress}%
+                    </span>
+                    <span className="num font-semibold" style={{ color: SERIES.catCyan }}>
+                      ▲ OpenAI AGI: {points[hoveredPoint].openaiAgiOdds}%
+                    </span>
+                    <span className="num text-ink-subtle">
+                      Cumulative Vol: ${points[hoveredPoint].volumeCumulativeMillions}M
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setHoveredPoint(null)}
+                    aria-label="Close observation details"
+                    className="flex min-h-11 min-w-11 items-center justify-center rounded-md text-ink-subtle hover:text-ink hover:bg-surface-2 transition-colors ml-auto"
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                    <span className="sr-only">Close</span>
+                  </button>
                 </div>
               )}
             </div>

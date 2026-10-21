@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useId } from "react";
+import React, { useState, useMemo, useId, useEffect } from "react";
 import {
   getChartAriaProps,
   generateChartDescription,
@@ -50,6 +50,17 @@ export function ContractMapChart({
   const [sortBy, setSortBy] = useState<"volume" | "prob" | "liquidity">("volume");
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedId(null);
+        setHoveredId(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const categories = ["All", "Bubble & Downturn", "Debt & Sovereign", "Frontier Labs", "Macro Tech"];
 
@@ -297,11 +308,23 @@ export function ContractMapChart({
               return (
                 <g
                   key={c.id}
-                  className="cursor-pointer"
-                  onClick={() => setSelectedId(c.id)}
+                  className="cursor-pointer focus:outline-none"
+                  tabIndex={0}
+                  role="button"
+                  onClick={() => setSelectedId(selectedId === c.id ? null : c.id)}
                   onMouseEnter={() => setHoveredId(c.id)}
                   onMouseLeave={() => setHoveredId(null)}
-                  role="graphics-symbol"
+                  onFocus={() => setSelectedId(c.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelectedId(selectedId === c.id ? null : c.id);
+                    } else if (e.key === "Escape") {
+                      e.preventDefault();
+                      setSelectedId(null);
+                      setHoveredId(null);
+                    }
+                  }}
                   aria-label={`${c.title}: ${c.yesProbabilityPct.toFixed(1)}% YES, Volume ${fmtUsd(c.volumeUsd)}`}
                 >
                   {/* Selection Ring */}

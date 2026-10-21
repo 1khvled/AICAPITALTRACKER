@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useId } from "react";
+import React, { useState, useMemo, useId, useEffect } from "react";
 import Link from "next/link";
 import rawDeals from "@/data/deals.json";
 import {
@@ -17,6 +17,7 @@ import {
   Calendar,
   Layers,
   Sparkles,
+  X,
 } from "lucide-react";
 
 export interface CircularDeal {
@@ -54,6 +55,17 @@ export function CircularFinancingChart({
 } = {}) {
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [hoveredDealId, setHoveredDealId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedDealId(null);
+        setHoveredDealId(null);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const allDeals = (deals ?? rawDeals) as unknown as CircularDeal[];
   const circularDeals = useMemo(
@@ -335,21 +347,35 @@ export function CircularFinancingChart({
 
         {/* Selected / Active Deal Inspector Card */}
         {activeDeal && (
-          <div className="card space-y-3.5 border-t-2 border-t-ink">
-            <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="pill pill-caution">Circular Loop</span>
-                <span className="pill">
-                  {activeDeal.is_debt ? "Senior Debt" : "Equity / Warrants"}
-                </span>
-                <span className="num text-[12px] text-ink-subtle">{activeDeal.id}</span>
+          <div className="card space-y-3.5 border-t-2 border-t-ink relative">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="pill pill-caution">Circular Loop</span>
+                  <span className="pill">
+                    {activeDeal.is_debt ? "Senior Debt" : "Equity / Warrants"}
+                  </span>
+                  <span className="num text-[12px] text-ink-subtle">{activeDeal.id}</span>
+                </div>
+                <h4 className="text-base font-bold text-ink leading-snug pt-1">
+                  {activeDeal.title}
+                </h4>
+                <div className="num text-2xl font-bold text-ink pt-0.5">
+                  {activeDeal.amount_display}
+                </div>
               </div>
-              <h4 className="text-base font-bold text-ink leading-snug pt-1">
-                {activeDeal.title}
-              </h4>
-              <div className="num text-2xl font-bold text-ink pt-0.5">
-                {activeDeal.amount_display}
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedDealId(null);
+                  setHoveredDealId(null);
+                }}
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink"
+                aria-label="Close deal detail (or press Escape)"
+                title="Close (Escape)"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+              </button>
             </div>
 
             <dl className="grid grid-cols-2 gap-2 rounded-lg border border-rule bg-surface-2 p-2.5 text-[13px]">

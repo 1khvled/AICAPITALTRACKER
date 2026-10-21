@@ -781,8 +781,12 @@ function InteractiveBubblePod({
         // Fallback
       }
       if (!hasMovedRef.current) {
-        // A tap (not a drag) opens the deal in the ledger, pre-filtered.
-        onOpenInLedger(node.deal);
+        if (hoveredDeal?.id === node.deal.id) {
+          onOpenInLedger(node.deal);
+        } else {
+          setHoveredDeal(node.deal);
+          showTip(node.deal, node.x, node.y);
+        }
       }
       setDraggingId(null);
     }
@@ -1311,7 +1315,11 @@ function GravityArena({
         // Fallback
       }
       if (!hasMovedRef.current) {
-        onSelectDeal(node.deal);
+        if (hoveredDeal?.id === node.deal.id) {
+          onSelectDeal(node.deal);
+        } else {
+          setHoveredDeal(node.deal);
+        }
       }
       setDraggingId(null);
     }
@@ -1576,7 +1584,43 @@ export function DealBubbleChart({
   // can still switch it on.
   const [isDriftEnabled, setIsDriftEnabled] = useState(false);
   const [resetCounter, setResetCounter] = useState(0);
+  const [resetAnnouncement, setResetAnnouncement] = useState<string>("");
   const router = useRouter();
+
+  const handleResetUniverse = useCallback(() => {
+    setViewMode("treemap");
+    setSelectedCat("All");
+    onCategoryChange?.("All");
+    setMinVolume("all");
+    setSearchQuery("");
+    setHoveredDeal(null);
+    setIsDriftEnabled(false);
+    setResetCounter((c) => c + 1);
+    setResetAnnouncement("Bubble universe reset to default view.");
+  }, [onCategoryChange]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (hoveredDeal) {
+          e.preventDefault();
+          setHoveredDeal(null);
+          return;
+        }
+        if (
+          viewMode !== "treemap" ||
+          selectedCat !== "All" ||
+          minVolume !== "all" ||
+          searchQuery !== ""
+        ) {
+          e.preventDefault();
+          handleResetUniverse();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [hoveredDeal, viewMode, selectedCat, minVolume, searchQuery, handleResetUniverse]);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -2014,38 +2058,51 @@ export function DealBubbleChart({
           </div>
 
           {/* View Mode Segmented Controls - 2-col on mobile, flex on desktop */}
-          <div className="grid w-full grid-cols-2 items-center gap-1 rounded-lg border border-rule bg-surface-2 p-1 sm:flex sm:w-auto sm:p-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="grid w-full grid-cols-2 items-center gap-1 rounded-lg border border-rule bg-surface-2 p-1 sm:flex sm:w-auto sm:p-1.5">
+              <button
+                onClick={() => setViewMode("treemap")}
+                aria-pressed={viewMode === "treemap"}
+                className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${viewMode === "treemap" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
+              >
+                <LayoutGrid className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>Capital Treemap</span>
+              </button>
+              <button
+                onClick={() => setViewMode("bubbles")}
+                aria-pressed={viewMode === "bubbles"}
+                className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${viewMode === "bubbles" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
+              >
+                <CircleDot className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>Bubble Pods</span>
+              </button>
+              <button
+                onClick={() => setViewMode("arena")}
+                aria-pressed={viewMode === "arena"}
+                className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${viewMode === "arena" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
+              >
+                <Atom className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink-muted shrink-0" />
+                <span>Gravity Arena</span>
+              </button>
+              <button
+                onClick={() => setViewMode("timeline")}
+                aria-pressed={viewMode === "timeline"}
+                className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${viewMode === "timeline" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
+              >
+                <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-caution-700 shrink-0" />
+                <span>Timeline Flow</span>
+              </button>
+            </div>
             <button
-              onClick={() => setViewMode("treemap")}
-              aria-pressed={viewMode === "treemap"}
-              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${viewMode === "treemap" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
+              type="button"
+              onClick={handleResetUniverse}
+              title="Reset bubble universe to default view (Escape)"
+              aria-label="Reset bubble universe to default view"
+              className="flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-rule bg-surface px-3 py-2 text-[13px] font-semibold text-ink-muted transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] hover:border-rule-strong hover:text-ink shrink-0"
             >
-              <LayoutGrid className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>Capital Treemap</span>
-            </button>
-            <button
-              onClick={() => setViewMode("bubbles")}
-              aria-pressed={viewMode === "bubbles"}
-              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${viewMode === "bubbles" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
-            >
-              <CircleDot className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>Bubble Pods</span>
-            </button>
-            <button
-              onClick={() => setViewMode("arena")}
-              aria-pressed={viewMode === "arena"}
-              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${viewMode === "arena" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
-            >
-              <Atom className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink-muted shrink-0" />
-              <span>Gravity Arena</span>
-            </button>
-            <button
-              onClick={() => setViewMode("timeline")}
-              aria-pressed={viewMode === "timeline"}
-              className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${viewMode === "timeline" ? "border-ink bg-ink text-canvas" : "border-transparent text-ink-muted hover:bg-surface hover:text-ink"}`}
-            >
-              <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-caution-700 shrink-0" />
-              <span>Timeline Flow</span>
+              <RotateCcw className="h-3.5 w-3.5 shrink-0 text-ink-subtle" aria-hidden="true" />
+              <span>Reset universe</span>
+              <kbd className="hidden sm:inline-block rounded border border-rule px-1 py-0.5 text-[11px] font-mono text-ink-faint">Esc</kbd>
             </button>
           </div>
         </div>
@@ -2233,7 +2290,13 @@ export function DealBubbleChart({
                     }
                     aria-hidden={isKeyboardMark ? undefined : true}
                     onKeyDown={(e) => nav.onMarkKeyDown(e, tile.deal.id)}
-                    onClick={() => onSelectDeal(tile.deal)}
+                    onClick={() => {
+                      if (hoveredDeal?.id === tile.deal.id) {
+                        onSelectDeal(tile.deal);
+                      } else {
+                        setHoveredDeal(tile.deal);
+                      }
+                    }}
                     onMouseEnter={() => setHoveredDeal(tile.deal)}
                     onMouseLeave={() => setHoveredDeal(null)}
                     onFocus={() => setHoveredDeal(tile.deal)}
@@ -2436,6 +2499,15 @@ export function DealBubbleChart({
 
               <div className="flex shrink-0 flex-wrap items-center gap-2">
                 <button
+                  type="button"
+                  onClick={() => setHoveredDeal(null)}
+                  className="btn min-h-11 shrink-0 px-3"
+                  aria-label="Close deal inspection panel"
+                >
+                  <X className="h-4 w-4" aria-hidden="true" />
+                  <span className="sr-only sm:not-sr-only sm:text-[13px]">Close</span>
+                </button>
+                <button
                   onClick={() => openInLedger(hoveredDeal)}
                   className="btn min-h-11 shrink-0"
                 >
@@ -2461,7 +2533,7 @@ export function DealBubbleChart({
       {viewMode !== "timeline" ? (
         <p className="px-3 pt-3 text-[14px] leading-relaxed text-ink-subtle sm:px-4">
           Keyboard: tab to the chart, press Enter to step through the {viewLabel} with the arrow
-          keys, and press Escape to return to the chart.
+          keys, and press Escape to return to the chart or reset universe.
         </p>
       ) : null}
 
@@ -2469,13 +2541,16 @@ export function DealBubbleChart({
           assistive technology always, and it is the fallback for every mark
           the keyboard model does not reach. */}
       <ChartDataTable
+        visible
+        className="max-h-[380px] overflow-y-auto"
         caption={`Every deal drawn in the ${viewLabel} view: the same rows and figures as the chart, with the sector, the disclosed amount, the announcement date and the modelled bubble exposure.`}
         columns={["Deal", "Sector", "Amount", "Announced", "Bubble exposure"]}
+        numericColumns={[2, 4]}
         rows={tableRows}
       />
 
       {/* The filter readout, announced politely when it changes. */}
-      <ChartAnnouncer message={filterAnnouncement} />
+      <ChartAnnouncer message={resetAnnouncement || filterAnnouncement} />
 
       {/* Footer Meta & Stats */}
       <div className="flex flex-col items-center justify-between gap-3 border-t border-rule bg-surface-2 px-4 py-4 md:flex-row">

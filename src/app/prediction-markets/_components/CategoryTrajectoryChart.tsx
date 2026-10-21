@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useId } from "react";
+import React, { useState, useMemo, useId, useEffect } from "react";
 import {
   POLYMARKET_HISTORICAL_TRENDS,
   PolymarketHistoryPoint,
@@ -66,6 +66,14 @@ export function CategoryTrajectoryChart({
   const toggleSeries = (key: SeriesKey) => {
     setActiveSeries((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setHoveredIndex(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // Bind live points to terminal historical observation without inventing any intermediate points
   const points = useMemo(() => {
@@ -332,16 +340,31 @@ export function CategoryTrajectoryChart({
                   />
                 )}
 
-                {/* Invisible hover capture band */}
+                {/* Interactive tap/hover capture column */}
                 <rect
                   x={x - innerW / (points.length * 2)}
                   y={pad.top}
                   width={innerW / points.length}
                   height={innerH}
                   fill="transparent"
-                  className="cursor-pointer"
+                  className="cursor-pointer focus:outline-none"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${p.date}: Bubble 2026 ${p.aiBubble2026.toFixed(1)}%, Bubble 2027 ${p.aiBubble2027.toFixed(1)}%, Oracle CDS ${p.oracleCdsStress.toFixed(1)}%, OpenAI AGI ${p.openaiAgiOdds.toFixed(1)}%`}
+                  onClick={() => setHoveredIndex(hoveredIndex === i ? null : i)}
                   onMouseEnter={() => setHoveredIndex(i)}
                   onMouseLeave={() => setHoveredIndex(null)}
+                  onFocus={() => setHoveredIndex(i)}
+                  onBlur={() => setHoveredIndex(null)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setHoveredIndex(hoveredIndex === i ? null : i);
+                    } else if (e.key === "Escape") {
+                      e.preventDefault();
+                      setHoveredIndex(null);
+                    }
+                  }}
                 />
               </g>
             );
@@ -383,9 +406,21 @@ export function CategoryTrajectoryChart({
             </div>
           </div>
 
-          <span className="text-ink-subtle text-[12px]">
-            Hover any column to inspect the 10 published dates.
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-ink-subtle text-[12px]">
+              Tap or hover any column to inspect the 10 published dates.
+            </span>
+            {hoveredIndex !== null && (
+              <button
+                type="button"
+                onClick={() => setHoveredIndex(null)}
+                className="btn min-h-11 px-2.5 text-[12px] text-ink-muted hover:text-ink"
+                aria-label="Clear date selection"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

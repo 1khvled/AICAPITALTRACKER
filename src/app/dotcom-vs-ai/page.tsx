@@ -748,6 +748,48 @@ export default function DotComVsAiPage() {
 
           {/* High-Impact Side-by-Side Comparison Grid */}
           <div className="space-y-4">
+            {/* Sticky Comparison Matrix Column Headers */}
+            <div
+              className="sticky top-14 z-30 rounded-lg border border-rule bg-surface px-5 py-2 shadow-xs transition-shadow"
+              aria-hidden="true"
+            >
+              {/* Desktop 2-column header: exact pixel alignment with .card px-5 and md:grid-cols-2 md:gap-4 */}
+              <div className="hidden md:grid md:grid-cols-2 md:gap-4 items-center">
+                {/* Dot-Com 2000 Column Header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-[13px] font-semibold text-risk-700">
+                    <TrendingDown className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <span>1999–2000 DOT-COM BUBBLE</span>
+                  </div>
+                  <span className="chip chip-risk text-[11px] py-0.5">HISTORICAL CRASH</span>
+                </div>
+
+                {/* AI 2026 Column Header */}
+                <div className="flex items-center justify-between border-l border-rule/50 pl-4">
+                  <div className="flex items-center gap-1.5 text-[13px] font-semibold text-ink">
+                    <TrendingUp className="h-4 w-4 shrink-0 text-safe-700" aria-hidden="true" />
+                    <span>2025–2026 AI SUPERSTRUCTURE</span>
+                  </div>
+                  <span className="chip chip-safe text-[11px] py-0.5">SOLVENT BUFFER / CREDIT WATCH</span>
+                </div>
+              </div>
+
+              {/* Mobile compact header: keeps context without eating vertical space */}
+              <div className="flex md:hidden items-center justify-between text-[12px] font-semibold">
+                <div className="flex items-center gap-1 text-risk-700">
+                  <TrendingDown className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span>1999–00 Dot-Com</span>
+                  <span className="chip chip-risk text-[10px] px-1.5 py-0">Crash</span>
+                </div>
+                <span className="text-ink-faint text-[11px] font-mono">vs</span>
+                <div className="flex items-center gap-1 text-ink">
+                  <span className="chip chip-safe text-[10px] px-1.5 py-0">Buffer</span>
+                  <span>2025–26 AI</span>
+                  <TrendingUp className="h-3.5 w-3.5 shrink-0 text-safe-700" aria-hidden="true" />
+                </div>
+              </div>
+            </div>
+
             {filteredMetrics.map((m) => (
               <div
                 key={m.id}
@@ -965,7 +1007,7 @@ export default function DotComVsAiPage() {
                     capex, retained free cash flow, capex-to-operating-cash-flow ratio and credit
                     rating.
                   </caption>
-                  <thead>
+                  <thead className="sticky top-14 z-20 border-b border-rule bg-surface shadow-xs">
                     <tr className="border-b border-rule text-left text-ink-subtle">
                       <th scope="col" className="py-2.5 px-3">Company</th>
                       <th scope="col" className="py-2.5 px-3">Operating Cash Flow (trailing FY)</th>

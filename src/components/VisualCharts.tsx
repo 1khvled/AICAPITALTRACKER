@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useMemo, useCallback } from "react";
+import React, { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { MODEL_CALIBRATION } from "@/lib/model/factors";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import { Reveal } from "@/components/Reveal";
@@ -799,6 +799,14 @@ const LEDGER_DEAL_COUNT = CAPITAL_SEGMENTS.reduce((n, s) => n + s.dealCount, 0);
 export function CapitalCompositionChart() {
   const [activeSegmentId, setActiveSegmentId] = useState<string | null>(null);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActiveSegmentId(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   const activeSegment = useMemo(
     () => CAPITAL_SEGMENTS.find((s) => s.id === activeSegmentId) || null,
     [activeSegmentId]
@@ -848,9 +856,23 @@ export function CapitalCompositionChart() {
             return (
               <div
                 key={seg.id}
+                tabIndex={0}
+                role="button"
+                aria-label={`${seg.label}: ${seg.amount} (${seg.share.toFixed(1)}%)`}
+                onClick={() => setActiveSegmentId(activeSegmentId === seg.id ? null : seg.id)}
                 onMouseEnter={() => setActiveSegmentId(seg.id)}
                 onMouseLeave={() => setActiveSegmentId(null)}
-                className="relative h-full transition-colors cursor-pointer first:rounded-l-lg last:rounded-r-lg"
+                onFocus={() => setActiveSegmentId(seg.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setActiveSegmentId(activeSegmentId === seg.id ? null : seg.id);
+                  } else if (e.key === "Escape") {
+                    e.preventDefault();
+                    setActiveSegmentId(null);
+                  }
+                }}
+                className="relative h-full transition-colors cursor-pointer first:rounded-l-lg last:rounded-r-lg focus:outline-none"
                 style={{
                   width: `${seg.share}%`,
                   backgroundColor: seg.color,
@@ -1109,6 +1131,17 @@ export function LabMultiplesChart() {
   const [scaleMode, setScaleMode] = useState<"log" | "linear">("log");
   const [hoveredLab, setHoveredLab] = useState<LabPoint | null>(null);
   const [selectedLab, setSelectedLab] = useState<LabPoint | null>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedLab(null);
+        setHoveredLab(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const activeLab = hoveredLab || selectedLab;
 
@@ -1375,10 +1408,24 @@ export function LabMultiplesChart() {
             return (
               <g
                 key={lab.name}
+                tabIndex={0}
+                role="button"
+                aria-label={`${lab.name}: Multiple ${multiple.toFixed(1)}x, Valuation $${lab.valuationB}B, Revenue $${lab.revenueB}B`}
                 onMouseEnter={() => setHoveredLab(lab)}
                 onMouseLeave={() => setHoveredLab(null)}
+                onFocus={() => setSelectedLab(lab)}
                 onClick={() => setSelectedLab(selectedLab?.name === lab.name ? null : lab)}
-                className="cursor-pointer transition-transform"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSelectedLab(selectedLab?.name === lab.name ? null : lab);
+                  } else if (e.key === "Escape") {
+                    e.preventDefault();
+                    setSelectedLab(null);
+                    setHoveredLab(null);
+                  }
+                }}
+                className="cursor-pointer transition-transform focus:outline-none"
               >
                 {/* Halo ring for active/hovered bubble */}
                 {isActive && (
@@ -1691,6 +1738,14 @@ export function TokenPriceDeflationChart() {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<"workhorse" | "frontier-sota" | "live-feed">("workhorse");
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setHoveredIdx(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // Tier 1: Workhorse & Utility Deflation Ladder — LAUNCH pricing, LAUNCH dates.
   // FACT-CHECKED Oct 19, 2026 (OpenRouter live API + official pricing pages). All rows use
@@ -2009,9 +2064,23 @@ export function TokenPriceDeflationChart() {
             return (
               <div
                 key={m.model}
+                tabIndex={0}
+                role="button"
+                aria-label={`${m.model} (${m.date}): ${m.display} prompt / ${m.outDisplay} completion, ${m.multiple}`}
+                onClick={() => setHoveredIdx(hoveredIdx === idx ? null : idx)}
                 onMouseEnter={() => setHoveredIdx(idx)}
                 onMouseLeave={() => setHoveredIdx(null)}
-                className="space-y-1.5 cursor-pointer group"
+                onFocus={() => setHoveredIdx(idx)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setHoveredIdx(hoveredIdx === idx ? null : idx);
+                  } else if (e.key === "Escape") {
+                    e.preventDefault();
+                    setHoveredIdx(null);
+                  }
+                }}
+                className="space-y-1.5 cursor-pointer group focus:outline-none"
               >
                 <div className="flex justify-between items-center text-[14px] sm:text-sm font-mono">
                   <div className="flex items-center gap-1.5 truncate">
@@ -2036,8 +2105,10 @@ export function TokenPriceDeflationChart() {
                     }}
                   />
                 </div>
-                {isHovered && (
+                {isHovered ? (
                   <p className="border-l-2 border-safe-300 py-1 pl-2 text-[14px] text-ink-muted">{m.notes}</p>
+                ) : (
+                  <p className="sr-only">{m.notes}</p>
                 )}
               </div>
             );

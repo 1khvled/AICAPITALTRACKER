@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useId } from "react";
+import React, { useState, useId, useEffect } from "react";
 import rawTrajectoryHistory from "@/data/trajectory-history.json";
 import { formatAsOf } from "./copy";
 
@@ -16,6 +16,16 @@ export interface TrajectoryPoint {
 export function WhatChangedChart() {
   const chartId = useId();
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setHoveredIdx(null);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const history = (Array.isArray(rawTrajectoryHistory)
     ? rawTrajectoryHistory
@@ -154,10 +164,20 @@ export function WhatChangedChart() {
                   tabIndex={0}
                   role="button"
                   aria-label={`${formatAsOf(pt.date)}: ${pt.probability.toFixed(1)}%`}
+                  onClick={() => setHoveredIdx(hoveredIdx === i ? null : i)}
                   onMouseEnter={() => setHoveredIdx(i)}
                   onMouseLeave={() => setHoveredIdx(null)}
                   onFocus={() => setHoveredIdx(i)}
                   onBlur={() => setHoveredIdx(null)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setHoveredIdx(hoveredIdx === i ? null : i);
+                    } else if (e.key === "Escape") {
+                      e.preventDefault();
+                      setHoveredIdx(null);
+                    }
+                  }}
                   className="cursor-pointer focus:outline-none"
                 >
                   <circle
@@ -245,10 +265,20 @@ export function WhatChangedChart() {
                   tabIndex={0}
                   role="button"
                   aria-label={`${formatAsOf(pt.date)}: composite ${pt.compositeScore.toFixed(1)} pts`}
+                  onClick={() => setHoveredIdx(hoveredIdx === i ? null : i)}
                   onMouseEnter={() => setHoveredIdx(i)}
                   onMouseLeave={() => setHoveredIdx(null)}
                   onFocus={() => setHoveredIdx(i)}
                   onBlur={() => setHoveredIdx(null)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setHoveredIdx(hoveredIdx === i ? null : i);
+                    } else if (e.key === "Escape") {
+                      e.preventDefault();
+                      setHoveredIdx(null);
+                    }
+                  }}
                   className="cursor-pointer focus:outline-none"
                 >
                   <circle
