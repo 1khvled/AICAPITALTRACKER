@@ -89,7 +89,7 @@ export const LEDGER_SEARCH_TERMS: Record<string, string | undefined> = {
  * record when it appears in the title, description, amount, category, status,
  * the primary company or one of the counterparties.
  */
-function recordMatches(deal: Deal, meta: DealMeta, query: string): boolean {
+export function recordMatches(deal: Deal, meta: DealMeta, query: string): boolean {
   return (
     deal.title.toLowerCase().includes(query) ||
     deal.description.toLowerCase().includes(query) ||
@@ -99,6 +99,18 @@ function recordMatches(deal: Deal, meta: DealMeta, query: string): boolean {
     meta.primaryCompany.toLowerCase().includes(query) ||
     meta.counterparties.some((cp) => cp.toLowerCase().includes(query))
   );
+}
+
+/**
+ * Retrieve all ledger deals matching a company profile name using the verified mapping.
+ */
+export function getCompanyDeals(companyName: string): Deal[] {
+  const term = LEDGER_SEARCH_TERMS[companyName] ?? companyName;
+  const termLower = term.toLowerCase();
+  return deals.filter((deal) => {
+    const meta = getDealMeta(deal);
+    return recordMatches(deal, meta, termLower);
+  });
 }
 
 /**

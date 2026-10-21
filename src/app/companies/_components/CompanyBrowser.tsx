@@ -10,6 +10,7 @@ import {
   COMPANIES,
   SECTORS,
   circularTone,
+  companySlug,
   companyStats,
   formatUsd,
   riskTone,
@@ -336,7 +337,12 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h3 className="text-[17px] font-bold leading-tight tracking-tight text-ink">
-                  {company.name}
+                  <Link
+                    href={`/companies/${companySlug(company.name)}`}
+                    className="transition-colors hover:text-ink-muted hover:underline"
+                  >
+                    {company.name}
+                  </Link>
                 </h3>
                 <p className="mt-1 text-[14px] leading-snug text-ink-subtle">{company.role}</p>
               </div>
@@ -474,6 +480,13 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
                 />
               ) : null}
               <Link
+                href={`/companies/${companySlug(company.name)}`}
+                className="flex min-h-11 shrink-0 items-center gap-1 text-[13px] font-medium text-ink-muted transition-colors hover:text-ink"
+              >
+                Dossier
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+              </Link>
+              <Link
                 href={`/ledger?search=${encodeURIComponent(ledgerTerm)}`}
                 className="flex min-h-11 shrink-0 items-center gap-1 text-[13px] font-medium text-ink-muted transition-colors hover:text-ink"
               >
@@ -565,6 +578,13 @@ export default function CompanyBrowser({ ledgerLinks }: CompanyBrowserProps) {
               ) : null}
 
               <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-rule pt-3">
+                <Link
+                  href={`/companies/${companySlug(company.name)}`}
+                  className="btn btn-primary min-h-11"
+                >
+                  Full company dossier & peers
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
                 <Link
                   href={`/ledger?search=${encodeURIComponent(ledgerTerm)}`}
                   className="btn min-h-11"

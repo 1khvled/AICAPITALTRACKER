@@ -954,6 +954,44 @@ export function sectorSlug(sector: string): string {
   return sector.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
+export function companySlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+export function getCompanyBySlug(slug: string): CompanyProfile | undefined {
+  const target = slug.toLowerCase();
+  return COMPANIES.find((c) => companySlug(c.name) === target);
+}
+
+/** Known name aliases used in circularity connections that map to register profiles. */
+export const COMPANY_ALIASES: Record<string, string> = {
+  Google: "Alphabet / Google",
+  Alphabet: "Alphabet / Google",
+  Amazon: "Amazon AWS",
+  AWS: "Amazon AWS",
+  xAI: "SpaceX / xAI",
+  SpaceX: "SpaceX / xAI",
+  Mistral: "Mistral AI",
+  Marvell: "Marvell Technology",
+  Nebius: "Nebius Group",
+  "Northern Data": "Northern Data / Rumble",
+  Rumble: "Northern Data / Rumble",
+};
+
+export function resolveCompanyProfile(name: string): CompanyProfile | undefined {
+  const direct = COMPANIES.find((c) => c.name.toLowerCase() === name.toLowerCase());
+  if (direct) return direct;
+  const alias = COMPANY_ALIASES[name];
+  if (alias) {
+    return COMPANIES.find((c) => c.name.toLowerCase() === alias.toLowerCase());
+  }
+  return undefined;
+}
+
+
 export interface CompanyStats {
   count: number;
   totalVolumeUsd: number;

@@ -1,4 +1,5 @@
 import { MetadataRoute } from "next";
+import { COMPANIES, companySlug } from "./companies/_components/companyData";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aicapitaltracker.com";
@@ -113,5 +114,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
     },
+    ...COMPANIES.map((company) => ({
+      url: `${baseUrl}/companies/${companySlug(company.name)}`,
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority: 0.85,
+    })),
   ];
 }
