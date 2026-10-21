@@ -86,7 +86,14 @@ export default function HowMuchIsBeingSpentOnAiPage() {
     .sort((a, b) => (b.amount_usd || 0) - (a.amount_usd || 0))
     .slice(0, 8);
 
+  // Polymarket betting contracts matching AI spending & downturn risk
   const polymarketContracts = [
+    {
+      question: "Will the AI industry experience an official industry downturn by December 31, 2026?",
+      probabilityPct: 9.1,
+      volumeDisplay: "$2.5M",
+      url: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
+    },
     {
       question: "Will the AI bubble burst before June 2027?",
       probabilityPct: 19.5,
@@ -94,10 +101,10 @@ export default function HowMuchIsBeingSpentOnAiPage() {
       url: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
     },
     {
-      question: "Will OpenAI announce an IPO before 2027?",
-      probabilityPct: 4.6,
-      volumeDisplay: "$1.1M",
-      url: `https://polymarket.com/event/openai-ipo-by?r=${POLYMARKET_REFERRAL_CODE}`,
+      question: "Will Oracle 5-Year CDS trade above 250 bps before December 31, 2026?",
+      probabilityPct: 38.0,
+      volumeDisplay: "$1.4M",
+      url: `https://polymarket.com/event/oracle-debt-ai-capex-stress?r=${POLYMARKET_REFERRAL_CODE}`,
     },
   ];
 

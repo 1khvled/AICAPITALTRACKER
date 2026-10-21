@@ -147,7 +147,7 @@ export default function WillTheAiBubbleBurstPage() {
               y1={getY(31.0)}
               x2={svgWidth - padX}
               y2={getY(31.0)}
-              stroke="var(--c-rule)"
+              stroke="rgb(var(--c-rule))"
               strokeDasharray="2 3"
               strokeWidth="1"
             />
@@ -156,7 +156,7 @@ export default function WillTheAiBubbleBurstPage() {
               y1={getY(33.0)}
               x2={svgWidth - padX}
               y2={getY(33.0)}
-              stroke="var(--c-rule)"
+              stroke="rgb(var(--c-rule))"
               strokeDasharray="2 3"
               strokeWidth="1"
             />

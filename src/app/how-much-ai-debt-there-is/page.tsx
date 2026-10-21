@@ -58,8 +58,14 @@ export default function HowMuchAiDebtThereIsPage() {
   const topBorrowers = companiesWithDebt.slice(0, 8);
   const maxBorrowerDebt = topBorrowers[0]?.debtInvolvedUsd || 1;
 
-  // Polymarket betting contracts
+  // Polymarket betting contracts matching AI debt & credit stress
   const polymarketContracts = [
+    {
+      question: "Will Oracle 5-Year CDS trade above 250 bps before December 31, 2026?",
+      probabilityPct: 38.0,
+      volumeDisplay: "$1.4M",
+      url: `https://polymarket.com/event/oracle-debt-ai-capex-stress?r=${POLYMARKET_REFERRAL_CODE}`,
+    },
     {
       question: "Will the AI bubble burst before June 2027?",
       probabilityPct: 19.5,
@@ -67,10 +73,10 @@ export default function HowMuchAiDebtThereIsPage() {
       url: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
     },
     {
-      question: "Will OpenAI announce an IPO before 2027?",
-      probabilityPct: 4.6,
-      volumeDisplay: "$1.1M",
-      url: `https://polymarket.com/event/openai-ipo-by?r=${POLYMARKET_REFERRAL_CODE}`,
+      question: "Will the AI industry experience an official industry downturn by December 31, 2026?",
+      probabilityPct: 9.1,
+      volumeDisplay: "$2.5M",
+      url: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
     },
   ];
 

@@ -242,7 +242,7 @@ export default function CompanyDossierPage({ params }: PageProps) {
           <div className="panel p-4 space-y-2 border-l-2 border-l-ink">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <span className="label text-[12px] uppercase text-ink-subtle">What the market is betting</span>
+                <span className="label text-[12px] uppercase text-ink-subtle">What the market is betting about this company</span>
                 <p className="text-[15px] font-semibold text-ink mt-0.5">
                   {company.polymarketOdds.marketName}: The market says{" "}
                   <span className="font-bold text-accent-strong dark:text-accent-ink">{company.polymarketOdds.oddsDisplay}</span>
@@ -263,6 +263,40 @@ export default function CompanyDossierPage({ params }: PageProps) {
             </p>
           </div>
         ) : null}
+
+        {/* ── Related Plain Answer Quick Links ─────────────────────────────── */}
+        {company.name === "OpenAI" && (
+          <div className="flex flex-wrap items-center gap-2 pt-1 text-[14px]">
+            <span className="text-ink-muted">Plain answers:</span>
+            <Link
+              href="/will-openai-ipo"
+              className="inline-flex min-h-[44px] items-center gap-1 font-semibold text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
+            >
+              Will OpenAI IPO in 2026?
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
+            <span className="text-ink-faint" aria-hidden="true">&middot;</span>
+            <Link
+              href="/who-is-funding-openai"
+              className="inline-flex min-h-[44px] items-center gap-1 font-semibold text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
+            >
+              Who is funding OpenAI?
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
+          </div>
+        )}
+        {["Microsoft", "Alphabet", "Amazon", "Meta"].includes(company.name) && (
+          <div className="flex flex-wrap items-center gap-2 pt-1 text-[14px]">
+            <span className="text-ink-muted">Plain answer:</span>
+            <Link
+              href="/is-ai-spending-too-much"
+              className="inline-flex min-h-[44px] items-center gap-1 font-semibold text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
+            >
+              Is AI spending too much? (The $465B capex vs cash flow gap)
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
+          </div>
+        )}
       </section>
 
       {/* ── Debt Stack Chart ────────────────────────────────────────────────── */}

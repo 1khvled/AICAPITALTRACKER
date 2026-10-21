@@ -136,7 +136,7 @@ export function WhatChangedChart() {
               y1={getProbY(first.probability)}
               x2={width - padX}
               y2={getProbY(first.probability)}
-              stroke="var(--c-rule)"
+              stroke="rgb(var(--c-rule))"
               strokeDasharray="2 3"
               strokeWidth="1"
             />
@@ -237,7 +237,7 @@ export function WhatChangedChart() {
               y1={getCompY(first.compositeScore)}
               x2={width - padX}
               y2={getCompY(first.compositeScore)}
-              stroke="var(--c-rule)"
+              stroke="rgb(var(--c-rule))"
               strokeDasharray="2 3"
               strokeWidth="1"
             />

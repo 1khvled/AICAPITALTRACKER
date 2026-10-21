@@ -205,10 +205,10 @@ export function AnswerBlock({
         </div>
       </details>
 
-      {/* Three plain-answer pages: the queries people actually search */}
-      <div className="mt-6 space-y-2.5 max-w-3xl">
+      {/* Seven plain-answer pages: the queries people actually search */}
+      <div className="mt-6 space-y-2.5 max-w-4xl">
         <p className="label">Answers to what readers search for</p>
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
           <Link
             href="/will-the-ai-bubble-burst"
             className="card card-flush card-lift p-3.5 transition-shadow hover:shadow-raised"
@@ -243,6 +243,54 @@ export function AnswerBlock({
             </span>
             <span className="mt-1 block text-[13px] text-ink-subtle leading-snug">
               {debtLabel} in 24 loans, convertible bonds, and credit facilities
+            </span>
+          </Link>
+          <Link
+            href="/will-openai-ipo"
+            className="card card-flush card-lift p-3.5 transition-shadow hover:shadow-raised"
+          >
+            <span className="text-[14px] font-semibold text-ink flex items-center justify-between">
+              Will OpenAI IPO in 2026?
+              <ArrowRight className="h-3.5 w-3.5 text-ink-muted shrink-0" aria-hidden="true" />
+            </span>
+            <span className="mt-1 block text-[13px] text-ink-subtle leading-snug">
+              4.3% market odds, $1.2T valuation talks, and S-1 checklist
+            </span>
+          </Link>
+          <Link
+            href="/what-is-cpi-doing-to-ai"
+            className="card card-flush card-lift p-3.5 transition-shadow hover:shadow-raised"
+          >
+            <span className="text-[14px] font-semibold text-ink flex items-center justify-between">
+              What is CPI doing to AI?
+              <ArrowRight className="h-3.5 w-3.5 text-ink-muted shrink-0" aria-hidden="true" />
+            </span>
+            <span className="mt-1 block text-[13px] text-ink-subtle leading-snug">
+              How 3.72% inflation and 5.10% bond yields drive data center debt costs
+            </span>
+          </Link>
+          <Link
+            href="/who-is-funding-openai"
+            className="card card-flush card-lift p-3.5 transition-shadow hover:shadow-raised"
+          >
+            <span className="text-[14px] font-semibold text-ink flex items-center justify-between">
+              Who is funding OpenAI?
+              <ArrowRight className="h-3.5 w-3.5 text-ink-muted shrink-0" aria-hidden="true" />
+            </span>
+            <span className="mt-1 block text-[13px] text-ink-subtle leading-snug">
+              Disclosed rounds, Microsoft, SoftBank, and the circularity question
+            </span>
+          </Link>
+          <Link
+            href="/is-ai-spending-too-much"
+            className="card card-flush card-lift p-3.5 transition-shadow hover:shadow-raised sm:col-span-2 lg:col-span-3"
+          >
+            <span className="text-[14px] font-semibold text-ink flex items-center justify-between">
+              Is AI spending too much?
+              <ArrowRight className="h-3.5 w-3.5 text-ink-muted shrink-0" aria-hidden="true" />
+            </span>
+            <span className="mt-1 block text-[13px] text-ink-subtle leading-snug">
+              The $465B annual funding gap between Big-4 capex ($725B) and free cash flow ($260B)
             </span>
           </Link>
         </div>

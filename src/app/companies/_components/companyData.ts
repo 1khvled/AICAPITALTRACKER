@@ -197,6 +197,11 @@ export const COMPANIES: CompanyProfile[] = [
     circularitySummary: "Constructing massive gigawatt AI datacenters with fixed balance-sheet debt on behalf of venture-backed model labs (OpenAI, Cohere) without long-term sovereign guarantees. OpenAI alone accounts for roughly half of Oracle's $638B of remaining performance obligations.",
     riskTier: "Critical",
     exposureSummary: "The financial system's primary debt thermometer. Carries $130.1B of borrowings; 5Y CDS hit a record 288bps on Oct 15, 2026 as fixed-income markets price GPU infrastructure refinancing saturation. S&P cut the long-term rating to BBB- in July 2026.",
+    polymarketOdds: {
+      marketName: "Oracle 5Y CDS >250bps Stress Threshold",
+      oddsDisplay: "38.0¢ (38.0%)",
+      url: "https://polymarket.com/event/oracle-debt-ai-capex-stress?r=AIbubble"
+    }
   },
 
   // 4. COREWEAVE

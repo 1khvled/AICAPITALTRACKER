@@ -54,8 +54,16 @@ const PANEL2_H = 150;
 const PANEL3_H = 130;
 const PADDING_LEFT = 46;
 const PADDING_RIGHT = 18;
-const PADDING_TOP = 18;
-const GAP = 34;
+const PADDING_TOP = 12;
+/**
+ * The band reserved ABOVE each plot for the panel's title and its subtitle.
+ *
+ * Without it, the tallest bar's value label (95.8% on the 1929 column) was
+ * drawn straight through the title text, and the subtitle ran into the first
+ * bar. A chart has to reserve the room its labels need before it draws them.
+ */
+const TITLE_BAND = 38;
+const GAP = 40;
 
 export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -67,7 +75,8 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
   const [drag, setDrag] = useState<{ x0: number; x1: number } | null>(null);
   const dragRef = useRef<{ x0: number; x1: number } | null>(null);
 
-  const height = PADDING_TOP + PANEL1_H + GAP + PANEL2_H + GAP + PANEL3_H + 22;
+  const height =
+    PADDING_TOP + 3 * TITLE_BAND + PANEL1_H + PANEL2_H + PANEL3_H + 2 * GAP + 26;
 
   /* ── The zoom range for the time series (panel 2) ───────────────────── */
   const buildOutYears = useMemo(
@@ -121,7 +130,8 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
     ctx.textBaseline = "middle";
 
     /* ── PANEL 1: the model's readings on resolved episodes ─────────────── */
-    const p1Top = PADDING_TOP;
+    const p1Title = PADDING_TOP;
+    const p1Top = p1Title + TITLE_BAND;
     const p1Bottom = p1Top + PANEL1_H;
 
     ctx.strokeStyle = ruleRgb;
@@ -137,16 +147,16 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
       ctx.fillText(`${pct}%`, PADDING_LEFT - 8, y);
     }
 
-    ctx.fillStyle = ink;
+    ctx.fillStyle = inkRgb;
     ctx.textAlign = "left";
     ctx.font = "600 13px ui-monospace, SFMono-Regular, Menlo, monospace";
-    ctx.fillText("The model on markets that have already resolved", PADDING_LEFT, p1Top - 4);
+    ctx.fillText("The model on markets that have already resolved", PADDING_LEFT, p1Title + 2);
     ctx.font = "12px ui-monospace, SFMono-Regular, Menlo, monospace";
     ctx.fillStyle = faintRgb;
     ctx.fillText(
       "its probability for each episode, and whether it burst",
       PADDING_LEFT,
-      p1Top + 12
+      p1Title + 20
     );
 
     const episodes = bundle.episodes;
@@ -167,7 +177,7 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
         ctx.fillRect(x, p1Bottom + 3, barW, 3);
       }
 
-      ctx.fillStyle = ink;
+      ctx.fillStyle = inkRgb;
       ctx.textAlign = "center";
       ctx.font = "600 12px ui-monospace, SFMono-Regular, Menlo, monospace";
       ctx.fillText(`${episode.probabilityPct.toFixed(1)}`, x + barW / 2, y - 10);
@@ -189,7 +199,8 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
     });
 
     /* ── PANEL 2: the build-out's money ────────────────────────────────── */
-    const p2Top = p1Bottom + GAP;
+    const p2Title = p1Bottom + GAP;
+    const p2Top = p2Title + TITLE_BAND;
     const p2Bottom = p2Top + PANEL2_H;
 
     ctx.strokeStyle = ruleRgb;
@@ -198,16 +209,16 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
     ctx.lineTo(w - PADDING_RIGHT, p2Bottom);
     ctx.stroke();
 
-    ctx.fillStyle = ink;
+    ctx.fillStyle = inkRgb;
     ctx.textAlign = "left";
     ctx.font = "600 13px ui-monospace, SFMono-Regular, Menlo, monospace";
-    ctx.fillText("The money going in, 2023 to now", PADDING_LEFT, p2Top - 4);
+    ctx.fillText("The money going in, 2023 to now", PADDING_LEFT, p2Title + 2);
     ctx.font = "12px ui-monospace, SFMono-Regular, Menlo, monospace";
     ctx.fillStyle = faintRgb;
     ctx.fillText(
       "disclosed capital from the ledger, and the debt inside it",
       PADDING_LEFT,
-      p2Top + 12
+      p2Title + 20
     );
 
     const months = bundle.months;
@@ -266,7 +277,7 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
         if (index === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       });
-      ctx.strokeStyle = ink;
+      ctx.strokeStyle = inkRgb;
       ctx.lineWidth = 2;
       ctx.stroke();
     }
@@ -280,7 +291,7 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
       const month = months.find((m) => m.key === event.iso.slice(0, 7));
       if (!month) continue;
       const y = usdToY(month.cumulativeUsd);
-      ctx.fillStyle = ink;
+      ctx.fillStyle = inkRgb;
       ctx.beginPath();
       ctx.arc(x, y, 3.5, 0, Math.PI * 2);
       ctx.fill();
@@ -296,7 +307,8 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
     }
 
     /* ── PANEL 3: the market's price against the model's print ─────────── */
-    const p3Top = p2Bottom + GAP;
+    const p3Title = p2Bottom + GAP;
+    const p3Top = p3Title + TITLE_BAND;
     const p3Bottom = p3Top + PANEL3_H;
 
     ctx.strokeStyle = ruleRgb;
@@ -312,16 +324,16 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
       ctx.fillText(`${pct}%`, PADDING_LEFT - 8, y);
     }
 
-    ctx.fillStyle = ink;
+    ctx.fillStyle = inkRgb;
     ctx.textAlign = "left";
     ctx.font = "600 13px ui-monospace, SFMono-Regular, Menlo, monospace";
-    ctx.fillText("The market's price, and the model's print", PADDING_LEFT, p3Top - 4);
+    ctx.fillText("The market's price, and the model's print", PADDING_LEFT, p3Title + 2);
     ctx.font = "12px ui-monospace, SFMono-Regular, Menlo, monospace";
     ctx.fillStyle = faintRgb;
     ctx.fillText(
       "Polymarket since 2024; the model's own print since 18 October 2026",
       PADDING_LEFT,
-      p3Top + 12
+      p3Title + 20
     );
 
     const p3InnerW = innerW;
@@ -423,9 +435,9 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
     ctx.textAlign = "right";
     ctx.font = "12px ui-monospace, SFMono-Regular, Menlo, monospace";
     ctx.fillStyle = catNavy;
-    ctx.fillText("— market", w - PADDING_RIGHT, p3Top + 4);
+    ctx.fillText("— market", w - PADDING_RIGHT, p3Title + 2);
     ctx.fillStyle = accent;
-    ctx.fillText("— model print", w - PADDING_RIGHT, p3Top + 20);
+    ctx.fillText("— model print", w - PADDING_RIGHT, p3Title + 20);
 
     marksRef.current = marks;
     // The mark count, for tests and for anyone poking at it in the console.
@@ -504,7 +516,7 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
       const rect = canvas.getBoundingClientRect();
       const y = event.clientY - rect.top;
       // A drag zooms the money panel; a tap selects a mark.
-      const p2Top = PADDING_TOP + PANEL1_H + GAP;
+      const p2Top = PADDING_TOP + TITLE_BAND + PANEL1_H + GAP + TITLE_BAND;
       const p2Bottom = p2Top + PANEL2_H;
       canvas.dataset.lastPointerDown = `${Math.round(event.clientX - rect.left)},${Math.round(y)}`;
       if (y < p2Top || y > p2Bottom) return;

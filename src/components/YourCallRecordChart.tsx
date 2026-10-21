@@ -205,7 +205,7 @@ export function YourCallRecordChart({
                   y1={y}
                   x2={W - padRight}
                   y2={y}
-                  stroke="var(--c-rule)"
+                  stroke="rgb(var(--c-rule))"
                   strokeWidth="1"
                   strokeDasharray="2 3"
                 />
@@ -262,7 +262,7 @@ export function YourCallRecordChart({
                   height="16"
                   rx="3"
                   fill="rgb(var(--c-surface))"
-                  stroke="var(--c-rule)"
+                  stroke="rgb(var(--c-rule))"
                   strokeWidth="1"
                 />
                 <text
