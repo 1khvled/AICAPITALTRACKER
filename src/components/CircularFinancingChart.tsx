@@ -45,11 +45,17 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Other": "rgb(var(--c-ink-subtle))",
 };
 
-export function CircularFinancingChart() {
+export function CircularFinancingChart({
+  deals,
+  onSelectDeal,
+}: {
+  deals?: CircularDeal[];
+  onSelectDeal?: (deal: CircularDeal) => void;
+} = {}) {
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [hoveredDealId, setHoveredDealId] = useState<string | null>(null);
 
-  const allDeals = rawDeals as unknown as CircularDeal[];
+  const allDeals = (deals ?? rawDeals) as unknown as CircularDeal[];
   const circularDeals = useMemo(
     () => allDeals.filter((d) => d.is_circular).sort((a, b) => b.amount_usd - a.amount_usd),
     [allDeals]
@@ -364,7 +370,7 @@ export function CircularFinancingChart() {
               </p>
             </div>
 
-            <div className="pt-1 flex items-center justify-between">
+            <div className="pt-1 flex items-center justify-between gap-2">
               <Link
                 href={`/ledger?search=${encodeURIComponent(activeDeal.title)}`}
                 className="prose-a text-[13px] font-semibold text-ink flex items-center gap-1 hover:underline min-h-[44px]"
@@ -372,6 +378,15 @@ export function CircularFinancingChart() {
                 <span>View Full Receipt in Ledger</span>
                 <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
               </Link>
+              {onSelectDeal && (
+                <button
+                  type="button"
+                  onClick={() => onSelectDeal(activeDeal)}
+                  className="btn btn-primary min-h-[44px] text-[13px] px-3"
+                >
+                  Inspect Deal
+                </button>
+              )}
             </div>
           </div>
         )}

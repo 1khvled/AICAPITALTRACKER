@@ -14,6 +14,7 @@ import { FlipSection } from "@/components/home/FlipSection";
 import { ReceiptsBand } from "@/components/home/ReceiptsBand";
 import { ModelNote } from "@/components/home/ModelNote";
 import { formatAsOf, formatTrillions } from "@/components/home/copy";
+import { WhatChangedChart } from "@/components/home/WhatChangedChart";
 import { marketImplied12mBand } from "@/lib/model/factors";
 import liveInputs from "@/data/live-inputs.json";
 import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
@@ -102,6 +103,9 @@ export default function HomePage() {
         pricedFactors={pricedFactors}
         totalFactors={result.contributions.length}
         drivers={headlineDrivers}
+        contributions={result.contributions}
+        compositeScore={result.compositeScore}
+        systemicContagionPoints={result.systemicContagionPoints}
       />
 
       {/* ── 1b · What changed, and what this number is not ─────────────────────
@@ -109,8 +113,9 @@ export default function HomePage() {
           goes looking for them finds them. The number is here, so the
           qualifications belong here too: what moved, and what the print is not. */}
       <Reveal>
-        <div className="panel space-y-3 rule-accent-left pl-4">
-          <p className="label flex items-center gap-1.5"><span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--c-accent)]" aria-hidden="true" />What changed on 20 Oct 2026</p>
+        <div className="panel space-y-4 rule-accent-left pl-4">
+          <WhatChangedChart />
+          <p className="label flex items-center gap-1.5 pt-2"><span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--c-accent)]" aria-hidden="true" />Why the print moved</p>
           <p className="text-[15px] leading-relaxed text-ink-muted">
             Model v2.7.0 raised the credit factor&apos;s ramp ceiling from ×3 to ×7.556 of
             baseline after the factor was found <em>pinned at its maximum</em>. It had been

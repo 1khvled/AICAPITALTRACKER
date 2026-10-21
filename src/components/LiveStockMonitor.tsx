@@ -263,7 +263,48 @@ interface MacroSemantics {
   cardRule: string;
   pillClass: string;
   wordTag: string;
+  /** The long form: the change, the direction, and what the series is. */
   displayBadge: string;
+  /**
+   * The badge as it is actually drawn: the direction and the magnitude, in a
+   * form that fits a five-up grid. The full phrase lives in the title and in
+   * the screen-reader text; the badge itself is a label, not a sentence.
+   */
+  badge: string;
+}
+
+/**
+ * A short badge for a dense card.
+ *
+ * The grid puts five of these across a rail, so a card is about 165px wide
+ * and the badge has about 140px of room. A full sentence in a 13px uppercase
+ * mono with 0.1em tracking is roughly 200px, which is why the words used to
+ * run off the card and get cut in half. This takes the DIRECTION and the
+ * MAGNITUDE and leaves the prose to the title:
+ *
+ *   "-1.6 bps"                 -> "▼ 1.6 bps"
+ *   "+0.8pp vs 2.9% anchor"    -> "▲ 0.8pp"
+ *   "-100bp cut cycle"         -> "▼ 100bp"
+ *   "+0 bps (HYG proxy)"       -> "Flat"
+ *   "no YoY source"            -> "Baseline"
+ *
+ * The numbers are extracted from the indicator's own change display - nothing
+ * is invented here.
+ */
+function shortChangeBadge(macro: MacroIndicator): string {
+  const cd = macro.changeDisplay.trim();
+  if (/no yo?y/i.test(cd)) return "Baseline";
+
+  const magnitude = cd.match(/^([+-]?)(\d+(?:\.\d+)?)\s*(bps|bp|pp|%)?/i);
+  if (!magnitude) return cd.slice(0, 10);
+
+  const value = Number.parseFloat(magnitude[2]);
+  if (!Number.isFinite(value) || value === 0) return "Flat";
+
+  const unit = (magnitude[3] || "").toLowerCase();
+  const unitText = unit === "bps" ? " bps" : unit === "bp" ? " bp" : unit === "pp" ? "pp" : unit === "%" ? "%" : "";
+  const glyph = magnitude[1] === "-" ? "▼" : "▲";
+  return `${glyph} ${magnitude[2]}${unitText}`;
 }
 
 function getMacroSemantics(macro: MacroIndicator): MacroSemantics {
@@ -271,14 +312,22 @@ function getMacroSemantics(macro: MacroIndicator): MacroSemantics {
   const isSpread = macro.symbol.includes("SPREAD") || macro.symbol.includes("OAS");
   const isYield = macro.symbol.startsWith("US");
 
-  // Flat / unchanged detection
-  if (
-    cd.includes("+0 bps") ||
-    cd.includes("+0.0") ||
-    cd.includes("0.0 bps") ||
+  /**
+   * Flat / unchanged detection, done on the NUMBER rather than on the text.
+   *
+   * The old test asked whether the display contained "+0", which is true of
+   * "+0.8pp vs 2.9% anchor" - so a CPI reading that had RISEN 0.8 points was
+   * being reported as flat, and its card wore the neutral rule instead of the
+   * risk one. A change is flat when its magnitude is zero, not when its
+   * characters happen to start with a zero.
+   */
+  const parsedMagnitude = cd.match(/^([+-]?)(\d+(?:\.\d+)?)\s*(bps|bp|pp|%)?/i);
+  const parsedValue = parsedMagnitude ? Number.parseFloat(parsedMagnitude[2]) : null;
+  const isFlat =
     cd.includes("no yoy") ||
-    (macro.changePct === 0 && (cd.includes("+0") || cd.includes("0 bps")))
-  ) {
+    (parsedValue !== null ? parsedValue === 0 : macro.changePct === 0);
+
+  if (isFlat) {
     if (cd.includes("no yoy")) {
       return {
         tone: "neutral",
@@ -286,6 +335,7 @@ function getMacroSemantics(macro: MacroIndicator): MacroSemantics {
         pillClass: "",
         wordTag: "Baseline",
         displayBadge: "Baseline pace",
+        badge: "Baseline",
       };
     }
     return {
@@ -294,6 +344,7 @@ function getMacroSemantics(macro: MacroIndicator): MacroSemantics {
       pillClass: "",
       wordTag: "Flat",
       displayBadge: `${macro.changeDisplay.replace(" (HYG proxy)", "")} · Flat`,
+      badge: "Flat",
     };
   }
 
@@ -306,6 +357,7 @@ function getMacroSemantics(macro: MacroIndicator): MacroSemantics {
         pillClass: "pill-risk",
         wordTag: "Widening",
         displayBadge: `${macro.changeDisplay} · Widening`,
+        badge: shortChangeBadge(macro),
       };
     } else {
       return {
@@ -314,11 +366,12 @@ function getMacroSemantics(macro: MacroIndicator): MacroSemantics {
         pillClass: "pill-safe",
         wordTag: "Tightening",
         displayBadge: `${macro.changeDisplay} · Tightening`,
+        badge: shortChangeBadge(macro),
       };
     }
   }
 
-  // Yields (rates): rising (+ bps) is RISK, falling (- bps) is SAFE (tightening/easing)
+  // Yields (rates): rising (+ bps) is RISK, falling (- bps) is SAFE (easing)
   if (isYield) {
     if (cd.startsWith("+") || macro.changePct > 0) {
       return {
@@ -327,14 +380,16 @@ function getMacroSemantics(macro: MacroIndicator): MacroSemantics {
         pillClass: "pill-risk",
         wordTag: "Rising",
         displayBadge: `${macro.changeDisplay} · Rising`,
+        badge: shortChangeBadge(macro),
       };
     } else {
       return {
         tone: "safe",
         cardRule: "rule-safe-left",
         pillClass: "pill-safe",
-        wordTag: "Tightening",
-        displayBadge: `${macro.changeDisplay} · Tightening`,
+        wordTag: "Easing",
+        displayBadge: `${macro.changeDisplay} · Easing`,
+        badge: shortChangeBadge(macro),
       };
     }
   }
@@ -345,7 +400,8 @@ function getMacroSemantics(macro: MacroIndicator): MacroSemantics {
       cardRule: "rule-risk-left",
       pillClass: "pill-risk",
       wordTag: "Elevated",
-      displayBadge: "+0.8pp · Elevated",
+      displayBadge: `${macro.changeDisplay} · Elevated`,
+      badge: shortChangeBadge(macro),
     };
   }
 
@@ -355,7 +411,8 @@ function getMacroSemantics(macro: MacroIndicator): MacroSemantics {
       cardRule: "rule-safe-left",
       pillClass: "pill-safe",
       wordTag: "Easing",
-      displayBadge: "-100 bps · Easing",
+      displayBadge: `${macro.changeDisplay} · Easing`,
+      badge: shortChangeBadge(macro),
     };
   }
 
@@ -367,16 +424,31 @@ function getMacroSemantics(macro: MacroIndicator): MacroSemantics {
       pillClass: isUp ? "pill-risk" : "pill-safe",
       wordTag: isUp ? "Spiking" : "Calming",
       displayBadge: `${macro.changeDisplay} · ${isUp ? "Spiking" : "Calming"}`,
+      badge: shortChangeBadge(macro),
     };
   }
 
+  /**
+   * Everything else: the GPU rental rate, the copper/gold ratio.
+   *
+   * Two things are true here and they used to be confused with each other.
+   * The WORD describes the direction of the number - higher or lower - and
+   * the COLOUR describes whether that move raises risk, which the model's own
+   * `isRiskPositive` flag decides. For these two series the flag is INVERTED:
+   * a falling GPU rental price is the risk signal, because a build-out that
+   * stops paying for compute is a build-out that is deflating. So the card
+   * is red on a falling number, and the word says "Lower" rather than
+   * pretending the number went up.
+   */
   const isRisk = macro.isRiskPositive ? macro.changePct >= 0 : macro.changePct < 0;
+  const direction = macro.changePct >= 0 ? "Higher" : "Lower";
   return {
     tone: isRisk ? "risk" : "safe",
     cardRule: isRisk ? "rule-risk-left" : "rule-safe-left",
     pillClass: isRisk ? "pill-risk" : "pill-safe",
-    wordTag: isRisk ? "Widening" : "Tightening",
-    displayBadge: `${macro.changeDisplay} · ${isRisk ? "Widening" : "Tightening"}`,
+    wordTag: direction,
+    displayBadge: `${macro.changeDisplay} · ${direction}`,
+    badge: shortChangeBadge(macro),
   };
 }
 
@@ -1143,15 +1215,19 @@ export function LiveStockMonitor() {
                         {macro.symbol}
                       </span>
                       <span
-                        className={`pill ${semantics.pillClass}`}
+                        className={`pill pill-compact ${semantics.pillClass}`}
                         title={`${macro.name}: ${semantics.displayBadge}`}
                       >
-                        {semantics.displayBadge}
+                        {semantics.badge}
+                        {/* The full phrase for anyone who cannot see the badge. */}
+                        <span className="sr-only">
+                          {macro.name}: {semantics.displayBadge}
+                        </span>
                       </span>
                     </div>
                     <div className="flex items-end justify-between gap-2">
-                      <span className="num text-[17px] font-semibold leading-tight text-ink">
-                        {macro.valueDisplay}
+                      <span className="num whitespace-nowrap text-[17px] font-semibold leading-tight text-ink">
+                        {macro.valueDisplay.replace(/-/g, "\u2011")}
                       </span>
                       <TrendLine
                         points={trend}
@@ -1168,7 +1244,10 @@ export function LiveStockMonitor() {
             </ul>
             <p className="mt-2 text-[14px] text-ink-subtle">
               Red marks a series whose current move raises risk — a higher borrowing rate, a wider
-              credit spread, a faster debt pace. Green marks tightening or easing.
+              credit spread, a faster debt pace. Green marks tightening or easing. Two of them read
+              the other way: for the GPU rental rate and the copper/gold ratio a <em>fall</em> is
+              the risk signal, so those cards are red on a falling number. The badge carries the
+              direction and the size of the move; the card&apos;s edge carries what it means.
             </p>
           </section>
         ) : null}

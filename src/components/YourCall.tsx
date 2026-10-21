@@ -23,6 +23,7 @@ import {
 } from "@/lib/predictions";
 import { formatAsOf } from "@/components/home/copy";
 import { UndoAction } from "@/components/UndoAction";
+import { YourCallRecordChart } from "./YourCallRecordChart";
 
 /**
  * "Your Call" — the reader's own 12-month burst probability, kept next to the
@@ -532,17 +533,27 @@ export function YourCall({
           </span>
         </div>
 
+        {/* ── Personal Forecast Chart: each call a point, model line the reference, gap the distance ── */}
+        <div className="mt-4">
+          <YourCallRecordChart
+            records={records}
+            observedRows={observedRows}
+            currentModelPrint={modelPrintPct}
+            currentAsOf={modelAsOf}
+          />
+        </div>
+
         {/*
-          The window has a fixed height on purpose: a call being recorded, a
-          badge unlocking or the list growing must not move anything below it.
+          The call log table: shown when records exist.
         */}
-        <div
-          className="mt-3 h-[19rem] overflow-y-auto rounded-md border border-rule bg-canvas"
-          style={{ scrollbarGutter: "stable" }}
-          role="region"
-          aria-label="Your call history, scrollable"
-          tabIndex={0}
-        >
+        {records.length > 0 && (
+          <div
+            className="mt-4 h-[16rem] overflow-y-auto rounded-md border border-rule bg-canvas"
+            style={{ scrollbarGutter: "stable" }}
+            role="region"
+            aria-label="Your call history log, scrollable"
+            tabIndex={0}
+          >
           <table className="w-full table-fixed border-collapse text-[14px]">
             <caption className="sr-only">
               Every call recorded on this device, newest first: the date, the probability you called,
@@ -665,6 +676,7 @@ export function YourCall({
             </tbody>
           </table>
         </div>
+        )}
 
         {/* ── The undo row ───────────────────────────────────────────────── */}
         {/*

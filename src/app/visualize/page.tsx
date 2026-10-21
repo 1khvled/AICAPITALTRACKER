@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback, Suspense } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import rawDeals from "@/data/deals.json";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import { DealBubbleChart, Deal } from "@/components/DealBubbleChart";
@@ -57,9 +58,84 @@ export type VisualTab =
   | "capital-composition"
   | "revenue-gap";
 
-export default function VisualizePage() {
+const ALL_CATEGORIES = [
+  "All",
+  "Compute contracts",
+  "Big construction",
+  "Bets & rounds",
+  "Buyouts & mergers",
+  "Power & land",
+  "Borrowed",
+  "Share sales",
+  "Compute & cloud",
+  "Other",
+];
+
+function formatUsdShort(value: number): string {
+  if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`;
+  if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
+  if (value >= 1e6) return `$${Math.round(value / 1e6)}M`;
+  return `$${value.toLocaleString()}`;
+}
+
+function VisualizeContent() {
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [activeTab, setActiveTab] = useState<VisualTab>("all");
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const category = searchParams.get("category") || "All";
+  const instrument = (searchParams.get("instrument") as "all" | "debt" | "equity") || "all";
+  const circular = (searchParams.get("circular") as "all" | "circular_only" | "non_circular") || "all";
+
+  const updateFilters = useCallback(
+    (updates: { category?: string; instrument?: string; circular?: string }) => {
+      const nextCat = updates.category !== undefined ? updates.category : category;
+      const nextInst = updates.instrument !== undefined ? updates.instrument : instrument;
+      const nextCirc = updates.circular !== undefined ? updates.circular : circular;
+
+      const params = new URLSearchParams();
+      if (nextCat && nextCat !== "All") params.set("category", nextCat);
+      if (nextInst && nextInst !== "all") params.set("instrument", nextInst);
+      if (nextCirc && nextCirc !== "all") params.set("circular", nextCirc);
+
+      const qs = params.toString();
+      const targetUrl = qs ? `${pathname}?${qs}` : pathname;
+      router.replace(targetUrl, { scroll: false });
+    },
+    [category, instrument, circular, pathname, router]
+  );
+
+  const clearAllFilters = useCallback(() => {
+    router.replace(pathname, { scroll: false });
+  }, [pathname, router]);
+
+  const hasActiveFilters = category !== "All" || instrument !== "all" || circular !== "all";
+
+  const filteredDeals = useMemo(() => {
+    return (rawDeals as Deal[]).filter((deal) => {
+      if (category !== "All" && deal.category !== category) return false;
+      if (instrument === "debt" && !deal.is_debt) return false;
+      if (instrument === "equity" && deal.is_debt) return false;
+      if (circular === "circular_only" && !deal.is_circular) return false;
+      if (circular === "non_circular" && deal.is_circular) return false;
+      return true;
+    });
+  }, [category, instrument, circular]);
+
+  const filteredDealsUsd = useMemo(() => {
+    return filteredDeals.reduce((sum, d) => sum + (d.amount_usd || 0), 0);
+  }, [filteredDeals]);
+
+  const filteredCircularDeals = useMemo(() => {
+    return filteredDeals.filter((d) => d.is_circular);
+  }, [filteredDeals]);
+
+  const filteredCircularUsd = useMemo(() => {
+    return filteredCircularDeals.reduce((sum, d) => sum + (d.amount_usd || 0), 0);
+  }, [filteredCircularDeals]);
 
   // Escape closes the deal detail panel, and focus stays inside it while it is
   // open: a dialog a keyboard user can tab out of is not a dialog.
@@ -321,6 +397,148 @@ return (
         </div>
       </nav>
 
+      {/* ── Unified Filter Toolbar: drives Capital Wheel, Treemap, Bubble Universe, and Circular Financing ── */}
+      <div className="mt-6 rounded-xl border border-rule bg-surface p-4 shadow-card space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-rule pb-2.5">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-[var(--c-accent)]" aria-hidden="true" />
+            <h3 className="text-[14px] font-bold text-ink uppercase tracking-wider">
+              Unified Ledger Filter Instrument
+            </h3>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="pill text-[12px] font-semibold text-ink">
+              Showing {filteredDeals.length} of {totalDeals} records
+            </span>
+            <span className="num text-[13px] font-mono font-semibold text-ink">
+              {formatUsdShort(filteredDealsUsd)}
+            </span>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearAllFilters}
+                className="btn min-h-[44px] px-3 text-[13px] font-medium text-risk-600 hover:text-risk-700"
+              >
+                Reset All Filters
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          {/* Category Filter */}
+          <div className="space-y-1">
+            <label htmlFor="filter-cat" className="label block">
+              Category ({ALL_CATEGORIES.length - 1} sectors)
+            </label>
+            <select
+              id="filter-cat"
+              value={category}
+              onChange={(e) => updateFilters({ category: e.target.value })}
+              className="select min-h-[44px] w-full rounded-lg border border-rule bg-surface-2 px-3 py-2 text-[13px] font-medium text-ink focus:outline-none focus:ring-2 focus:ring-ink"
+            >
+              {ALL_CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat === "All" ? "All Categories (169 deals)" : cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Instrument Filter */}
+          <div className="space-y-1">
+            <span className="label block">Financing Instrument</span>
+            <div className="grid grid-cols-3 gap-1 rounded-lg border border-rule bg-surface-2 p-1">
+              {[
+                { id: "all", label: "All" },
+                { id: "debt", label: "Senior Debt" },
+                { id: "equity", label: "Equity" },
+              ].map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => updateFilters({ instrument: opt.id })}
+                  aria-pressed={instrument === opt.id}
+                  className={`min-h-[44px] rounded-md px-2 text-[12px] font-semibold transition-colors ${
+                    instrument === opt.id
+                      ? "bg-ink text-canvas shadow-sm"
+                      : "text-ink-muted hover:text-ink"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Circularity Filter */}
+          <div className="space-y-1">
+            <span className="label block">Counterparty Flow</span>
+            <div className="grid grid-cols-3 gap-1 rounded-lg border border-rule bg-surface-2 p-1">
+              {[
+                { id: "all", label: "All" },
+                { id: "circular_only", label: "Circular (7)" },
+                { id: "non_circular", label: "Open Market" },
+              ].map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => updateFilters({ circular: opt.id })}
+                  aria-pressed={circular === opt.id}
+                  className={`min-h-[44px] rounded-md px-2 text-[12px] font-semibold transition-colors ${
+                    circular === opt.id
+                      ? "bg-ink text-canvas shadow-sm"
+                      : "text-ink-muted hover:text-ink"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Active Filter Chips strip */}
+        {hasActiveFilters && (
+          <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[13px]">
+            <span className="label mr-1">Active filters:</span>
+            {category !== "All" && (
+              <button
+                type="button"
+                onClick={() => updateFilters({ category: "All" })}
+                className="chip min-h-[44px] gap-1 hover:bg-surface-3 transition-colors"
+                title="Clear category filter"
+              >
+                <span>Category: {category}</span>
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            )}
+            {instrument !== "all" && (
+              <button
+                type="button"
+                onClick={() => updateFilters({ instrument: "all" })}
+                className="chip min-h-[44px] gap-1 hover:bg-surface-3 transition-colors"
+                title="Clear instrument filter"
+              >
+                <span>Instrument: {instrument === "debt" ? "Senior Debt" : "Equity"}</span>
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            )}
+            {circular !== "all" && (
+              <button
+                type="button"
+                onClick={() => updateFilters({ circular: "all" })}
+                className="chip min-h-[44px] gap-1 hover:bg-surface-3 transition-colors"
+                title="Clear flow filter"
+              >
+                <span>Flow: {circular === "circular_only" ? "Circular Only" : "Non-Circular"}</span>
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* ==================================================================== */}
       {/* 1. THE CAPITAL WHEEL: Radial Architecture of the 169-Deal Ledger */}
       {/* ==================================================================== */}
@@ -334,12 +552,29 @@ return (
                   The Capital Wheel: Radial Architecture of the ${totalDisclosedT}T Ledger
                 </h2>
               </div>
-              <span className="text-[14px] text-ink-subtle">
-                9 Ledger Categories • Share of Capital • Senior Debt Inner Band • Circular Notches
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="pill text-[13px] font-semibold text-ink">
+                  Showing {filteredDeals.length} of {totalDeals} records ({formatUsdShort(filteredDealsUsd)})
+                </span>
+                {category !== "All" && (
+                  <button
+                    type="button"
+                    onClick={() => updateFilters({ category: "All" })}
+                    className="chip text-[12px] flex items-center gap-1 hover:bg-surface-3 transition-colors"
+                    title="Clear category filter"
+                  >
+                    Category: {category} <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
             </div>
           </Reveal>
-          <CapitalWheelChart />
+          <CapitalWheelChart
+            deals={filteredDeals as unknown as any}
+            selectedCategory={category === "All" ? null : category}
+            onSelectCategory={(cat) => updateFilters({ category: cat ?? "All" })}
+            onSelectDeal={(d) => setSelectedDeal(d as unknown as Deal)}
+          />
         </section>
       )}
 
@@ -356,12 +591,17 @@ return (
                   Circular Financing: Counterparty Capital Loops
                 </h2>
               </div>
-              <span className="text-[14px] text-ink-subtle">
-                7 of 169 Records • Vendor Leases &amp; Warrants • Closed Financial Feedback Loops
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="pill pill-caution text-[13px] font-semibold">
+                  Showing {filteredCircularDeals.length} of 7 circular records ({formatUsdShort(filteredCircularUsd)} of $77.8B)
+                </span>
+              </div>
             </div>
           </Reveal>
-          <CircularFinancingChart />
+          <CircularFinancingChart
+            deals={filteredDeals as unknown as any}
+            onSelectDeal={(d) => setSelectedDeal(d as unknown as Deal)}
+          />
         </section>
       )}
 
@@ -378,9 +618,21 @@ return (
                   Bubble Universe: Interactive Deal Map &amp; Treemap
                 </h2>
               </div>
-              <span className="text-[14px] text-ink-subtle">
-                {totalDeals} verified transactions • ${totalDisclosedT} total volume (top 10 represent {topTenSharePct}%)
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="pill text-[13px] font-semibold text-ink">
+                  Showing {filteredDeals.length} of {totalDeals} records ({formatUsdShort(filteredDealsUsd)})
+                </span>
+                {category !== "All" && (
+                  <button
+                    type="button"
+                    onClick={() => updateFilters({ category: "All" })}
+                    className="chip text-[12px] flex items-center gap-1 hover:bg-surface-3 transition-colors"
+                    title="Clear category filter"
+                  >
+                    Category: {category} <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
             </div>
           </Reveal>
 
@@ -418,7 +670,9 @@ return (
 
           {/* Interactive Physics / Treemap / Timeline Chart */}
           <DealBubbleChart
-            deals={rawDeals as Deal[]}
+            deals={filteredDeals}
+            selectedCategory={category}
+            onCategoryChange={(cat) => updateFilters({ category: cat })}
             onSelectDeal={(d) => setSelectedDeal(d)}
           />
         </section>
@@ -782,5 +1036,21 @@ return (
         </Link>
       </section>
     </div>
+  );
+}
+
+export default function VisualizePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="section-sm">
+          <div className="p-12 text-center text-[15px] text-ink-muted">
+            Loading visual instruments...
+          </div>
+        </div>
+      }
+    >
+      <VisualizeContent />
+    </Suspense>
   );
 }

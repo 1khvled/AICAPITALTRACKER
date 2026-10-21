@@ -96,6 +96,8 @@ export function computeDealBubbleRisk(deal: Deal): DealRiskProfile {
 interface DealBubbleChartProps {
   deals: Deal[];
   onSelectDeal: (deal: Deal) => void;
+  selectedCategory?: string;
+  onCategoryChange?: (category: string) => void;
 }
 
 export type ViewMode = "treemap" | "bubbles" | "arena" | "timeline";
@@ -1547,9 +1549,25 @@ function GravityArena({
 }
 
 // ── 3. Main DealBubbleChart Component ─────────────────────────────────────────
-export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
+export function DealBubbleChart({
+  deals,
+  onSelectDeal,
+  selectedCategory,
+  onCategoryChange,
+}: DealBubbleChartProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("treemap");
-  const [selectedCat, setSelectedCat] = useState<string>("All");
+  const [selectedCat, setSelectedCat] = useState<string>(selectedCategory ?? "All");
+
+  useEffect(() => {
+    if (selectedCategory !== undefined) {
+      setSelectedCat(selectedCategory);
+    }
+  }, [selectedCategory]);
+
+  const handleSelectCat = (cat: string) => {
+    setSelectedCat(cat);
+    onCategoryChange?.(cat);
+  };
   const [minVolume, setMinVolume] = useState<"all" | "1b" | "10b" | "50b">("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [hoveredDeal, setHoveredDeal] = useState<Deal | null>(null);
@@ -2080,7 +2098,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
         {/* Sector Pills Strip */}
         <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1 text-[14px] scrollbar-none touch-pan-x sm:text-sm">
           <button
-            onClick={() => setSelectedCat("All")}
+            onClick={() => handleSelectCat("All")}
             aria-pressed={selectedCat === "All"}
             className={`min-h-11 min-w-11 shrink-0 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${selectedCat === "All" ? "border-ink bg-ink text-canvas" : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"}`}
           >
@@ -2092,7 +2110,7 @@ export function DealBubbleChart({ deals, onSelectDeal }: DealBubbleChartProps) {
             return (
               <button
                 key={key}
-                onClick={() => setSelectedCat(key)}
+                onClick={() => handleSelectCat(key)}
                 aria-pressed={isSelected}
                 className={`flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border px-3 py-2 text-[13px] font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] ${isSelected ? "border-ink bg-ink text-canvas" : "border-rule bg-surface text-ink-muted hover:border-rule-strong hover:text-ink"}`}
               >

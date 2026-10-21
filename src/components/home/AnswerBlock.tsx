@@ -1,11 +1,12 @@
 import React from "react";
 import { ArrowDown } from "lucide-react";
-import type { BubbleBand } from "@/lib/model/types";
+import type { BubbleBand, FactorContribution } from "@/lib/model/types";
 import { BAND_LABEL, BAND_TONE, BAND_VERDICT, factorPlain, formatAsOf } from "./copy";
 import { ScrollLink } from "./ScrollLink";
 import { CountUp } from "@/components/CountUp";
 import { Reveal } from "@/components/Reveal";
 import rawTrajectoryHistory from "@/data/trajectory-history.json";
+import { FactorContributionChart } from "./FactorContributionChart";
 
 export interface HeadlineDriver {
   id: string;
@@ -28,6 +29,9 @@ interface AnswerBlockProps {
   pricedFactors: number;
   totalFactors: number;
   drivers: HeadlineDriver[];
+  contributions?: FactorContribution[];
+  compositeScore?: number;
+  systemicContagionPoints?: number;
 }
 
 interface TrajectoryRowLite {
@@ -88,6 +92,9 @@ export function AnswerBlock({
   pricedFactors,
   totalFactors,
   drivers,
+  contributions,
+  compositeScore,
+  systemicContagionPoints,
 }: AnswerBlockProps) {
   const firstObservedDate = FIRST_OBSERVED?.date ?? null;
 
@@ -219,8 +226,16 @@ export function AnswerBlock({
         </div>
       </dl>
 
-      {/* Top drivers, named plainly */}
-      {drivers.length > 0 && (
+      {/* Factor contributions chart: one horizontal bar per factor, ordered by contribution */}
+      {contributions && contributions.length > 0 ? (
+        <div className="mt-5">
+          <FactorContributionChart
+            contributions={contributions}
+            compositeScore={compositeScore ?? 48.5}
+            systemicContagionPoints={systemicContagionPoints ?? 2.8}
+          />
+        </div>
+      ) : drivers.length > 0 ? (
         <div className="mt-3.5 flex flex-wrap items-center gap-x-2 gap-y-1.5">
           <span className="label">Pushing it up</span>
           <ul className="flex flex-wrap gap-1.5">
@@ -239,7 +254,7 @@ export function AnswerBlock({
             })}
           </ul>
         </div>
-      )}
+      ) : null}
     </section>
   );
 }

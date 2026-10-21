@@ -117,9 +117,13 @@ function describeArc(
 export function CapitalWheelChart({
   onSelectCategory,
   selectedCategory: externalSelectedCategory,
+  deals: externalDeals,
+  onSelectDeal,
 }: {
   onSelectCategory?: (category: string | null) => void;
   selectedCategory?: string | null;
+  deals?: DealRecord[];
+  onSelectDeal?: (deal: DealRecord) => void;
 }) {
   const [internalSelected, setInternalSelected] = useState<string | null>(null);
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
@@ -129,7 +133,7 @@ export function CapitalWheelChart({
     ? externalSelectedCategory
     : internalSelected;
 
-  const deals = rawDeals as unknown as DealRecord[];
+  const deals = (externalDeals ?? rawDeals) as unknown as DealRecord[];
 
   const { categories, grandTotal, totalDealsCount, totalCircularCount, totalCircularUsd, totalDebtUsd } = useMemo(() => {
     const map = new Map<string, { total: number; count: number; debt: number; circularCount: number; circularSum: number; deals: DealRecord[] }>();
@@ -705,12 +709,24 @@ export function CapitalWheelChart({
                 {displayedCat.deals.map((d) => (
                   <tr key={d.id} className="hover:bg-surface-2/60 transition-colors">
                     <td className="p-2.5 font-medium text-ink max-w-md">
-                      <Link
-                        href={`/ledger?search=${encodeURIComponent(d.title)}`}
-                        className="prose-a text-ink hover:underline"
-                      >
-                        {d.title}
-                      </Link>
+                      <div className="flex items-center gap-1.5">
+                        <Link
+                          href={`/ledger?search=${encodeURIComponent(d.title)}`}
+                          className="prose-a text-ink hover:underline truncate"
+                        >
+                          {d.title}
+                        </Link>
+                        {onSelectDeal && (
+                          <button
+                            type="button"
+                            onClick={() => onSelectDeal(d)}
+                            className="chip text-[12px] shrink-0 hover:bg-surface-3 transition-colors"
+                            title="Inspect deal details"
+                          >
+                            Inspect
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td className="num p-2.5 text-right font-semibold text-ink whitespace-nowrap">
                       {d.amount_display || formatUsdShort(d.amount_usd)}
