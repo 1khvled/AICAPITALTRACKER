@@ -136,9 +136,9 @@ const SNAPSHOT_LABEL =
   }) + " UTC";
 
 export const metadata: Metadata = {
-  title: "How to read the AI debt ledger",
+  title: "How to read the AI debt ledger and spot unbacked numbers",
   description:
-    "What a verified facility record contains, what \"announced, not done\" means, why the debt share is computed on a curated sample, and how to spot a number that is not receipt-backed.",
+    "What each AI loan record shows, how to tell announced plans from closed deals, and how to verify funding sources.",
   keywords: [
     "AI debt ledger explained",
     "how to read AI deal records",
@@ -151,7 +151,7 @@ export const metadata: Metadata = {
     canonical: "/guides/how-to-read-the-debt-ledger",
   },
   openGraph: {
-    title: "How to read the AI debt ledger | AI Capital Tracker",
+    title: "How to read the AI debt ledger and spot unbacked numbers",
     description:
       "What a verified facility record contains, why the debt share is a share of disclosed capital, and how to spot a number that is not receipt-backed.",
     url: "/guides/how-to-read-the-debt-ledger",
@@ -185,6 +185,12 @@ export default function DebtLedgerGuidePage() {
           title="What a verified facility record contains"
           lead="Every row in the ledger is the same shape. Knowing which fields are extracted from a filing and which are editorial is the difference between reading the ledger and being misled by it."
         >
+          <p className="panel p-3.5 border-l-2 border-l-ink text-ink font-medium mb-4">
+            If you want the plain summary of borrowing totals without inspecting every record, see:{" "}
+            <Link href="/how-much-ai-debt-there-is" className="underline decoration-rule underline-offset-4 hover:decoration-ink">
+              How much AI debt is there?
+            </Link>
+          </p>
           <div className="overflow-x-auto rounded-xl border border-rule">
             <table className="w-full text-left text-[14px]">
               <caption className="sr-only">

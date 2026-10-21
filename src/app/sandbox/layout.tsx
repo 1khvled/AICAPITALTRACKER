@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Sandbox — stress the model with your own inputs",
+  title: "AI bubble simulator — test your own numbers and scenarios",
   description:
-    "Move the interest rates, capex, debt share and token deflation sliders and watch the 12-month burst probability move, with the Monte Carlo tail risk beside it.",
+    "Adjust interest rates, AI spending, debt levels, and chip costs to see how the 12-month bubble probability changes.",
   keywords: [
     "AI bubble simulator",
     "macro stress testing",
@@ -17,9 +17,9 @@ export const metadata: Metadata = {
     canonical: "/sandbox",
   },
   openGraph: {
-    title: "Sensitivity sandbox | AI Capital Tracker",
+    title: "AI bubble simulator — test your own numbers and scenarios",
     description:
-      "Stress the model with your own macro inputs and see the probability and the tail risk move together.",
+      "Adjust interest rates, AI spending, debt levels, and chip costs to see how the 12-month bubble probability changes.",
     url: "/sandbox",
     type: "website",
   },

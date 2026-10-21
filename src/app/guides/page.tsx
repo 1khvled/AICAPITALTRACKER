@@ -30,9 +30,9 @@ const SNAPSHOT_LABEL =
   }) + " UTC";
 
 export const metadata: Metadata = {
-  title: "Guides — how to read the burst probability, the credit prints and the debt ledger",
+  title: "Guides — how to read AI bubble risks, credit stress and debt",
   description:
-    "Three long-form guides: how the 12-month burst probability is computed, how to read Oracle CDS, high-yield spreads and the 10-year, and how to read the 169-deal AI debt ledger.",
+    "Three plain-language guides explaining how the bubble probability is calculated, how to read credit markets, and how to inspect the debt ledger.",
   keywords: [
     "AI bubble guides",
     "how to read AI bubble probability",
@@ -46,9 +46,9 @@ export const metadata: Metadata = {
     canonical: "/guides",
   },
   openGraph: {
-    title: "Guides | AI Capital Tracker",
+    title: "Guides — how to read AI bubble risks, credit stress and debt",
     description:
-      "Three long-form guides to reading the model print, the credit complex and the debt ledger — every figure computed from the site's own published files.",
+      "Three plain-language guides explaining how the bubble probability is calculated, how to read credit markets, and how to inspect the debt ledger.",
     url: "/guides",
     type: "website",
     images: ["/opengraph-image.png"],
@@ -76,6 +76,18 @@ export default function GuidesIndexPage() {
           Three guides, each one taking apart a single part of the published output: the model that
           produces the probability, the credit and rate series that feed it, and the ledger of{" "}
           <span className="num">169</span> sourced financings that everything else is built on.
+        </p>
+
+        <p className="max-w-reading panel p-3.5 border-l-2 border-l-ink text-[15px] leading-relaxed text-ink font-medium">
+          Looking for a quick answer before reading the guides? See{" "}
+          <Link href="/will-the-ai-bubble-burst" className="underline decoration-rule underline-offset-4 hover:decoration-ink">
+            Will the AI bubble burst in the next 12 months?
+          </Link>
+          {" "}or inspect{" "}
+          <Link href="/how-much-ai-debt-there-is" className="underline decoration-rule underline-offset-4 hover:decoration-ink">
+            how much AI debt there is
+          </Link>
+          .
         </p>
       </div>
 

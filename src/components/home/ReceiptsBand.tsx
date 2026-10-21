@@ -3,9 +3,14 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 
+import { formatTrillions } from "@/components/home/copy";
+
 interface ReceiptsBandProps {
   trackedLabel: string;
   dealsCount: number;
+  totalDisclosedUsd?: number;
+  totalDebtUsd?: number;
+  debtLabel?: string;
 }
 
 /**
@@ -14,7 +19,22 @@ interface ReceiptsBandProps {
  * Two destinations only: the deal ledger and the 2000 comparison. Both exist to
  * prove the number above, not to compete with it.
  */
-export function ReceiptsBand({ trackedLabel, dealsCount }: ReceiptsBandProps) {
+export function ReceiptsBand({
+  trackedLabel,
+  dealsCount,
+  totalDisclosedUsd,
+  totalDebtUsd,
+  debtLabel,
+}: ReceiptsBandProps) {
+  const debtSharePct =
+    totalDisclosedUsd && totalDebtUsd
+      ? ((totalDebtUsd / totalDisclosedUsd) * 100).toFixed(1)
+      : null;
+  const equityUsd =
+    totalDisclosedUsd && totalDebtUsd
+      ? totalDisclosedUsd - totalDebtUsd
+      : null;
+
   return (
     <section
       aria-labelledby="receipts-heading"
@@ -34,6 +54,11 @@ export function ReceiptsBand({ trackedLabel, dealsCount }: ReceiptsBandProps) {
               {trackedLabel} of disclosed capital across {dealsCount} verified filings. The ledger shows
               the source, date and counterparty behind each figure, with no estimates mixed in.
             </p>
+            {debtSharePct && equityUsd !== null && debtLabel && (
+              <p className="mt-2.5 text-sm leading-relaxed text-ink font-medium border-l-2 border-l-ink pl-3">
+                Who is funding whom: {debtSharePct}% ({debtLabel}) is borrowed debt from bond markets and private lenders, while {(100 - Number(debtSharePct)).toFixed(1)}% ({formatTrillions(equityUsd)}) is equity and compute commitments funded by Big Tech cash flows and venture rounds.
+              </p>
+            )}
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row lg:shrink-0">

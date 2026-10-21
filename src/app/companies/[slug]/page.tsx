@@ -15,6 +15,7 @@ import { getCompanyDeals, LEDGER_SEARCH_TERMS } from "../_components/ledgerSearc
 import { CompanyDebtStackChart } from "./_components/CompanyDebtStackChart";
 import { CompanyPeerComparison } from "./_components/CompanyPeerComparison";
 import { CompanyCircularityGraph } from "./_components/CompanyCircularityGraph";
+import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 import {
   ArrowLeft,
   ArrowRight,
@@ -41,13 +42,13 @@ export function generateMetadata({ params }: PageProps): Metadata {
   const company = getCompanyBySlug(params.slug);
   if (!company) {
     return {
-      title: "Company Dossier | AI Capital Tracker",
+      title: "Company Dossier",
       description: "Company profile not found in the AI Capital Tracker register.",
     };
   }
 
-  const title = `${company.name} (${company.ticker || company.sector}) — Debt, Valuation & Circularity | AI Capital Tracker`;
-  const desc = `${company.name} profile: ${formatUsd(company.totalVolumeUsd)} committed across ${company.disclosedDealsCount} disclosed deals, ${formatUsd(company.debtInvolvedUsd)} debt tracked, ${company.riskTier} risk tier in ${company.sector}. Circular exposure: ${company.circularRiskLevel}.`;
+  const title = `${company.name} (${company.ticker || company.sector}) — AI spending, debt and who funds it`;
+  const desc = `How much ${company.name} spends on AI (${formatUsd(company.totalVolumeUsd)} tracked), how much debt they carry (${formatUsd(company.debtInvolvedUsd)}), and who is financing them.`;
 
   return {
     title,
@@ -236,6 +237,32 @@ export default function CompanyDossierPage({ params }: PageProps) {
             </div>
           </div>
         </div>
+
+        {company.polymarketOdds ? (
+          <div className="panel p-4 space-y-2 border-l-2 border-l-ink">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <span className="label text-[12px] uppercase text-ink-subtle">What the market is betting</span>
+                <p className="text-[15px] font-semibold text-ink mt-0.5">
+                  {company.polymarketOdds.marketName}: The market says{" "}
+                  <span className="font-bold text-accent-strong dark:text-accent-ink">{company.polymarketOdds.oddsDisplay}</span>
+                </p>
+              </div>
+              <a
+                href={company.polymarketOdds.url}
+                target="_blank"
+                rel="noopener noreferrer sponsored"
+                className="btn min-h-11 shrink-0 text-sm"
+              >
+                Trade this contract on Polymarket
+                <ExternalLink className="h-3.5 w-3.5 ml-1.5" aria-hidden="true" />
+              </a>
+            </div>
+            <p className="text-[13px] leading-relaxed text-ink-subtle">
+              Outbound contract links carry our referral code (<strong className="font-mono text-ink">{POLYMARKET_REFERRAL_CODE}</strong>) and we may be paid a referral fee. Referral compensation never changes a published figure, tier, or analysis on this site.
+            </p>
+          </div>
+        ) : null}
       </section>
 
       {/* ── Debt Stack Chart ────────────────────────────────────────────────── */}
@@ -361,7 +388,7 @@ export default function CompanyDossierPage({ params }: PageProps) {
             <a
               href={company.polymarketOdds.url}
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noopener noreferrer sponsored"
               className="inline-flex min-h-[44px] items-center gap-1.5 btn btn-ghost text-[13px]"
             >
               View Polymarket contract

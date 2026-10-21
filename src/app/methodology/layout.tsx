@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Methodology — how the burst probability is calculated",
+  title: "How we calculate the AI bubble chance — methodology and formulas",
   description:
-    "The published weights, formulas, calibration anchors and backtests behind the 12-month AI burst probability, written out in full.",
+    "The exact formulas, factor weights, data sources, and historical backtests behind the 12-month AI bubble probability.",
   keywords: [
     "AI bubble methodology",
     "bubble probability model",
@@ -18,9 +18,9 @@ export const metadata: Metadata = {
     canonical: "/methodology",
   },
   openGraph: {
-    title: "Methodology | AI Capital Tracker",
+    title: "How we calculate the AI bubble chance — methodology and formulas",
     description:
-      "The weights, formulas, calibration anchors and empirical backtests behind the burst probability.",
+      "The exact formulas, factor weights, data sources, and historical backtests behind the 12-month AI bubble probability.",
     url: "/methodology",
     type: "website",
   },

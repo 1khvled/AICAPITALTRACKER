@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Public REST API",
+  title: "AI data API endpoints — model output, debt ledger and dispatches",
   description:
-    "Read the model output, the deal ledger, the factor weights and the research wire over plain JSON. No key required.",
+    "Five free public JSON endpoints for live AI bubble probabilities, verified debt deals, and research dispatches.",
   alternates: { canonical: "/api" },
   openGraph: {
-    title: "Public REST API | AI Capital Tracker",
+    title: "AI data API endpoints — model output, debt ledger and dispatches",
     description:
-      "Five unauthenticated JSON endpoints over the model engine, the deal ledger and the research wire.",
+      "Five free public JSON endpoints for live AI bubble probabilities, verified debt deals, and research dispatches.",
     url: "/api",
     type: "website",
   },

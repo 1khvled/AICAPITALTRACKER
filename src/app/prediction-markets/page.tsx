@@ -376,9 +376,9 @@ const SNAPSHOT_ISO = liveInputs.meta?.last_synced_at ?? "";
 const SNAPSHOT_DATE = SNAPSHOT_ISO ? SNAPSHOT_ISO.slice(0, 10) : "not published";
 
 export const metadata: Metadata = {
-  title: "Prediction markets — what Polymarket is pricing for the AI bubble",
+  title: "Polymarket AI bubble odds — what betting markets predict",
   description:
-    "What the prediction market is pricing for the AI build-out: the live Polymarket book, the odds on a 12-month AI bubble burst, the gap against the model's own print, and how the market's price enters the model as one factor of eight.",
+    "Live prediction-market betting odds on whether the AI bubble will burst, compared directly against our mathematical model.",
   keywords: [
     "AI bubble odds",
     "Polymarket AI bubble",
@@ -392,9 +392,9 @@ export const metadata: Metadata = {
     canonical: "/prediction-markets",
   },
   openGraph: {
-    title: "Prediction markets — what Polymarket is pricing for the AI bubble",
+    title: "Polymarket AI bubble odds — what betting markets predict",
     description:
-      "The live book, the odds on a 12-month AI bubble burst, the gap against the model's print, and how the market's price enters the model as one factor of eight.",
+      "Live prediction-market betting odds on whether the AI bubble will burst, compared directly against our mathematical model.",
     url: "/prediction-markets",
     type: "website",
     // 2026-10-19: an explicit openGraph block suppresses the file-convention

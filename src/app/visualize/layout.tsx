@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Charts — capex gap, valuations, token deflation and credit spreads",
+  title: "Charts — where the AI money is going",
   description:
-    "The same numbers the site reports, drawn: the hyperscaler capex gap, frontier lab multiples, inference price deflation and the Oracle credit spread.",
+    "Visual charts tracking AI spending against revenue, chip prices, company valuations, and borrowing costs.",
   keywords: [
     "AI capex chart",
     "hyperscaler capex gap",
@@ -16,9 +16,9 @@ export const metadata: Metadata = {
     canonical: "/visualize",
   },
   openGraph: {
-    title: "Charts | AI Capital Tracker",
+    title: "Charts — where the AI money is going",
     description:
-      "Capex against revenue, frontier lab multiples, token price deflation and credit spreads, drawn from the published dataset.",
+      "Visual charts tracking AI spending against revenue, chip prices, company valuations, and borrowing costs.",
     url: "/visualize",
     type: "website",
   },

@@ -21,9 +21,9 @@ import GlossaryBrowser from "./_components/GlossaryBrowser";
 const TERM_COUNT = GLOSSARY_TERMS.length;
 
 export const metadata: Metadata = {
-  title: "Glossary — the vocabulary behind the AI bubble model",
+  title: "AI bubble glossary — plain definitions for finance and tech terms",
   description:
-    "Plain definitions for every term this site uses: credit default swaps, high-yield spreads, circular financing, GPU depreciation drag, Minsky regimes, CAPE, prediction-market odds and the rest. Searchable, and every entry has a stable link.",
+    "Plain-English explanations for every term: credit default swaps, circular deals, GPU depreciation, and market odds.",
   keywords: [
     "AI bubble glossary",
     "credit default swap explained",
@@ -43,9 +43,9 @@ export const metadata: Metadata = {
     canonical: "/glossary",
   },
   openGraph: {
-    title: "Glossary | AI Capital Tracker",
+    title: "AI bubble glossary — plain definitions for finance and tech terms",
     description:
-      "Every term this site uses, defined once in plain language, with a stable link to each entry.",
+      "Plain-English explanations for every term: credit default swaps, circular deals, GPU depreciation, and market odds.",
     url: "/glossary",
     type: "website",
     images: ["/opengraph-image.png"],
@@ -73,6 +73,18 @@ export default function GlossaryPage() {
           Every term this site uses, defined once and in plain language — so a reader who lands
           on a chart without reading the method can still know what the words on it mean. Search
           it, or jump from one definition to the next.
+        </p>
+
+        <p className="max-w-reading panel p-3.5 border-l-2 border-l-ink text-[15px] leading-relaxed text-ink font-medium">
+          If you want the short answers behind these terms without technical jargon, see our plain summaries:{" "}
+          <Link href="/will-the-ai-bubble-burst" className="underline decoration-rule underline-offset-4 hover:decoration-ink">
+            Will the AI bubble burst in the next 12 months?
+          </Link>
+          {" "}and{" "}
+          <Link href="/how-much-is-being-spent-on-ai" className="underline decoration-rule underline-offset-4 hover:decoration-ink">
+            how much is being spent on AI
+          </Link>
+          .
         </p>
       </div>
 

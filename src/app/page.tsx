@@ -9,6 +9,7 @@ import { AdSlot } from "@/components/AdSlot";
 import { ProbabilityGauge } from "@/components/ProbabilityGauge";
 import { Reveal } from "@/components/Reveal";
 import { AnswerBlock } from "@/components/home/AnswerBlock";
+import { HistorySection } from "@/components/home/HistorySection";
 import { DriverSection } from "@/components/home/DriverSection";
 import { FlipSection } from "@/components/home/FlipSection";
 import { ReceiptsBand } from "@/components/home/ReceiptsBand";
@@ -57,6 +58,12 @@ export default function HomePage() {
    */
   const marketRead = marketImplied12mBand(crowd2027 * 100);
   const crowdGap = result.burstProbability - marketRead.centralPct;
+
+  // ── Top active prediction contracts for the homepage affiliate module ─────
+  const tradeableMarkets = ((crowd?.markets ?? []) as any[])
+    .filter((m: any) => m.active && !m.closed && m.yesProbabilityPct > 0)
+    .sort((a: any, b: any) => (b.volumeUsd || 0) - (a.volumeUsd || 0))
+    .slice(0, 4);
 
   // ── Published 90-day trajectory: the "as of" date and the 90-day move ──────
   const history = Array.isArray(trajectoryHistory)
@@ -148,6 +155,11 @@ export default function HomePage() {
       {/* Leaderboard sits BELOW the answer — this page's promise is "the answer, above the fold" */}
       <AdSlot placementId="home-leaderboard" />
 
+      {/* ── 1c · The history: the model on resolved episodes, and the money ── */}
+      <Reveal>
+        <HistorySection />
+      </Reveal>
+
       {/* ── 2 · Demoted machinery: factor weights, composite scores & models ─ */}
       <section id="breakdown" aria-labelledby="breakdown-heading">
         <Reveal>
@@ -212,7 +224,13 @@ export default function HomePage() {
       </div>
 
       {/* ── 4 · Receipts ───────────────────────────────────────────────────── */}
-      <ReceiptsBand trackedLabel={trackedLabel} dealsCount={totalDeals} />
+      <ReceiptsBand
+        trackedLabel={trackedLabel}
+        dealsCount={totalDeals}
+        totalDisclosedUsd={totalDisclosedUsd}
+        totalDebtUsd={totalDebtUsd}
+        debtLabel={debtLabel}
+      />
 
       <AdSlot placementId="home-mid" className="mt-8" />
 
@@ -282,7 +300,52 @@ export default function HomePage() {
               published here because a research site that hides its disagreement with the crowd is
               not doing research. Prediction-market odds reflect the real-money trading price of contracts on Polymarket, not an analyst&rsquo;s opinion. It enters our model as one factor of eight, and its resolution criteria are not identical to ours.
             </p>
-            <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[14px] text-ink-subtle">
+
+            {/* ── What the market is betting on: Live tradeable contracts ── */}
+            {tradeableMarkets.length > 0 && (
+              <div className="mt-6 border-t border-rule pt-5 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="label">Live contracts in plain words</p>
+                    <h3 className="text-[16px] font-bold text-ink mt-0.5">
+                      What the market is betting on
+                    </h3>
+                  </div>
+                  <span className="pill text-[12px]">Polymarket live book</span>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {tradeableMarkets.map((m: any) => (
+                    <a
+                      key={m.id}
+                      href={m.referralUrl || `https://polymarket.com/event/${m.eventSlug}?r=${POLYMARKET_REFERRAL_CODE}`}
+                      target="_blank"
+                      rel="noopener noreferrer sponsored"
+                      className="panel block p-3.5 transition-all hover:border-ink focus:outline-hidden focus:ring-1 focus:ring-ink"
+                    >
+                      <p className="text-[14px] font-semibold text-ink leading-snug">
+                        {m.question}
+                      </p>
+                      <div className="mt-2.5 flex items-baseline justify-between border-t border-rule pt-2">
+                        <span className="text-[12px] uppercase font-semibold text-ink-faint">
+                          The market says
+                        </span>
+                        <span className="num text-[16px] font-bold text-accent-strong dark:text-accent-ink">
+                          {m.yesProbabilityPct.toFixed(1)}% YES
+                        </span>
+                      </div>
+                      {m.volumeUsd > 0 && (
+                        <div className="mt-0.5 text-right text-[12px] text-ink-subtle">
+                          ${(m.volumeUsd / 1e6 >= 1 ? `${(m.volumeUsd / 1e6).toFixed(1)}M` : `${Math.round(m.volumeUsd / 1e3)}k`)} traded
+                        </div>
+                      )}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[14px] text-ink-subtle">
               <a
                 href={`https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`}
                 target="_blank"
@@ -293,7 +356,7 @@ export default function HomePage() {
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </a>
               <span className="max-w-reading">
-                Outbound links carry our referral code ({POLYMARKET_REFERRAL_CODE}) and we may be paid a referral fee.
+                Outbound links carry our referral code (<strong className="font-mono text-ink">{POLYMARKET_REFERRAL_CODE}</strong>) and we may be paid a referral fee if you trade.
                 Referral arrangements never change a number or model probability on this site.
               </span>
             </p>

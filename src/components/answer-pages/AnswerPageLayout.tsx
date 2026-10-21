@@ -169,6 +169,11 @@ export function AnswerPageLayout({
         </ul>
       </section>
 
+      {/* ── Ad Slot 2 (Second in-feed placement, natural break before deep research) ── */}
+      <div className="max-w-4xl">
+        <AdSlot placementId="home-infeed-2" />
+      </div>
+
       {/* ── Deeper Research Links ──────────────────────────────────────────── */}
       <section aria-labelledby="deep-links-heading" className="max-w-4xl space-y-3">
         <h2 id="deep-links-heading" className="label">

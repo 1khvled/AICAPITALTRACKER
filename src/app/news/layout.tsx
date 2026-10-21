@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Research wire — AI capital, debt and infrastructure filings",
+  title: "AI news — funding, debt and data center filings",
   description:
-    "Verified financial dispatches on AI debt issuance, GPU capex and frontier lab capitalisation, refreshed daily from public filings and wires.",
+    "Daily verified news and filings on AI borrowing, chip purchases, and data center infrastructure.",
   alternates: {
     canonical: "/news",
   },
   openGraph: {
-    title: "Research wire | AI Capital Tracker",
+    title: "AI news — funding, debt and data center filings",
     description:
-      "Daily snapshot of verified AI capital, debt and infrastructure filings from public sources.",
+      "Daily verified news and filings on AI borrowing, chip purchases, and data center infrastructure.",
     url: "/news",
     type: "website",
   },

@@ -9,8 +9,8 @@ const stats = ledgerStats();
 const capital = formatTotal(stats.totalUsd).replace("$", "");
 
 export const metadata: Metadata = {
-  title: `${stats.dealCount} sourced AI deals (${capital} disclosed) — the deal ledger`,
-  description: `Every AI investment, loan and power deal we could source, in one searchable list. ${stats.dealCount} deals worth $${capital}, each traced to filings. CSV and JSON export.`,
+  title: `AI investments and debt — ${stats.dealCount} verified deals and loans ($${capital})`,
+  description: `Every AI deal, loan, and data center contract traced to official filings: ${stats.dealCount} deals totaling $${capital}. CSV and JSON export.`,
   keywords: [
     "AI deal ledger",
     "AI capital database",
@@ -26,8 +26,8 @@ export const metadata: Metadata = {
     canonical: "/ledger",
   },
   openGraph: {
-    title: `${stats.dealCount} sourced AI deals (${capital}) | AI Capital Tracker`,
-    description: `Search ${stats.dealCount} verified AI financings worth ${capital}: equity rounds, debt facilities, GPU compute contracts, nuclear and power deals.`,
+    title: `AI investments and debt — ${stats.dealCount} verified deals and loans ($${capital})`,
+    description: `Search ${stats.dealCount} verified AI financings worth $${capital}: equity rounds, debt facilities, GPU compute contracts, nuclear and power deals.`,
     url: "/ledger",
     type: "website",
   },

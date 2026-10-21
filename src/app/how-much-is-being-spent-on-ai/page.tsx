@@ -10,13 +10,13 @@ import trajectoryHistory from "@/data/trajectory-history.json";
 import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 
 export const metadata: Metadata = {
-  title: "How Much Is Being Spent on AI? — $2.87T in Tracked Deals",
+  title: "How much is being spent on AI? All $2.87T in tracked deals",
   description:
-    "A receipt-backed breakdown of the $2.87 trillion committed to AI data centers, chips, power, and compute deals across 169 verified corporate filings.",
+    "A complete breakdown of the $2.87 trillion committed to AI data centers, chips, power, and compute deals across 169 verified filings.",
   openGraph: {
-    title: "How Much Is Being Spent on AI? — $2.87T in Tracked Deals",
+    title: "How much is being spent on AI? All $2.87T in tracked deals",
     description:
-      "A complete receipt-backed breakdown of the $2.87 trillion spent on AI hardware, data centers, and compute deals.",
+      "A complete breakdown of the $2.87 trillion committed to AI data centers, chips, power, and compute deals across 169 verified filings.",
     url: "/how-much-is-being-spent-on-ai",
     type: "article",
     images: ["/opengraph-image.png"],

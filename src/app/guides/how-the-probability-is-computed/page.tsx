@@ -119,9 +119,9 @@ const creditWeightPct =
   MODEL_FACTORS.find((f) => f.id === "cds_stress")?.weightPct ?? 0;
 
 export const metadata: Metadata = {
-  title: "How the 12-month burst probability is actually computed",
+  title: "How the AI bubble probability is calculated step by step",
   description:
-    "How eight weighted factors earn points, how the composite is assembled, what the logistic map does and does not do, and what the Monte-Carlo band actually measures.",
+    "How eight weighted factors combine to calculate the 12-month AI bubble probability, and where model limits begin.",
   keywords: [
     "how AI bubble probability is calculated",
     "AI bubble model explained",
@@ -134,7 +134,7 @@ export const metadata: Metadata = {
     canonical: "/guides/how-the-probability-is-computed",
   },
   openGraph: {
-    title: "How the 12-month probability is actually computed | AI Capital Tracker",
+    title: "How the AI bubble probability is calculated step by step",
     description:
       "Eight factors, a contagion term, a damper and one judgement anchor — and an honest account of where the printed number stops being a probability.",
     url: "/guides/how-the-probability-is-computed",
@@ -173,6 +173,12 @@ export default function ProbabilityGuidePage() {
               The site publishes a single headline: the probability that the AI capital bubble
               bursts inside twelve months. Behind it sit two operations that carry very different
               amounts of authority, and they are often mistaken for one another.
+            </p>
+            <p className="panel p-3.5 border-l-2 border-l-ink text-ink font-medium">
+              If you want this in one paragraph without the formulas, see our direct answer:{" "}
+              <Link href="/will-the-ai-bubble-burst" className="underline decoration-rule underline-offset-4 hover:decoration-ink">
+                Will the AI bubble burst in the next 12 months?
+              </Link>
             </p>
             <p>
               The first operation is arithmetic. Eight factors each read their own inputs and earn

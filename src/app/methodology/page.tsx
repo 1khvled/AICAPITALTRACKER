@@ -257,6 +257,18 @@ return (
           the test suite.
         </p>
 
+        <p className="max-w-reading panel p-3.5 border-l-2 border-l-ink text-[15px] leading-relaxed text-ink font-medium">
+          If you want the plain summary rather than the mathematical formulas, see our direct answer:{" "}
+          <Link href="/will-the-ai-bubble-burst" className="underline decoration-rule underline-offset-4 hover:decoration-ink">
+            Will the AI bubble burst in the next 12 months?
+          </Link>
+          {" "}or inspect{" "}
+          <Link href="/how-much-is-being-spent-on-ai" className="underline decoration-rule underline-offset-4 hover:decoration-ink">
+            how much is being spent on AI
+          </Link>
+          .
+        </p>
+
         <div className="flex flex-wrap items-center gap-2">
           <a href="#sigmoid" className="btn btn-primary min-h-11">
             <Sigma className="h-4 w-4" aria-hidden="true" />

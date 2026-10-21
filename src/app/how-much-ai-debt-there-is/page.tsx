@@ -11,13 +11,13 @@ import trajectoryHistory from "@/data/trajectory-history.json";
 import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 
 export const metadata: Metadata = {
-  title: "How Much AI Debt Is There? — $214.9B Tracked Borrowing",
+  title: "How much AI debt is there? All $214.9B in tracked borrowing",
   description:
-    "The complete tally of AI debt: $214.9 billion borrowed across 24 verified deals. See the biggest corporate borrowers, tranches, and refinancing risks.",
+    "The complete tally of AI debt: $214.9 billion borrowed across 24 verified deals, detailing top borrowers and repayment risks.",
   openGraph: {
-    title: "How Much AI Debt Is There? — $214.9B Tracked Borrowing",
+    title: "How much AI debt is there? All $214.9B in tracked borrowing",
     description:
-      "A complete receipt-backed breakdown of the $214.9 billion borrowed for AI data centers, chips, and lab financing.",
+      "The complete tally of AI debt: $214.9 billion borrowed across 24 verified deals, detailing top borrowers and repayment risks.",
     url: "/how-much-ai-debt-there-is",
     type: "article",
     images: ["/opengraph-image.png"],

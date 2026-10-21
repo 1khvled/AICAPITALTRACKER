@@ -21,16 +21,16 @@ import type { ObservedPrint } from "@/lib/predictions";
  */
 
 export const metadata: Metadata = {
-  title: "Your call — put your own 12-month number on the record",
+  title: "Your prediction — forecast the AI bubble on your own record",
   description:
-    "Record your own 12-month AI bubble burst probability, keep it next to the model's print and the prediction-market price, and see how close you tracked the model once the window closes. Stored on your own device — no account, no leaderboard.",
+    "Save your own 12-month AI bubble prediction next to our model and live prediction markets, stored privately on your device.",
   alternates: {
     canonical: "/your-call",
   },
   openGraph: {
-    title: "Your call — put your own 12-month number on the record",
+    title: "Your prediction — forecast the AI bubble on your own record",
     description:
-      "Your own 12-month AI bubble burst probability, next to the model's print and the prediction-market price. On your device, on your own record.",
+      "Save your own 12-month AI bubble prediction next to our model and live prediction markets, stored privately on your device.",
     url: "/your-call",
     type: "website",
     // 2026-10-19: an explicit openGraph block suppresses the file-convention

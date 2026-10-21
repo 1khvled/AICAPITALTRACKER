@@ -124,9 +124,9 @@ const SNAPSHOT_LABEL =
   }) + " UTC";
 
 export const metadata: Metadata = {
-  title: "Reading AI credit stress: Oracle CDS, high-yield OAS and the 10-year",
+  title: "How to read AI credit stress: bond spreads, Oracle debt and interest rates",
   description:
-    "What Oracle's 5-year CDS, the US high-yield spread and the 10-year Treasury yield each measure, why credit leads equities, and how to read the gap between the model and the prediction market.",
+    "Why bond and credit markets signal AI trouble before stocks do, and what Oracle CDS and interest rates mean for tech.",
   keywords: [
     "Oracle CDS explained",
     "high yield OAS AI credit stress",
@@ -139,9 +139,9 @@ export const metadata: Metadata = {
     canonical: "/guides/reading-ai-credit-stress",
   },
   openGraph: {
-    title: "Reading AI credit stress: Oracle CDS, high-yield OAS and the 10-year | AI Capital Tracker",
+    title: "How to read AI credit stress: bond spreads, Oracle debt and interest rates",
     description:
-      "What each credit and rate series measures, why credit leads equities, and how to think about the gap between the model print and the market price.",
+      "Why bond and credit markets signal AI trouble before stocks do, and what Oracle CDS and interest rates mean for tech.",
     url: "/guides/reading-ai-credit-stress",
     type: "article",
     images: ["/opengraph-image.png"],
@@ -173,6 +173,12 @@ export default function CreditStressGuidePage() {
           title="Three series, three different jobs"
           lead="A single-issuer default swap, a broad junk-bond spread and the government's own borrowing rate are routinely quoted as if they measured the same thing. They do not."
         >
+          <p className="panel p-3.5 border-l-2 border-l-ink text-ink font-medium mb-4">
+            If you want the plain summary of how these credit risks affect the AI bubble, see our direct answer:{" "}
+            <Link href="/will-the-ai-bubble-burst" className="underline decoration-rule underline-offset-4 hover:decoration-ink">
+              Will the AI bubble burst in the next 12 months?
+            </Link>
+          </p>
           <div className="overflow-x-auto rounded-xl border border-rule">
             <table className="w-full text-left text-[14px]">
               <caption className="sr-only">

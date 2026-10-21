@@ -39,12 +39,11 @@ const hyOas = macroValue("HY-OAS", "the high-yield spread");
 const aiDebt = macroValue("AI-DEBT", "annual AI debt issuance");
 
 export const metadata: Metadata = {
-  title: "AI markets — listed quotes, Treasury yields and credit spreads",
-  description: `Daily quotes for ${stockCount} listed AI companies, plus Treasury yields, high-yield spreads and the AI debt pace that set the cost of building.`,
+  title: "AI stocks, interest rates and credit — today's prices",
+  description: `Today's stock prices for ${stockCount} AI companies, plus interest rates, credit spreads, and the debt pace funding data centers.`,
   openGraph: {
-    title: "AI markets — listed quotes, Treasury yields and credit spreads",
-    description:
-      "Daily market board: AI equities, Treasury yields, high-yield spreads and the AI debt issuance pace.",
+    title: "AI stocks, interest rates and credit — today's prices",
+    description: `Today's stock prices for ${stockCount} AI companies, plus interest rates, credit spreads, and the debt pace funding data centers.`,
     url: "/markets",
     type: "website",
     // 2026-10-19: an explicit openGraph block suppresses the file-convention

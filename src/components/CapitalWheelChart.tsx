@@ -327,6 +327,9 @@ export function CapitalWheelChart({
           <h3 className="text-lg sm:text-xl font-bold tracking-tight text-ink mt-1">
             Capital Wheel: Where the Money Comes From
           </h3>
+          <p className="text-[15px] leading-relaxed text-ink font-medium border-l-2 border-l-ink pl-3 my-2">
+            Who is funding whom: Of the {formatUsdShort(grandTotal)} tracked in the wheel, {((totalDebtUsd / grandTotal) * 100).toFixed(1)}% ({formatUsdShort(totalDebtUsd)}) is debt borrowed from bond markets and private credit, while {(100 - (totalDebtUsd / grandTotal) * 100).toFixed(1)}% ({formatUsdShort(grandTotal - totalDebtUsd)}) is equity and compute commitments funded by Big Tech balance sheets and venture rounds.
+          </p>
           <p className="text-[14px] text-ink-muted">
             Arc length represents capital share. Inner band exposes borrowed senior debt vs equity/commitments.
             Distinct notches highlight the {totalCircularCount} circular-financing records.

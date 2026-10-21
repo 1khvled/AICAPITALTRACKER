@@ -5,18 +5,19 @@ import { ArrowRight, AlertTriangle, TrendingUp, CheckCircle2 } from "lucide-reac
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import { BAND_LABEL, BAND_VERDICT, formatAsOf, factorPlain } from "@/components/home/copy";
 import { AnswerPageLayout } from "@/components/answer-pages/AnswerPageLayout";
+import { HistorySection } from "@/components/home/HistorySection";
 import trajectoryHistory from "@/data/trajectory-history.json";
 import rawLiveInputs from "@/data/live-inputs.json";
 import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 
 export const metadata: Metadata = {
-  title: "Will the AI Bubble Burst? — The 12-Month Outlook",
+  title: "Will the AI bubble burst? — 12-month odds and risk score",
   description:
-    "An empirical 12-month probability of an AI bubble burst computed from corporate filings, Big Tech debt, credit default swaps, and hardware cash flows.",
+    "The 12-month chance of an AI bubble burst computed from $2.87T in spending, $214.9B in debt, and daily credit market data.",
   openGraph: {
-    title: "Will the AI Bubble Burst? — The 12-Month Outlook",
+    title: "Will the AI bubble burst? — 12-month odds and risk score",
     description:
-      "A receipt-backed model calculating the 12-month chance of an artificial intelligence infrastructure pullback or debt crunch.",
+      "The 12-month chance of an AI bubble burst computed from $2.87T in spending, $214.9B in debt, and daily credit market data.",
     url: "/will-the-ai-bubble-burst",
     type: "article",
     images: ["/opengraph-image.png"],
@@ -102,6 +103,9 @@ export default function WillTheAiBubbleBurstPage() {
         "The published range is an input-sensitivity range (showing how far the score shifts when interest rates or credit default swaps change), not a statistical confidence interval.",
       ]}
     >
+      {/* ── The history: the model on resolved episodes, and the money ───── */}
+      <HistorySection />
+
       {/* ── Section 1: Probability Trajectory ───────────────────────────────── */}
       <section aria-labelledby="trajectory-heading" className="card space-y-4 shadow-card">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-rule pb-3">
