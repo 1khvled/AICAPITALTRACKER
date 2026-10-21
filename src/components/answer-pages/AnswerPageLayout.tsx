@@ -85,7 +85,7 @@ export function AnswerPageLayout({
 
       {/* ── Ad Slot (Reusing existing placement id) ────────────────────────── */}
       <div className="max-w-4xl">
-        <AdSlot placementId="global-infeed" />
+        <AdSlot placementId="home-infeed-1" />
       </div>
 
       {/* ── Tradeable Prediction Contracts (Honest Affiliate) ──────────────── */}
@@ -171,7 +171,7 @@ export function AnswerPageLayout({
 
       {/* ── Ad Slot 2 (Second in-feed placement, natural break before deep research) ── */}
       <div className="max-w-4xl">
-        <AdSlot placementId="home-infeed-2" />
+        <AdSlot placementId="visualize-infeed" />
       </div>
 
       {/* ── Deeper Research Links ──────────────────────────────────────────── */}
