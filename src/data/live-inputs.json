@@ -77,14 +77,14 @@
     "circularShare": 0.027,
     "announcedShare": 0.101,
     "megaCountLast12m": 25,
-    "daysSinceLastMega": 22,
+    "daysSinceLastMega": 23,
     "count": 169
   },
   "crowd": {
-    "yesProbability": 0.083,
-    "volumeUsd": 9173919.635613004,
-    "bubble2026Probability": 0.083,
-    "bubble2027Probability": 0.195,
+    "yesProbability": 0.1075,
+    "volumeUsd": 9181368.534889005,
+    "bubble2026Probability": 0.1075,
+    "bubble2027Probability": 0.21,
     "activeContractsCount": 16,
     "markets": [
       {
@@ -108,15 +108,15 @@
         "question": "AI bubble burst in 2026?",
         "slug": "ai-industry-downturn-by-december-31-2026-857",
         "eventSlug": "ai-bubble-burst-by",
-        "yesProbabilityPct": 8.3,
-        "noProbabilityPct": 91.7,
-        "volumeUsd": 2483997,
+        "yesProbabilityPct": 10.8,
+        "noProbabilityPct": 89.3,
+        "volumeUsd": 2487675,
         "endDate": "2027-01-01T04:59:00Z",
         "closed": false,
         "active": true,
-        "liquidityUsd": 34709,
-        "spreadPct": 0.6,
-        "oneDayPriceChangePct": 0.5,
+        "liquidityUsd": 38872,
+        "spreadPct": 0.7,
+        "oneDayPriceChangePct": 2.5,
         "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
       },
       {
@@ -140,15 +140,15 @@
         "question": "AI bubble burst by June 30, 2027?",
         "slug": "ai-bubble-burst-by-june-30-2027",
         "eventSlug": "ai-bubble-burst-by",
-        "yesProbabilityPct": 19.5,
-        "noProbabilityPct": 80.5,
-        "volumeUsd": 34773,
+        "yesProbabilityPct": 21,
+        "noProbabilityPct": 79,
+        "volumeUsd": 35351,
         "endDate": "2027-07-01T03:59:00Z",
         "closed": false,
         "active": true,
-        "liquidityUsd": 12069,
-        "spreadPct": 1,
-        "oneDayPriceChangePct": 3,
+        "liquidityUsd": 7341,
+        "spreadPct": 2,
+        "oneDayPriceChangePct": 1.5,
         "referralUrl": "https://polymarket.com/event/ai-bubble-burst-by?r=AIbubble"
       },
       {
@@ -236,15 +236,15 @@
         "question": "Will OpenAI IPO by December 31 2026?",
         "slug": "will-openai-ipo-by-december-31-2026",
         "eventSlug": "openai-ipo-by",
-        "yesProbabilityPct": 4.7,
+        "yesProbabilityPct": 4.6,
         "noProbabilityPct": 95.4,
-        "volumeUsd": 1059834,
+        "volumeUsd": 1059992,
         "endDate": "2027-01-01T04:59:00Z",
         "closed": false,
         "active": true,
-        "liquidityUsd": 28953,
-        "spreadPct": 0.3,
-        "oneDayPriceChangePct": 0.4,
+        "liquidityUsd": 31869,
+        "spreadPct": 0.2,
+        "oneDayPriceChangePct": 0,
         "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
       },
       {
@@ -258,7 +258,7 @@
         "endDate": "2027-04-01T03:59:00Z",
         "closed": false,
         "active": true,
-        "liquidityUsd": 6228,
+        "liquidityUsd": 10549,
         "spreadPct": 1,
         "oneDayPriceChangePct": 0,
         "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
@@ -274,7 +274,7 @@
         "endDate": "2027-07-01T03:59:00Z",
         "closed": false,
         "active": true,
-        "liquidityUsd": 7222,
+        "liquidityUsd": 11106,
         "spreadPct": 1,
         "oneDayPriceChangePct": 0,
         "referralUrl": "https://polymarket.com/event/openai-ipo-by?r=AIbubble"
@@ -286,11 +286,11 @@
         "eventSlug": "openai-announces-it-has-achieved-agi-before-2027",
         "yesProbabilityPct": 8.5,
         "noProbabilityPct": 91.5,
-        "volumeUsd": 331567,
+        "volumeUsd": 331584,
         "endDate": "2027-01-01T04:59:00Z",
         "closed": false,
         "active": true,
-        "liquidityUsd": 22665,
+        "liquidityUsd": 24266,
         "spreadPct": 1,
         "oneDayPriceChangePct": 0,
         "referralUrl": "https://polymarket.com/event/openai-announces-it-has-achieved-agi-before-2027?r=AIbubble"
@@ -306,7 +306,7 @@
         "endDate": "2027-01-01T04:59:00Z",
         "closed": false,
         "active": true,
-        "liquidityUsd": 8091,
+        "liquidityUsd": 8336,
         "spreadPct": 0.3,
         "oneDayPriceChangePct": 0,
         "referralUrl": "https://polymarket.com/event/openai-1t-ipo-before-2027?r=AIbubble"
@@ -316,15 +316,15 @@
         "question": "Anthropic acquired before 2027?",
         "slug": "anthropic-acquired-before-2027",
         "eventSlug": "anthropic-acquired-before-2027",
-        "yesProbabilityPct": 2.6,
-        "noProbabilityPct": 97.4,
+        "yesProbabilityPct": 2.3,
+        "noProbabilityPct": 97.8,
         "volumeUsd": 30586,
         "endDate": "2027-01-01T04:59:00Z",
         "closed": false,
         "active": true,
-        "liquidityUsd": 2549,
-        "spreadPct": 1,
-        "oneDayPriceChangePct": 0.3,
+        "liquidityUsd": 2850,
+        "spreadPct": 0.3,
+        "oneDayPriceChangePct": -0.3,
         "referralUrl": "https://polymarket.com/event/anthropic-acquired-before-2027?r=AIbubble"
       },
       {
@@ -332,21 +332,21 @@
         "question": "US recession by end of 2026?",
         "slug": "us-recession-by-end-of-2026",
         "eventSlug": "us-recession-by-end-of-2026",
-        "yesProbabilityPct": 6.5,
-        "noProbabilityPct": 93.5,
-        "volumeUsd": 2324922,
+        "yesProbabilityPct": 7.5,
+        "noProbabilityPct": 92.5,
+        "volumeUsd": 2327939,
         "endDate": "2027-01-31T00:00:00Z",
         "closed": false,
         "active": true,
-        "liquidityUsd": 80390,
+        "liquidityUsd": 87315,
         "spreadPct": 1,
-        "oneDayPriceChangePct": 0,
+        "oneDayPriceChangePct": 1,
         "referralUrl": "https://polymarket.com/event/us-recession-by-end-of-2026?r=AIbubble"
       }
     ],
     "referralCode": "AIbubble",
     "referralUrl": "https://polymarket.com/?r=AIbubble",
-    "note": "Live Polymarket sync across 6 active AI prediction events (Volume: $9.17M)"
+    "note": "Live Polymarket sync across 6 active AI prediction events (Volume: $9.18M)"
   },
   "adoption": {
     "topProductUsers": 1200000000,
@@ -361,13 +361,13 @@
     "note": "Big-4 hyperscaler CY2026 capex guidance (Jul 2026 calls): Amazon ~$220B cash capex, Alphabet $195–205B, Microsoft ~$175B incl. finance leases, Meta $130–145B → ~$725B guided (Forbes Oct 7 2026: $700–725B; Coatue Aug 11 2026: ~$733B). Apple excluded from this basis; FCF figure is trailing FY and flagged for CY2026 refresh"
   },
   "macro": {
-    "us10yYieldPct": 5.14,
+    "us10yYieldPct": 5.12,
     "us10yBaselinePct": 3.75,
     "cpiInflationYoY": 3.72,
     "fedFundsRatePct": 3.75,
     "rateHikeRiskBps": 25,
-    "realYield10y": 2.79,
-    "highYieldSpreadBps": 331,
+    "realYield10y": 2.77,
+    "highYieldSpreadBps": 329,
     "note": "FRED-verified Oct 19 2026: US10Y 5.10% (DGS10, Oct 15); 10y breakeven 2.35% (T10YIE, Oct 16) → real 10y 2.75%; CPI +3.72% YoY (CPIAUCSL Sep 2026); Fed funds 3.75% (FEDFUNDS Sep 2026 — cut cycle); US HY OAS 323bp (BAMLH0A0HYM2, Oct 15 2026)"
   },
   "aiDebt": {
@@ -423,7 +423,7 @@
     ]
   },
   "meta": {
-    "last_synced_at": "2026-10-20T04:06:05.131Z",
+    "last_synced_at": "2026-10-21T03:52:35.982Z",
     "sync_mode": "autonomous_24h_telemetry",
     "sources": [
       "Federal Reserve Economic Data (FRED) St. Louis API (DGS10, DGS2, BAMLH0A0HYM2, FEDFUNDS)",
