@@ -228,8 +228,7 @@ html {
 body {
   background-color: rgb(var(--c-canvas));
   color: rgb(var(--c-ink));
-  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
-    "Helvetica Neue", Helvetica, system-ui, "Segoe UI", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, system-ui, "Segoe UI", Arial, sans-serif;
   font-size: 1.0625rem; /* 17px — reading size for plain-language copy */
   line-height: 1.6;
   letter-spacing: 0; /* Apple S15: body prose sits near zero */
@@ -278,12 +277,20 @@ nav,
 .command-palette,
 header,
 svg text {
-  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, system-ui, "Segoe UI", Arial, sans-serif !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, system-ui, "Segoe UI", Arial, sans-serif !important;
 }
 
+/**
+ * The MONO is for FIGURES and for CODE.
+ *
+ * It used to include `.label` and `.pill`, which is why every eyebrow, chip
+ * and status tag on the site was set in a typewriter face - the reason the
+ * pages read like a trading terminal rather than a publication, and the reason
+ * the owner called the type "ass". A label is a sentence; it belongs in the
+ * site's face. A number is a different object: it wants tabular digits that
+ * never jitter, and that is the mono's job.
+ */
 .num,
-.label,
-.pill,
 .font-tabular,
 .prose-mono,
 table .num,
@@ -550,7 +557,7 @@ html.dark .notice-caution {
   background-color: rgb(216 155 24 / 0.12);
 }
 .notice-title {
-  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, system-ui, "Segoe UI", Arial, sans-serif;
   font-size: 0.875rem; /* 14px — meets 14px body text floor when used in paragraphs */
   font-weight: 600;
   letter-spacing: 0.14em;
@@ -568,7 +575,7 @@ html.dark .notice-caution {
   color: rgb(var(--c-ink-muted));
   border-radius: 999px;
   padding: 0.125rem 0.5rem;
-  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, system-ui, "Segoe UI", Arial, sans-serif;
   font-size: 0.8125rem; /* 13px — was 11px (2026-10-19 size-floor pass) */
   font-weight: 500;
   line-height: 1.35;
@@ -766,7 +773,7 @@ html.dark .btn-primary:hover {
 
 /* Micro label — the editorial "kicker" above a heading. */
 .label {
-  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, system-ui, "Segoe UI", Arial, sans-serif;
   font-size: 0.75rem; /* 12px — was 11px (2026-10-19 size-floor pass) */
   font-weight: 500;
   line-height: 1.2;

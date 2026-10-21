@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Sans, Source_Serif_4, JetBrains_Mono } from "next/font/google";
+import { Source_Serif_4, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -13,11 +13,15 @@ import rawDeals from "@/data/deals.json";
 /**
  * Type system.
  *
- * 1. Interface & Data: IBM Plex Sans, self-hosted through next/font.
- *    Technical, compact, precise terminal temperament that fits dense tables
- *    without overflow.
- *    Fallback chain preserves Apple's system stack: -apple-system,
- *    BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", ...
+ * 1. Interface & Data: APPLE'S OWN FACE. `-apple-system` resolves to SF Pro
+ *    on macOS, iOS and iPadOS - the same face as the platform the reader is
+ *    on, with the optical sizing, tracking tables and legibility tuning a
+ *    webfont cannot buy. SF Pro cannot be redistributed as a webfont (Apple
+ *    licenses it for Apple platforms), so the honest way to ship it is to ASK
+ *    for it, and that is what the stack in tailwind.config.ts does.
+ *    Everywhere else the platform grotesque answers: Segoe UI on Windows,
+ *    Roboto on Android. No webfont is downloaded for the interface - the
+ *    site's fastest font is the one already on the device.
  *
  * 2. Long-Form Prose: Source Serif 4, self-hosted through next/font.
  *    The "broadsheet" half of the publication identity: used strictly for
@@ -25,29 +29,10 @@ import rawDeals from "@/data/deals.json";
  *    disclosure panels). Never touches tables, figures, chips or nav.
  *
  * 3. Figures & Numerals: JetBrains Mono, self-hosted through next/font.
- *    Tabular monospaced digits with tnum + zero features so numbers never
- *    jitter when market ticks or slider updates fire.
+ *    A number is a different object from a sentence and it wants tabular
+ *    monospaced digits that never jitter. Labels are sentences, so they are
+ *    set in the site's face, not in this one.
  */
-const ibmPlexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-  variable: "--font-sans",
-  adjustFontFallback: true,
-  fallback: [
-    "-apple-system",
-    "BlinkMacSystemFont",
-    "SF Pro Display",
-    "SF Pro Text",
-    "Helvetica Neue",
-    "Helvetica",
-    "system-ui",
-    "Segoe UI",
-    "Arial",
-    "sans-serif",
-  ],
-});
-
 const sourceSerif4 = Source_Serif_4({
   subsets: ["latin"],
   weight: ["400", "600", "700"],
@@ -227,7 +212,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${ibmPlexSans.variable} ${sourceSerif4.variable} ${jetbrainsMono.variable}`}
+      className={`${sourceSerif4.variable} ${jetbrainsMono.variable}`}
       data-band={model.band}
     >
       <head>

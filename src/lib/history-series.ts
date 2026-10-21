@@ -227,17 +227,24 @@ export function buildHistoryBundle(
 
   /* ── 3. The market's price, over its published history ────────────────── */
   const market: MarketReading[] = POLYMARKET_HISTORICAL_TRENDS.map((point) => {
-    const year = Number.parseInt(point.date.slice(0, 4), 10);
-    const monthName = point.date.slice(5, 8).trim();
+    // The published labels read "Jan 2024" and "Oct 2026 (Live)" - the month
+    // name first, and a suffix on the live one. A fixed slice took the wrong
+    // end of the string (and "ive)" for the live label), so the year is
+    // matched instead of counted.
+    const yearMatch = point.date.match(/(20\d{2})/);
+    const year = yearMatch ? Number.parseInt(yearMatch[1], 10) : Number.NaN;
+    const monthName = point.date.slice(0, 3).trim();
     const monthIndex = MONTHS.findIndex((m) => m.toLowerCase() === monthName.toLowerCase());
     const month = monthIndex >= 0 ? monthIndex + 1 : 1;
     return {
-      iso: `${year}-${String(month).padStart(2, "0")}-01`,
+      iso: Number.isFinite(year)
+        ? `${year}-${String(month).padStart(2, "0")}-01`
+        : `${point.date}`,
       label: point.date.replace(" (Live)", ""),
       twelveMonthPct: point.aiBubble2027,
       sixMonthPct: point.aiBubble2026,
     };
-  });
+  }).filter((reading) => Number.isFinite(Number.parseInt(reading.iso.slice(0, 4), 10)));
 
   /* ── 4. The model's observed daily prints ─────────────────────────────── */
   const prints: ModelPrint[] = trajectory

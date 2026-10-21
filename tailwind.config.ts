@@ -31,26 +31,22 @@ const config: Config = {
     extend: {
       fontFamily: {
         /**
-         * APPLE'S OWN TYPE.
+         * APPLE'S OWN TYPE, and the only type.
          *
-         * The site used to ship Inter. It is a good font, but it is not Apple's,
-         * and Apple's is already on the device: SF Pro ships with macOS, iOS and
-         * iPadOS, with the optical sizing, tracking tables and legibility
-         * tuning that a webfont cannot buy. The stack therefore asks for the
-         * system face first and falls back to the platform grotesque
-         * (Segoe UI on Windows, Roboto on Android) when there is no Apple
-         * device.
+         * `-apple-system` resolves to SF Pro on macOS, iOS and iPadOS, so the
+         * site is set in the same face as the platform it runs on - with the
+         * optical sizing, tracking tables and legibility tuning a webfont
+         * cannot buy. SF Pro is licensed for Apple platforms and may not be
+         * redistributed as a webfont, so the honest way to ship it is to ASK
+         * for it, which is what this stack does. Everywhere else the platform
+         * grotesque answers: Segoe UI on Windows, Roboto on Android.
          *
-         * SF Pro is licensed for Apple platforms and may not be redistributed
-         * as a webfont, so the honest way to ship it is to ASK for it: that is
-         * what this stack does.
-         *
-         * The figures keep their own face (see `mono` below). A number is a
-         * different object from a sentence: it wants tabular monospaced
-         * digits that never jitter, and that is a job for the mono.
+         * The MONO is for FIGURES only. A number is a different object from a
+         * sentence and it wants tabular digits that never jitter - but a label
+         * is a sentence, and setting it in a typewriter face is exactly what
+         * makes a site look like a trading terminal instead of a publication.
          */
         sans: [
-          "var(--font-sans)",
           "-apple-system",
           "BlinkMacSystemFont",
           '"SF Pro Display"',

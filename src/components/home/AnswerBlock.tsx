@@ -92,6 +92,51 @@ export function AnswerBlock({
   pricedFactors,
   totalFactors,
 }: AnswerBlockProps) {
+  /**
+   * The questions people actually type, and what each page answers.
+   *
+   * The order is the order a reader arrives in: the verdict, then the money,
+   * then the debt, then the two questions about OpenAI, then the macro
+   * question, then the one the whole site is really asking.
+   */
+  const plainAnswers: { href: string; question: string; answer: string }[] = [
+    {
+      href: "/will-the-ai-bubble-burst",
+      question: "Will the AI bubble burst?",
+      answer: "The 12-month outlook, the trajectory, and what would flip the odds",
+    },
+    {
+      href: "/how-much-is-being-spent-on-ai",
+      question: "How much is being spent?",
+      answer: `All of it - ${trackedLabel} across compute, data centers and GPU hardware`,
+    },
+    {
+      href: "/how-much-ai-debt-there-is",
+      question: "How much AI debt is there?",
+      answer: `${debtLabel} in 24 loans, convertible bonds and credit facilities`,
+    },
+    {
+      href: "/will-openai-ipo",
+      question: "Will OpenAI IPO in 2026?",
+      answer: "The market odds, the valuation talks, and the S-1 checklist",
+    },
+    {
+      href: "/what-is-cpi-doing-to-ai",
+      question: "What is CPI doing to AI?",
+      answer: "How inflation and bond yields drive the cost of data center debt",
+    },
+    {
+      href: "/who-is-funding-openai",
+      question: "Who is funding OpenAI?",
+      answer: "Disclosed rounds, Microsoft, SoftBank, and the circularity question",
+    },
+    {
+      href: "/is-ai-spending-too-much",
+      question: "Is AI spending too much?",
+      answer: "The gap between what the build-out costs and what it earns",
+    },
+  ];
+
   const firstObservedDate = FIRST_OBSERVED?.date ?? null;
 
   // 2026-10-19 (lane 2b): the move is measured from the FIRST OBSERVED point, not from
@@ -205,95 +250,28 @@ export function AnswerBlock({
         </div>
       </details>
 
-      {/* Seven plain-answer pages: the queries people actually search */}
-      <div className="mt-6 space-y-2.5 max-w-4xl">
+      {/* Seven plain-answer pages: the queries people actually search.
+          An index, not a grid of boxes: the question first, the answer under
+          it, a hairline between the rows, and the whole row is the target. */}
+      <div className="mt-7 max-w-4xl">
         <p className="label">Answers to what readers search for</p>
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-          <Link
-            href="/will-the-ai-bubble-burst"
-            className="card card-flush card-lift p-3.5 transition-shadow hover:shadow-raised"
-          >
-            <span className="text-[14px] font-semibold text-ink flex items-center justify-between">
-              Will the bubble burst?
-              <ArrowRight className="h-3.5 w-3.5 text-ink-muted shrink-0" aria-hidden="true" />
-            </span>
-            <span className="mt-1 block text-[13px] text-ink-subtle leading-snug">
-              The 12-month outlook, trajectory, and what would flip the odds
-            </span>
-          </Link>
-          <Link
-            href="/how-much-is-being-spent-on-ai"
-            className="card card-flush card-lift p-3.5 transition-shadow hover:shadow-raised"
-          >
-            <span className="text-[14px] font-semibold text-ink flex items-center justify-between">
-              How much is being spent?
-              <ArrowRight className="h-3.5 w-3.5 text-ink-muted shrink-0" aria-hidden="true" />
-            </span>
-            <span className="mt-1 block text-[13px] text-ink-subtle leading-snug">
-              All {trackedLabel} tracked across compute, data centers, and GPU hardware
-            </span>
-          </Link>
-          <Link
-            href="/how-much-ai-debt-there-is"
-            className="card card-flush card-lift p-3.5 transition-shadow hover:shadow-raised"
-          >
-            <span className="text-[14px] font-semibold text-ink flex items-center justify-between">
-              How much AI debt is there?
-              <ArrowRight className="h-3.5 w-3.5 text-ink-muted shrink-0" aria-hidden="true" />
-            </span>
-            <span className="mt-1 block text-[13px] text-ink-subtle leading-snug">
-              {debtLabel} in 24 loans, convertible bonds, and credit facilities
-            </span>
-          </Link>
-          <Link
-            href="/will-openai-ipo"
-            className="card card-flush card-lift p-3.5 transition-shadow hover:shadow-raised"
-          >
-            <span className="text-[14px] font-semibold text-ink flex items-center justify-between">
-              Will OpenAI IPO in 2026?
-              <ArrowRight className="h-3.5 w-3.5 text-ink-muted shrink-0" aria-hidden="true" />
-            </span>
-            <span className="mt-1 block text-[13px] text-ink-subtle leading-snug">
-              4.3% market odds, $1.2T valuation talks, and S-1 checklist
-            </span>
-          </Link>
-          <Link
-            href="/what-is-cpi-doing-to-ai"
-            className="card card-flush card-lift p-3.5 transition-shadow hover:shadow-raised"
-          >
-            <span className="text-[14px] font-semibold text-ink flex items-center justify-between">
-              What is CPI doing to AI?
-              <ArrowRight className="h-3.5 w-3.5 text-ink-muted shrink-0" aria-hidden="true" />
-            </span>
-            <span className="mt-1 block text-[13px] text-ink-subtle leading-snug">
-              How 3.72% inflation and 5.10% bond yields drive data center debt costs
-            </span>
-          </Link>
-          <Link
-            href="/who-is-funding-openai"
-            className="card card-flush card-lift p-3.5 transition-shadow hover:shadow-raised"
-          >
-            <span className="text-[14px] font-semibold text-ink flex items-center justify-between">
-              Who is funding OpenAI?
-              <ArrowRight className="h-3.5 w-3.5 text-ink-muted shrink-0" aria-hidden="true" />
-            </span>
-            <span className="mt-1 block text-[13px] text-ink-subtle leading-snug">
-              Disclosed rounds, Microsoft, SoftBank, and the circularity question
-            </span>
-          </Link>
-          <Link
-            href="/is-ai-spending-too-much"
-            className="card card-flush card-lift p-3.5 transition-shadow hover:shadow-raised sm:col-span-2 lg:col-span-3"
-          >
-            <span className="text-[14px] font-semibold text-ink flex items-center justify-between">
-              Is AI spending too much?
-              <ArrowRight className="h-3.5 w-3.5 text-ink-muted shrink-0" aria-hidden="true" />
-            </span>
-            <span className="mt-1 block text-[13px] text-ink-subtle leading-snug">
-              The $465B annual funding gap between Big-4 capex ($725B) and free cash flow ($260B)
-            </span>
-          </Link>
-        </div>
+        <ul className="mt-1 grid grid-cols-1 gap-x-10 sm:grid-cols-2">
+          {plainAnswers.map((entry) => (
+            <li key={entry.href} className="border-t border-rule">
+              <Link
+                href={entry.href}
+                className="group flex flex-col gap-0.5 py-3.5"
+              >
+                <span className="text-[16px] font-semibold tracking-[-0.01em] text-ink underline decoration-transparent decoration-1 underline-offset-[5px] transition-colors group-hover:decoration-rule group-focus-visible:decoration-rule">
+                  {entry.question}
+                </span>
+                <span className="text-[14px] leading-snug text-ink-subtle">
+                  {entry.answer}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
 
       {/* Single primary action to demoted machinery */}
