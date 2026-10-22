@@ -63,8 +63,8 @@ export function ModelVsMarketGapChart({
 
   // SVG Geometry
   const width = 860;
-  const height = 220;
-  const pad = { left: 40, right: 40, top: 40, bottom: 60 };
+  const height = 250;
+  const pad = { left: 40, right: 40, top: 40, bottom: 45 };
   const innerW = width - pad.left - pad.right;
   const maxAxisVal = 50; // 0% to 50% scale covers all readings comfortably
 
@@ -76,6 +76,15 @@ export function ModelVsMarketGapChart({
   const xBandHigh = scaleX(marketBandHigh);
   const xBandCentral = scaleX(marketBandCentral);
   const xModel = scaleX(modelProbability);
+
+  const isClose =
+    x2026 !== null && x2027 !== null && Math.abs(x2026 - x2027) < 85;
+
+  const y2026Val = 135;
+  const y2026Lbl = 150;
+  const y2027Val = isClose ? 168 : 135;
+  const y2027Lbl = isClose ? 183 : 150;
+  const line2027Bottom = isClose ? 164 : 128;
 
   const axisTicks = [0, 10, 20, 30, 40, 50];
 
@@ -210,10 +219,10 @@ export function ModelVsMarketGapChart({
           >
             <line x1={x2026} y1={85} x2={x2026} y2={125} stroke="#D1433C" strokeWidth="2" />
             <circle cx={x2026} cy={105} r={6} fill="#D1433C" stroke="rgb(var(--c-canvas))" strokeWidth="1.5" />
-            <text x={x2026} y={145} textAnchor="middle" className="num fill-ink font-bold text-[13px]">
+            <text x={x2026} y={y2026Val} textAnchor="middle" className="num fill-ink font-bold text-[13px]">
               {pct(contract2026Prob)}%
             </text>
-            <text x={x2026} y={160} textAnchor="middle" className="fill-ink-muted text-[12px]">
+            <text x={x2026} y={y2026Lbl} textAnchor="middle" className="fill-ink-muted text-[12px]">
               Dec-2026 (6m)
             </text>
           </g>
@@ -226,7 +235,7 @@ export function ModelVsMarketGapChart({
             onMouseEnter={() => setHoveredPoint("2027")}
             onMouseLeave={() => setHoveredPoint(null)}
           >
-            <line x1={x2027} y1={75} x2={x2027} y2={135} stroke="var(--c-cat-navy)" strokeWidth="2.5" />
+            <line x1={x2027} y1={75} x2={x2027} y2={line2027Bottom} stroke="var(--c-cat-navy)" strokeWidth="2.5" />
             <rect
               x={x2027 - 6}
               y={99}
@@ -236,10 +245,10 @@ export function ModelVsMarketGapChart({
               stroke="rgb(var(--c-canvas))"
               strokeWidth="1.5"
             />
-            <text x={x2027} y={145} textAnchor="middle" className="num fill-ink font-bold text-[13px]">
+            <text x={x2027} y={y2027Val} textAnchor="middle" className="num fill-ink font-bold text-[13px]">
               {pct(contract2027Prob)}%
             </text>
-            <text x={x2027} y={160} textAnchor="middle" className="fill-ink-muted text-[12px]">
+            <text x={x2027} y={y2027Lbl} textAnchor="middle" className="fill-ink-muted text-[12px]">
               Jun-2027 (12m)
             </text>
           </g>
@@ -261,7 +270,7 @@ export function ModelVsMarketGapChart({
               x1={xModel}
               y1={70}
               x2={xModel}
-              y2={140}
+              y2={128}
               stroke="rgb(var(--c-ink))"
               strokeWidth="3"
             />
@@ -271,10 +280,10 @@ export function ModelVsMarketGapChart({
               stroke="rgb(var(--c-canvas))"
               strokeWidth="1.5"
             />
-            <text x={xModel} y={150} textAnchor="middle" className="num fill-ink font-bold text-[15px]">
+            <text x={xModel} y={142} textAnchor="middle" className="num fill-ink font-bold text-[15px]">
               {modelProbability.toFixed(1)}%
             </text>
-            <text x={xModel} y={166} textAnchor="middle" className="fill-ink font-semibold text-[12px]">
+            <text x={xModel} y={158} textAnchor="middle" className="fill-ink font-semibold text-[12px]">
               Site Model Print
             </text>
           </g>

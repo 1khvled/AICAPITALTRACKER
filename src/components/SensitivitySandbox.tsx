@@ -227,6 +227,7 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
             ...prevStack.slice(-19),
             { inputs: prev, scenarioName: "custom", label: lbl },
           ]);
+          setUndoMessage(`Adjusted ${lbl}.`);
         }
       }, 500);
     },
@@ -272,7 +273,14 @@ export function SensitivitySandbox({ onStateChange, externalResetTrigger }: Sens
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "z" && !e.shiftKey) {
         const target = e.target as HTMLElement | null;
-        if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+        if (
+          target &&
+          (target.tagName === "TEXTAREA" ||
+            (target.tagName === "INPUT" &&
+              (target as HTMLInputElement).type !== "range"))
+        ) {
+          return;
+        }
         if (sliderHistory.length > 0) {
           e.preventDefault();
           handleUndoLastSlider();

@@ -959,13 +959,12 @@ function InteractiveBubblePod({
                 {b.r >= 18 && (
                   <text
                     x={b.x}
-                    y={b.r >= 26 ? b.y - 2 : b.y + 3.5}
+                    y={b.r >= 26 ? b.y - 5 : b.y + 3.5}
                     textAnchor="middle"
                     fill="#ffffff"
-                    fontSize={b.r >= 26 ? 13 : 12}
+                    fontSize={b.r >= 26 ? 12 : 11}
                     fontWeight="800"
-                    fontFamily="JetBrains Mono, monospace"
-                    className="pointer-events-none select-none drop-shadow-sm"
+                    className="num font-mono pointer-events-none select-none drop-shadow-sm"
                   >
                     {b.deal.amount_display}
                   </text>
@@ -973,14 +972,13 @@ function InteractiveBubblePod({
                 {b.r >= 26 && (
                   <text
                     x={b.x}
-                    y={b.y + 9}
+                    y={b.y + 10}
                     textAnchor="middle"
                     fill="#ffffff"
                     fillOpacity="0.92"
-                    fontSize={12}
+                    fontSize={11}
                     fontWeight="800"
-                    fontFamily="JetBrains Mono, monospace"
-                    className="pointer-events-none select-none drop-shadow-sm"
+                    className="num font-mono pointer-events-none select-none drop-shadow-sm"
                   >
                     Prob {computeDealBubbleRisk(b.deal).riskScorePct}%
                   </text>
@@ -1498,13 +1496,12 @@ function GravityArena({
                 {b.r >= 20 && (
                   <text
                     x={b.x}
-                    y={b.r >= 34 ? b.y - 7 : b.y + 4}
+                    y={b.r >= 34 ? b.y - 9 : b.y + 4}
                     textAnchor="middle"
                     fill="#ffffff"
-                    fontSize={Math.min(15, Math.max(13, b.r / 3.4))}
+                    fontSize={Math.min(14, Math.max(12, b.r / 3.4))}
                     fontWeight="800"
-                    fontFamily="JetBrains Mono, monospace"
-                    className="pointer-events-none select-none drop-shadow-sm"
+                    className="num font-mono pointer-events-none select-none drop-shadow-sm"
                   >
                     {b.deal.amount_display}
                   </text>
@@ -1513,13 +1510,12 @@ function GravityArena({
                 {b.r >= 34 && (
                   <text
                     x={b.x}
-                    y={b.y + 5}
+                    y={b.y + 4}
                     textAnchor="middle"
                     fill="#ffffff"
                     fillOpacity="0.92"
-                    fontSize={Math.min(13, Math.max(12, b.r / 4.4))}
+                    fontSize={Math.min(12, Math.max(11, b.r / 4.4))}
                     fontWeight="700"
-                    fontFamily="Inter, sans-serif"
                     className="pointer-events-none select-none drop-shadow-sm"
                   >
                     {b.deal.title.split(" ")[0]}
@@ -1529,14 +1525,13 @@ function GravityArena({
                 {b.r >= 36 && (
                   <text
                     x={b.x}
-                    y={b.y + 17}
+                    y={b.y + 18}
                     textAnchor="middle"
                     fill="#ffffff"
                     fillOpacity="0.85"
-                    fontSize={12}
+                    fontSize={11}
                     fontWeight="800"
-                    fontFamily="JetBrains Mono, monospace"
-                    className="pointer-events-none select-none drop-shadow-sm"
+                    className="num font-mono pointer-events-none select-none drop-shadow-sm"
                   >
                     Prob {computeDealBubbleRisk(b.deal).riskScorePct}%
                   </text>
@@ -2369,12 +2364,11 @@ export function DealBubbleChart({
                     {titleLabel !== "" && (
                       <text
                         x={tile.x + tile.w / 2}
-                        y={amountFits ? tile.y + tile.h / 2 - 5 : tile.y + tile.h / 2 + 4}
+                        y={amountFits ? tile.y + tile.h / 2 - 6 : tile.y + tile.h / 2 + 4}
                         textAnchor="middle"
                         fill="#ffffff"
                         fontSize={titleFontSize}
                         fontWeight="800"
-                        fontFamily="Inter, sans-serif"
                         className="treemap-tile-label pointer-events-none select-none drop-shadow-sm"
                       >
                         {titleLabel}
@@ -2384,14 +2378,12 @@ export function DealBubbleChart({
                     {amountFits && (
                       <text
                         x={tile.x + tile.w / 2}
-                        y={tile.y + tile.h / 2 + (titleLabel !== "" ? 13 : 4)}
+                        y={tile.y + tile.h / 2 + (titleLabel !== "" ? 12 : 4)}
                         textAnchor="middle"
                         fill="#ffffff"
                         fontSize={amountFontSize}
                         fontWeight="800"
-                        fontFamily="JetBrains Mono, monospace"
-                        opacity={1}
-                        className="treemap-tile-label pointer-events-none select-none drop-shadow-sm"
+                        className="num font-mono treemap-tile-label pointer-events-none select-none drop-shadow-sm"
                       >
                         {tile.deal.amount_display}
                       </text>

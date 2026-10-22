@@ -256,7 +256,7 @@ export function YourCallRecordChart({
                 />
                 {/* Distance label pill */}
                 <rect
-                  x={cx + 6}
+                  x={cx + 24}
                   y={(cy + modelY) / 2 - 8}
                   width="54"
                   height="16"
@@ -266,7 +266,7 @@ export function YourCallRecordChart({
                   strokeWidth="1"
                 />
                 <text
-                  x={cx + 33}
+                  x={cx + 51}
                   y={(cy + modelY) / 2 + 4}
                   textAnchor="middle"
                   className="num font-mono text-[12px] font-bold fill-ink"

@@ -3,35 +3,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   type BuildOutMonth,
+  type BuildOutEvent,
   type HistoryBundle,
   type HistoryEpisode,
   type MarketReading,
   type ModelPrint,
 } from "@/lib/history-series";
-
-/**
- * ─────────────────────────────────────────────────────────────────────────────
- * The history, drawn as SVG with real HTML controls around it.
- *
- * Three panels, because the history is three different things and one axis
- * would lie about all three:
- *
- *   1. HOW THE MODEL READS A MARKET THAT HAS ALREADY RESOLVED - one column
- *      per historical episode, from 1929 to the present, with the model's
- *      probability and whether the episode burst.
- *   2. THE BUILD-OUT'S MONEY - the disclosed capital from the ledger, with
- *      the debt inside it. This is what the model reads; it is NOT the model's
- *      print. A range control chooses the years; a switch chooses whether the
- *      shape is the running total or each year's own spend.
- *   3. THE MARKET'S PRICE AGAINST THE MODEL'S PRINT - what Polymarket has
- *      charged for the same question, and the model's own print.
- *
- * Everything here is ordinary SVG and ordinary HTML: a range input the reader
- * can drag, a switch they can flip, marks they can point at, and a keyboard
- * path through all of it. The numbers are in the tables underneath as well, so
- * nothing is hover-only.
- * ─────────────────────────────────────────────────────────────────────────────
- */
 
 export interface HistoryChartProps {
   bundle: HistoryBundle;
@@ -39,23 +16,18 @@ export interface HistoryChartProps {
   currentProbabilityPct: number;
 }
 
-const PADDING_LEFT = 52;
-const PADDING_RIGHT = 24;
-const TITLE_BAND = 40;
-const PANEL1_H = 176;
-const PANEL2_H = 150;
-const PANEL3_H = 132;
-const GAP = 34;
-
 type Readout = {
   title: string;
   value: string;
   detail: string;
 };
 
+const PADDING_LEFT = 52;
+const PADDING_RIGHT = 24;
+
 export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProps) {
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-  const [width, setWidth] = useState(900);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [width, setWidth] = useState(860);
   const [fromYear, setFromYear] = useState<number | null>(null);
   const [toYear, setToYear] = useState<number | null>(null);
   const [running, setRunning] = useState(true);
@@ -73,36 +45,32 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
   const lo = fromYear ?? minYear;
   const hi = toYear ?? maxYear;
 
-  /* ── Sizing: the SVG is drawn at CSS pixels so the type is always the
-        size it says it is, at any width. ─────────────────────────────────── */
+  /* Sizing: measure parent container width smoothly */
   useEffect(() => {
-    const element = wrapRef.current;
-    if (!element) return;
-    const measure = () => setWidth(Math.max(320, element.clientWidth));
+    const el = containerRef.current;
+    if (!el) return;
+    const measure = () => setWidth(Math.max(320, el.clientWidth));
     measure();
     if (typeof ResizeObserver === "undefined") {
       window.addEventListener("resize", measure);
       return () => window.removeEventListener("resize", measure);
     }
     const observer = new ResizeObserver(measure);
-    observer.observe(element);
+    observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
-  const height =
-    TITLE_BAND + PANEL1_H + GAP + TITLE_BAND + PANEL2_H + GAP + TITLE_BAND + PANEL3_H + 28;
-
-  const innerW = Math.max(60, width - PADDING_LEFT - PADDING_RIGHT);
+  const innerW = Math.max(80, width - PADDING_LEFT - PADDING_RIGHT);
 
   /**
-   * The time scale. A year is not a position: four readings inside 2024 used
-   * to land on the same pixel, which is what turned the area chart into a
-   * staircase and stacked the market's points on top of each other.
+   * Continuous time scale helper. A year is not a point position:
+   * exact timestamps are mapped to fractional positions across the width.
    */
   const timeOf = (iso: string) => {
     const parsed = Date.parse(iso.length === 7 ? `${iso}-01` : iso);
     return Number.isFinite(parsed) ? parsed : Number.NaN;
   };
+
   const scaleTime = (fromIso: string, toIso: string) => {
     const from = timeOf(fromIso);
     const to = timeOf(toIso);
@@ -113,24 +81,24 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
       return PADDING_LEFT + ((t - from) / span) * innerW;
     };
   };
-  const p1Top = TITLE_BAND;
-  const p1Bottom = p1Top + PANEL1_H;
-  const p2Title = p1Bottom + GAP;
-  const p2Top = p2Title + TITLE_BAND;
-  const p2Bottom = p2Top + PANEL2_H;
-  const p3Title = p2Bottom + GAP;
-  const p3Top = p3Title + TITLE_BAND;
-  const p3Bottom = p3Top + PANEL3_H;
 
-  /* ── Panel 1: the episodes ─────────────────────────────────────────────── */
+  /* ── Panel 1 dimensions & scales (Episodes) ───────────────────────── */
+  const p1Height = 220;
+  const p1Top = 28;
+  const p1PlotH = 120;
+  const p1Bottom = p1Top + p1PlotH; // 148
   const episodes = bundle.episodes;
-  const slot = episodes.length ? innerW / episodes.length : innerW;
-  const barW = Math.min(44, slot * 0.5);
+  const p1Slot = episodes.length ? innerW / episodes.length : innerW;
+  const p1BarW = Math.min(42, Math.max(22, p1Slot * 0.48));
 
-  /* ── Panel 2: the money ────────────────────────────────────────────────── */
+  /* ── Panel 2 dimensions & scales (Capital Build-Out) ──────────────── */
+  const p2Height = 180;
+  const p2Top = 20;
+  const p2PlotH = 120;
+  const p2Bottom = p2Top + p2PlotH; // 140
   const months = bundle.months.filter((m) => {
-    const year = Number.parseInt(m.iso.slice(0, 4), 10);
-    return year >= lo && year <= hi;
+    const y = Number.parseInt(m.iso.slice(0, 4), 10);
+    return y >= lo && y <= hi;
   });
   const maxUsd = useMemo(() => {
     const values = months.map((m) => (running ? m.cumulativeUsd : m.newUsd));
@@ -139,20 +107,7 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
 
   const x2 = scaleTime(`${lo}-01-01`, `${hi}-12-31`);
   const usdToY = (usd: number) =>
-    p2Bottom - (usd / maxUsd) * (PANEL2_H - 18) - 4;
-
-  /* ── Panel 3: the market against the print ─────────────────────────────── */
-  const p3From = bundle.market.length
-    ? Number.parseInt(bundle.market[0].iso.slice(0, 4), 10)
-    : 2024;
-  const p3To = Math.max(
-    p3From + 1,
-    bundle.prints.length
-      ? Number.parseInt(bundle.prints[bundle.prints.length - 1].iso.slice(0, 4), 10)
-      : p3From + 2
-  );
-  const x3 = scaleTime(`${p3From}-01-01`, `${p3To}-12-31`);
-  const p3ToY = (pct: number) => p3Bottom - (pct / 100) * (PANEL3_H - 16);
+    p2Bottom - (usd / maxUsd) * (p2PlotH - 8);
 
   const moneyPath = useMemo(() => {
     if (!months.length) return "";
@@ -189,501 +144,755 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
     return `${moneyPath} L${lastX.toFixed(1)},${p2Bottom} L${firstX.toFixed(1)},${p2Bottom} Z`;
   }, [moneyPath, months, running, lo, hi, maxUsd]);
 
+  /* ── Panel 3 dimensions & scales (Market vs Model) ────────────────── */
+  const p3Height = 170;
+  const p3Top = 20;
+  const p3PlotH = 110;
+  const p3Bottom = p3Top + p3PlotH; // 130
+  const p3From = bundle.market.length
+    ? Number.parseInt(bundle.market[0].iso.slice(0, 4), 10)
+    : 2024;
+  const p3To = Math.max(
+    p3From + 1,
+    bundle.prints.length
+      ? Number.parseInt(bundle.prints[bundle.prints.length - 1].iso.slice(0, 4), 10)
+      : p3From + 2
+  );
+  const x3 = scaleTime(`${p3From}-01-01`, `${p3To}-12-31`);
+  const p3ToY = (pct: number) => p3Bottom - (pct / 100) * p3PlotH;
+
   const readout = hover ?? picked;
 
+  // Keyboard navigation through all marks
+  const allMarks = useMemo<Readout[]>(() => [
+    ...episodes.map((e: HistoryEpisode) => ({
+      title: `${e.era} (${e.date})`,
+      value: `${e.probabilityPct.toFixed(1)}%`,
+      detail: `${e.outcome} Composite ${e.compositeScore.toFixed(1)}.`,
+    })),
+    ...bundle.market.map((m: MarketReading) => ({
+      title: `Market price — ${m.label}`,
+      value: `${m.twelveMonthPct.toFixed(1)}%`,
+      detail: `12-month contract; 6-month contract is at ${m.sixMonthPct.toFixed(1)}%.`,
+    })),
+    ...bundle.prints.map((p: ModelPrint) => ({
+      title: `Model print — ${p.label}`,
+      value: `${p.probabilityPct.toFixed(1)}%`,
+      detail: `Composite ${p.compositeScore.toFixed(1)}.`,
+    })),
+  ], [episodes, bundle.market, bundle.prints]);
+
   const onKey = useCallback(
-    (event: React.KeyboardEvent<SVGSVGElement>) => {
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
       if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
       event.preventDefault();
-      const marks: Readout[] = [
-        ...episodes.map((e: HistoryEpisode) => ({
-          title: `${e.era} (${e.date})`,
-          value: `${e.probabilityPct.toFixed(1)}%`,
-          detail: `${e.outcome} Composite ${e.compositeScore.toFixed(1)}.`,
-        })),
-        ...bundle.market.map((m: MarketReading) => ({
-          title: `Market price - ${m.label}`,
-          value: `${m.twelveMonthPct.toFixed(1)}%`,
-          detail: `12-month contract; the 6-month contract is at ${m.sixMonthPct.toFixed(1)}%.`,
-        })),
-        ...bundle.prints.map((p: ModelPrint) => ({
-          title: `Model print - ${p.label}`,
-          value: `${p.probabilityPct.toFixed(1)}%`,
-          detail: `Composite ${p.compositeScore.toFixed(1)}.`,
-        })),
-      ];
-      const current = picked ? marks.findIndex((m) => m.title === picked.title) : -1;
+      const current = picked ? allMarks.findIndex((m) => m.title === picked.title) : -1;
       const next =
         event.key === "ArrowRight"
-          ? Math.min(marks.length - 1, current + 1)
+          ? Math.min(allMarks.length - 1, current + 1)
           : Math.max(0, current <= 0 ? 0 : current - 1);
-      setPicked(marks[next]);
+      setPicked(allMarks[next]);
     },
-    [episodes, bundle.market, bundle.prints, picked]
+    [allMarks, picked]
   );
 
-  const description = `Three panels. The model's probability for each of the ${episodes.length} historical episodes it has been read against, from ${bundle.fromYear} to ${bundle.toYear}, with whether the episode burst. The disclosed capital from the ledger between ${lo} and ${hi}, with the debt inside it. And the market's price for the same question against the model's own print since 18 October 2026.`;
+  const description = `Three panels. Panel 1: model probabilities across ${episodes.length} historical episodes from ${bundle.fromYear} to ${bundle.toYear}. Panel 2: disclosed capital from the ledger between ${lo} and ${hi}, with cumulative debt. Panel 3: Polymarket 12-month pricing against the model's observed daily print.`;
 
   return (
-    <figure className="m-0">
-      {/* ── The controls: plain HTML, so they work with a finger, a mouse
-             and a keyboard, and so the chart can be read without them. ──── */}
-      <div className="mb-3 flex flex-wrap items-end gap-x-6 gap-y-3 border-b border-rule pb-3">
-        <div className="min-w-[15rem] flex-1">
-          <label
-            htmlFor="history-years"
-            className="block text-[13px] font-medium text-ink-muted"
-          >
-            Years shown: {lo} to {hi}
-          </label>
-          <div className="mt-1.5 flex items-center gap-2">
-            <input
-              id="history-years"
-              type="range"
-              min={minYear}
-              max={maxYear}
-              value={lo}
-              onChange={(event) => {
-                const next = Number.parseInt(event.target.value, 10);
-                setFromYear(next);
-                if (next >= hi) setToYear(Math.min(maxYear, next + 1));
-              }}
-              className="h-11 w-full cursor-pointer accent-[var(--c-accent)]"
-              aria-label="The first year shown on the money chart"
-            />
-            <input
-              type="range"
-              min={minYear}
-              max={maxYear}
-              value={hi}
-              onChange={(event) => {
-                const next = Number.parseInt(event.target.value, 10);
-                setToYear(next);
-                if (next <= lo) setFromYear(Math.max(minYear, next - 1));
-              }}
-              className="h-11 w-full cursor-pointer accent-[var(--c-accent)]"
-              aria-label="The last year shown on the money chart"
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <span className="text-[13px] font-medium text-ink-muted">The money chart shows</span>
-          <div className="flex gap-1" role="group" aria-label="How the money chart is drawn">
-            {(
-              [
-                { id: "running", label: "Running total" },
-                { id: "year", label: "Each year" },
-              ] as const
-            ).map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                onClick={() => setRunning(option.id === "running")}
-                aria-pressed={running === (option.id === "running")}
-                className={`min-h-11 rounded-md border px-3 text-[13px] font-medium transition-colors ${
-                  running === (option.id === "running")
-                    ? "border-rule-strong bg-surface-2 text-ink"
-                    : "border-rule text-ink-muted hover:text-ink"
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-          {lo !== minYear || hi !== maxYear ? (
-            <button
-              type="button"
-              onClick={() => {
-                setFromYear(null);
-                setToYear(null);
-              }}
-              className="min-h-11 text-[13px] font-medium text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
-            >
-              All years
-            </button>
-          ) : null}
-        </div>
-      </div>
-
-      <div ref={wrapRef} className="w-full">
-        <svg
-          width={width}
-          height={height}
-          viewBox={`0 0 ${width} ${height}`}
-          role="img"
-          tabIndex={0}
-          aria-label={description}
-          onKeyDown={onKey}
-          onMouseLeave={() => setHover(null)}
-          className="block w-full rounded-md border border-rule bg-surface"
-        >
-          {/* ══ PANEL 1 · the model on resolved episodes ══════════════════ */}
-          <text x={PADDING_LEFT} y={16} className="fill-ink text-[13px] font-semibold">
-            The model on markets that have already resolved
-          </text>
-          <text x={PADDING_LEFT} y={32} className="fill-ink-faint text-[12px]">
-            its probability for each episode, and whether it burst
-          </text>
-          {[0, 25, 50, 75, 100].map((pct) => {
-            const y = p1Bottom - (pct / 100) * PANEL1_H;
-            return (
-              <g key={pct}>
-                <line
-                  x1={PADDING_LEFT}
-                  y1={y}
-                  x2={width - PADDING_RIGHT}
-                  y2={y}
-                  stroke="rgb(var(--c-rule))"
-                  strokeWidth={1}
-                />
-                <text
-                  x={PADDING_LEFT - 8}
-                  y={y + 4}
-                  textAnchor="end"
-                  className="num fill-ink-faint text-[12px]"
-                >
-                  {pct}%
-                </text>
-              </g>
-            );
-          })}
-          {episodes.map((episode, index) => {
-            const x = PADDING_LEFT + slot * index + (slot - barW) / 2;
-            const barH = (episode.probabilityPct / 100) * PANEL1_H;
-            const y = p1Bottom - barH;
-            const isNow = episode.year >= 2026;
-            return (
-              <g
-                key={episode.id}
-                className="cursor-pointer"
-                onMouseEnter={() =>
-                  setHover({
-                    title: `${episode.era} (${episode.date})`,
-                    value: `${episode.probabilityPct.toFixed(1)}%`,
-                    detail: `${episode.outcome} Composite ${episode.compositeScore.toFixed(1)}.`,
-                  })
-                }
-                onClick={() =>
-                  setPicked({
-                    title: `${episode.era} (${episode.date})`,
-                    value: `${episode.probabilityPct.toFixed(1)}%`,
-                    detail: `${episode.outcome} Composite ${episode.compositeScore.toFixed(1)}.`,
-                  })
-                }
-              >
-                <rect
-                  x={x}
-                  y={y}
-                  width={barW}
-                  height={barH}
-                  fill={isNow ? "var(--c-accent)" : "rgb(var(--c-ink))"}
-                />
-                {episode.burstObserved ? (
-                  <rect
-                    x={x}
-                    y={p1Bottom + 3}
-                    width={barW}
-                    height={3}
-                    fill="rgb(var(--c-risk-500))"
-                  />
-                ) : null}
-                <text
-                  x={x + barW / 2}
-                  y={y - 8}
-                  textAnchor="middle"
-                  className="num fill-ink text-[12px] font-semibold"
-                >
-                  {episode.probabilityPct.toFixed(1)}
-                </text>
-                <text
-                  x={x + barW / 2}
-                  y={p1Bottom + 15}
-                  textAnchor="middle"
-                  className="num fill-ink-faint text-[12px]"
-                >
-                  {episode.year}
-                </text>
-              </g>
-            );
-          })}
-
-          {/* ══ PANEL 2 · the money ═══════════════════════════════════════ */}
-          <text x={PADDING_LEFT} y={p2Title + 16} className="fill-ink text-[13px] font-semibold">
-            The money going in
-          </text>
-          <text x={PADDING_LEFT} y={p2Title + 32} className="fill-ink-faint text-[12px]">
-            disclosed capital from the ledger, and the debt inside it
-          </text>
-          <line
-            x1={PADDING_LEFT}
-            y1={p2Bottom}
-            x2={width - PADDING_RIGHT}
-            y2={p2Bottom}
-            stroke="rgb(var(--c-rule))"
-          />
-          {Array.from(new Set(months.map((m) => m.iso.slice(0, 4)))).map((year) => {
-            const x = x2(`${year}-01-01`);
-            return (
-              <g key={year}>
-                <line
-                  x1={x}
-                  y1={p2Top + 12}
-                  x2={x}
-                  y2={p2Bottom}
-                  stroke="rgb(var(--c-rule))"
-                  strokeWidth={1}
-                />
-                <text
-                  x={x}
-                  y={p2Bottom + 15}
-                  textAnchor="middle"
-                  className="num fill-ink-faint text-[12px]"
-                >
-                  {year}
-                </text>
-              </g>
-            );
-          })}
-          {areaPath ? (
-            <path d={areaPath} fill="var(--c-accent)" fillOpacity={0.16} />
-          ) : null}
-          {debtPath ? (
-            <path
-              d={debtPath}
-              fill="none"
-              stroke="rgb(var(--c-caution-500))"
-              strokeWidth={2}
-            />
-          ) : null}
-          {moneyPath ? (
-            <path
-              d={moneyPath}
-              fill="none"
-              stroke="rgb(var(--c-ink))"
-              strokeWidth={2}
-            />
-          ) : null}
-          {running
-            ? bundle.events.map((event) => {
-                const year = Number.parseInt(event.iso.slice(0, 4), 10);
-                if (year < lo || year > hi) return null;
-                if (event.amountUsd < maxUsd * 0.05) return null;
-                const month = months.find((m) => m.key === event.iso.slice(0, 7));
-                if (!month) return null;
-                const x = x2(event.iso);
-                const y = usdToY(month.cumulativeUsd);
-                return (
-                  <circle
-                    key={event.iso + event.title}
-                    cx={x}
-                    cy={y}
-                    r={4}
-                    fill="rgb(var(--c-ink))"
-                    className="cursor-pointer"
-                    onMouseEnter={() =>
-                      setHover({
-                        title: event.title,
-                        value: `$${(event.amountUsd / 1e9).toFixed(1)}B`,
-                        detail: `${event.sector} - announced ${event.label}.`,
-                      })
-                    }
-                    onClick={() =>
-                      setPicked({
-                        title: event.title,
-                        value: `$${(event.amountUsd / 1e9).toFixed(1)}B`,
-                        detail: `${event.sector} - announced ${event.label}.`,
-                      })
-                    }
-                  />
-                );
-              })
-            : null}
-
-          {/* ══ PANEL 3 · the market against the print ═════════════════════ */}
-          <text x={PADDING_LEFT} y={p3Title + 16} className="fill-ink text-[13px] font-semibold">
-            The market&apos;s price, and the model&apos;s print
-          </text>
-          <text x={PADDING_LEFT} y={p3Title + 32} className="fill-ink-faint text-[12px]">
-            Polymarket since 2024; the model&apos;s own print since 18 October 2026
-          </text>
-          <g>
-            <text
-              x={width - PADDING_RIGHT}
-              y={p3Title + 16}
-              textAnchor="end"
-              className="num fill-ink-faint text-[12px]"
-            >
-              — market
-            </text>
-            <text
-              x={width - PADDING_RIGHT}
-              y={p3Title + 32}
-              textAnchor="end"
-              className="num fill-ink-faint text-[12px]"
-            >
-              — model print
-            </text>
-          </g>
-          {[0, 25, 50, 75, 100].map((pct) => {
-            const y = p3Bottom - (pct / 100) * (PANEL3_H - 16);
-            return (
-              <g key={pct}>
-                <line
-                  x1={PADDING_LEFT}
-                  y1={y}
-                  x2={width - PADDING_RIGHT}
-                  y2={y}
-                  stroke="rgb(var(--c-rule))"
-                  strokeWidth={1}
-                />
-                <text
-                  x={PADDING_LEFT - 8}
-                  y={y + 4}
-                  textAnchor="end"
-                  className="num fill-ink-faint text-[12px]"
-                >
-                  {pct}%
-                </text>
-              </g>
-            );
-          })}
-          {bundle.market.length ? (
-            <>
-              <path
-                d={bundle.market
-                  .map((m, i) => `${i === 0 ? "M" : "L"}${x3(m.iso).toFixed(1)},${p3ToY(m.twelveMonthPct).toFixed(1)}`)
-                  .join(" ")}
-                fill="none"
-                stroke="var(--c-cat-navy)"
-                strokeWidth={2}
-                strokeDasharray="5 4"
-              />
-              {bundle.market.map((m) => (
-                <circle
-                  key={m.iso}
-                  cx={x3(m.iso)}
-                  cy={p3ToY(m.twelveMonthPct)}
-                  r={4}
-                  fill="var(--c-cat-navy)"
-                  className="cursor-pointer"
-                  onMouseEnter={() =>
-                    setHover({
-                      title: `Market price - ${m.label}`,
-                      value: `${m.twelveMonthPct.toFixed(1)}%`,
-                      detail: `The 12-month contract; the 6-month contract is at ${m.sixMonthPct.toFixed(1)}%.`,
-                    })
-                  }
-                  onClick={() =>
-                    setPicked({
-                      title: `Market price - ${m.label}`,
-                      value: `${m.twelveMonthPct.toFixed(1)}%`,
-                      detail: `The 12-month contract; the 6-month contract is at ${m.sixMonthPct.toFixed(1)}%.`,
-                    })
-                  }
-                />
-              ))}
-            </>
-          ) : null}
-          {bundle.prints.length ? (
-            <>
-              <path
-                d={bundle.prints
-                  .map((p, i) => `${i === 0 ? "M" : "L"}${x3(p.iso).toFixed(1)},${p3ToY(p.probabilityPct).toFixed(1)}`)
-                  .join(" ")}
-                fill="none"
-                stroke="var(--c-accent)"
-                strokeWidth={2.5}
-              />
-              {bundle.prints.map((p) => (
-                <circle
-                  key={p.iso}
-                  cx={x3(p.iso)}
-                  cy={p3ToY(p.probabilityPct)}
-                  r={5}
-                  fill="var(--c-accent)"
-                  className="cursor-pointer"
-                  onMouseEnter={() =>
-                    setHover({
-                      title: `Model print - ${p.label}`,
-                      value: `${p.probabilityPct.toFixed(1)}%`,
-                      detail: `Composite ${p.compositeScore.toFixed(1)}.`,
-                    })
-                  }
-                  onClick={() =>
-                    setPicked({
-                      title: `Model print - ${p.label}`,
-                      value: `${p.probabilityPct.toFixed(1)}%`,
-                      detail: `Composite ${p.compositeScore.toFixed(1)}.`,
-                    })
-                  }
-                />
-              ))}
-              <line
-                x1={x3(bundle.prints[bundle.prints.length - 1].iso)}
-                y1={p3ToY(currentProbabilityPct)}
-                x2={width - PADDING_RIGHT}
-                y2={p3ToY(currentProbabilityPct)}
-                stroke="var(--c-accent)"
-                strokeWidth={1}
-                strokeDasharray="2 3"
-              />
-            </>
-          ) : null}
-        </svg>
-      </div>
-
-      {/* The readout: always on the page, so the numbers are reachable
-          without pointing at anything. */}
-      <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2 border-t border-rule pt-2">
+    <figure
+      ref={containerRef}
+      className="m-0 space-y-6"
+      role="region"
+      aria-label="Historical model behavior and capital build-out"
+      tabIndex={0}
+      onKeyDown={onKey}
+    >
+      {/* ── Readout banner ────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-baseline justify-between gap-2 rounded-lg border border-rule bg-surface p-3">
         <p className="text-[14px] text-ink-muted" aria-live="polite">
           {readout ? (
             <>
               <span className="font-semibold text-ink">{readout.title}</span> —{" "}
               <span className="num font-semibold text-ink">{readout.value}</span>
-              {readout.detail ? `. ${readout.detail}` : ""}
+              {readout.detail ? ` · ${readout.detail}` : ""}
             </>
           ) : (
             <span className="text-ink-faint">
-              Point at a column, a dot or a deal to read it. Drag the year handles to
-              change the window; with a keyboard, focus the chart and use the arrow keys.
+              Point at or tap any column, line point or deal circle to inspect. Use Left/Right arrow keys to step through history.
             </span>
           )}
         </p>
+        {readout ? (
+          <button
+            type="button"
+            onClick={() => {
+              setHover(null);
+              setPicked(null);
+            }}
+            className="text-[12px] text-ink-muted hover:text-ink underline"
+          >
+            Clear selection
+          </button>
+        ) : null}
       </div>
 
+      {/* ══ PANEL 1: Resolved Historical Episodes ═══════════════════════ */}
+      <div className="rounded-lg border border-rule bg-surface p-4 sm:p-5 shadow-card">
+        {/* HTML Header: Outside SVG so text never collides */}
+        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-rule pb-3">
+          <div>
+            <span className="label">The model's track record</span>
+            <h3 className="text-[15px] font-bold tracking-tight text-ink sm:text-[16px]">
+              The model on markets that have already resolved
+            </h3>
+            <p className="mt-0.5 text-[13px] text-ink-muted">
+              Probability print for each epoch from 1929 to today, and whether a crash occurred within 12 months
+            </p>
+          </div>
+          <div className="flex items-center gap-3 text-[12px] text-ink-muted">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-[rgb(var(--c-risk-500))]" aria-hidden="true" />
+              Burst observed
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-[var(--c-accent)]" aria-hidden="true" />
+              Live 2026 cycle
+            </span>
+          </div>
+        </div>
+
+        {/* SVG Canvas */}
+        <div className="mt-3">
+          <svg
+            width={width}
+            height={p1Height}
+            viewBox={`0 0 ${width} ${p1Height}`}
+            role="img"
+            aria-label="Historical episodes probability comparison"
+            className="block w-full overflow-visible"
+            onMouseLeave={() => setHover(null)}
+          >
+            {/* Gridlines and Y-axis percentage labels */}
+            {[0, 25, 50, 75, 100].map((pct) => {
+              const y = p1Bottom - (pct / 100) * p1PlotH;
+              return (
+                <g key={pct}>
+                  <line
+                    x1={PADDING_LEFT}
+                    y1={y}
+                    x2={width - PADDING_RIGHT}
+                    y2={y}
+                    stroke="rgb(var(--c-rule))"
+                    strokeWidth={1}
+                    strokeDasharray={pct === 0 ? undefined : "3 3"}
+                  />
+                  <text
+                    x={PADDING_LEFT - 10}
+                    y={y + 4}
+                    textAnchor="end"
+                    className="num fill-ink-faint text-[12px]"
+                  >
+                    {pct}%
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Episode Bars with guaranteed clearance */}
+            {episodes.map((episode, index) => {
+              const slotCenter = PADDING_LEFT + p1Slot * index + p1Slot / 2;
+              const x = slotCenter - p1BarW / 2;
+              const barH = (episode.probabilityPct / 100) * p1PlotH;
+              const y = p1Bottom - barH;
+              const isNow = episode.year >= 2026;
+              const isHovered =
+                readout?.title.startsWith(episode.era) ?? false;
+
+              // Top value label sits cleanly above bar with reserved headroom
+              const labelY = Math.max(14, y - 6);
+
+              return (
+                <g
+                  key={episode.id}
+                  className="cursor-pointer"
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`${episode.era}: ${episode.probabilityPct.toFixed(1)}% probability, ${episode.burstObserved ? "burst observed" : "open window"}`}
+                  onMouseEnter={() =>
+                    setHover({
+                      title: `${episode.era} (${episode.date})`,
+                      value: `${episode.probabilityPct.toFixed(1)}%`,
+                      detail: `${episode.outcome} Composite ${episode.compositeScore.toFixed(1)}.`,
+                    })
+                  }
+                  onClick={() =>
+                    setPicked({
+                      title: `${episode.era} (${episode.date})`,
+                      value: `${episode.probabilityPct.toFixed(1)}%`,
+                      detail: `${episode.outcome} Composite ${episode.compositeScore.toFixed(1)}.`,
+                    })
+                  }
+                  onFocus={() =>
+                    setHover({
+                      title: `${episode.era} (${episode.date})`,
+                      value: `${episode.probabilityPct.toFixed(1)}%`,
+                      detail: `${episode.outcome} Composite ${episode.compositeScore.toFixed(1)}.`,
+                    })
+                  }
+                >
+                  {/* Bar */}
+                  <rect
+                    x={x}
+                    y={y}
+                    width={p1BarW}
+                    height={Math.max(2, barH)}
+                    rx={3}
+                    fill={isNow ? "var(--c-accent)" : isHovered ? "rgb(var(--c-ink))" : "rgb(var(--c-ink-subtle))"}
+                  />
+
+                  {/* Value label on top with full headroom */}
+                  <text
+                    x={slotCenter}
+                    y={labelY}
+                    textAnchor="middle"
+                    className={`num text-[12px] font-bold ${isNow ? "fill-accent" : "fill-ink"}`}
+                  >
+                    {episode.probabilityPct.toFixed(1)}%
+                  </text>
+
+                  {/* Year text below baseline (y = 168) */}
+                  <text
+                    x={slotCenter}
+                    y={p1Bottom + 18}
+                    textAnchor="middle"
+                    className="num fill-ink text-[12px] font-medium"
+                  >
+                    {episode.year}
+                  </text>
+
+                  {/* Burst/Status indicator clearly separated (y = 196) */}
+                  {episode.burstObserved ? (
+                    <g>
+                      <circle
+                        cx={slotCenter - 18}
+                        cy={p1Bottom + 35}
+                        r={3}
+                        fill="rgb(var(--c-risk-500))"
+                      />
+                      <text
+                        x={slotCenter - 11}
+                        y={p1Bottom + 39}
+                        textAnchor="start"
+                        className="fill-risk-500 text-[11px] font-semibold"
+                      >
+                        Burst
+                      </text>
+                    </g>
+                  ) : (
+                    <g>
+                      <circle
+                        cx={slotCenter - 16}
+                        cy={p1Bottom + 35}
+                        r={3}
+                        fill="var(--c-accent)"
+                      />
+                      <text
+                        x={slotCenter - 9}
+                        y={p1Bottom + 39}
+                        textAnchor="start"
+                        className="fill-accent text-[11px] font-semibold"
+                      >
+                        Live
+                      </text>
+                    </g>
+                  )}
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+      </div>
+
+      {/* ══ PANEL 2: The Money Going In ═════════════════════════════════ */}
+      <div className="rounded-lg border border-rule bg-surface p-4 sm:p-5 shadow-card">
+        {/* HTML Header & Controls */}
+        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-rule pb-3">
+          <div>
+            <span className="label">Where the money is going</span>
+            <h3 className="text-[15px] font-bold tracking-tight text-ink sm:text-[16px]">
+              The money going in
+            </h3>
+            <p className="mt-0.5 text-[13px] text-ink-muted">
+              Disclosed capital from the 169-deal ledger, with cumulative debt facility borrowings
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="inline-flex items-center gap-1.5 text-[12px] text-ink-muted">
+              <span className="h-2 w-4 rounded-xs bg-[rgb(var(--c-ink))]" aria-hidden="true" />
+              Total capital
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[12px] text-ink-muted">
+              <span className="h-0.5 w-4 bg-[rgb(var(--c-caution-500))]" aria-hidden="true" />
+              Debt borrowings
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[12px] text-ink-muted">
+              <span className="h-2.5 w-2.5 rounded-full border border-ink bg-surface" aria-hidden="true" />
+              Mega-deal (&ge;5%)
+            </span>
+          </div>
+        </div>
+
+        {/* HTML Controls */}
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-4 rounded-md bg-surface-2/60 p-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-[13px] font-medium text-ink-muted">Timespan:</span>
+            <div className="flex items-center gap-2">
+              <label htmlFor="history-from-year" className="sr-only">Start year</label>
+              <input
+                id="history-from-year"
+                type="range"
+                min={minYear}
+                max={maxYear}
+                value={lo}
+                onChange={(e) => {
+                  const val = Number.parseInt(e.target.value, 10);
+                  setFromYear(val);
+                  if (val >= hi) setToYear(Math.min(maxYear, val + 1));
+                }}
+                className="h-11 w-24 cursor-pointer accent-[var(--c-accent)]"
+                aria-label="Start year for capital window"
+              />
+              <span className="num text-[13px] font-semibold text-ink">{lo}</span>
+              <span className="text-ink-muted">—</span>
+              <label htmlFor="history-to-year" className="sr-only">End year</label>
+              <input
+                id="history-to-year"
+                type="range"
+                min={minYear}
+                max={maxYear}
+                value={hi}
+                onChange={(e) => {
+                  const val = Number.parseInt(e.target.value, 10);
+                  setToYear(val);
+                  if (val <= lo) setFromYear(Math.max(minYear, val - 1));
+                }}
+                className="h-11 w-24 cursor-pointer accent-[var(--c-accent)]"
+                aria-label="End year for capital window"
+              />
+              <span className="num text-[13px] font-semibold text-ink">{hi}</span>
+            </div>
+            {lo !== minYear || hi !== maxYear ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setFromYear(null);
+                  setToYear(null);
+                }}
+                className="min-h-11 px-2 text-[13px] font-medium text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
+              >
+                Reset years
+              </button>
+            ) : null}
+          </div>
+
+          <div className="flex items-center gap-1.5" role="group" aria-label="Money display shape">
+            <span className="mr-1 text-[13px] font-medium text-ink-muted">View:</span>
+            {(
+              [
+                { id: "running", label: "Running total" },
+                { id: "year", label: "Each year" },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setRunning(opt.id === "running")}
+                aria-pressed={running === (opt.id === "running")}
+                className={`min-h-11 rounded-md border px-3 text-[13px] font-medium transition-colors ${
+                  running === (opt.id === "running")
+                    ? "border-rule-strong bg-surface text-ink shadow-xs"
+                    : "border-transparent text-ink-muted hover:text-ink"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* SVG Canvas */}
+        <div className="mt-4">
+          <svg
+            width={width}
+            height={p2Height}
+            viewBox={`0 0 ${width} ${p2Height}`}
+            role="img"
+            aria-label="Capital allocation build-out and debt volume over time"
+            className="block w-full overflow-visible"
+            onMouseLeave={() => setHover(null)}
+          >
+            {/* Y Axis Gridlines */}
+            {[0, 0.5, 1.0].map((fraction) => {
+              const usdVal = maxUsd * fraction;
+              const y = p2Bottom - fraction * (p2PlotH - 8);
+              const label =
+                usdVal >= 1e12
+                  ? `$${(usdVal / 1e12).toFixed(1)}T`
+                  : `$${(usdVal / 1e9).toFixed(0)}B`;
+              return (
+                <g key={fraction}>
+                  <line
+                    x1={PADDING_LEFT}
+                    y1={y}
+                    x2={width - PADDING_RIGHT}
+                    y2={y}
+                    stroke="rgb(var(--c-rule))"
+                    strokeWidth={1}
+                    strokeDasharray={fraction === 0 ? undefined : "3 3"}
+                  />
+                  <text
+                    x={PADDING_LEFT - 10}
+                    y={y + 4}
+                    textAnchor="end"
+                    className="num fill-ink-faint text-[12px]"
+                  >
+                    {label}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Time Axis Gridlines & Year Labels */}
+            {Array.from(new Set(months.map((m) => m.iso.slice(0, 4)))).map((yrStr) => {
+              const yrNum = Number.parseInt(yrStr, 10);
+              const x = x2(`${yrNum}-01-01`);
+              if (!Number.isFinite(x) || x < PADDING_LEFT || x > width - PADDING_RIGHT) {
+                return null;
+              }
+              return (
+                <g key={yrStr}>
+                  <line
+                    x1={x}
+                    y1={p2Top}
+                    x2={x}
+                    y2={p2Bottom}
+                    stroke="rgb(var(--c-rule))"
+                    strokeWidth={1}
+                    strokeDasharray="2 3"
+                  />
+                  <text
+                    x={x}
+                    y={p2Bottom + 18}
+                    textAnchor="middle"
+                    className="num fill-ink text-[12px] font-medium"
+                  >
+                    {yrStr}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Filled area */}
+            {areaPath ? (
+              <path d={areaPath} fill="var(--c-accent)" fillOpacity={0.14} />
+            ) : null}
+
+            {/* Debt curve */}
+            {debtPath ? (
+              <path
+                d={debtPath}
+                fill="none"
+                stroke="rgb(var(--c-caution-500))"
+                strokeWidth={2}
+              />
+            ) : null}
+
+            {/* Total money line */}
+            {moneyPath ? (
+              <path
+                d={moneyPath}
+                fill="none"
+                stroke="rgb(var(--c-ink))"
+                strokeWidth={2.5}
+              />
+            ) : null}
+
+            {/* Significant deal markers */}
+            {running
+              ? bundle.events.map((event: BuildOutEvent) => {
+                  const evYear = Number.parseInt(event.iso.slice(0, 4), 10);
+                  if (evYear < lo || evYear > hi) return null;
+                  if (event.amountUsd < maxUsd * 0.05) return null;
+                  const month = months.find((m) => m.key === event.iso.slice(0, 7));
+                  if (!month) return null;
+                  const x = x2(event.iso);
+                  const y = usdToY(month.cumulativeUsd);
+                  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+
+                  return (
+                    <circle
+                      key={event.iso + event.title}
+                      cx={x}
+                      cy={y}
+                      r={4.5}
+                      fill="rgb(var(--c-surface))"
+                      stroke="rgb(var(--c-ink))"
+                      strokeWidth={2}
+                      className="cursor-pointer hover:scale-125 transition-transform"
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`${event.title}: $${(event.amountUsd / 1e9).toFixed(1)}B`}
+                      onMouseEnter={() =>
+                        setHover({
+                          title: event.title,
+                          value: `$${(event.amountUsd / 1e9).toFixed(1)}B`,
+                          detail: `${event.sector} · announced ${event.label}.`,
+                        })
+                      }
+                      onClick={() =>
+                        setPicked({
+                          title: event.title,
+                          value: `$${(event.amountUsd / 1e9).toFixed(1)}B`,
+                          detail: `${event.sector} · announced ${event.label}.`,
+                        })
+                      }
+                    />
+                  );
+                })
+              : null}
+          </svg>
+        </div>
+      </div>
+
+      {/* ══ PANEL 3: Market Price Against Model Print ═══════════════════ */}
+      <div className="rounded-lg border border-rule bg-surface p-4 sm:p-5 shadow-card">
+        {/* HTML Header & Legend */}
+        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-rule pb-3">
+          <div>
+            <span className="label">The market against the model</span>
+            <h3 className="text-[15px] font-bold tracking-tight text-ink sm:text-[16px]">
+              The market&apos;s price against the model&apos;s print
+            </h3>
+            <p className="mt-0.5 text-[13px] text-ink-muted">
+              Polymarket 12-month contract odds since 2024, alongside observed model prints since 18 October 2026
+            </p>
+          </div>
+          <div className="flex items-center gap-4 text-[12px]">
+            <span className="inline-flex items-center gap-1.5 font-medium text-ink">
+              <span className="h-0.5 w-4 border-b-2 border-dashed border-[var(--c-cat-navy)]" aria-hidden="true" />
+              Polymarket (12m contract)
+            </span>
+            <span className="inline-flex items-center gap-1.5 font-medium text-ink">
+              <span className="h-0.5 w-4 bg-[var(--c-accent)]" aria-hidden="true" />
+              Model print
+            </span>
+          </div>
+        </div>
+
+        {/* SVG Canvas */}
+        <div className="mt-3">
+          <svg
+            width={width}
+            height={p3Height}
+            viewBox={`0 0 ${width} ${p3Height}`}
+            role="img"
+            aria-label="Comparison between Polymarket prediction contract odds and internal quantitative model prints"
+            className="block w-full overflow-visible"
+            onMouseLeave={() => setHover(null)}
+          >
+            {/* Y Axis Gridlines */}
+            {[0, 25, 50, 75, 100].map((pct) => {
+              const y = p3Bottom - (pct / 100) * p3PlotH;
+              return (
+                <g key={pct}>
+                  <line
+                    x1={PADDING_LEFT}
+                    y1={y}
+                    x2={width - PADDING_RIGHT}
+                    y2={y}
+                    stroke="rgb(var(--c-rule))"
+                    strokeWidth={1}
+                    strokeDasharray={pct === 0 ? undefined : "3 3"}
+                  />
+                  <text
+                    x={PADDING_LEFT - 10}
+                    y={y + 4}
+                    textAnchor="end"
+                    className="num fill-ink-faint text-[12px]"
+                  >
+                    {pct}%
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Time Axis Year Ticks */}
+            {[p3From, p3From + 1, p3To].map((year) => {
+              const x = x3(`${year}-01-01`);
+              if (!Number.isFinite(x) || x < PADDING_LEFT || x > width - PADDING_RIGHT) {
+                return null;
+              }
+              return (
+                <g key={year}>
+                  <line
+                    x1={x}
+                    y1={p3Top}
+                    x2={x}
+                    y2={p3Bottom}
+                    stroke="rgb(var(--c-rule))"
+                    strokeWidth={1}
+                    strokeDasharray="2 3"
+                  />
+                  <text
+                    x={x}
+                    y={p3Bottom + 18}
+                    textAnchor="middle"
+                    className="num fill-ink text-[12px] font-medium"
+                  >
+                    {year}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Polymarket dashed line */}
+            {bundle.market.length ? (
+              <>
+                <path
+                  d={bundle.market
+                    .map((m, i) => `${i === 0 ? "M" : "L"}${x3(m.iso).toFixed(1)},${p3ToY(m.twelveMonthPct).toFixed(1)}`)
+                    .join(" ")}
+                  fill="none"
+                  stroke="var(--c-cat-navy)"
+                  strokeWidth={2}
+                  strokeDasharray="5 4"
+                />
+                {bundle.market.map((m) => (
+                  <circle
+                    key={m.iso}
+                    cx={x3(m.iso)}
+                    cy={p3ToY(m.twelveMonthPct)}
+                    r={4}
+                    fill="var(--c-cat-navy)"
+                    className="cursor-pointer hover:scale-125 transition-transform"
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Market on ${m.label}: ${m.twelveMonthPct.toFixed(1)}%`}
+                    onMouseEnter={() =>
+                      setHover({
+                        title: `Market price — ${m.label}`,
+                        value: `${m.twelveMonthPct.toFixed(1)}%`,
+                        detail: `12-month contract; 6-month contract is at ${m.sixMonthPct.toFixed(1)}%.`,
+                      })
+                    }
+                    onClick={() =>
+                      setPicked({
+                        title: `Market price — ${m.label}`,
+                        value: `${m.twelveMonthPct.toFixed(1)}%`,
+                        detail: `12-month contract; 6-month contract is at ${m.sixMonthPct.toFixed(1)}%.`,
+                      })
+                    }
+                  />
+                ))}
+              </>
+            ) : null}
+
+            {/* Model print solid line */}
+            {bundle.prints.length ? (
+              <>
+                <path
+                  d={bundle.prints
+                    .map((p, i) => `${i === 0 ? "M" : "L"}${x3(p.iso).toFixed(1)},${p3ToY(p.probabilityPct).toFixed(1)}`)
+                    .join(" ")}
+                  fill="none"
+                  stroke="var(--c-accent)"
+                  strokeWidth={2.5}
+                />
+                {bundle.prints.map((p) => (
+                  <circle
+                    key={p.iso}
+                    cx={x3(p.iso)}
+                    cy={p3ToY(p.probabilityPct)}
+                    r={5}
+                    fill="var(--c-accent)"
+                    stroke="rgb(var(--c-surface))"
+                    strokeWidth={1.5}
+                    className="cursor-pointer hover:scale-125 transition-transform"
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Model on ${p.label}: ${p.probabilityPct.toFixed(1)}%`}
+                    onMouseEnter={() =>
+                      setHover({
+                        title: `Model print — ${p.label}`,
+                        value: `${p.probabilityPct.toFixed(1)}%`,
+                        detail: `Composite ${p.compositeScore.toFixed(1)}.`,
+                      })
+                    }
+                    onClick={() =>
+                      setPicked({
+                        title: `Model print — ${p.label}`,
+                        value: `${p.probabilityPct.toFixed(1)}%`,
+                        detail: `Composite ${p.compositeScore.toFixed(1)}.`,
+                      })
+                    }
+                  />
+                ))}
+                {/* Horizontal reference to right edge for current probability */}
+                <line
+                  x1={x3(bundle.prints[bundle.prints.length - 1].iso)}
+                  y1={p3ToY(currentProbabilityPct)}
+                  x2={width - PADDING_RIGHT}
+                  y2={p3ToY(currentProbabilityPct)}
+                  stroke="var(--c-accent)"
+                  strokeWidth={1}
+                  strokeDasharray="2 3"
+                />
+              </>
+            ) : null}
+          </svg>
+        </div>
+      </div>
+
+      {/* ── Accessible Tables Underneath ─────────────────────────────── */}
       <HistoryTable bundle={bundle} />
     </figure>
   );
 }
 
-/** The same numbers as the chart, as a table. Nothing here is hover-only. */
+/** The same numbers as the chart, in accessible HTML tables. */
 function HistoryTable({ bundle }: { bundle: HistoryBundle }) {
   return (
-    <div className="mt-4 space-y-4">
+    <div className="space-y-4 pt-2">
       <div className="overflow-x-auto rounded-lg border border-rule">
         <table className="w-full text-left text-[14px]">
           <caption className="sr-only">
-            The model&rsquo;s probability for each historical episode, with the composite
-            score and whether the episode burst.
+            The model&rsquo;s probability for each historical episode, with composite score and burst outcome.
           </caption>
           <thead className="bg-surface-2 text-ink-subtle">
             <tr>
-              <th scope="col" className="p-2 font-medium">Episode</th>
-              <th scope="col" className="p-2 font-medium">Year</th>
-              <th scope="col" className="p-2 text-right font-medium">Model probability</th>
-              <th scope="col" className="p-2 text-right font-medium">Composite</th>
-              <th scope="col" className="p-2 font-medium">Burst</th>
+              <th scope="col" className="p-2.5 font-medium">Episode</th>
+              <th scope="col" className="p-2.5 font-medium">Year</th>
+              <th scope="col" className="p-2.5 text-right font-medium">Model probability</th>
+              <th scope="col" className="p-2.5 text-right font-medium">Composite</th>
+              <th scope="col" className="p-2.5 font-medium">Burst observed</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-rule">
             {bundle.episodes.map((episode: HistoryEpisode) => (
-              <tr key={episode.id}>
-                <th scope="row" className="p-2 font-semibold text-ink">{episode.era}</th>
-                <td className="num p-2 text-ink-muted">{episode.year}</td>
-                <td className="num p-2 text-right text-ink">{episode.probabilityPct.toFixed(1)}%</td>
-                <td className="num p-2 text-right text-ink-muted">{episode.compositeScore.toFixed(1)}</td>
-                <td className="p-2 text-ink-muted">{episode.burstObserved ? "Yes" : "No"}</td>
+              <tr key={episode.id} className="hover:bg-surface-2/40">
+                <th scope="row" className="p-2.5 font-semibold text-ink">{episode.era}</th>
+                <td className="num p-2.5 text-ink-muted">{episode.year}</td>
+                <td className="num p-2.5 text-right font-medium text-ink">{episode.probabilityPct.toFixed(1)}%</td>
+                <td className="num p-2.5 text-right text-ink-muted">{episode.compositeScore.toFixed(1)}</td>
+                <td className="p-2.5 text-ink-muted">
+                  {episode.burstObserved ? (
+                    <span className="inline-flex items-center gap-1 font-semibold text-risk-600">
+                      Yes
+                    </span>
+                  ) : (
+                    <span className="text-accent font-medium">Live ongoing</span>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -693,13 +902,13 @@ function HistoryTable({ bundle }: { bundle: HistoryBundle }) {
       <div className="overflow-x-auto rounded-lg border border-rule">
         <table className="w-full text-left text-[14px]">
           <caption className="sr-only">
-            The market&rsquo;s price for the same question against the model&rsquo;s own print.
+            Polymarket 12-month contract price alongside the model&rsquo;s observed print.
           </caption>
           <thead className="bg-surface-2 text-ink-subtle">
             <tr>
-              <th scope="col" className="p-2 font-medium">Date</th>
-              <th scope="col" className="p-2 text-right font-medium">Market, 12-month</th>
-              <th scope="col" className="p-2 text-right font-medium">Model print</th>
+              <th scope="col" className="p-2.5 font-medium">Date</th>
+              <th scope="col" className="p-2.5 text-right font-medium">Market 12-month</th>
+              <th scope="col" className="p-2.5 text-right font-medium">Model print</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-rule">
@@ -708,10 +917,10 @@ function HistoryTable({ bundle }: { bundle: HistoryBundle }) {
                 (p: ModelPrint) => p.iso.slice(0, 7) === reading.iso.slice(0, 7)
               );
               return (
-                <tr key={reading.iso}>
-                  <th scope="row" className="p-2 font-semibold text-ink">{reading.label}</th>
-                  <td className="num p-2 text-right text-ink">{reading.twelveMonthPct.toFixed(1)}%</td>
-                  <td className="num p-2 text-right text-ink-muted">
+                <tr key={reading.iso} className="hover:bg-surface-2/40">
+                  <th scope="row" className="p-2.5 font-semibold text-ink">{reading.label}</th>
+                  <td className="num p-2.5 text-right font-medium text-ink">{reading.twelveMonthPct.toFixed(1)}%</td>
+                  <td className="num p-2.5 text-right text-ink-muted">
                     {print ? `${print.probabilityPct.toFixed(1)}%` : "—"}
                   </td>
                 </tr>

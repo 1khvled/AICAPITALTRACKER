@@ -107,6 +107,44 @@ export function ContractMapChart({
     return Math.max(6, Math.min(22, Math.sqrt(Math.max(500, liq) / 300)));
   };
 
+  // Pre-calculate collision-free label positions for high-volume bubbles (>= $500k)
+  const labelPositions = useMemo(() => {
+    const placed: { x: number; y: number; width: number; height: number }[] = [];
+    const positions = new Map<string, { y: number }>();
+
+    const highVolContracts = [...filtered]
+      .filter((c) => c.volumeUsd >= 500_000)
+      .sort((a, b) => b.volumeUsd - a.volumeUsd);
+
+    for (const c of highVolContracts) {
+      const cx = scaleX(c.yesProbabilityPct);
+      const cy = scaleY(c.volumeUsd);
+      const r = scaleRadius(c.liquidityUsd ?? 5000);
+      const labelW = 110;
+      const labelH = 16;
+
+      const topY = cy - r - 6;
+      let collidesTop = topY - labelH < pad.top;
+      if (!collidesTop) {
+        for (const p of placed) {
+          if (
+            Math.abs(cx - p.x) < (labelW + p.width) / 2 &&
+            Math.abs(topY - p.y) < (labelH + p.height) / 2
+          ) {
+            collidesTop = true;
+            break;
+          }
+        }
+      }
+
+      const chosenY = !collidesTop ? topY : cy + r + 15;
+      placed.push({ x: cx, y: chosenY, width: labelW, height: labelH });
+      positions.set(c.id, { y: chosenY });
+    }
+
+    return positions;
+  }, [filtered, scaleX, scaleY, pad.top]);
+
   const chartUid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const chartTitleId = `${chartUid}-title`;
   const chartDescId = `${chartUid}-desc`;
@@ -351,11 +389,11 @@ export function ContractMapChart({
                     strokeWidth={1.5}
                   />
 
-                  {/* Inline label for significant volume */}
-                  {c.volumeUsd >= 500_000 && (
+                  {/* Inline label for significant volume with collision avoidance */}
+                  {c.volumeUsd >= 500_000 && labelPositions.has(c.id) && (
                     <text
                       x={cx}
-                      y={cy - r - 4}
+                      y={labelPositions.get(c.id)!.y}
                       textAnchor="middle"
                       className="fill-ink text-[12px] font-semibold pointer-events-none drop-shadow-sm"
                     >

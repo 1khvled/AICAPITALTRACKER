@@ -68,6 +68,73 @@ export function generateMetadata({ params }: PageProps): Metadata {
   };
 }
 
+function getCompanyPlainPageLink(companyName: string): {
+  href: string;
+  title: string;
+  question: string;
+} {
+  switch (companyName) {
+    case "OpenAI":
+      return {
+        href: "/who-is-funding-openai",
+        title: "Who is funding OpenAI?",
+        question: "See the receipt-backed breakdown of who is financing OpenAI and the circular capital loops behind it.",
+      };
+    case "Anthropic":
+    case "Mistral AI":
+    case "Scale AI":
+    case "Databricks":
+      return {
+        href: "/will-openai-ipo",
+        title: "Will the frontier AI labs IPO?",
+        question: "Read the plain answer on private lab liquidity, convertible note debt covenants, and IPO timelines.",
+      };
+    case "CoreWeave":
+    case "Oracle":
+    case "Blackstone":
+    case "Crusoe Energy":
+    case "Nebius Group":
+    case "Northern Data / Rumble":
+    case "Lambda Labs":
+      return {
+        href: "/how-much-ai-debt-there-is",
+        title: "How much AI debt is there?",
+        question: "Read the plain answer on how GPU-backed debt, synthetic leases, and private credit facilities operate across AI infrastructure.",
+      };
+    case "Microsoft":
+    case "Amazon AWS":
+    case "Alphabet / Google":
+    case "Meta Platforms":
+      return {
+        href: "/how-much-is-being-spent-on-ai",
+        title: "How much is being spent on AI?",
+        question: "Read the plain answer tracking hyperscaler capex and where the $2.87T in disclosed infrastructure capital goes.",
+      };
+    case "NVIDIA":
+    case "Supermicro":
+    case "Marvell Technology":
+    case "SpaceX / xAI":
+      return {
+        href: "/is-ai-spending-too-much",
+        title: "Is AI spending too much?",
+        question: "Read the plain answer comparing hardware depreciation, data center power costs, and real commercial revenue.",
+      };
+    case "Constellation Energy":
+    case "Talen Energy":
+      return {
+        href: "/what-is-cpi-doing-to-ai",
+        title: "What is CPI and power inflation doing to AI?",
+        question: "Read the plain answer on nuclear power purchase agreements, grid interconnection queues, and real rate pressure.",
+      };
+    default:
+      return {
+        href: "/will-the-ai-bubble-burst",
+        title: "Will the AI bubble burst in the next 12 months?",
+        question: "Read our direct plain answer on the 12-month burst probability and what the empirical model tracks.",
+      };
+  }
+}
+
 export default function CompanyDossierPage({ params }: PageProps) {
   const company = getCompanyBySlug(params.slug);
   if (!company) {
@@ -76,6 +143,7 @@ export default function CompanyDossierPage({ params }: PageProps) {
 
   const matchedDeals = getCompanyDeals(company.name);
   const ledgerTerm = LEDGER_SEARCH_TERMS[company.name] ?? company.name;
+  const plainLink = getCompanyPlainPageLink(company.name);
 
   return (
     <div className="section-sm space-y-8">
@@ -111,6 +179,25 @@ export default function CompanyDossierPage({ params }: PageProps) {
           {company.role}
         </p>
       </header>
+
+      {/* ── Contextual Link Out to Plain Answer Page ────────────────────────── */}
+      <aside aria-label="Plain answer briefing" className="panel p-4 border-l-2 border-l-ink bg-surface-2/60">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5 max-w-2xl">
+            <span className="label text-[12px] uppercase text-ink-subtle">Plain Answer Briefing</span>
+            <p className="text-[14px] text-ink font-medium leading-relaxed">
+              {plainLink.question}
+            </p>
+          </div>
+          <Link
+            href={plainLink.href}
+            className="inline-flex min-h-[44px] items-center gap-1.5 font-semibold text-ink underline decoration-rule underline-offset-4 hover:decoration-ink shrink-0 text-[14px]"
+          >
+            <span>{plainLink.title}</span>
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </div>
+      </aside>
 
       {/* ── The Numbers: 5 Metrics with Disclosed / Not Disclosed Boundaries ── */}
       <section aria-labelledby="metrics-headline" className="space-y-3">
