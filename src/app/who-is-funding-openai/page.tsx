@@ -93,7 +93,7 @@ export default function WhoIsFundingOpenAiPage() {
       question="Who is funding OpenAI?"
       categoryLabel="Frontier Labs"
       asOf={asOf}
-      answerLead={`SoftBank, Microsoft, NVIDIA and a syndicate of venture funds have put ${equityGroup?.display ?? "—"} of equity into OpenAI. But ${computeGroup?.display ?? "—"} of the ${totalVolumeDisplay} of disclosed commitments that name OpenAI is OpenAI BUYING compute — from the same companies. Only ${equityPct.toFixed(0)}% of the money is capital investors actually handed over.`}
+      answerLead={`SoftBank, Microsoft, NVIDIA and a syndicate of venture funds have put ${equityGroup?.display ?? "-"} of equity into OpenAI - that is, money for ownership rather than loans. But ${computeGroup?.display ?? "—"} of the ${totalVolumeDisplay} of disclosed commitments that name OpenAI is OpenAI BUYING compute — from the same companies. Only ${equityPct.toFixed(0)}% of the money is capital investors actually handed over.`}
       answerContext={`OpenAI carries no public bond on its balance sheet, but its build-out is anchored by circular compute relationships (investors who are also suppliers and customers). Equity investors such as Microsoft and SoftBank provide capital that is contractually committed back to Microsoft Azure, Oracle Cloud and Nvidia hardware.`}
       polymarketContracts={polymarketContracts}
       notThisItems={[
