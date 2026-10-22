@@ -21,6 +21,8 @@ export interface AnswerPageLayoutProps {
     probabilityPct: number;
     volumeDisplay: string;
     url: string;
+    /** One line on how the contract resolves, so the reader knows what is priced. */
+    resolvesOn?: string;
   }[];
   /** Plain English "What this is not" list */
   notThisItems: string[];
@@ -67,15 +69,32 @@ export function AnswerPageLayout({
         </h1>
 
         {/* The Answer in the first line */}
-        <div className="panel border-l-2 border-l-ink p-5 space-y-2 rule-accent-left">
-          <p className="label">The short answer</p>
-          <p className="text-[17px] font-semibold leading-snug text-ink sm:text-[19px]">
-            {answerLead}
-          </p>
-          {answerContext && (
-            <p className="text-[15px] leading-relaxed text-ink-muted">
-              {answerContext}
+        <div className="panel border-l-2 border-l-ink p-5 space-y-3 rule-accent-left">
+          <div className="space-y-1.5">
+            <p className="label">The short answer</p>
+            <p className="text-[17px] font-semibold leading-snug text-ink sm:text-[19px]">
+              {answerLead}
             </p>
+            {answerContext && (
+              <p className="text-[15px] leading-relaxed text-ink-muted">
+                {answerContext}
+              </p>
+            )}
+          </div>
+
+          {/* What this number is not — placed next to the number in plain words */}
+          {notThisItems && notThisItems.length > 0 && (
+            <div className="border-t border-rule pt-3 space-y-1.5">
+              <p className="label text-[12px]">What this number is not</p>
+              <ul className="space-y-1.5 text-[14px] leading-relaxed text-ink-muted">
+                {notThisItems.map((item, index) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <span className="text-ink-faint select-none font-bold" aria-hidden="true">&bull;</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
       </header>
@@ -83,7 +102,7 @@ export function AnswerPageLayout({
       {/* ── Main Content: Charts & Tables ──────────────────────────────────── */}
       <main className="space-y-10 max-w-4xl">{children}</main>
 
-      {/* ── Ad Slot (Reusing existing placement id) ────────────────────────── */}
+      {/* ── Ad Slot 1 ──────────────────────────────────────────────────────── */}
       <div className="max-w-4xl">
         <AdSlot placementId="home-infeed-1" />
       </div>
@@ -140,6 +159,11 @@ export function AnswerPageLayout({
                   <div className="mt-0.5 text-right text-[12px] text-ink-subtle">
                     {contract.volumeDisplay} traded
                   </div>
+                  {contract.resolvesOn && (
+                    <p className="mt-1.5 text-[12px] leading-snug text-ink-faint">
+                      Resolves on: {contract.resolvesOn}
+                    </p>
+                  )}
                 </a>
               ))}
             </div>
@@ -151,25 +175,7 @@ export function AnswerPageLayout({
         </section>
       )}
 
-      {/* ── What This Is Not Panel ─────────────────────────────────────────── */}
-      <section
-        aria-labelledby="not-this-heading"
-        className="panel max-w-4xl space-y-3"
-      >
-        <p id="not-this-heading" className="label">
-          What this number is not
-        </p>
-        <ul className="space-y-2 text-[15px] leading-relaxed text-ink-muted">
-          {notThisItems.map((item, index) => (
-            <li key={index} className="flex items-start gap-2">
-              <span className="text-ink-faint select-none font-bold" aria-hidden="true">&bull;</span>
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* ── Ad Slot 2 (Second in-feed placement, natural break before deep research) ── */}
+      {/* ── Ad Slot 2 ──────────────────────────────────────────────────────── */}
       <div className="max-w-4xl">
         <AdSlot placementId="visualize-infeed" />
       </div>

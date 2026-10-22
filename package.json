@@ -12,7 +12,11 @@
     "lint": "next lint",
     "test": "node scripts/test-algo.mjs",
     "test:algo": "node scripts/test-algo.mjs",
-    "update-data": "node scripts/update-data.mjs"
+    "check:charts": "node scripts/check-chart-overlap.mjs",
+    "check:links": "node scripts/check-links.mjs",
+    "gates": "npm run test && npm run build && npm run check:charts && npm run check:links",
+    "update-data": "node scripts/update-data.mjs",
+    "check": "npm run check:charts && npm run check:links"
   },
   "dependencies": {
     "clsx": "^2.1.1",

@@ -1,29 +1,37 @@
 import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, AlertTriangle, TrendingDown, DollarSign, Layers, ShieldAlert, Cpu } from "lucide-react";
+import { ArrowRight, AlertTriangle } from "lucide-react";
 import { AnswerPageLayout } from "@/components/answer-pages/AnswerPageLayout";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
-import { formatBillions, formatTrillions, formatAsOf } from "@/components/home/copy";
+import { formatBillions, formatAsOf } from "@/components/home/copy";
+import { resolveContracts } from "@/components/answer-pages/answerData";
 import trajectoryHistory from "@/data/trajectory-history.json";
-import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 
-export const metadata: Metadata = {
-  title: "Is AI spending too much?",
-  description:
-    "Big Tech is spending $725B on 2026 capex against $260B in free cash flow, creating a $465B funding gap backed by corporate borrowing.",
-  openGraph: {
+/** The numbers in the metadata are the model's own inputs. */
+export function generateMetadata(): Metadata {
+  const capex = DEFAULT_MODEL_INPUTS.capex?.aggregateCapexUsd ?? 0;
+  const fcf = DEFAULT_MODEL_INPUTS.capex?.aggregateFcfUsd ?? 0;
+  const gap = capex - fcf;
+  const description = `Big Tech is spending $${(capex / 1e9).toFixed(0)}B on 2026 capex against $${(
+    fcf / 1e9
+  ).toFixed(0)}B in free cash flow, creating a $${(gap / 1e9).toFixed(0)}B funding gap backed by corporate borrowing.`;
+
+  return {
     title: "Is AI spending too much?",
-    description:
-      "Big Tech is spending $725B on 2026 capex against $260B in free cash flow, creating a $465B funding gap backed by corporate borrowing.",
-    url: "/is-ai-spending-too-much",
-    type: "article",
-    images: ["/opengraph-image.png"],
-  },
-  alternates: {
-    canonical: "/is-ai-spending-too-much",
-  },
-};
+    description,
+    openGraph: {
+      title: "Is AI spending too much?",
+      description,
+      url: "/is-ai-spending-too-much",
+      type: "article",
+      images: ["/opengraph-image.png"],
+    },
+    alternates: {
+      canonical: "/is-ai-spending-too-much",
+    },
+  };
+}
 
 interface TrajectoryPointLite {
   date?: string;
@@ -35,8 +43,8 @@ export default function IsAiSpendingTooMuchPage() {
   const latestPoint = history[history.length - 1];
   const asOf = latestPoint?.date ? formatAsOf(latestPoint.date) : "21 Oct 2026";
 
-  const capexUsd = DEFAULT_MODEL_INPUTS.capex?.aggregateCapexUsd ?? 725_000_000_000;
-  const fcfUsd = DEFAULT_MODEL_INPUTS.capex?.aggregateFcfUsd ?? 260_000_000_000;
+  const capexUsd = DEFAULT_MODEL_INPUTS.capex?.aggregateCapexUsd ?? 0;
+  const fcfUsd = DEFAULT_MODEL_INPUTS.capex?.aggregateFcfUsd ?? 0;
   const fundingGapUsd = capexUsd - fcfUsd;
   const capexToFcfRatio = (capexUsd / fcfUsd).toFixed(2);
 
@@ -44,61 +52,78 @@ export default function IsAiSpendingTooMuchPage() {
   const fcfDisplay = formatBillions(fcfUsd);
   const gapDisplay = formatBillions(fundingGapUsd);
 
-  const totalDebtUsd = DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 214_890_400_000;
+  // Combined revenue run-rate across the tracked labs and AI software companies —
+  // summed from the model inputs, never typed.
+  const labRunRateUsd = (DEFAULT_MODEL_INPUTS.valuations || []).reduce(
+    (sum, v) => sum + ((v.runRateRevenueUsd as number) || 0),
+    0,
+  );
+  const labRunRateDisplay = formatBillions(labRunRateUsd);
+
+  // How many dollars of build-out there is for every dollar of software revenue.
+  const spendPerRevenueDollar = labRunRateUsd > 0 ? capexUsd / labRunRateUsd : 0;
+
+  const totalDebtUsd = DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 0;
   const totalDebtDisplay = formatBillions(totalDebtUsd);
 
-  const polymarketContracts = [
-    {
-      question: "Will the AI bubble burst before June 2027?",
-      probabilityPct: 19.5,
-      volumeDisplay: "$9.2M",
-      url: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
-    },
-    {
-      question: "Will the AI industry experience an official industry downturn by December 31, 2026?",
-      probabilityPct: 9.1,
-      volumeDisplay: "$2.5M",
-      url: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
-    },
-    {
-      question: "Will Oracle 5Y CDS trade above 250 bps before December 31, 2026?",
-      probabilityPct: 38.0,
-      volumeDisplay: "$1.4M",
-      url: `https://polymarket.com/event/oracle-debt-ai-capex-stress?r=${POLYMARKET_REFERRAL_CODE}`,
-    },
-  ];
+  // The annual interest bill if the gap itself had to be borrowed at today's
+  // long government yield.
+  const tenYearYieldPct = DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 0;
+  const gapInterestUsd = fundingGapUsd * (tenYearYieldPct / 100);
+
+  // The depreciation drag the model carries on the tracked chip fleet.
+  const depreciationDragUsd = DEFAULT_MODEL_INPUTS.aiDebt?.gpuDepreciationDragUsd ?? 0;
+
+  const polymarketContracts = resolveContracts([
+    "poly-bubble-2026",
+    "poly-bubble-2027",
+    "poly-us-recession-2026",
+  ]);
 
   // Capex comparison column data
   const comparisonData = [
-    { label: "Big-4 2026 Capex", amountUsd: capexUsd, display: capexDisplay, color: "var(--c-accent)" },
-    { label: "Big-4 Free Cash Flow", amountUsd: fcfUsd, display: fcfDisplay, color: "var(--c-cat-steel)" },
-    { label: "AI Software Revenues", amountUsd: 125_000_000_000, display: "$125B", color: "var(--c-cat-navy)" },
+    {
+      label: "Big-4 Capex",
+      sublabel: "2026 guidance",
+      amountUsd: capexUsd,
+      display: capexDisplay,
+      color: "var(--c-accent)",
+    },
+    {
+      label: "Big-4 Cash",
+      sublabel: "free cash flow",
+      amountUsd: fcfUsd,
+      display: fcfDisplay,
+      color: "var(--c-cat-steel)",
+    },
+    {
+      label: "AI Software",
+      sublabel: "annual run-rate",
+      amountUsd: labRunRateUsd,
+      display: labRunRateDisplay,
+      color: "var(--c-cat-navy)",
+    },
   ];
 
   const colSvgWidth = 520;
   const colSvgHeight = 180;
   const maxAmount = capexUsd;
 
-  // Hyperscaler breakdown data
-  const hyperscalers = [
-    { name: "Amazon (AWS)", capex: "$220B", sharePct: 30.3, focus: "Custom Trainium chips, nuclear PPAs, and global AWS data centers" },
-    { name: "Alphabet (Google)", capex: "$200B", sharePct: 27.6, focus: "TPU v6 clusters, Gemini infrastructure, and liquid-cooled hubs" },
-    { name: "Microsoft", capex: "$175B", sharePct: 24.1, focus: "Azure capacity expansions and Stargate data center development" },
-    { name: "Meta Platforms", capex: "$130B", sharePct: 18.0, focus: "Llama open-weights training clusters and standalone compute farms" },
-  ];
-
   return (
     <AnswerPageLayout
       question="Is AI spending too much?"
       categoryLabel="Capital Expenditure"
       asOf={asOf}
-      answerLead={`Yes, relative to current software monetization: Big Tech's Big-4 hyperscalers (Amazon, Alphabet, Microsoft, Meta) are spending ${capexDisplay} on 2026 capital expenditures against ${fcfDisplay} in annual free cash flow, creating an unprecedented ${gapDisplay} annual funding deficit.`}
-      answerContext={`While Big Tech generates immense cash from existing monopoly businesses in search, cloud hosting, and digital advertising, total generative AI software industry revenue stands at approximately $125B. The technology sector is currently spending almost six dollars on hardware and data centers for every single dollar generated by commercial AI software applications.`}
+      answerLead={`Yes. Amazon, Alphabet, Microsoft and Meta are spending ${capexDisplay} on 2026 capital expenditures (hardware and data centres) against ${fcfDisplay} in annual free cash flow (the cash left after running and maintaining the existing business) — an annual funding gap of ${gapDisplay}.`}
+      answerContext={`While Big Tech generates real cash from its existing businesses in search, cloud hosting and digital advertising, total generative AI software revenue across the labs we track stands at about ${labRunRateDisplay} a year. The sector is spending about ${spendPerRevenueDollar.toFixed(
+        1,
+      )} dollars on hardware and data centres for every dollar that commercial AI software earns.`}
       polymarketContracts={polymarketContracts}
       notThisItems={[
         "It does not claim that artificial intelligence is technically flawed or useless; it measures whether physical construction costs are running ahead of verified software cash flows.",
-        "It is not a prediction that Microsoft, Alphabet, Amazon, or Meta will default; their balance sheets hold fortress cash reserves and investment-grade balance sheets.",
+        "It is not a prediction that Microsoft, Alphabet, Amazon, or Meta will default; their balance sheets hold fortress cash reserves and investment-grade credit ratings.",
         "It evaluates the vulnerability of specialized GPU cloud providers (neoclouds) and debt-backed infrastructure vehicles that lack Big Tech's legacy cash flow cushions.",
+        "It is not a verdict on the technology. A company can be over-spending and still be right about the market — this page is about who pays for the gap and when.",
       ]}
     >
       {/* ── Key Metrics Summary Tiles ───────────────────────────────────────── */}
@@ -132,7 +157,7 @@ export default function IsAiSpendingTooMuchPage() {
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-rule pb-3">
           <div>
             <h2 id="gap-chart-heading" className="text-lg font-bold tracking-tight text-ink">
-              The $465B Gap: Spending vs. Revenue Realities
+              The {gapDisplay} gap: spending vs. revenue realities
             </h2>
             <p className="mt-0.5 text-[14px] text-ink-muted">
               Comparing 2026 guided capital expenditure against free cash flow and AI revenues.
@@ -142,7 +167,7 @@ export default function IsAiSpendingTooMuchPage() {
             href="/how-much-is-being-spent-on-ai"
             className="inline-flex min-h-[44px] items-center gap-1 text-[13px] font-medium text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
           >
-            All $2.87T in spending
+            All tracked AI spending
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
         </div>
@@ -158,12 +183,13 @@ export default function IsAiSpendingTooMuchPage() {
             Comparison of Big-4 capex, free cash flow, and generative AI revenues
           </p>
           <p id="col-chart-desc" className="sr-only">
-            Chart showing $725B in 2026 capex, $260B in free cash flow, and $125B in AI software revenues, highlighting a $465B capital gap.
+            Chart showing {capexDisplay} in 2026 capex, {fcfDisplay} in free cash flow, and{" "}
+            {labRunRateDisplay} in AI software revenues, highlighting a {gapDisplay} capital gap.
           </p>
 
           <svg
             viewBox={`0 0 ${colSvgWidth} ${colSvgHeight}`}
-            className="w-full h-auto select-none"
+            className="w-full h-auto select-none min-w-[490px]"
             aria-hidden="true"
           >
             {comparisonData.map((d, i) => {
@@ -195,17 +221,17 @@ export default function IsAiSpendingTooMuchPage() {
                     x={x + barW / 2}
                     y={colSvgHeight - 14}
                     textAnchor="middle"
-                    className="text-[12px] font-semibold fill-ink"
+                    className="text-[13px] font-semibold fill-ink"
                   >
-                    {d.label.split(" ")[0]}
+                    {d.label}
                   </text>
                   <text
                     x={x + barW / 2}
                     y={colSvgHeight - 2}
                     textAnchor="middle"
-                    className="text-[12px] fill-ink-muted"
+                    className="text-[13px] fill-ink-muted"
                   >
-                    {d.label.split(" ").slice(1).join(" ")}
+                    {d.sublabel}
                   </text>
                 </g>
               );
@@ -235,49 +261,59 @@ export default function IsAiSpendingTooMuchPage() {
         </div>
       </section>
 
-      {/* ── Section 2: Big-4 Hyperscaler Capex Breakdown ────────────────────── */}
-      <section aria-labelledby="hyperscalers-heading" className="card p-5 space-y-4 shadow-card">
+      {/* ── Section 2: Who Pays for the Gap ─────────────────────────────────── */}
+      <section aria-labelledby="gap-funding-heading" className="card p-5 space-y-4 shadow-card">
         <div className="border-b border-rule pb-3">
-          <h2 id="hyperscalers-heading" className="text-lg font-bold tracking-tight text-ink">
-            Where the $725B Is Going: The Big-4 Budgets
+          <h2 id="gap-funding-heading" className="text-lg font-bold tracking-tight text-ink">
+            Who pays for the {gapDisplay} gap
           </h2>
           <p className="mt-0.5 text-[14px] text-ink-muted">
-            Official capital expenditure guidance from Q2 2026 earnings conference calls.
+            Computed from the same inputs as the model, so the arithmetic on this page and the score
+            behind the homepage can never disagree.
           </p>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-[14px]">
-            <caption className="sr-only">
-              Big-4 tech hyperscaler 2026 capital expenditure guidance and strategic focus
-            </caption>
-            <thead>
-              <tr className="border-b border-rule text-ink-subtle">
-                <th scope="col" className="py-2.5 pr-4 font-semibold">Hyperscaler</th>
-                <th scope="col" className="py-2.5 pr-4 font-semibold text-right">2026 Capex</th>
-                <th scope="col" className="py-2.5 pr-4 font-semibold text-right">Share of Total</th>
-                <th scope="col" className="py-2.5 font-semibold">Capital Deployment Focus</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-rule font-tabular">
-              {hyperscalers.map((h) => (
-                <tr key={h.name} className="hover:bg-surface-2 transition-colors">
-                  <th scope="row" className="py-3 pr-4 font-medium text-ink">
-                    {h.name}
-                  </th>
-                  <td className="py-3 pr-4 num text-right font-mono font-bold text-ink">
-                    {h.capex}
-                  </td>
-                  <td className="py-3 pr-4 num text-right text-ink-muted">
-                    {h.sharePct.toFixed(1)}%
-                  </td>
-                  <td className="py-3 text-[13px] text-ink-muted">
-                    {h.focus}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="panel p-4 space-y-1">
+            <span className="font-semibold text-ink text-[15px]">Big Tech cash cushions it</span>
+            <p className="num text-[13px] font-bold text-ink">
+              {capexToFcfRatio}× spending to cash
+            </p>
+            <p className="text-[13px] text-ink-muted leading-relaxed">
+              The four largest cloud companies still earn {fcfDisplay} a year from their existing
+              businesses, which covers {((fcfUsd / capexUsd) * 100).toFixed(0)}% of the build-out.
+              That is why the gap has not become a crisis.
+            </p>
+          </div>
+          <div className="panel p-4 space-y-1">
+            <span className="font-semibold text-ink text-[15px]">The gap costs interest</span>
+            <p className="num text-[13px] font-bold text-risk-600 dark:text-risk-400">
+              {formatBillions(gapInterestUsd)}/yr at {tenYearYieldPct.toFixed(2)}%
+            </p>
+            <p className="text-[13px] text-ink-muted leading-relaxed">
+              If the whole gap were borrowed at today&rsquo;s 10-year government yield, the annual
+              interest bill would be {formatBillions(gapInterestUsd)} before a single chip is bought.
+            </p>
+          </div>
+          <div className="panel p-4 space-y-1">
+            <span className="font-semibold text-ink text-[15px]">Specialised lenders carry it</span>
+            <p className="num text-[13px] font-bold text-ink">{totalDebtDisplay} tracked</p>
+            <p className="text-[13px] text-ink-muted leading-relaxed">
+              GPU cloud providers and data-centre vehicles without Big Tech&rsquo;s legacy cash flow
+              borrow against the hardware instead. That is the {totalDebtDisplay} of AI debt on the
+              debt page.
+            </p>
+          </div>
+          <div className="panel p-4 space-y-1">
+            <span className="font-semibold text-ink text-[15px]">Software has to catch up</span>
+            <p className="num text-[13px] font-bold text-ink">
+              {spendPerRevenueDollar.toFixed(1)}× today
+            </p>
+            <p className="text-[13px] text-ink-muted leading-relaxed">
+              For every dollar of annual AI software revenue across the labs we track, the sector is
+              building {spendPerRevenueDollar.toFixed(1)} dollars of hardware and data centres.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -286,34 +322,50 @@ export default function IsAiSpendingTooMuchPage() {
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-5 w-5 text-accent-strong dark:text-accent-ink shrink-0" aria-hidden="true" />
           <h2 id="depreciation-heading" className="text-lg font-bold tracking-tight text-ink">
-            The Depreciation Trap: Silicon Lifespans vs. 5-Year Loans
+            The depreciation trap: silicon lifespans vs. multi-year loans
           </h2>
         </div>
 
         <div className="space-y-3 text-[15px] leading-relaxed text-ink-muted">
           <p>
-            When corporations borrow hundreds of billions to construct factories or railways, those physical assets produce economic value for 30 to 50 years.
+            When corporations borrow hundreds of billions to construct factories or railways, those
+            physical assets produce economic value for decades.
           </p>
           <p>
-            <strong className="text-ink font-semibold">AI computing infrastructure depreciates rapidly:</strong> An Nvidia Blackwell or H100 GPU cluster experiences rapid economic depreciation over 3 to 4 years. By the time private debt facilities (such as CoreWeave&rsquo;s $25.1B or Oracle&rsquo;s $18.0B senior notes) mature in 2028–2030, the underlying collateral will be several generations obsolete.
+            <strong className="text-ink font-semibold">AI computing infrastructure depreciates
+            rapidly:</strong> an Nvidia Blackwell or H100 GPU cluster loses most of its economic value
+            within a few years, because a newer generation of chips arrives before the loan that
+            secured it matures. The model carries an annual write-down of{" "}
+            {formatBillions(depreciationDragUsd)} on the tracked chip fleet for exactly this reason.
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 text-[14px]">
           <div className="card p-3.5 space-y-1">
             <span className="font-semibold text-ink">GPU Silicon Fleets</span>
-            <p className="num text-[13px] text-risk-600 dark:text-risk-400 font-bold">3–4 Year Lifespan</p>
-            <p className="text-[13px] text-ink-muted">Annual depreciation drag running at $38.5B/yr across tracked chips.</p>
+            <p className="num text-[13px] text-risk-600 dark:text-risk-400 font-bold">
+              {formatBillions(depreciationDragUsd)}/yr drag
+            </p>
+            <p className="text-[13px] text-ink-muted">
+              The collateral. Worth a fraction of its purchase price before the loan matures.
+            </p>
           </div>
           <div className="card p-3.5 space-y-1">
             <span className="font-semibold text-ink">Power &amp; Transformers</span>
-            <p className="num text-[13px] text-caution-600 dark:text-caution-400 font-bold">15–20 Year Lifespan</p>
-            <p className="text-[13px] text-ink-muted">Utility interconnects and substations hold durable physical value.</p>
+            <p className="num text-[13px] text-caution-600 dark:text-caution-400 font-bold">
+              Durable value
+            </p>
+            <p className="text-[13px] text-ink-muted">
+              Utility interconnects and substations hold their value over decades, whatever the
+              chips do.
+            </p>
           </div>
           <div className="card p-3.5 space-y-1">
             <span className="font-semibold text-ink">Building Shells &amp; Fiber</span>
-            <p className="num text-[13px] text-ink font-bold">25–30 Year Lifespan</p>
-            <p className="text-[13px] text-ink-muted">Real estate shells retain residual value even if computing tenants churn.</p>
+            <p className="num text-[13px] text-ink font-bold">Residual value</p>
+            <p className="text-[13px] text-ink-muted">
+              Real estate shells keep their value even if the computing tenants in them churn.
+            </p>
           </div>
         </div>
       </section>

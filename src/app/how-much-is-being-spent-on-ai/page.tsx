@@ -1,30 +1,35 @@
 import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Layers, DollarSign, Building2, Cpu } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import rawDeals from "@/data/deals.json";
-import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
+import { DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import { formatTrillions, formatBillions, formatAsOf } from "@/components/home/copy";
 import { AnswerPageLayout } from "@/components/answer-pages/AnswerPageLayout";
+import { resolveContracts } from "@/components/answer-pages/answerData";
 import trajectoryHistory from "@/data/trajectory-history.json";
-import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 
-export const metadata: Metadata = {
-  title: "How much is being spent on AI? All $2.87T in tracked deals",
-  description:
-    "A complete breakdown of the $2.87 trillion committed to AI data centers, chips, power, and compute deals across 169 verified filings.",
-  openGraph: {
-    title: "How much is being spent on AI? All $2.87T in tracked deals",
-    description:
-      "A complete breakdown of the $2.87 trillion committed to AI data centers, chips, power, and compute deals across 169 verified filings.",
-    url: "/how-much-is-being-spent-on-ai",
-    type: "article",
-    images: ["/opengraph-image.png"],
-  },
-  alternates: {
-    canonical: "/how-much-is-being-spent-on-ai",
-  },
-};
+/** The metadata number is the ledger's own number, never a typed one. */
+export function generateMetadata(): Metadata {
+  const totalUsd = rawDeals.reduce((sum, d) => sum + (d.amount_usd || 0), 0);
+  const total = formatTrillions(totalUsd);
+  const description = `A complete breakdown of the ${total} committed to AI data centers, chips, power, and compute deals across ${rawDeals.length} verified filings.`;
+
+  return {
+    title: `How much is being spent on AI? All ${total} in tracked deals`,
+    description,
+    openGraph: {
+      title: `How much is being spent on AI? All ${total} in tracked deals`,
+      description,
+      url: "/how-much-is-being-spent-on-ai",
+      type: "article",
+      images: ["/opengraph-image.png"],
+    },
+    alternates: {
+      canonical: "/how-much-is-being-spent-on-ai",
+    },
+  };
+}
 
 interface TrajectoryPointLite {
   date?: string;
@@ -32,7 +37,6 @@ interface TrajectoryPointLite {
 }
 
 export default function HowMuchIsBeingSpentOnAiPage() {
-  const result = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
   const history = (Array.isArray(trajectoryHistory) ? trajectoryHistory : []) as TrajectoryPointLite[];
   const latestPoint = history[history.length - 1];
   const asOf = latestPoint?.date ? formatAsOf(latestPoint.date) : "21 Oct 2026";
@@ -57,6 +61,13 @@ export default function HowMuchIsBeingSpentOnAiPage() {
     }))
     .sort((a, b) => b.amount - a.amount);
 
+  // The share that goes into compute capacity and physical construction —
+  // computed, so the sentence under the chart can never drift from it.
+  const computeAndConstructionUsd =
+    (categoryTotals["Compute contracts"] || 0) + (categoryTotals["Big construction"] || 0);
+  const computeAndConstructionPct =
+    (computeAndConstructionUsd / totalDisclosedUsd) * 100;
+
   // Group by year
   const annualTotals: Record<number, number> = {};
   rawDeals.forEach((d) => {
@@ -72,6 +83,11 @@ export default function HowMuchIsBeingSpentOnAiPage() {
     label: formatTrillions(annualTotals[y] || 0),
   }));
 
+  const firstYearAmount = annualData[0]?.amount ?? 0;
+  const peakYear = annualData.reduce((best, row) =>
+    row.amount > best.amount ? row : best,
+  );
+
   // Debt slice
   const debtDeals = rawDeals.filter((d) => d.is_debt);
   const totalDebtUsd = debtDeals.reduce((sum, d) => sum + (d.amount_usd || 0), 0);
@@ -81,32 +97,29 @@ export default function HowMuchIsBeingSpentOnAiPage() {
   const computeDeals = rawDeals.filter((d) => d.is_compute);
   const totalComputeUsd = computeDeals.reduce((sum, d) => sum + (d.amount_usd || 0), 0);
 
-  // Top 8 Deals by dollar value
+  // Top 10 Deals by dollar value
   const topDeals = [...rawDeals]
     .sort((a, b) => (b.amount_usd || 0) - (a.amount_usd || 0))
-    .slice(0, 8);
+    .slice(0, 10);
+  const topDealsUsd = topDeals.reduce((sum, d) => sum + (d.amount_usd || 0), 0);
+  const topDealsPct = (topDealsUsd / totalDisclosedUsd) * 100;
+
+  // ── The money behind the build-out, from the model inputs ────────────────
+  const big4CapexUsd = DEFAULT_MODEL_INPUTS.capex?.aggregateCapexUsd ?? 0;
+  const big4FcfUsd = DEFAULT_MODEL_INPUTS.capex?.aggregateFcfUsd ?? 0;
+  const trackedLabValuations = (DEFAULT_MODEL_INPUTS.valuations ?? [])
+    .map((v) => v.valuationUsd)
+    .filter((v) => v > 0)
+    .sort((a, b) => b - a);
+  const topLabValuation = trackedLabValuations[0] ?? 0;
+  const secondLabValuation = trackedLabValuations[1] ?? 0;
 
   // Polymarket betting contracts matching AI spending & downturn risk
-  const polymarketContracts = [
-    {
-      question: "Will the AI industry experience an official industry downturn by December 31, 2026?",
-      probabilityPct: 9.1,
-      volumeDisplay: "$2.5M",
-      url: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
-    },
-    {
-      question: "Will the AI bubble burst before June 2027?",
-      probabilityPct: 19.5,
-      volumeDisplay: "$9.2M",
-      url: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
-    },
-    {
-      question: "Will Oracle 5-Year CDS trade above 250 bps before December 31, 2026?",
-      probabilityPct: 38.0,
-      volumeDisplay: "$1.4M",
-      url: `https://polymarket.com/event/oracle-debt-ai-capex-stress?r=${POLYMARKET_REFERRAL_CODE}`,
-    },
-  ];
+  const polymarketContracts = resolveContracts([
+    "poly-bubble-2026",
+    "poly-bubble-2027",
+    "poly-us-recession-2026",
+  ]);
 
   // SVG dimensions for category horizontal bar chart
   const catSvgWidth = 600;
@@ -124,13 +137,14 @@ export default function HowMuchIsBeingSpentOnAiPage() {
       question="How much is being spent on AI?"
       categoryLabel="Capital Expenditure"
       asOf={asOf}
-      answerLead={`Across ${totalDeals} verified corporate filings and agreements, companies, investors, and cloud providers have committed ${trackedTotalDisplay} to artificial intelligence infrastructure, compute hardware, and data centers.`}
-      answerContext={`Every dollar comes from primary filed sources in our 169-deal ledger. The spending is split between tech giants' operating cash flows, multi-year cloud leasing commitments, and $214.9B of debt facilities.`}
+      answerLead={`${trackedTotalDisplay} has been committed to artificial intelligence — data centres, chips and computing power — across ${totalDeals} verified corporate filings and agreements.`}
+      answerContext={`Every dollar comes from primary filed sources in our ${totalDeals}-deal ledger. The spending is split between tech giants' operating cash flows (profits earned from existing day-to-day businesses), multi-year cloud compute leasing commitments, and ${formatBillions(totalDebtUsd)} of corporate debt facilities.`}
       polymarketContracts={polymarketContracts}
       notThisItems={[
         "It is not an estimate of global GDP impact or total consumer spending; it tracks disclosed corporate capital commitments, data center construction, GPU purchase contracts, and debt facilities.",
-        "It is not double-counted: transactions involving equity investments that subsequently fund vendor hardware purchases are flagged and audited in the ledger's circularity factor.",
+        "It is not double-counted: money that loops between the same investors and vendors is flagged and audited by the ledger's circularity check.",
         "It is not a guess: deals with undisclosed terms are recorded with an amount of $0 rather than an invented estimate.",
+        "It is not the whole world's AI spend. It is the disclosed, verifiable slice — anything announced privately, or in a country where filings are not public, is not on the ledger.",
       ]}
     >
       {/* ── Key Metrics Summary Tiles ───────────────────────────────────────── */}
@@ -156,8 +170,8 @@ export default function HowMuchIsBeingSpentOnAiPage() {
         </div>
         <div className="card p-4 space-y-1">
           <span className="label">Big-4 Capex (2026)</span>
-          <p className="num text-2xl font-bold text-ink">$725B</p>
-          <span className="text-[13px] text-ink-subtle">Guided by Big Tech</span>
+          <p className="num text-2xl font-bold text-ink">{formatBillions(big4CapexUsd)}</p>
+          <span className="text-[13px] text-ink-subtle">Hardware, chips &amp; data centers</span>
         </div>
       </div>
 
@@ -166,10 +180,11 @@ export default function HowMuchIsBeingSpentOnAiPage() {
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-rule pb-3">
           <div>
             <h2 id="categories-heading" className="text-lg font-bold tracking-tight text-ink">
-              Where the Money Goes: Spending by Category
+              Where the money goes: spending by category
             </h2>
             <p className="mt-0.5 text-[14px] text-ink-muted">
-              Compute capacity contracts and physical data center construction account for nearly half of all spending.
+              Compute capacity contracts and physical data center construction are{" "}
+              {computeAndConstructionPct.toFixed(0)}% of everything tracked.
             </p>
           </div>
           <Link
@@ -192,12 +207,15 @@ export default function HowMuchIsBeingSpentOnAiPage() {
             AI spending breakdown by category bar chart
           </p>
           <p id="category-chart-desc" className="sr-only">
-            Horizontal bar chart showing compute contracts at {formatTrillions(categoryTotals["Compute contracts"] || 0)}, big construction at {formatTrillions(categoryTotals["Big construction"] || 0)}, and other categories.
+            Horizontal bar chart showing {categoriesSorted
+              .slice(0, 3)
+              .map((c) => `${c.category} at ${formatTrillions(c.amount)}`)
+              .join(", ")}.
           </p>
 
           <svg
             viewBox={`0 0 ${catSvgWidth} ${catSvgHeight}`}
-            className="w-full h-auto select-none"
+            className="w-full h-auto select-none min-w-[560px]"
             aria-hidden="true"
           >
             {categoriesSorted.map((cat, i) => {
@@ -246,7 +264,7 @@ export default function HowMuchIsBeingSpentOnAiPage() {
                     {cat.amount >= 1e12
                       ? formatTrillions(cat.amount)
                       : formatBillions(cat.amount)}{" "}
-                    <tspan className="text-[12px] font-normal fill-ink-faint">
+                    <tspan className="text-[13px] font-normal fill-ink-faint">
                       ({cat.pct.toFixed(1)}%)
                     </tspan>
                   </text>
@@ -283,10 +301,12 @@ export default function HowMuchIsBeingSpentOnAiPage() {
       {/* ── Section 2: Annual Trajectory (2023 - 2026) ───────────────────────── */}
       <section aria-labelledby="annual-heading" className="card p-5 space-y-4 shadow-card">
         <h2 id="annual-heading" className="text-lg font-bold tracking-tight text-ink">
-          The Acceleration: Annual Disclosed Commitments
+          The acceleration: annual disclosed commitments
         </h2>
         <p className="text-[15px] text-ink-muted leading-relaxed">
-          AI spending exploded from $26.4B in 2023 to over $1.7T in 2025 as frontier labs signed multi-gigawatt infrastructure contracts and Big Tech accelerated capex budgets.
+          AI spending ran at {formatBillions(firstYearAmount)} in {annualData[0]?.year} and peaked
+          at {formatTrillions(peakYear.amount)} in {peakYear.year}, as frontier labs signed
+          multi-gigawatt infrastructure contracts and Big Tech accelerated its hardware budgets.
         </p>
 
         {/* SVG Column Chart */}
@@ -300,12 +320,12 @@ export default function HowMuchIsBeingSpentOnAiPage() {
             Annual AI capital commitments 2023 to 2026
           </p>
           <p id="annual-chart-desc" className="sr-only">
-            Column chart showing $26.4B in 2023, $294.6B in 2024, $1.74T in 2025, and $812.5B in 2026 so far.
+            Column chart showing {annualData.map((d) => `${d.label} in ${d.year}`).join(", ")}.
           </p>
 
           <svg
             viewBox={`0 0 ${colSvgWidth} ${colSvgHeight}`}
-            className="w-full h-auto select-none"
+            className="w-full h-auto select-none min-w-[470px]"
             aria-hidden="true"
           >
             {annualData.map((d, i) => {
@@ -324,7 +344,7 @@ export default function HowMuchIsBeingSpentOnAiPage() {
                     width={barW}
                     height={barH}
                     rx={4}
-                    fill={d.year === 2025 ? "var(--c-accent)" : "var(--c-cat-navy)"}
+                    fill={d.year === peakYear.year ? "var(--c-accent)" : "var(--c-cat-navy)"}
                   />
 
                   {/* Value on top of bar */}
@@ -372,6 +392,10 @@ export default function HowMuchIsBeingSpentOnAiPage() {
             </tbody>
           </table>
         </div>
+        <p className="text-[13px] leading-relaxed text-ink-faint">
+          The {annualData[annualData.length - 1]?.year} figure is money committed so far this
+          year, not a full-year total.
+        </p>
       </section>
 
       {/* ── Section 3: The Biggest Disclosed Deals ───────────────────────────── */}
@@ -379,17 +403,18 @@ export default function HowMuchIsBeingSpentOnAiPage() {
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-rule pb-3">
           <div>
             <h2 id="top-deals-heading" className="text-lg font-bold tracking-tight text-ink">
-              The Largest Disclosed AI Transactions
+              The largest disclosed AI transactions
             </h2>
             <p className="mt-0.5 text-[14px] text-ink-muted">
-              The top 10 transactions represent over 60% of all disclosed capital in the ledger.
+              The ten largest transactions are {topDealsPct.toFixed(0)}% of all disclosed capital
+              in the ledger.
             </p>
           </div>
           <Link
             href="/ledger"
             className="inline-flex min-h-[44px] items-center gap-1 text-[13px] font-medium text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
           >
-            View all 169 deals
+            View all {totalDeals} deals
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
         </div>
@@ -433,25 +458,33 @@ export default function HowMuchIsBeingSpentOnAiPage() {
       {/* ── Section 4: Who Is Funding It? ───────────────────────────────────── */}
       <section aria-labelledby="funding-heading" className="panel p-5 space-y-3">
         <h2 id="funding-heading" className="text-lg font-bold tracking-tight text-ink">
-          Who Is Funding the Build-Out?
+          Who is funding the build-out?
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 text-[14px] leading-relaxed text-ink-muted">
           <div className="space-y-1">
-            <h3 className="font-semibold text-ink">1. Big-4 Hyperscalers</h3>
+            <h3 className="font-semibold text-ink">1. Big-4 Hyperscalers (Cloud Giants)</h3>
             <p>
-              Microsoft, Alphabet, Amazon, and Meta guide roughly $725B in 2026 capex. They fund the bulk of their chips and data center shells out of $260B in annual operating cash flows.
+              Microsoft, Alphabet, Amazon, and Meta guide roughly {formatBillions(big4CapexUsd)} in
+              2026 capex (capital expenditures on hardware and data center facilities). They fund
+              most of their chips and data center shells out of {formatBillions(big4FcfUsd)} in
+              annual operating cash flows.
             </p>
           </div>
           <div className="space-y-1">
             <h3 className="font-semibold text-ink">2. Private Credit &amp; Debt</h3>
             <p>
-              Companies like CoreWeave, Anthropic, and Oracle have raised $214.9B in debt facilities, asset-backed loans against GPU servers, and convertible notes from Blackstone, Magnetar, and Broadcom.
+              Companies like CoreWeave, Anthropic, and Oracle have raised {formatBillions(totalDebtUsd)}{" "}
+              in corporate debt, asset-backed loans against GPU servers (borrowing where processor
+              chips serve as collateral), and convertible notes from Blackstone, Magnetar, and
+              Broadcom.
             </p>
           </div>
           <div className="space-y-1">
             <h3 className="font-semibold text-ink">3. Equity &amp; Sovereign Funds</h3>
             <p>
-              Frontier labs like OpenAI and Anthropic have raised hundreds of billions in venture and sovereign rounds (SoftBank, MGX, Thrive) at valuations reaching $1.2T to $2.0T.
+              Frontier labs like OpenAI and Anthropic have raised hundreds of billions in venture
+              capital and sovereign wealth rounds (SoftBank, MGX, Thrive) at private valuation marks
+              reaching {formatTrillions(topLabValuation)} and {formatTrillions(secondLabValuation)}.
             </p>
           </div>
         </div>

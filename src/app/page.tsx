@@ -20,6 +20,12 @@ import { FactorContributionChart } from "@/components/home/FactorContributionCha
 import { marketImplied12mBand } from "@/lib/model/factors";
 import liveInputs from "@/data/live-inputs.json";
 import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
+import {
+  OPENAI_NAMED_DEALS,
+  OPENAI_NAMED_TOTAL_USD,
+  liveContracts,
+} from "@/components/answer-pages/answerData";
+import type { PlainAnswerEntry } from "@/components/home/AnswerBlock";
 
 interface TrajectoryPointLite {
   date?: string;
@@ -91,6 +97,53 @@ export default function HomePage() {
 
   const pricedFactors = result.contributions.filter((factor) => factor.reading.coverage > 0).length;
 
+  // ── The index of plain answers, each with its OWN headline number ────────
+  // Every figure below is computed from the ledger, the live model inputs or
+  // the live contract book — the same sources the answer pages use.
+  const ipoContract = liveContracts(["will-openai-ipo-by-december-31-2026"])[0];
+  const cpiPct = DEFAULT_MODEL_INPUTS.macro?.cpiInflationYoY ?? 0;
+  const tenYearPct = DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 0;
+  const big4Capex = DEFAULT_MODEL_INPUTS.capex?.aggregateCapexUsd ?? 0;
+  const big4Fcf = DEFAULT_MODEL_INPUTS.capex?.aggregateFcfUsd ?? 0;
+
+  const plainAnswers: PlainAnswerEntry[] = [
+    {
+      href: "/will-the-ai-bubble-burst",
+      question: "Will the AI bubble burst?",
+      answer: `${result.burstProbability.toFixed(1)}% chance within 12 months — what would change it`,
+    },
+    {
+      href: "/how-much-is-being-spent-on-ai",
+      question: "How much is being spent on AI?",
+      answer: `${trackedLabel} across ${totalDeals} verified filings`,
+    },
+    {
+      href: "/how-much-ai-debt-there-is",
+      question: "How much AI debt is there?",
+      answer: `${debtLabel} across ${debtDeals.length} loans, notes and credit lines`,
+    },
+    {
+      href: "/will-openai-ipo",
+      question: "Will OpenAI IPO in 2026?",
+      answer: `${(ipoContract?.probabilityPct ?? 0).toFixed(1)}% priced for 2026 — and what would change it`,
+    },
+    {
+      href: "/what-is-cpi-doing-to-ai",
+      question: "What is CPI doing to AI?",
+      answer: `CPI at ${cpiPct.toFixed(2)}%, 10-year yield at ${tenYearPct.toFixed(2)}%`,
+    },
+    {
+      href: "/who-is-funding-openai",
+      question: "Who is funding OpenAI?",
+      answer: `${formatBillions(OPENAI_NAMED_TOTAL_USD)} across ${OPENAI_NAMED_DEALS.length} named transactions`,
+    },
+    {
+      href: "/is-ai-spending-too-much",
+      question: "Is AI spending too much?",
+      answer: `${formatBillions(big4Capex)} of capex against ${formatBillions(big4Fcf)} of cash`,
+    },
+  ];
+
   return (
     <div className="space-y-10 sm:space-y-14">
       {/* ── 1 · The answer, above the fold (in plain English) ──────────────── */}
@@ -106,9 +159,23 @@ export default function HomePage() {
         debtDealsCount={debtDeals.length}
         pricedFactors={pricedFactors}
         totalFactors={result.contributions.length}
+        notThis={[
+          "It is not a certainty, market timing signal, or trading recommendation. It calculates statistical odds of an infrastructure correction from filed debt and corporate cash flows.",
+          "It does not predict that artificial intelligence technology is overhyped or unviable; it measures whether the current corporate borrowing and hardware build-out can sustain itself without defaults or severe cutbacks.",
+          "The published range beside it is an input-sensitivity range (showing how far the score shifts when interest rates or credit default swaps change), not a statistical confidence interval.",
+        ]}
+        plainAnswers={plainAnswers}
       />
 
-      {/* ── 1b · Why the print moved, and what this number is not ──────────── */}
+      {/* Leaderboard sits BELOW the answer — this page's promise is "the answer, above the fold" */}
+      <AdSlot placementId="home-leaderboard" />
+
+      {/* ── 1c · The history: the model on resolved episodes, and the money ── */}
+      <Reveal>
+        <HistorySection />
+      </Reveal>
+
+      {/* ── 1b · Why the print moved (it belongs with the machinery) ───────── */}
       <Reveal>
         <div className="panel space-y-4 rule-accent-left pl-4">
           <WhatChangedChart />
@@ -137,27 +204,7 @@ export default function HomePage() {
             </Link>
             .
           </p>
-          <p className="label pt-1">What {result.burstProbability.toFixed(1)}% is not</p>
-          <ul className="not-this-body space-y-1.5 text-[15px] leading-relaxed text-ink-muted">
-            <li>
-              It is not a certainty, market timing signal, or trading recommendation. It calculates statistical odds of an infrastructure correction from filed debt and corporate cash flows.
-            </li>
-            <li>
-              It does not predict that artificial intelligence technology is overhyped or unviable; it measures whether the current corporate borrowing and hardware build-out can sustain itself without defaults or severe cutbacks.
-            </li>
-            <li>
-              The published range beside it is an input-sensitivity range (showing how far the score shifts when interest rates or credit default swaps change), not a statistical confidence interval.
-            </li>
-          </ul>
         </div>
-      </Reveal>
-
-      {/* Leaderboard sits BELOW the answer — this page's promise is "the answer, above the fold" */}
-      <AdSlot placementId="home-leaderboard" />
-
-      {/* ── 1c · The history: the model on resolved episodes, and the money ── */}
-      <Reveal>
-        <HistorySection />
       </Reveal>
 
       {/* ── 2 · Demoted machinery: factor weights, composite scores & models ─ */}

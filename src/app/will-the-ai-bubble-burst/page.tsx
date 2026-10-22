@@ -1,31 +1,49 @@
 import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, AlertTriangle, TrendingUp, CheckCircle2 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
-import { BAND_LABEL, BAND_VERDICT, formatAsOf, factorPlain } from "@/components/home/copy";
+import { BAND_LABEL, BAND_VERDICT, formatAsOf, formatBillions, factorPlain } from "@/components/home/copy";
 import { AnswerPageLayout } from "@/components/answer-pages/AnswerPageLayout";
+import {
+  oneInN,
+  plainFactorReading,
+  probabilityShiftPts,
+  resolveContracts,
+} from "@/components/answer-pages/answerData";
 import { HistorySection } from "@/components/home/HistorySection";
 import trajectoryHistory from "@/data/trajectory-history.json";
-import rawLiveInputs from "@/data/live-inputs.json";
-import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
+import rawDeals from "@/data/deals.json";
 
-export const metadata: Metadata = {
-  title: "Will the AI bubble burst? — 12-month odds and risk score",
-  description:
-    "The 12-month chance of an AI bubble burst computed from $2.87T in spending, $214.9B in debt, and daily credit market data.",
-  openGraph: {
+/**
+ * The metadata numbers are computed from the ledger, exactly like the numbers on
+ * the page. A search snippet that says $2.87T must mean the same $2.87T the
+ * reader finds on the page.
+ */
+export function generateMetadata(): Metadata {
+  const trackedUsd = rawDeals.reduce((sum, d) => sum + (d.amount_usd || 0), 0);
+  const debtUsd = rawDeals
+    .filter((d) => d.is_debt)
+    .reduce((sum, d) => sum + (d.amount_usd || 0), 0);
+  const description = `The 12-month chance of an AI bubble burst, computed from the $${(
+    trackedUsd / 1e12
+  ).toFixed(2)}T in tracked AI spending, the $${(debtUsd / 1e9).toFixed(1)}B of AI debt, and daily credit market data.`;
+
+  return {
     title: "Will the AI bubble burst? — 12-month odds and risk score",
-    description:
-      "The 12-month chance of an AI bubble burst computed from $2.87T in spending, $214.9B in debt, and daily credit market data.",
-    url: "/will-the-ai-bubble-burst",
-    type: "article",
-    images: ["/opengraph-image.png"],
-  },
-  alternates: {
-    canonical: "/will-the-ai-bubble-burst",
-  },
-};
+    description,
+    openGraph: {
+      title: "Will the AI bubble burst? — 12-month odds and risk score",
+      description,
+      url: "/will-the-ai-bubble-burst",
+      type: "article",
+      images: ["/opengraph-image.png"],
+    },
+    alternates: {
+      canonical: "/will-the-ai-bubble-burst",
+    },
+  };
+}
 
 interface TrajectoryPointLite {
   date?: string;
@@ -39,30 +57,72 @@ export default function WillTheAiBubbleBurstPage() {
   const latestPoint = history[history.length - 1];
   const asOf = latestPoint?.date ? formatAsOf(latestPoint.date) : "21 Oct 2026";
 
-  const liveInputs = rawLiveInputs as unknown as {
-    crowd?: {
-      bubble2026Probability?: number;
-      bubble2027Probability?: number;
-      volumeUsd?: number;
-      markets?: { question: string; yesProbabilityPct: number; volumeUsd: number; referralUrl: string }[];
-    };
-  };
+  // Combined revenue run-rate across the tracked labs — summed from the model
+  // inputs, never typed, so the sensitivity table agrees with the spending page.
+  const labRunRateDisplay = formatBillions(
+    (DEFAULT_MODEL_INPUTS.valuations || []).reduce(
+      (sum, v) => sum + ((v.runRateRevenueUsd as number) || 0),
+      0,
+    ),
+  );
 
-  const crowd2027Pct = ((liveInputs?.crowd?.bubble2027Probability ?? 0.195) * 100);
-  const crowd2026Pct = ((liveInputs?.crowd?.bubble2026Probability ?? 0.0905) * 100);
+  // ── The tradeable contracts, priced from the live book ───────────────────
+  const polymarketContracts = resolveContracts([
+    "poly-bubble-2026",
+    "poly-bubble-2027",
+  ]);
 
-  const polymarketContracts = [
+  // ── The money behind the probability, computed from the model inputs ─────
+  const fcfUsd = DEFAULT_MODEL_INPUTS.capex?.aggregateFcfUsd ?? 0;
+  const debtUsd = DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 0;
+  const cdsBps = DEFAULT_MODEL_INPUTS.cds?.currentBps ?? 0;
+  const hyBps = DEFAULT_MODEL_INPUTS.macro?.highYieldSpreadBps ?? 0;
+  const us10yPct = DEFAULT_MODEL_INPUTS.macro?.us10yYieldPct ?? 0;
+
+  // ── The sensitivity table: the model is RE-RUN, never re-typed ───────────
+  const sensitivityRows = [
     {
-      question: "Will the AI bubble burst before June 2027?",
-      probabilityPct: crowd2027Pct,
-      volumeDisplay: `$${((liveInputs?.crowd?.volumeUsd ?? 9181369) / 1e6).toFixed(1)}M`,
-      url: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
+      shock: "Oracle debt insurance +50bp",
+      plain:
+        "The cost of insuring Oracle's debt against default rises by 0.50% (50 basis points — a hundredth of a percentage point).",
+      currentLevel: `${cdsBps}bp`,
+      currentPlain: `${(cdsBps / 100).toFixed(2)}% a year`,
+      shiftPts: probabilityShiftPts((i) => {
+        if (i.cds) i.cds.currentBps = i.cds.currentBps + 50;
+      }),
     },
     {
-      question: "Will the AI bubble burst before December 2026?",
-      probabilityPct: crowd2026Pct,
-      volumeDisplay: "$1.8M",
-      url: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
+      shock: "Junk-bond spread +50bp",
+      plain:
+        "Risky corporate loans ask 0.50% more than government bonds, which makes rolling over GPU-backed loans expensive.",
+      currentLevel: `${hyBps}bp`,
+      currentPlain: `${(hyBps / 100).toFixed(2)}% over Treasuries`,
+      shiftPts: probabilityShiftPts((i) => {
+        if (i.macro) i.macro.highYieldSpreadBps = (i.macro.highYieldSpreadBps ?? 0) + 50;
+      }),
+    },
+    {
+      shock: "10-year Treasury yield +50bp",
+      plain:
+        "Government 10-year borrowing costs rise 0.50%, which raises the discount rate applied to every future tech profit.",
+      currentLevel: `${us10yPct.toFixed(2)}%`,
+      currentPlain: `${us10yPct.toFixed(2)}% today`,
+      shiftPts: probabilityShiftPts((i) => {
+        if (i.macro) i.macro.us10yYieldPct = (i.macro.us10yYieldPct ?? 0) + 0.5;
+      }),
+    },
+    {
+      shock: "Lab revenue +20%",
+      plain:
+        "Annual revenue extrapolated from current sales rises 20% across the labs we track, which lowers what investors pay for each dollar of revenue.",
+      currentLevel: `~${labRunRateDisplay}`,
+      currentPlain: "combined annual run-rate",
+      shiftPts: probabilityShiftPts((i) => {
+        i.valuations = (i.valuations || []).map((v) => ({
+          ...v,
+          runRateRevenueUsd: ((v.runRateRevenueUsd as number) || 0) * 1.2,
+        }));
+      }),
     },
   ];
 
@@ -73,8 +133,11 @@ export default function WillTheAiBubbleBurstPage() {
   const padY = 24;
 
   const validPoints = history.filter((p) => typeof p.probability === "number" && p.date);
-  const minProb = 30.0;
-  const maxProb = 35.0;
+  // The axis is derived from the recorded prints, never typed, so a new print can
+  // never fall outside the frame (and no point is ever clipped).
+  const observedProbs = validPoints.map((p) => p.probability as number);
+  const minProb = observedProbs.length ? Math.floor((Math.min(...observedProbs) - 1) * 10) / 10 : 0;
+  const maxProb = observedProbs.length ? Math.ceil((Math.max(...observedProbs) + 1) * 10) / 10 : 100;
   const rangeProb = maxProb - minProb || 1;
 
   const getX = (idx: number) =>
@@ -94,27 +157,25 @@ export default function WillTheAiBubbleBurstPage() {
       question="Will the AI bubble burst?"
       categoryLabel="12-Month Outlook"
       asOf={asOf}
-      answerLead={`The model calculates a ${result.burstProbability.toFixed(1)}% probability that the artificial intelligence infrastructure boom suffers a sharp contraction or debt crisis within the next 12 months, placing the current risk in the ${BAND_LABEL[result.band].toLowerCase()} category.`}
-      answerContext={`In plain English: ${BAND_VERDICT[result.band]} Tech giants like Microsoft, Alphabet, and Amazon have deep pockets and generated $260B in free cash flow, which cushions the spending. However, $214.9B of borrowed debt and historic startup valuations leave little margin for error if real enterprise adoption slows.`}
+      answerLead={`${result.burstProbability.toFixed(1)}% — ${oneInN(result.burstProbability)} — that the AI build-out suffers a sharp contraction or credit crisis within the next 12 months. The model calls that ${BAND_LABEL[result.band]}: real risk, not the base case.`}
+      answerContext={`In plain English: cash flow still covers most of the spending. Microsoft, Alphabet, Amazon and Meta earn about ${formatBillions(fcfUsd)} a year from their existing businesses, which pays for a lot of the build-out. But ${formatBillions(debtUsd)} of borrowed debt and very high private valuations leave little room for error if companies slow their spending.`}
       polymarketContracts={polymarketContracts}
       notThisItems={[
-        "It is not a certainty, market-timing signal, or stock-picking forecast. It calculates the statistical odds of an infrastructure correction from corporate debt and cash flow filings.",
+        "It is not a certainty, a market-timing signal, or a stock-picking forecast. It calculates the statistical odds of an infrastructure correction from corporate debt and cash-flow filings.",
         "It is not an argument that artificial intelligence technology is useless or a fad; it measures whether the current corporate borrowing and hardware build-out can sustain itself without defaults or severe cutbacks.",
         "The published range is an input-sensitivity range (showing how far the score shifts when interest rates or credit default swaps change), not a statistical confidence interval.",
+        "It is not a prediction of when a crash happens. It prices the chance that one happens inside 12 months, and it does not know which company or which lender would fail first.",
       ]}
     >
-      {/* ── The history: the model on resolved episodes, and the money ───── */}
-      <HistorySection />
-
-      {/* ── Section 1: Probability Trajectory ───────────────────────────────── */}
+      {/* ── Section 1: The trajectory — where the print sits today ─────────── */}
       <section aria-labelledby="trajectory-heading" className="card space-y-4 shadow-card">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-rule pb-3">
           <div>
             <h2 id="trajectory-heading" className="text-lg font-bold tracking-tight text-ink">
-              90-Day Trajectory: Where the Odds Sit
+              Where the odds sit today
             </h2>
             <p className="mt-0.5 text-[14px] text-ink-muted">
-              Observed daily canonical prints from filed filings and daily credit spreads.
+              The model&rsquo;s own daily prints, read from filed filings and daily credit data.
             </p>
           </div>
           <span className="num font-mono text-[17px] font-bold text-accent-strong dark:text-accent-ink">
@@ -138,24 +199,24 @@ export default function WillTheAiBubbleBurstPage() {
 
           <svg
             viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-            className="w-full h-auto select-none overflow-visible"
+            className="w-full h-auto select-none min-w-[560px] overflow-visible"
             aria-hidden="true"
           >
             {/* Horizontal grid lines */}
             <line
               x1={padX}
-              y1={getY(31.0)}
+              y1={getY(minProb + rangeProb / 3)}
               x2={svgWidth - padX}
-              y2={getY(31.0)}
+              y2={getY(minProb + rangeProb / 3)}
               stroke="rgb(var(--c-rule))"
               strokeDasharray="2 3"
               strokeWidth="1"
             />
             <line
               x1={padX}
-              y1={getY(33.0)}
+              y1={getY(minProb + (2 * rangeProb) / 3)}
               x2={svgWidth - padX}
-              y2={getY(33.0)}
+              y2={getY(minProb + (2 * rangeProb) / 3)}
               stroke="rgb(var(--c-rule))"
               strokeDasharray="2 3"
               strokeWidth="1"
@@ -191,7 +252,7 @@ export default function WillTheAiBubbleBurstPage() {
                     x={cx}
                     y={cy - 10}
                     textAnchor="middle"
-                    className="num font-mono text-[12px] font-bold fill-ink"
+                    className="num font-mono text-[13px] font-bold fill-ink"
                   >
                     {pt.probability?.toFixed(1)}%
                   </text>
@@ -199,7 +260,7 @@ export default function WillTheAiBubbleBurstPage() {
                     x={cx}
                     y={svgHeight - 4}
                     textAnchor="middle"
-                    className="num text-[12px] fill-ink-faint"
+                    className="num text-[13px] fill-ink-faint"
                   >
                     {pt.date?.slice(5)}
                   </text>
@@ -237,27 +298,31 @@ export default function WillTheAiBubbleBurstPage() {
       <section aria-labelledby="factors-heading" className="space-y-4">
         <div>
           <h2 id="factors-heading" className="text-xl font-bold tracking-tight text-ink sm:text-2xl">
-            What Would Change the Answer: The 9 Factors Explained
+            What would change the answer
           </h2>
           <p className="mt-1 text-[15px] leading-relaxed text-ink-muted">
-            The model does not rely on intuition. It tracks 8 financial risk factors that push the score up and 1 adoption damper that pulls it down. Here is what each factor measures in plain English:
+            The model does not rely on intuition. It tracks {riskFactors.length} financial risk
+            factors that push the score up and one adoption damper that pulls it down. Here is what
+            each one measures, in plain English:
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {riskFactors.map((factor) => {
             const { short, gloss } = factorPlain(factor.id);
+            const plain = plainFactorReading(factor.id, factor.reading.reading);
             return (
               <div key={factor.id} className="card p-4 space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[15px] font-bold text-ink">{factor.label}</span>
+                  <span className="text-[15px] font-bold text-ink">{short}</span>
                   <span className="chip chip-risk num font-semibold">
                     +{factor.earnedPoints.toFixed(1)} pts
                   </span>
                 </div>
                 <p className="text-[14px] font-medium text-ink-muted">{gloss}</p>
+                <p className="text-[14px] leading-relaxed text-ink-muted">{plain.text}</p>
                 <p className="num text-[13px] text-ink-subtle leading-snug">
-                  Current reading: {factor.reading.reading}
+                  Model reading: {plain.technical}
                 </p>
                 <div className="border-t border-rule pt-2 text-[13px] text-ink-faint">
                   Weight: {factor.weightPct}% of model &middot;{" "}
@@ -272,19 +337,24 @@ export default function WillTheAiBubbleBurstPage() {
           {damperFactor && (
             <div className="card p-4 space-y-2 border-l-2 border-l-safe-500">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[15px] font-bold text-ink">{damperFactor.label}</span>
+                <span className="text-[15px] font-bold text-ink">
+                  {factorPlain(damperFactor.id).short}
+                </span>
                 <span className="chip chip-safe num font-semibold">
                   &minus;{Math.abs(damperFactor.earnedPoints).toFixed(1)} pts
                 </span>
               </div>
               <p className="text-[14px] font-medium text-ink-muted">
-                Real customer use, token cost declines, and controlled model training costs knock points OFF the score.
+                Real customer use, token cost declines, and controlled model training costs knock
+                points OFF the score.
               </p>
-              <p className="num text-[13px] text-ink-subtle leading-snug">
-                Current reading: {damperFactor.reading.reading}
+              <p className="text-[14px] leading-relaxed text-ink-muted">
+                {plainFactorReading(damperFactor.id, damperFactor.reading.reading).text}
               </p>
               <div className="border-t border-rule pt-2 text-[13px] text-ink-faint">
-                Subtracts up to {damperFactor.weightPct} composite points when adoption outpaces capex.
+                Subtracts up to {damperFactor.weightPct} points on the 0&ndash;100 risk scale when
+                real customer adoption outpaces capex (capital expenditures on hardware and data
+                center construction).
               </div>
             </div>
           )}
@@ -294,10 +364,12 @@ export default function WillTheAiBubbleBurstPage() {
       {/* ── Section 3: Sensitivity Table: What Moves the Odds ───────────────── */}
       <section aria-labelledby="sensitivity-heading" className="card p-5 space-y-4 shadow-card">
         <h2 id="sensitivity-heading" className="text-lg font-bold tracking-tight text-ink">
-          How Sensitive Is the Probability to Real-World Shocks?
+          How sensitive is the probability to a real-world shock?
         </h2>
         <p className="text-[15px] text-ink-muted leading-relaxed">
-          Because the model is non-linear, a 50-basis-point move in credit costs or a 20% shift in revenue moves the probability by different amounts depending on the current baseline:
+          Each row below is the same model, re-run with one input moved and nothing else changed.
+          The shock is not linear, so a 50 basis point move in credit costs (a hundredth of a
+          percentage point) does not move the odds by a fixed amount.
         </p>
 
         <div className="overflow-x-auto">
@@ -307,65 +379,48 @@ export default function WillTheAiBubbleBurstPage() {
             </caption>
             <thead>
               <tr className="border-b border-rule text-ink-subtle">
-                <th scope="col" className="py-2.5 pr-4 font-semibold">Indicator &amp; Shock</th>
-                <th scope="col" className="py-2.5 pr-4 font-semibold">Current Level</th>
-                <th scope="col" className="py-2.5 pr-4 font-semibold">Impact on Score</th>
-                <th scope="col" className="py-2.5 font-semibold">What It Means</th>
+                <th scope="col" className="py-2.5 pr-4 font-semibold">Shock</th>
+                <th scope="col" className="py-2.5 pr-4 font-semibold">Level today</th>
+                <th scope="col" className="py-2.5 pr-4 font-semibold">Change in odds</th>
+                <th scope="col" className="py-2.5 font-semibold">What it means</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-rule font-tabular">
-              <tr className="hover:bg-surface-2 transition-colors">
-                <th scope="row" className="py-3 pr-4 font-medium text-ink">
-                  Oracle 5Y CDS (+50bp)
-                </th>
-                <td className="py-3 pr-4 num text-ink-muted">288bp</td>
-                <td className="py-3 pr-4 num font-semibold text-risk-600 dark:text-risk-400">
-                  +3.8% probability
-                </td>
-                <td className="py-3 text-ink-muted text-[13px]">
-                  Higher debt insurance costs for the primary AI anchor raise funding pressure immediately.
-                </td>
-              </tr>
-              <tr className="hover:bg-surface-2 transition-colors">
-                <th scope="row" className="py-3 pr-4 font-medium text-ink">
-                  High-Yield OAS (+50bp)
-                </th>
-                <td className="py-3 pr-4 num text-ink-muted">323bp</td>
-                <td className="py-3 pr-4 num font-semibold text-risk-600 dark:text-risk-400">
-                  +1.2% probability
-                </td>
-                <td className="py-3 text-ink-muted text-[13px]">
-                  Widening spreads make it expensive for second-tier cloud providers to roll over loans.
-                </td>
-              </tr>
-              <tr className="hover:bg-surface-2 transition-colors">
-                <th scope="row" className="py-3 pr-4 font-medium text-ink">
-                  US 10-Year Yield (+50bp)
-                </th>
-                <td className="py-3 pr-4 num text-ink-muted">5.10%</td>
-                <td className="py-3 pr-4 num font-semibold text-risk-600 dark:text-risk-400">
-                  +0.8% probability
-                </td>
-                <td className="py-3 text-ink-muted text-[13px]">
-                  Higher risk-free benchmark discount rates compress long-duration tech valuations.
-                </td>
-              </tr>
-              <tr className="hover:bg-surface-2 transition-colors">
-                <th scope="row" className="py-3 pr-4 font-medium text-ink">
-                  Lab Revenue (+20%)
-                </th>
-                <td className="py-3 pr-4 num text-ink-muted">~$125B run-rate</td>
-                <td className="py-3 pr-4 num font-semibold text-safe-600 dark:text-safe-400">
-                  &minus;2.1% probability
-                </td>
-                <td className="py-3 text-ink-muted text-[13px]">
-                  Real commercial software revenue growth compresses valuation multiples safely.
-                </td>
-              </tr>
+              {sensitivityRows.map((row) => (
+                <tr key={row.shock} className="hover:bg-surface-2 transition-colors">
+                  <th scope="row" className="py-3 pr-4 font-medium text-ink">
+                    {row.shock}
+                  </th>
+                  <td className="py-3 pr-4 num text-ink-muted">
+                    {row.currentLevel}
+                    <span className="block text-[13px] font-sans text-ink-faint">
+                      {row.currentPlain}
+                    </span>
+                  </td>
+                  <td
+                    className={`py-3 pr-4 num font-semibold ${
+                      row.shiftPts >= 0
+                        ? "text-risk-600 dark:text-risk-400"
+                        : "text-safe-600 dark:text-safe-400"
+                    }`}
+                  >
+                    {row.shiftPts >= 0 ? "+" : ""}
+                    {row.shiftPts.toFixed(1)} pts
+                  </td>
+                  <td className="py-3 text-ink-muted text-[13px]">{row.plain}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
+        <p className="text-[13px] leading-relaxed text-ink-faint">
+          A point here is one percentage point of the 12-month probability, not one point of the
+          0&ndash;100 risk score behind it.
+        </p>
       </section>
+
+      {/* ── Section 4: The history — the model on resolved episodes ─────────── */}
+      <HistorySection />
     </AnswerPageLayout>
   );
 }

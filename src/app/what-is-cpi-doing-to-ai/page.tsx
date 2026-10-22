@@ -1,29 +1,40 @@
 import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, TrendingUp, AlertTriangle, ShieldCheck, Percent, DollarSign, Activity } from "lucide-react";
+import { ArrowRight, Percent, DollarSign, Activity, TrendingUp } from "lucide-react";
 import { AnswerPageLayout } from "@/components/answer-pages/AnswerPageLayout";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import { formatBillions, formatAsOf } from "@/components/home/copy";
+import {
+  macroRampLegs,
+  parseLegNumber,
+  resolveContracts,
+} from "@/components/answer-pages/answerData";
 import trajectoryHistory from "@/data/trajectory-history.json";
-import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 
-export const metadata: Metadata = {
-  title: "What is CPI doing to AI?",
-  description:
-    "CPI inflation at 3.72% keeps Treasury yields at 5.10%, increasing borrowing costs on $214.9B in debt and driving 12% of the AI risk model.",
-  openGraph: {
+/** The macro numbers in the metadata are the live FRED prints. */
+export function generateMetadata(): Metadata {
+  const macro = DEFAULT_MODEL_INPUTS.macro;
+  const debtUsd = DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 0;
+  const description = `CPI inflation at ${(macro?.cpiInflationYoY ?? 0).toFixed(2)}% keeps Treasury yields at ${(
+    macro?.us10yYieldPct ?? 0
+  ).toFixed(2)}%, increasing borrowing costs on $${(debtUsd / 1e9).toFixed(1)}B in debt and driving the model's largest single risk factor.`;
+
+  return {
     title: "What is CPI doing to AI?",
-    description:
-      "CPI inflation at 3.72% keeps Treasury yields at 5.10%, increasing borrowing costs on $214.9B in debt and driving 12% of the AI risk model.",
-    url: "/what-is-cpi-doing-to-ai",
-    type: "article",
-    images: ["/opengraph-image.png"],
-  },
-  alternates: {
-    canonical: "/what-is-cpi-doing-to-ai",
-  },
-};
+    description,
+    openGraph: {
+      title: "What is CPI doing to AI?",
+      description,
+      url: "/what-is-cpi-doing-to-ai",
+      type: "article",
+      images: ["/opengraph-image.png"],
+    },
+    alternates: {
+      canonical: "/what-is-cpi-doing-to-ai",
+    },
+  };
+}
 
 interface TrajectoryPointLite {
   date?: string;
@@ -36,50 +47,95 @@ export default function WhatIsCpiDoingToAiPage() {
   const asOf = latestPoint?.date ? formatAsOf(latestPoint.date) : "21 Oct 2026";
 
   const macro = DEFAULT_MODEL_INPUTS.macro ?? {
-    us10yYieldPct: 5.10,
-    us10yBaselinePct: 3.75,
-    cpiInflationYoY: 3.72,
-    realYield10y: 2.75,
-    fedFundsRatePct: 3.75,
-    highYieldSpreadBps: 323,
-    note: "FRED St. Louis Verified",
+    us10yYieldPct: 0,
+    us10yBaselinePct: 0,
+    cpiInflationYoY: 0,
+    realYield10y: 0,
+    fedFundsRatePct: 0,
+    highYieldSpreadBps: 0,
+    note: "",
   };
 
-  const totalDebtUsd = DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 214_890_400_000;
+  const totalDebtUsd = DEFAULT_MODEL_INPUTS.aiDebt?.totalTrackedDebtUsd ?? 0;
   const totalDebtDisplay = formatBillions(totalDebtUsd);
 
   // Model contribution for interest rates & macro
   const macroFactor = result.contributions.find((c) => c.id === "macro_rates");
-  const macroWeightPct = macroFactor?.weightPct ?? 12;
-  const macroEarnedPoints = macroFactor?.earnedPoints ?? 8.4;
+  const macroWeightPct = macroFactor?.weightPct ?? 0;
+  const macroEarnedPoints = macroFactor?.earnedPoints ?? 0;
+  const macroIsTopDriver = result.topDriverIds[0] === "macro_rates";
 
-  const polymarketContracts = [
-    {
-      question: "Will the US declare an economic recession before end of 2026?",
-      probabilityPct: 7.0,
-      volumeDisplay: "$2.3M",
-      url: `https://polymarket.com/event/us-recession-by-end-of-2026?r=${POLYMARKET_REFERRAL_CODE}`,
-    },
-    {
-      question: "Will the AI bubble burst before June 2027?",
-      probabilityPct: 19.5,
-      volumeDisplay: "$9.2M",
-      url: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
-    },
-    {
-      question: "Will Oracle 5Y CDS trade above 250 bps before December 31, 2026?",
-      probabilityPct: 38.0,
-      volumeDisplay: "$1.4M",
-      url: `https://polymarket.com/event/oracle-debt-ai-capex-stress?r=${POLYMARKET_REFERRAL_CODE}`,
-    },
-  ];
+  const polymarketContracts = resolveContracts([
+    "poly-us-recession-2026",
+    "poly-bubble-2027",
+  ]);
 
-  // Interest rate sensitivity computations
+  // ── The four legs of the macro factor ────────────────────────────────────
+  // The sub-weights and the ramp bounds are read out of the factor's own
+  // published formula, so this page can never drift from the engine.
+  const legMeta: Record<
+    string,
+    { plain: string; measures: string; current: number; currentLabel: string }
+  > = {
+    "US10Y": {
+      plain: "10-year government bond yield",
+      measures:
+        "What the government pays to borrow for ten years. Every risky loan in the economy is priced against it.",
+      current: macro.us10yYieldPct,
+      currentLabel: `${macro.us10yYieldPct.toFixed(2)}%`,
+    },
+    "CPI YoY": {
+      plain: "Consumer price inflation",
+      measures:
+        "How fast the prices households pay are rising, year on year. It is what the central bank is trying to bring down.",
+      current: macro.cpiInflationYoY,
+      currentLabel: `+${macro.cpiInflationYoY.toFixed(2)}%`,
+    },
+    "Real Yield": {
+      plain: "10-year inflation-protected yield",
+      measures:
+        "The return an investor actually keeps after inflation, measured on TIPS — government bonds whose payments rise with prices.",
+      current: macro.realYield10y,
+      currentLabel: `+${macro.realYield10y.toFixed(2)}%`,
+    },
+    "HY Spread": {
+      plain: "Junk bond spread",
+      measures:
+        "The extra interest a risky corporate borrower pays over government bonds. A wider spread means lenders think default is more likely.",
+      current: macro.highYieldSpreadBps ?? 0,
+      currentLabel: `${macro.highYieldSpreadBps ?? 0}bp`,
+    },
+  };
+
+  const legs = macroRampLegs()
+    .map((leg) => {
+      const meta = legMeta[leg.name];
+      const low = parseLegNumber(leg.low);
+      const high = parseLegNumber(leg.high);
+      const current = meta?.current ?? low;
+      const span = high - low;
+      const positionPct =
+        span > 0 ? Math.min(100, Math.max(0, ((current - low) / span) * 100)) : 0;
+      return {
+        name: leg.name,
+        plain: meta?.plain ?? leg.name,
+        measures: meta?.measures ?? "",
+        weightPct: Math.round(leg.weight),
+        lowLabel: leg.low,
+        highLabel: leg.high,
+        currentLabel: meta?.currentLabel ?? String(current),
+        positionPct,
+      };
+    })
+    .filter((leg) => leg.plain);
+
+  // ── Interest rate scenarios ──────────────────────────────────────────────
+  const currentYieldPct = macro.us10yYieldPct;
   const rateScenarios = [
     { ratePct: 3.0, label: "3.0% (Historical Low)", desc: "Zero-rate era benchmark before 2022 inflation shock" },
-    { ratePct: 5.0, label: "5.0% (Current Prime / IG)", desc: "Current investment-grade coupon baseline for tech anchors" },
+    { ratePct: 5.0, label: "5.0% (Investment-Grade Baseline)", desc: "Typical coupon for a large, credit-worthy borrower" },
     { ratePct: 7.0, label: "7.0% (Neocloud & Private Debt)", desc: "Private credit facilities collateralized by GPU clusters" },
-    { ratePct: 9.0, label: "9.0% (Distressed Refinancing)", desc: "Stress rollover rate if credit spreads widen by 200bp" },
+    { ratePct: 9.0, label: "9.0% (Distressed Refinancing)", desc: "Stress rollover rate if credit spreads widen by 200 basis points" },
   ];
 
   return (
@@ -87,13 +143,22 @@ export default function WhatIsCpiDoingToAiPage() {
       question="What is CPI doing to AI?"
       categoryLabel="Macro & Inflation"
       asOf={asOf}
-      answerLead={`Headline Consumer Price Index (CPI) inflation—currently running at ${macro.cpiInflationYoY.toFixed(2)}% year-over-year—forces benchmark 10-year Treasury yields to remain elevated at ${macro.us10yYieldPct.toFixed(2)}%, directly increasing annual interest burdens across ${totalDebtDisplay} in AI corporate debt and accounting for ${macroWeightPct}% of our model's risk score.`}
+      answerLead={`Consumer price inflation — CPI, the average rise in the prices households pay — is running at ${macro.cpiInflationYoY.toFixed(
+        2,
+      )}% a year, which is holding the 10-year government bond yield at ${macro.us10yYieldPct.toFixed(
+        2,
+      )}%. That makes the ${totalDebtDisplay} of AI debt more expensive to carry${
+        macroIsTopDriver
+          ? ", and it is the single largest contributor to today's risk score"
+          : ""
+      }.`}
       answerContext={`When inflation stays above the Federal Reserve's 2.0% target, central bankers cannot cut interest rates aggressively. Because AI data centers require hundreds of billions of dollars upfront with payoff windows 3 to 7 years in the future, high interest rates raise the cost of borrowed money and compress long-dated tech equity valuations.`}
       polymarketContracts={polymarketContracts}
       notThisItems={[
         "It is not a forecast of the next monthly BLS Consumer Price Index release or an editorial opinion on Federal Reserve monetary policy.",
         "It does not claim AI software is incapable of generating productivity gains; it measures the financial drag that higher bond yields impose on capital-intensive hardware construction.",
         "It is not an equity market-timing indicator; it evaluates how persistent inflation transmits through credit default swaps and corporate bond coupons.",
+        "It does not say inflation is what will break the AI build-out. It is one of nine factors, and the model prints how many points each one contributes.",
       ]}
     >
       {/* ── Key Metrics Summary Tiles ───────────────────────────────────────── */}
@@ -110,21 +175,25 @@ export default function WhatIsCpiDoingToAiPage() {
           <p className="num text-2xl font-bold text-ink">
             {macro.us10yYieldPct.toFixed(2)}%
           </p>
-          <span className="text-[13px] text-ink-subtle">vs. {macro.us10yBaselinePct.toFixed(2)}% baseline</span>
+          <span className="text-[13px] text-ink-subtle">
+            vs. {macro.us10yBaselinePct.toFixed(2)}% baseline
+          </span>
         </div>
         <div className="card p-4 space-y-1">
           <span className="label">10-Year Real Yield</span>
           <p className="num text-2xl font-bold text-ink">
             +{macro.realYield10y.toFixed(2)}%
           </p>
-          <span className="text-[13px] text-ink-subtle">TIPS benchmark hurdle</span>
+          <span className="text-[13px] text-ink-subtle">TIPS (inflation-protected bond) hurdle</span>
         </div>
         <div className="card p-4 space-y-1">
           <span className="label">Factor Contribution</span>
           <p className="num text-2xl font-bold text-accent-strong dark:text-accent-ink">
             +{macroEarnedPoints.toFixed(1)} pts
           </p>
-          <span className="text-[13px] text-ink-subtle">{macroWeightPct}% of bubble model</span>
+          <span className="text-[13px] text-ink-subtle">
+            {macroWeightPct}% of bubble model
+          </span>
         </div>
       </div>
 
@@ -133,7 +202,7 @@ export default function WhatIsCpiDoingToAiPage() {
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-rule pb-3">
           <div>
             <h2 id="transmission-heading" className="text-lg font-bold tracking-tight text-ink">
-              The Transmission Chain: How Inflation Hits AI
+              The transmission chain: how inflation reaches AI
             </h2>
             <p className="mt-0.5 text-[14px] text-ink-muted">
               Why consumer price inflation directly impacts chip orders and data center loans.
@@ -155,9 +224,12 @@ export default function WhatIsCpiDoingToAiPage() {
               <span className="num font-bold text-[13px] text-risk-600 dark:text-risk-400">Step 1</span>
               <Percent className="h-4 w-4 text-risk-500" aria-hidden="true" />
             </div>
-            <h3 className="font-semibold text-ink text-[14px]">High CPI Print (+3.72%)</h3>
+            <h3 className="font-semibold text-ink text-[14px]">
+              High CPI print (+{macro.cpiInflationYoY.toFixed(2)}%)
+            </h3>
             <p className="text-[13px] text-ink-muted leading-relaxed">
-              Elevated inflation prevents the Federal Reserve from slashing interest rates back to zero or low neutral levels.
+              Elevated inflation prevents the Federal Reserve from slashing interest rates back to
+              zero or low neutral levels.
             </p>
           </div>
 
@@ -166,9 +238,12 @@ export default function WhatIsCpiDoingToAiPage() {
               <span className="num font-bold text-[13px] text-caution-600 dark:text-caution-400">Step 2</span>
               <Activity className="h-4 w-4 text-caution-500" aria-hidden="true" />
             </div>
-            <h3 className="font-semibold text-ink text-[14px]">Bond Yields Stay High (5.10%)</h3>
+            <h3 className="font-semibold text-ink text-[14px]">
+              Bond yields stay high ({macro.us10yYieldPct.toFixed(2)}%)
+            </h3>
             <p className="text-[13px] text-ink-muted leading-relaxed">
-              Investors demand higher yields on Treasuries, raising benchmark discount rates across all risk assets.
+              Investors demand higher yields on Treasuries, raising benchmark discount rates across
+              all risk assets.
             </p>
           </div>
 
@@ -177,9 +252,10 @@ export default function WhatIsCpiDoingToAiPage() {
               <span className="num font-bold text-[13px] text-ink">Step 3</span>
               <DollarSign className="h-4 w-4 text-ink-muted" aria-hidden="true" />
             </div>
-            <h3 className="font-semibold text-ink text-[14px]">Debt Service Expands</h3>
+            <h3 className="font-semibold text-ink text-[14px]">Debt service expands</h3>
             <p className="text-[13px] text-ink-muted leading-relaxed">
-              Borrowing on {totalDebtDisplay} in AI debt requires billions in higher annual interest payments instead of chip R&amp;D.
+              Borrowing on {totalDebtDisplay} in AI debt requires billions in higher annual interest
+              payments instead of chip R&amp;D.
             </p>
           </div>
 
@@ -188,9 +264,11 @@ export default function WhatIsCpiDoingToAiPage() {
               <span className="num font-bold text-[13px] text-accent-strong dark:text-accent-ink">Step 4</span>
               <TrendingUp className="h-4 w-4 text-accent-strong dark:text-accent-ink" aria-hidden="true" />
             </div>
-            <h3 className="font-semibold text-ink text-[14px]">Valuations Compress</h3>
+            <h3 className="font-semibold text-ink text-[14px]">Valuations compress</h3>
             <p className="text-[13px] text-ink-muted leading-relaxed">
-              Higher discount rates shrink price-to-sales multiples from 50× to 24×, raising equity dilution for startup funding.
+              Higher discount rates shrink what investors pay for each dollar of a lab&rsquo;s
+              revenue &mdash; the price-to-sales multiple &mdash; which raises the cost of the
+              equity startups raise to build the same thing.
             </p>
           </div>
         </div>
@@ -200,17 +278,19 @@ export default function WhatIsCpiDoingToAiPage() {
       <section aria-labelledby="sensitivity-heading" className="card p-5 space-y-4 shadow-card">
         <div className="border-b border-rule pb-3">
           <h2 id="sensitivity-heading" className="text-lg font-bold tracking-tight text-ink">
-            The Interest Drag: Annual Debt Service at Different Rates
+            The interest drag: annual debt service at different rates
           </h2>
           <p className="mt-0.5 text-[14px] text-ink-muted">
-            Annual interest expense calculated dynamically against the verified {totalDebtDisplay} corporate debt stock.
+            Annual interest expense calculated dynamically against the verified{" "}
+            {totalDebtDisplay} corporate debt stock.
           </p>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-[14px]">
             <caption className="sr-only">
-              Annual interest payment burden on {totalDebtDisplay} in AI corporate debt across four interest rate scenarios
+              Annual interest payment burden on {totalDebtDisplay} in AI corporate debt across four
+              interest rate scenarios
             </caption>
             <thead>
               <tr className="border-b border-rule text-ink-subtle">
@@ -223,85 +303,92 @@ export default function WhatIsCpiDoingToAiPage() {
             <tbody className="divide-y divide-rule font-tabular">
               {rateScenarios.map((sc) => {
                 const annualInterestUsd = totalDebtUsd * (sc.ratePct / 100);
-                const isBaseline = sc.ratePct === 5.0;
+                const isBaseline = Math.abs(sc.ratePct - currentYieldPct) < 0.25;
 
                 return (
                   <tr
                     key={sc.ratePct}
                     className={`hover:bg-surface-2 transition-colors ${isBaseline ? "bg-surface-2" : ""}`}
                   >
-                    <th scope="row" className={`py-3 pr-4 font-medium ${isBaseline ? "font-bold text-ink" : "text-ink"}`}>
+                    <th
+                      scope="row"
+                      className={`py-3 pr-4 font-medium ${isBaseline ? "font-bold text-ink" : "text-ink"}`}
+                    >
                       {sc.label}
+                      {isBaseline && (
+                        <span className="block text-[13px] font-normal text-ink-subtle">
+                          Closest to today&rsquo;s {currentYieldPct.toFixed(2)}% 10-year yield
+                        </span>
+                      )}
                     </th>
                     <td className="py-3 pr-4 num text-right text-ink-muted font-mono font-semibold">
                       {sc.ratePct.toFixed(1)}%
                     </td>
-                    <td className={`py-3 pr-4 num text-right font-mono font-bold ${isBaseline ? "text-accent-strong dark:text-accent-ink" : "text-ink"}`}>
+                    <td
+                      className={`py-3 pr-4 num text-right font-mono font-bold ${
+                        isBaseline ? "text-accent-strong dark:text-accent-ink" : "text-ink"
+                      }`}
+                    >
                       {formatBillions(annualInterestUsd)}/yr
                     </td>
-                    <td className="py-3 text-[13px] text-ink-muted">
-                      {sc.desc}
-                    </td>
+                    <td className="py-3 text-[13px] text-ink-muted">{sc.desc}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
+        <p className="text-[13px] leading-relaxed text-ink-faint">
+          This is the interest bill if the whole {totalDebtDisplay} refinanced at once. In practice
+          only the maturing tranches reprice each year.
+        </p>
       </section>
 
       {/* ── Section 3: The Model's Factor Weight Breakdown ──────────────────── */}
       <section aria-labelledby="weights-heading" className="panel p-5 space-y-4 rule-accent-left">
         <div>
           <h2 id="weights-heading" className="text-lg font-bold tracking-tight text-ink">
-            How the Model Scores Macro Rates (Factor Weight: {macroWeightPct}%)
+            How the model scores macro rates (factor weight: {macroWeightPct}%)
           </h2>
           <p className="mt-1 text-[15px] leading-relaxed text-ink-muted">
-            The model does not rely on subjective economic forecasts. Factor <code className="font-mono text-ink">macro_rates</code> evaluates four objective market indicators to produce its {macroEarnedPoints.toFixed(1)} point contribution:
+            The model does not rely on subjective economic forecasts. The macro factor weighs{" "}
+            {legs.length} objective market indicators to produce its{" "}
+            {macroEarnedPoints.toFixed(1)} point contribution. Each indicator counts up as it moves
+            from its calm level to its stress level:
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 text-[14px]">
-          <div className="card p-3.5 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-ink">1. 10-Year US Treasury Yield</span>
-              <span className="chip chip-steel text-[13px]">40% sub-weight</span>
+          {legs.map((leg) => (
+            <div key={leg.name} className="card p-3.5 space-y-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-semibold text-ink">{leg.plain}</span>
+                <span className="chip chip-steel num text-[13px]">
+                  {leg.weightPct}% of the factor
+                </span>
+              </div>
+              <p className="text-[13px] text-ink-muted leading-relaxed">{leg.measures}</p>
+              <p className="num text-[13px] text-ink-muted">
+                Today: <strong className="text-ink">{leg.currentLabel}</strong> &middot; counts from{" "}
+                {leg.lowLabel} (calm) to {leg.highLabel} (full stress)
+              </p>
+              <div className="h-1.5 w-full bg-surface-3" aria-hidden="true">
+                <div
+                  className="h-full bg-caution-600"
+                  style={{ width: `${leg.positionPct.toFixed(1)}%` }}
+                />
+              </div>
+              <p className="num text-[12px] text-ink-faint">
+                {leg.positionPct.toFixed(0)}% of the way from calm to full stress
+              </p>
             </div>
-            <p className="num text-ink-muted">
-              Current reading: <strong className="text-ink">{macro.us10yYieldPct.toFixed(2)}%</strong> (ramps from {macro.us10yBaselinePct.toFixed(2)}% baseline to 5.25% stress ceiling).
-            </p>
-          </div>
-
-          <div className="card p-3.5 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-ink">2. Headline CPI Inflation (YoY)</span>
-              <span className="chip chip-steel text-[13px]">25% sub-weight</span>
-            </div>
-            <p className="num text-ink-muted">
-              Current reading: <strong className="text-ink">+{macro.cpiInflationYoY.toFixed(2)}%</strong> (ramps from 2.0% central bank target to 4.5% persistent inflation).
-            </p>
-          </div>
-
-          <div className="card p-3.5 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-ink">3. 10-Year Real Yield (TIPS)</span>
-              <span className="chip chip-steel text-[13px]">15% sub-weight</span>
-            </div>
-            <p className="num text-ink-muted">
-              Current reading: <strong className="text-ink">+{macro.realYield10y.toFixed(2)}%</strong> (ramps from 1.5% neutral to 3.0% acute capital scarcity).
-            </p>
-          </div>
-
-          <div className="card p-3.5 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-ink">4. US High-Yield OAS Spread</span>
-              <span className="chip chip-steel text-[13px]">20% sub-weight</span>
-            </div>
-            <p className="num text-ink-muted">
-              Current reading: <strong className="text-ink">{macro.highYieldSpreadBps} bps</strong> (ramps from 250 bps calm to 500 bps credit market freeze).
-            </p>
-          </div>
+          ))}
         </div>
+
+        <p className="text-[14px] leading-relaxed text-ink-muted">
+          A basis point is a hundredth of a percentage point: a 50 basis point move in a bond yield
+          is a move of half a percentage point.
+        </p>
       </section>
     </AnswerPageLayout>
   );

@@ -55,11 +55,13 @@ export const BAND_TONE: Record<BubbleBand, { pillTone: string; barTone: string }
 export const FACTOR_PLAIN: Record<string, { short: string; gloss: string }> = {
   cds_stress: {
     short: "Credit stress",
-    gloss: "Insurance price on AI's biggest borrowers.",
+    gloss:
+      "What it now costs to insure AI's biggest borrowers against default. A credit default swap is that insurance contract.",
   },
   valuation_stretch: {
     short: "Lab valuations",
-    gloss: "What investors pay per dollar of lab revenue.",
+    gloss:
+      "What investors pay for each dollar of a lab's yearly revenue — the price-to-sales multiple.",
   },
   debt_reliance: {
     short: "Borrowed money",
@@ -83,7 +85,8 @@ export const FACTOR_PLAIN: Record<string, { short: string; gloss: string }> = {
   },
   capex_cashflow: {
     short: "Capex vs cash",
-    gloss: "Building cost measured against money actually earned.",
+    gloss:
+      "Building cost measured against money actually earned. Capex is the money spent on hardware and data centres.",
   },
   adoption_demand: {
     short: "Real use",

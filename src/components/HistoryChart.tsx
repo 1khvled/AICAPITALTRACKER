@@ -374,16 +374,16 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
                   {episode.burstObserved ? (
                     <g>
                       <circle
-                        cx={slotCenter - 18}
+                        cx={slotCenter - 20}
                         cy={p1Bottom + 35}
                         r={3}
                         fill="rgb(var(--c-risk-500))"
                       />
                       <text
-                        x={slotCenter - 11}
+                        x={slotCenter - 13}
                         y={p1Bottom + 39}
                         textAnchor="start"
-                        className="fill-risk-500 text-[11px] font-semibold"
+                        className="fill-risk-500 text-[12px] font-semibold"
                       >
                         Burst
                       </text>
@@ -400,7 +400,7 @@ export function HistoryChart({ bundle, currentProbabilityPct }: HistoryChartProp
                         x={slotCenter - 9}
                         y={p1Bottom + 39}
                         textAnchor="start"
-                        className="fill-accent text-[11px] font-semibold"
+                        className="fill-accent text-[12px] font-semibold"
                       >
                         Live
                       </text>

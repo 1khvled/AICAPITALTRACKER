@@ -1013,7 +1013,7 @@ export function ProbabilityGauge({
                       }`}
                       aria-hidden="true"
                     />
-                    <span className="truncate">{driver.label}</span>
+                    <span className="min-w-0 break-words">{driver.label}</span>
                   </span>
                   <span className={`num shrink-0 text-[14px] font-semibold ${driver.type === "damper" ? "text-safe-600" : "text-risk-600"}`}>
                     {driver.points}

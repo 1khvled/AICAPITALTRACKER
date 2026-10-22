@@ -13,6 +13,17 @@ export interface HeadlineDriver {
   points: number;
 }
 
+/**
+ * One row of the index of plain answers. The `answer` is the page's own
+ * headline number, computed on the homepage — a reader who scans the list
+ * should learn something, not just read a description of a page.
+ */
+export interface PlainAnswerEntry {
+  href: string;
+  question: string;
+  answer: string;
+}
+
 interface AnswerBlockProps {
   probability: number;
   band: BubbleBand;
@@ -30,6 +41,13 @@ interface AnswerBlockProps {
   debtDealsCount: number;
   pricedFactors: number;
   totalFactors: number;
+  /**
+   * Plain-English disclosure: what this print is NOT. Rendered next to the number
+   * (before the index of plain answers) so a reader who bounces early still sees it.
+   */
+  notThis: string[];
+  /** The index of plain answers, with each page's own headline number. */
+  plainAnswers: PlainAnswerEntry[];
 }
 
 interface TrajectoryRowLite {
@@ -91,51 +109,14 @@ export function AnswerBlock({
   debtDealsCount,
   pricedFactors,
   totalFactors,
+  notThis,
+  plainAnswers,
 }: AnswerBlockProps) {
   /**
-   * The questions people actually type, and what each page answers.
-   *
-   * The order is the order a reader arrives in: the verdict, then the money,
-   * then the debt, then the two questions about OpenAI, then the macro
-   * question, then the one the whole site is really asking.
+   * The index of plain answers arrives as a prop, with each page's own headline
+   * number computed on the homepage. A reader who scans the list should learn
+   * something, not just read a description of a page.
    */
-  const plainAnswers: { href: string; question: string; answer: string }[] = [
-    {
-      href: "/will-the-ai-bubble-burst",
-      question: "Will the AI bubble burst?",
-      answer: "The 12-month outlook, the trajectory, and what would flip the odds",
-    },
-    {
-      href: "/how-much-is-being-spent-on-ai",
-      question: "How much is being spent?",
-      answer: `All of it - ${trackedLabel} across compute, data centers and GPU hardware`,
-    },
-    {
-      href: "/how-much-ai-debt-there-is",
-      question: "How much AI debt is there?",
-      answer: `${debtLabel} in 24 loans, convertible bonds and credit facilities`,
-    },
-    {
-      href: "/will-openai-ipo",
-      question: "Will OpenAI IPO in 2026?",
-      answer: "The market odds, the valuation talks, and the S-1 checklist",
-    },
-    {
-      href: "/what-is-cpi-doing-to-ai",
-      question: "What is CPI doing to AI?",
-      answer: "How inflation and bond yields drive the cost of data center debt",
-    },
-    {
-      href: "/who-is-funding-openai",
-      question: "Who is funding OpenAI?",
-      answer: "Disclosed rounds, Microsoft, SoftBank, and the circularity question",
-    },
-    {
-      href: "/is-ai-spending-too-much",
-      question: "Is AI spending too much?",
-      answer: "The gap between what the build-out costs and what it earns",
-    },
-  ];
 
   const firstObservedDate = FIRST_OBSERVED?.date ?? null;
 
@@ -229,31 +210,30 @@ export function AnswerBlock({
         </p>
       </div>
 
-      {/* The provenance of the print. It stays on the page and stays honest -
-          it just does not stand between the reader and the answer any more. */}
-      <details className="mt-5 max-w-2xl border-t border-rule pt-3">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-[14px] text-ink-muted [&::-webkit-details-marker]:hidden">
-          <Info className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden="true" />
-          <span className="font-semibold text-ink">How this print was produced</span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden="true" />
-        </summary>
-        <div className="mt-2 space-y-1.5 text-[12px] leading-relaxed text-ink-faint">
-          <p>
-            Trajectory history: canonical daily runs begin {formatAsOf(CANONICAL_HISTORY_START)}
-            {firstObservedDate ? ` (first observed point ${formatAsOf(firstObservedDate)})` : ""}.
-            Prior seeded interpolation retired per algorithm summit (model v2.6.0).
-          </p>
-          {revisionRangeText && <p>{revisionRangeText}</p>}
-          {backfilledCount > 0 && (
-            <p>{backfilledCount} seeded backfill points are still present in the history file</p>
-          )}
+      {/* What this number is not: the doctrine. It sits here, beside the print,
+          so the disclosure is never below a chart or an index. */}
+      {notThis.length > 0 && (
+        <div className="mt-4 max-w-2xl border-t border-rule pt-3.5">
+          <p className="label">What {probability.toFixed(1)}% is not</p>
+          <ul className="mt-1.5 space-y-1.5 text-[15px] leading-relaxed text-ink-muted">
+            {notThis.map((item) => (
+              <li key={item} className="flex items-start gap-2">
+                <span className="select-none font-bold text-ink-faint" aria-hidden="true">
+                  &bull;
+                </span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
         </div>
-      </details>
+      )}
 
       {/* Seven plain-answer pages: the queries people actually search.
           An index, not a grid of boxes: the question first, the answer under
-          it, a hairline between the rows, and the whole row is the target. */}
-      <div className="mt-7 max-w-4xl">
+          it, a hairline between the rows, and the whole row is the target.
+          It sits directly under the disclosure — the most useful thing after
+          the answer, before any chart. */}
+      <div className="mt-6 max-w-4xl">
         <p className="label">Answers to what readers search for</p>
         <ul className="mt-1 grid grid-cols-1 gap-x-10 sm:grid-cols-2">
           {plainAnswers.map((entry) => (
@@ -309,6 +289,27 @@ export function AnswerBlock({
           </dd>
         </div>
       </dl>
+
+      {/* The provenance of the print. It stays on the page and stays honest -
+          it just does not stand between the reader and the answer any more. */}
+      <details className="mt-5 max-w-2xl border-t border-rule pt-3">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-[14px] text-ink-muted [&::-webkit-details-marker]:hidden">
+          <Info className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden="true" />
+          <span className="font-semibold text-ink">How this print was produced</span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden="true" />
+        </summary>
+        <div className="mt-2 space-y-1.5 text-[12px] leading-relaxed text-ink-faint">
+          <p>
+            Trajectory history: canonical daily runs begin {formatAsOf(CANONICAL_HISTORY_START)}
+            {firstObservedDate ? ` (first observed point ${formatAsOf(firstObservedDate)})` : ""}.
+            Prior seeded interpolation retired per algorithm summit (model v2.6.0).
+          </p>
+          {revisionRangeText && <p>{revisionRangeText}</p>}
+          {backfilledCount > 0 && (
+            <p>{backfilledCount} seeded backfill points are still present in the history file</p>
+          )}
+        </div>
+      </details>
     </section>
   );
 }

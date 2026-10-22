@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AdSlot } from "@/components/AdSlot";
 import { CHANGELOG } from "@/lib/model/factors";
 import { POLYMARKET_BASE_URL, POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
+import rawDeals from "@/data/deals.json";
 
 /**
  * Footer — the site directory. Every route stays reachable from here, which is
@@ -30,7 +31,7 @@ const DIRECTORY: { title: string; links: { label: string; href: string; note?: s
     links: [
       { label: "Verdict", href: "/", note: "12-month burst probability" },
       { label: "Will it burst?", href: "/will-the-ai-bubble-burst", note: "The 12-month outlook" },
-      { label: "AI spending", href: "/how-much-is-being-spent-on-ai", note: "All $2.87T tracked" },
+      { label: "AI spending", href: "/how-much-is-being-spent-on-ai", note: "ALL_TRACKED_SPENDING" },
       { label: "AI debt", href: "/how-much-ai-debt-there-is", note: "Loans, bonds & refinancing" },
       { label: "Method", href: "/methodology", note: "Every formula and weight" },
       { label: "Guides", href: "/guides", note: "Plain-language explainers" },
@@ -74,11 +75,22 @@ export function Footer({
     typeof burstProbability === "number" && !Number.isNaN(burstProbability)
       ? `${burstProbability.toFixed(1)}%`
       : "n/a";
+  // The fallbacks are read from the ledger itself, never typed: the number the
+  // directory prints is the number the ledger holds.
+  const ledgerTotalUsd = rawDeals.reduce((sum, d) => sum + (d.amount_usd || 0), 0);
   const capital =
-    // Fallback matches the 19 Oct 2026 ledger: $2,872,873,160,000 across 169
-    // deals (src/data/deals.json) → 2.8728T → "2.87".
-    typeof totalDisclosedTrillions === "string" ? totalDisclosedTrillions : "2.87";
-  const deals = typeof dealCount === "number" ? dealCount : 169;
+    typeof totalDisclosedTrillions === "string"
+      ? totalDisclosedTrillions
+      : (ledgerTotalUsd / 1e12).toFixed(2);
+  const deals = typeof dealCount === "number" ? dealCount : rawDeals.length;
+  const directory = DIRECTORY.map((column) => ({
+    ...column,
+    links: column.links.map((link) =>
+      link.note === "ALL_TRACKED_SPENDING"
+        ? { ...link, note: `All $${capital}T tracked` }
+        : link,
+    ),
+  }));
 
   return (
     <footer className="mt-16 border-t border-rule bg-surface text-[14px] text-ink-muted sm:mt-24">
@@ -119,7 +131,7 @@ export function Footer({
           </div>
 
           {/* Directory */}
-          {DIRECTORY.map((column) => (
+          {directory.map((column) => (
             <nav key={column.title} aria-label={column.title} className="min-w-0">
               <h2 className="label">{column.title}</h2>
               <ul className="mt-4 space-y-3">
