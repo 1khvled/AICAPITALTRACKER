@@ -1,13 +1,57 @@
 [
   {
+    "id": "7a4566a3-af9d-3058-a2f1-747f73f661cc",
+    "title": "AITX Q2 FY2027: Revenue Excluding Largest Customer Up 61% Year-Over-Year; Revenue Up 8% Sequentially",
+    "publisher": "TMX Newsfile",
+    "link": "https://finance.yahoo.com/technology/ai/articles/aitx-q2-fy2027-revenue-excluding-124000412.html",
+    "publishedAt": "2026-10-21T12:40:00.000Z",
+    "timeAgo": "15h ago",
+    "category": "General AI",
+    "impact": "High Impact",
+    "summary": "Live market intelligence reported by TMX Newsfile."
+  },
+  {
+    "id": "9aca8d54-2607-3ce2-952d-7a134d33520e",
+    "title": "AITX Projects Monthly Operating Cash Breakeven in January 2027 Ahead of RAIA, SARA and ROAMEO Revenue Ramp",
+    "publisher": "TMX Newsfile",
+    "link": "https://finance.yahoo.com/technology/ai/articles/aitx-projects-monthly-operating-cash-124000166.html",
+    "publishedAt": "2026-10-20T12:40:00.000Z",
+    "timeAgo": "39h ago",
+    "category": "General AI",
+    "impact": "High Impact",
+    "summary": "Live market intelligence reported by TMX Newsfile."
+  },
+  {
+    "id": "f5df9ece-6088-3b97-bf93-b58244c6e3f5",
+    "title": "AITX Expands Security Distribution Strategy With Appointment of Industry Veteran Tom Reilly",
+    "publisher": "InvestorsHub",
+    "link": "https://finance.yahoo.com/technology/ai/articles/aitx-expands-security-distribution-strategy-153235981.html",
+    "publishedAt": "2026-10-19T15:32:35.000Z",
+    "timeAgo": "60h ago",
+    "category": "General AI",
+    "impact": "High Impact",
+    "summary": "Live market intelligence reported by InvestorsHub."
+  },
+  {
+    "id": "52235a7a-cf2d-3db3-bda6-98554036d6d7",
+    "title": "AITX's RAD Engages Security Industry Veteran Tom Reilly to Drive Strategy for New Integrator and Distribution Channels",
+    "publisher": "TMX Newsfile",
+    "link": "https://finance.yahoo.com/technology/ai/articles/aitxs-rad-engages-security-industry-124000935.html",
+    "publishedAt": "2026-10-19T12:40:00.000Z",
+    "timeAgo": "63h ago",
+    "category": "General AI",
+    "impact": "Market Sentiment",
+    "summary": "Live market intelligence reported by TMX Newsfile."
+  },
+  {
     "id": "d52ac2da-a7a8-3a9d-a344-009a31147f46",
     "title": "Anthropic Wants an IPO. New York City Wants It to Slow Down.",
     "publisher": "Moby",
     "link": "https://finance.yahoo.com/technology/ai/articles/anthropic-wants-ipo-york-city-120200718.html",
     "publishedAt": "2026-10-17T14:48:07.000Z",
-    "timeAgo": "85h ago",
+    "timeAgo": "109h ago",
     "category": "Frontier Labs",
-    "impact": "High Impact",
+    "impact": "Market Sentiment",
     "summary": "Live market intelligence reported by Moby."
   },
   {
@@ -16,10 +60,21 @@
     "publisher": "Investor's Business Daily",
     "link": "https://finance.yahoo.com/m/7400be65-1675-35e1-a62d-17ae6fe9b185/coreweave-isn%27t-the-only.html",
     "publishedAt": "2026-10-16T11:33:20.000Z",
-    "timeAgo": "112h ago",
+    "timeAgo": "136h ago",
     "category": "General AI",
-    "impact": "High Impact",
+    "impact": "Market Sentiment",
     "summary": "Live market intelligence reported by Investor's Business Daily."
+  },
+  {
+    "id": "a484d97d-5f9c-3f11-aa19-98a36e5b9eac",
+    "title": "AITX's RAD Adds Another Municipal Customer with Seven ROSA Unit Order",
+    "publisher": "TMX Newsfile",
+    "link": "https://finance.yahoo.com/technology/ai/articles/aitxs-rad-adds-another-municipal-124000580.html",
+    "publishedAt": "2026-10-14T12:40:00.000Z",
+    "timeAgo": "183h ago",
+    "category": "General AI",
+    "impact": "Market Sentiment",
+    "summary": "Live market intelligence reported by TMX Newsfile."
   },
   {
     "id": "b4f16ed2-c978-32c7-91c6-df91141cc410",
@@ -27,21 +82,21 @@
     "publisher": "Business Wire",
     "link": "https://finance.yahoo.com/technology/articles/global-x-launches-asia-semiconductor-123000992.html",
     "publishedAt": "2026-10-14T12:30:00.000Z",
-    "timeAgo": "159h ago",
+    "timeAgo": "183h ago",
     "category": "General AI",
-    "impact": "High Impact",
+    "impact": "Market Sentiment",
     "summary": "Live market intelligence reported by Business Wire."
   },
   {
-    "id": "f96bf049-a66d-3c63-9073-6babebaadb94",
-    "title": "Grab These ETFs to Capitalize on the Physical AI Wave",
-    "publisher": "Zacks",
-    "link": "https://finance.yahoo.com/technology/ai/articles/grab-etfs-capitalize-physical-ai-120900252.html",
-    "publishedAt": "2026-10-14T12:09:00.000Z",
-    "timeAgo": "160h ago",
+    "id": "33f03fb5-612c-3087-af20-a698dac9d12e",
+    "title": "AITX's RAD Turns Small Orders into a Substantial Property Management Relationship",
+    "publisher": "TMX Newsfile",
+    "link": "https://finance.yahoo.com/small-business/articles/aitxs-rad-turns-small-orders-124000958.html",
+    "publishedAt": "2026-10-07T12:40:00.000Z",
+    "timeAgo": "351h ago",
     "category": "General AI",
     "impact": "Market Sentiment",
-    "summary": "Live market intelligence reported by Zacks."
+    "summary": "Live market intelligence reported by TMX Newsfile."
   },
   {
     "id": "09554fae-472f-3c80-8c0e-959331f4171b",
@@ -49,64 +104,9 @@
     "publisher": "Motley Fool",
     "link": "https://finance.yahoo.com/markets/stocks/articles/ai-entering-next-phase-5-135000571.html",
     "publishedAt": "2026-10-06T13:50:00.000Z",
-    "timeAgo": "350h ago",
+    "timeAgo": "374h ago",
     "category": "General AI",
     "impact": "Market Sentiment",
     "summary": "Live market intelligence reported by Motley Fool."
-  },
-  {
-    "id": "8907cdb6-a8d4-3af6-8a1e-79d06f1a1593",
-    "title": "NVIDIA Is the 8th Biggest Holding in the Most Popular AI ETF. What’s Number One?",
-    "publisher": "24/7 Wall St.",
-    "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-8th-biggest-holding-most-124536387.html",
-    "publishedAt": "2026-10-05T12:45:36.000Z",
-    "timeAgo": "375h ago",
-    "category": "Silicon & Power",
-    "impact": "Market Sentiment",
-    "summary": "Live market intelligence reported by 24/7 Wall St.."
-  },
-  {
-    "id": "6cc4677a-9d5f-3dee-835c-9602532b3f50",
-    "title": "A Guide to AI ETF Investment",
-    "publisher": "Zacks",
-    "link": "https://finance.yahoo.com/markets/stocks/articles/guide-ai-etf-investment-122900384.html",
-    "publishedAt": "2026-10-02T12:29:00.000Z",
-    "timeAgo": "447h ago",
-    "category": "General AI",
-    "impact": "Market Sentiment",
-    "summary": "Live market intelligence reported by Zacks."
-  },
-  {
-    "id": "a670b2d0-0714-39e9-8486-6fb07332376f",
-    "title": "A Guide to AI ETF Investment",
-    "publisher": "Zacks",
-    "link": "https://finance.yahoo.com/markets/stocks/articles/guide-ai-etf-investment-121900735.html",
-    "publishedAt": "2026-10-02T12:19:00.000Z",
-    "timeAgo": "448h ago",
-    "category": "General AI",
-    "impact": "Market Sentiment",
-    "summary": "Live market intelligence reported by Zacks."
-  },
-  {
-    "id": "7b6b5da4-8c64-334f-ab98-a4c9d6554d5e",
-    "title": "Global X Launches New ETF Focusing on Large Language Models",
-    "publisher": "Business Wire",
-    "link": "https://finance.yahoo.com/technology/ai/articles/global-x-launches-etf-focusing-123000430.html",
-    "publishedAt": "2026-10-01T12:30:00.000Z",
-    "timeAgo": "471h ago",
-    "category": "General AI",
-    "impact": "Market Sentiment",
-    "summary": "Live market intelligence reported by Business Wire."
-  },
-  {
-    "id": "e0b2b4a5-47f1-3ee6-9844-942a74db0934",
-    "title": "Best Performing ETFs of 2026 So Far",
-    "publisher": "etf.com",
-    "link": "https://finance.yahoo.com/markets/stocks/articles/best-performing-etfs-2026-far-003323612.html",
-    "publishedAt": "2026-10-01T00:33:23.000Z",
-    "timeAgo": "483h ago",
-    "category": "General AI",
-    "impact": "Market Sentiment",
-    "summary": "Live market intelligence reported by etf.com."
   }
 ]
