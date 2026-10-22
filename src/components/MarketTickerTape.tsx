@@ -6,6 +6,7 @@ import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 import { LIVE_STOCKS as FALLBACK_STOCKS, StockQuote } from "@/data/live-stocks";
 import { useMotionPreference } from "@/components/MotionProvider";
+import { usePathname } from "next/navigation";
 import liveStocksData from "@/data/live-stocks.json";
 import liveInputsData from "@/data/live-inputs.json";
 import rawDeals from "@/data/deals.json";
@@ -51,8 +52,24 @@ function getStocks(): StockQuote[] {
   return FALLBACK_STOCKS;
 }
 
+/**
+ * The pages a search engine sends a reader to. On these, the tape speaks
+ * plain words and does not move.
+ */
+const PLAIN_PAGES = new Set([
+  "/will-the-ai-bubble-burst",
+  "/how-much-is-being-spent-on-ai",
+  "/how-much-ai-debt-there-is",
+  "/will-openai-ipo",
+  "/what-is-cpi-doing-to-ai",
+  "/who-is-funding-openai",
+  "/is-ai-spending-too-much",
+]);
+
 export function MarketTickerTape() {
   const { active } = useMotionPreference();
+  const pathname = usePathname();
+  const isPlainPage = typeof pathname === "string" && PLAIN_PAGES.has(pathname);
   const [statusMessage, setStatusMessage] = useState("");
   const isFirstTapeRender = useRef(true);
   const tapeTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -172,6 +189,46 @@ export function MarketTickerTape() {
    */
   const items: TickerItem[] = [...macroItems, ...stockItems];
 
+  /**
+   * The same readings, said in words. Every number here is the number in the
+   * terminal tape above - only the label changes.
+   */
+  const plainItems: TickerItem[] = [
+    {
+      id: "plain-bubble",
+      label: "Chance the AI build-out breaks within 12 months",
+      value: `${model.burstProbability.toFixed(1)}%`,
+      href: "/will-the-ai-bubble-burst",
+    },
+    {
+      id: "plain-spending",
+      label: "AI spending tracked",
+      value: `${(totalDisclosedUsd / 1e12).toFixed(2)}T`,
+      change: `${rawDeals.length} verified deals`,
+      href: "/how-much-is-being-spent-on-ai",
+    },
+    {
+      id: "plain-debt",
+      label: "AI debt raised",
+      value: `${(debtPaceUsd / 1e9).toFixed(0)}B a year`,
+      href: "/how-much-ai-debt-there-is",
+    },
+    {
+      id: "plain-yields",
+      label: "10-year government bond yield",
+      value: `${us10y.toFixed(2)}%`,
+      href: "/what-is-cpi-doing-to-ai",
+    },
+    {
+      id: "plain-market",
+      label: "The market's price for a 2026 AI bust",
+      value: `${crowd2026.toFixed(1)}%`,
+      change: "prediction market",
+      href: `https://polymarket.com/event/ai-bubble-burst-by?r=${POLYMARKET_REFERRAL_CODE}`,
+      isExternal: true,
+    },
+  ];
+
   const renderItem = (item: TickerItem, duplicate: boolean) => {
     const body = (
       <span className="flex shrink-0 items-baseline gap-2 whitespace-nowrap px-3 py-1.5 text-[14px]">
@@ -225,6 +282,21 @@ export function MarketTickerTape() {
       Synced daily 00:00 UTC
     </span>
   );
+
+  if (isPlainPage) {
+    return (
+      <div className="border-b border-rule bg-surface-2 text-ink-muted">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
+          <div className="flex min-w-0 flex-wrap items-stretch">
+            <span className="label flex shrink-0 items-center border-r border-rule px-3 py-1.5">
+              What the site is tracking
+            </span>
+            {plainItems.map((item) => renderItem(item, false))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="border-b border-rule bg-surface-2 text-ink-muted overflow-hidden">
