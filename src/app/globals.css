@@ -991,6 +991,19 @@ html.dark .btn-primary:hover {
   min-width: 0;
 }
 
+/* A sized (/22/) creative is a fixed box. Framing it as a well means an
+   unfilled slot reads as a deliberate placement instead of a white hole in
+   the page, and a filled one reads as an advertisement rather than a glitch.
+   The well hugs the creative so it is never wider than the ad it holds. */
+.ad-slot--sized .ad-slot__frame {
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  background: rgb(var(--c-surface));
+  border: 1px solid rgb(var(--c-rule));
+  border-radius: 2px;
+}
+
 /* 728x90 leaderboard; collapses to the 320x50 mobile unit on phones. */
 .ad-slot--banner {
   --ad-min-h: 90px;
@@ -1117,6 +1130,47 @@ html.dark .btn-primary:hover {
   position: relative;
   overflow: hidden;
   min-width: 0;
+  /* A moving strip always has a word crossing the edge. Clipping it hard
+     slices the word in half ("T ODDS", "O..."), which reads as a broken
+     layout rather than as a strip that continues. A short fade says
+     "there is more" without drawing anything new. */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 22px,
+    #000 calc(100% - 22px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 22px,
+    #000 calc(100% - 22px),
+    transparent 100%
+  );
+}
+
+/* Tab strip: a horizontal row of tabs that can scroll on a phone. The same
+   fade as the ticker row, so a tab is never chopped mid-word at the edge. */
+.tab-strip {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 14px,
+    #000 calc(100% - 14px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 14px,
+    #000 calc(100% - 14px),
+    transparent 100%
+  );
+  scrollbar-width: none;
+}
+.tab-strip::-webkit-scrollbar {
+  display: none;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -1672,11 +1726,26 @@ summary:active,
     stroke-dashoffset: 0 !important;
     animation: none !important;
   }
-  /* The market desk tape is NOT killed here. It is information, not
-     decoration: it carries the live readings, it pauses the moment the pointer
-     is over it, and a reader who wants it still has an explicit control
-     (the navbar toggle, or `data-motion="off"`). Everything decorative below
-     still obeys the system's request. */
+  /* The market desk tape: when motion is reduced, the strip stops and the
+     reader scrolls by hand - the same contract `data-motion="off"` already
+     honours. The duplicated track hides so the scrollable width is one copy,
+     and the edge fade lifts so nothing is sliced. */
+  .marquee,
+  .animate-marquee {
+    animation: none !important;
+  }
+  .marquee-dup {
+    display: none !important;
+  }
+  .ticker-row {
+    overflow-x: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+    scrollbar-width: none;
+  }
+  .ticker-row::-webkit-scrollbar {
+    display: none;
+  }
   /* Price wash: no flash at all. */
   .flash-safe,
   .flash-risk {
@@ -1758,11 +1827,17 @@ summary:active,
 
    `<html data-motion="off">` stops everything, including the tape.
    ───────────────────────────────────────────────────────────────────────── */
-html:not([data-motion="off"]) .marquee {
-  animation: marqueeSlide 110s linear infinite !important;
-}
-html:not([data-motion="off"]) .animate-marquee {
-  animation: marquee 110s linear infinite !important;
+/* The tape only moves when the system has not asked for less motion. Without
+   this media query the !important rules below outrank the reduced-motion
+   block at the end of the file, and the strip keeps sliding for a reader who
+   asked it not to. */
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-motion="off"]) .marquee {
+    animation: marqueeSlide 110s linear infinite !important;
+  }
+  html:not([data-motion="off"]) .animate-marquee {
+    animation: marquee 110s linear infinite !important;
+  }
 }
 html[data-motion="on"] .marquee {
   animation: marqueeSlide 110s linear infinite !important;

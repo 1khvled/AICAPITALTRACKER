@@ -2085,8 +2085,8 @@ export function TokenPriceDeflationChart() {
                 className="space-y-1.5 cursor-pointer group focus:outline-none"
               >
                 <div className="flex justify-between items-center text-[14px] sm:text-sm font-mono">
-                  <div className="flex items-center gap-1.5 truncate">
-                    <span className="truncate font-semibold text-ink">{m.model}</span>
+                  <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                    <span className="font-semibold text-ink">{m.model}</span>
                     <span className="shrink-0 text-ink-subtle">({m.date})</span>
                     <span className="chip shrink-0">{m.multiple}</span>
                   </div>
@@ -2147,7 +2147,7 @@ export function TokenPriceDeflationChart() {
               >
                 <div className="min-w-0 space-y-0.5 pr-2">
                   <div className="flex items-center gap-2">
-                    <span className="truncate text-sm font-semibold text-ink">{mod.name}</span>
+                    <span className="text-sm font-semibold leading-snug text-ink">{mod.name}</span>
                     <span className="chip shrink-0">{mod.provider}</span>
                   </div>
                   <div className="truncate text-ink-subtle">

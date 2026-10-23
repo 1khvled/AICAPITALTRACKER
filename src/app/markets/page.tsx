@@ -18,7 +18,13 @@ import liveStocks from "@/data/live-stocks.json";
 const feed = liveStocks as unknown as {
   timestamp?: string;
   stocks?: { ticker: string }[];
-  macro?: { symbol: string; valueDisplay: string; changeDisplay: string }[];
+  macro?: {
+    symbol: string;
+    name?: string;
+    valueDisplay: string;
+    changeDisplay: string;
+    description?: string;
+  }[];
 };
 
 const stockCount = feed.stocks?.length ?? 0;
@@ -38,6 +44,36 @@ const us10y = macroValue("US10Y", "the 10-year Treasury yield");
 const hyOas = macroValue("HY-OAS", "the high-yield spread");
 const aiDebt = macroValue("AI-DEBT", "annual AI debt issuance");
 
+/**
+ * The three numbers the page exists to deliver, each with a plain-English
+ * caption. Every value is the daily feed's own display string — nothing here
+ * is re-derived, rounded or typed in.
+ *
+ * They were buried inside a sentence in the lead. On a phone the reader got
+ * three numbers in running prose, which is the one shape a number cannot
+ * have. They are figures now: three blocks, each figure beside the sentence
+ * that says what it means.
+ */
+const HEADLINE_FIGURES = [
+  {
+    label: "10-year Treasury",
+    value: us10y,
+    plain: "What the government pays to borrow for ten years. Every risky investment has to beat it.",
+  },
+  {
+    label: "High-yield spread",
+    value: hyOas,
+    plain: "The extra interest risky borrowers pay over government debt. Wider means lenders want more for default risk.",
+    href: "/glossary#high-yield-oas",
+  },
+  {
+    label: "AI debt issued",
+    value: aiDebt,
+    plain: "Bonds, convertible notes and private credit lines raised for AI infrastructure over the past year.",
+    href: "/glossary#debt-issuance-velocity",
+  },
+];
+
 export const metadata: Metadata = {
   title: "AI stocks, interest rates and credit — today's prices",
   description: `Today's stock prices for ${stockCount} AI companies, plus interest rates, credit spreads, and the debt pace funding data centers.`,
@@ -56,7 +92,15 @@ export const metadata: Metadata = {
   },
 };
 
-const TERMS: { term: string; plain: string; href?: string }[] = [
+/**
+ * The column names the board prints, defined where the reader meets them.
+ *
+ * These three used to sit in the glossary card in the sidebar — which on a
+ * phone renders AFTER the whole board, so the reader met "From high" and
+ * "Market cap" in the table long before anybody told them what they meant.
+ * They now sit directly above the table they explain.
+ */
+const BOARD_TERMS: { term: string; plain: string; href?: string }[] = [
   {
     term: "24h change",
     plain: "How far the last price sits from the previous close. A direction, not a forecast.",
@@ -64,11 +108,20 @@ const TERMS: { term: string; plain: string; href?: string }[] = [
   {
     term: "From high",
     plain: "Drawdown: the fall from the stock's own 52-week high. It says nothing about whether the price is fair.",
+    href: "/glossary#drawdown",
   },
   {
     term: "Market cap",
     plain: "Share price multiplied by every share outstanding — what the market values the whole company at.",
   },
+];
+
+/**
+ * The credit-side vocabulary. These are the words the macro cards use, plus
+ * the two the model's own inputs are named after, so a reader who follows a
+ * link from here lands on a definition rather than a mystery.
+ */
+const TERMS: { term: string; plain: string; href?: string }[] = [
   {
     term: "Treasury yield",
     plain: "What the government pays to borrow for ten years. It is the floor every risky investment has to beat.",
@@ -77,6 +130,11 @@ const TERMS: { term: string; plain: string; href?: string }[] = [
     term: "High-yield OAS",
     plain: "Option-adjusted spread: the extra interest rate risky corporate borrowers pay above safe Treasuries. A wider spread means lenders demand more compensation for default risk.",
     href: "/glossary#high-yield-oas",
+  },
+  {
+    term: "AI debt issuance",
+    plain: "Bonds, convertible notes and private credit lines raised for AI infrastructure over the past year, annualised.",
+    href: "/glossary#debt-issuance-velocity",
   },
   {
     term: "CDS spread",
@@ -92,11 +150,6 @@ const TERMS: { term: string; plain: string; href?: string }[] = [
     term: "P/S multiple",
     plain: "Price-to-sales: revenue valued at this many times by the stock market. High multiples mean high future expectations rather than current cash.",
     href: "/glossary#price-to-sales",
-  },
-  {
-    term: "AI debt issuance",
-    plain: "Bonds, convertible notes and private credit lines raised for AI infrastructure over the past year, annualised.",
-    href: "/glossary#debt-issuance-velocity",
   },
 ];
 
@@ -116,9 +169,37 @@ export default function MarketsPage() {
 
         <p className="prose prose-lead max-w-reading">
           {stockCount} listed AI companies with their last close, plus the macro numbers that decide
-          what a borrowed dollar costs: the {us10y} Treasury yield, a {hyOas} high-yield OAS spread (the extra interest risky borrowers pay over government debt), and{" "}
-          {aiDebt} of annual AI debt issuance.
+          what a borrowed dollar costs. The three that matter most are these.
         </p>
+
+        {/* The three headline figures, given a shape. */}
+        <dl className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {HEADLINE_FIGURES.map((figure) => (
+            <div
+              key={figure.label}
+              className="rounded-lg border border-rule bg-surface px-3 py-2.5"
+            >
+              <dt className="label">{figure.label}</dt>
+              <dd className="num mt-1 text-[19px] font-semibold leading-tight text-ink">
+                {figure.value}
+              </dd>
+              <dd className="mt-1 text-[13px] leading-snug text-ink-muted">
+                {figure.plain}
+                {figure.href ? (
+                  <>
+                    {" "}
+                    <Link
+                      href={figure.href}
+                      className="font-medium text-ink underline decoration-rule underline-offset-2 hover:decoration-ink"
+                    >
+                      Glossary
+                    </Link>
+                  </>
+                ) : null}
+              </dd>
+            </div>
+          ))}
+        </dl>
 
         <div className="flex flex-wrap items-center gap-2">
           <Link href="/ledger?filter=debt" className="btn btn-primary min-h-11">

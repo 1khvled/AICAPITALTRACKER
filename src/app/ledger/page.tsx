@@ -74,7 +74,7 @@ export default function LedgerPage() {
             <dd className="num mt-1 text-2xl font-semibold tracking-tight text-ink">
               {stats.largest ? stats.largest.display : "—"}
             </dd>
-            <dd className="mt-0.5 line-clamp-1 text-[14px] text-ink-subtle">
+            <dd className="mt-0.5 line-clamp-2 text-[14px] text-ink-subtle">
               {stats.largest ? stats.largest.title : "No disclosed amounts"}
             </dd>
           </div>

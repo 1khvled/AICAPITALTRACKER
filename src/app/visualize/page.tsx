@@ -327,7 +327,7 @@ return (
         <div className="bg-surface p-3">
           <dt className="label">Total Capital</dt>
           <dd className="num mt-1 text-xl font-semibold text-ink">${totalDisclosedT}T</dd>
-          <dd className="num mt-0.5 truncate text-[14px] text-ink-subtle">
+          <dd className="num mt-0.5 text-[14px] text-ink-subtle">
             {totalDeals} verified transactions
           </dd>
         </div>
@@ -336,21 +336,21 @@ return (
           <dt className="label">Annual Capex Gap</dt>
           <dd className="num mt-1 text-xl font-semibold text-risk-700">-$706B</dd>
           <dd className="num mt-0.5 text-[14px] text-risk-700">5.4× Outlay</dd>
-          <dd className="num mt-0.5 truncate text-[14px] text-ink-subtle">$865B Outlay vs $159B Rev</dd>
+          <dd className="num mt-0.5 text-[14px] text-ink-subtle">$865B Outlay vs $159B Rev</dd>
         </div>
 
         <div className="bg-surface p-3">
           <dt className="label">Median AI Multiple</dt>
           <dd className="num mt-1 text-xl font-semibold text-caution-700">{medianPs.toFixed(1)}× P/S</dd>
           <dd className="mt-0.5 text-[14px] text-caution-700">vs 10× SaaS</dd>
-          <dd className="mt-0.5 truncate text-[14px] text-ink-subtle">Frontier lab equity stretch</dd>
+          <dd className="mt-0.5 text-[14px] text-ink-subtle">Frontier lab equity stretch</dd>
         </div>
 
         <div className="bg-surface p-3">
           <dt className="label">Oracle 5Y CDS</dt>
           <dd className="num mt-1 text-xl font-semibold text-risk-700">{orclCds} bp</dd>
           <dd className="num mt-0.5 text-[14px] text-risk-700">+{orclStressPct}% Wide</dd>
-          <dd className="mt-0.5 truncate text-[14px] text-ink-subtle">Anchor debt insurance cost</dd>
+          <dd className="mt-0.5 text-[14px] text-ink-subtle">Anchor debt insurance cost</dd>
         </div>
 
         <div className="col-span-2 bg-surface p-3 md:col-span-1">
@@ -361,16 +361,19 @@ return (
           <dd className={`num mt-0.5 text-[14px] ${probTone}`}>
             S={modelResult.compositeScore.toFixed(1)} pts
           </dd>
-          <dd className="mt-0.5 truncate text-[14px] text-ink-subtle">
+          <dd className="mt-0.5 text-[14px] text-ink-subtle">
             {modelResult.band.toUpperCase()} stress regime
           </dd>
         </div>
       </dl>
 
       {/* Quiet section switch */}
-      <nav aria-label="Visualization sections" className="mt-6 border-b border-rule">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="-mx-1 flex max-w-full items-center gap-1 overflow-x-auto px-1 scrollbar-none">
+      <nav aria-label="Visualization sections" className="mt-6">
+        <p className="px-1 pb-2 text-[13px] text-ink-subtle">
+          {tabs.find((t) => t.id === activeTab)?.shortDesc}
+        </p>
+        <div className="border-b border-rule">
+          <div className="tab-strip -mb-px -mx-1 flex min-w-0 items-center gap-1 overflow-x-auto px-1">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
@@ -390,10 +393,6 @@ return (
               );
             })}
           </div>
-
-          <p className="hidden shrink-0 px-2 text-[13px] text-ink-subtle lg:block">
-            {tabs.find((t) => t.id === activeTab)?.shortDesc}
-          </p>
         </div>
       </nav>
 
