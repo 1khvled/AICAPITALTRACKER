@@ -50,14 +50,35 @@ export function WhatChangedChart() {
   const padX = 35;
   const padY = 22;
 
-  // Probability bounds (e.g. 31.0 to 33.5 for tight high-resolution sparkline)
-  const probMin = 31.0;
-  const probMax = 33.2;
+  /**
+   * The y-domains are derived from the series, never typed.
+   *
+   * They used to be typed (31.0-33.2 and 47.8-49.0). The day the model printed
+   * 37.9 / 50.5, every point above those bounds was drawn above the viewBox:
+   * the line left the panel and the last value label painted over the
+   * paragraph above it. A bound that has to be edited whenever the model
+   * moves is a bug with a delay on it.
+   *
+   * 25% headroom on each side keeps the line off the frame and leaves room
+   * for the 12px value labels; a flat series still gets a readable band.
+   */
+  const domainFor = (values: number[]) => {
+    const lo = Math.min(...values);
+    const hi = Math.max(...values);
+    const span = hi - lo;
+    const pad = span > 0 ? span * 0.25 : Math.max(Math.abs(hi) * 0.02, 0.5);
+    return { min: lo - pad, max: hi + pad };
+  };
+
+  const probDomain = domainFor(history.map((pt) => pt.probability));
+  const compDomain = domainFor(history.map((pt) => pt.compositeScore));
+
+  const probMin = probDomain.min;
+  const probMax = probDomain.max;
   const probRange = probMax - probMin;
 
-  // Composite bounds (e.g. 47.8 to 49.0)
-  const compMin = 47.8;
-  const compMax = 49.0;
+  const compMin = compDomain.min;
+  const compMax = compDomain.max;
   const compRange = compMax - compMin;
 
   const getProbY = (val: number) =>
@@ -127,7 +148,7 @@ export function WhatChangedChart() {
 
           <svg
             viewBox={`0 0 ${width} ${height}`}
-            className="mt-2 w-full h-auto select-none overflow-visible"
+            className="mt-2 w-full h-auto select-none overflow-hidden"
             aria-hidden="true"
           >
             {/* Horizontal reference baseline */}
@@ -191,7 +212,7 @@ export function WhatChangedChart() {
                   {/* Point value label */}
                   <text
                     x={cx}
-                    y={cy - 9}
+                    y={Math.max(11, cy - 9)}
                     textAnchor="middle"
                     className="num font-mono text-[12px] font-bold fill-ink"
                   >
@@ -228,7 +249,7 @@ export function WhatChangedChart() {
 
           <svg
             viewBox={`0 0 ${width} ${height}`}
-            className="mt-2 w-full h-auto select-none overflow-visible"
+            className="mt-2 w-full h-auto select-none overflow-hidden"
             aria-hidden="true"
           >
             {/* Reference line */}
@@ -291,7 +312,7 @@ export function WhatChangedChart() {
                   />
                   <text
                     x={cx}
-                    y={cy - 9}
+                    y={Math.max(11, cy - 9)}
                     textAnchor="middle"
                     className="num font-mono text-[12px] font-bold fill-ink"
                   >
