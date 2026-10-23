@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { HistoryChart } from "@/components/HistoryChart";
 import { buildHistoryBundle, type RawDeal } from "@/lib/history-series";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
@@ -13,8 +14,12 @@ import rawTrajectory from "@/data/trajectory-history.json";
  * the model's backtests, the published market history and the observed daily
  * prints, and the chart receives them as data. Nothing is computed in the
  * browser and nothing is typed.
+ *
+ * `collapsible` is for the home page: the record is the site's evidence, but
+ * it is an appendix to the answer, not the answer. Collapsed it reads as one
+ * honest line; opened it is the same three panels and two data tables.
  */
-export function HistorySection() {
+export function HistorySection({ collapsible = false }: { collapsible?: boolean }) {
   const raw = rawDeals as unknown;
   const deals = (
     Array.isArray(raw) ? raw : (raw as { deals: RawDeal[] }).deals
@@ -30,10 +35,9 @@ export function HistorySection() {
   const model = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
 
   const firstYear = bundle.months[0]?.iso.slice(0, 4) ?? "2023";
-  const lastLabel = bundle.months[bundle.months.length - 1]?.label ?? "";
 
-  return (
-    <section aria-labelledby="history-heading" className="mt-10">
+  const heading = (
+    <>
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h2
           id="history-heading"
@@ -51,7 +55,11 @@ export function HistorySection() {
         month by month from {firstYear}, which is what the model actually reads. And the
         market&rsquo;s own price against the model&rsquo;s print.
       </p>
+    </>
+  );
 
+  const body = (
+    <>
       <HistoryChart bundle={bundle} currentProbabilityPct={model.burstProbability} />
 
       <p className="label mt-5 pt-1">What this chart is not</p>
@@ -96,6 +104,42 @@ export function HistorySection() {
         </Link>
         .
       </p>
+    </>
+  );
+
+  if (collapsible) {
+    return (
+      <section aria-labelledby="history-heading" className="mt-10">
+        <details className="group panel rounded-md border border-rule bg-surface px-4 py-3 sm:px-5">
+          <summary className="flex min-h-11 cursor-pointer list-none items-start justify-between gap-4 [&::-webkit-details-marker]:hidden">
+            <div>
+              <p className="label">the model, and the money it reads</p>
+              <h2
+                id="history-heading"
+                className="mt-1 text-xl font-bold tracking-[-0.025em] text-ink sm:text-2xl"
+              >
+                How far back this goes
+              </h2>
+              <p className="mt-1 max-w-2xl text-[14px] leading-relaxed text-ink-muted">
+                Tested against every resolved episode since 1929, the money going in month by
+                month, and the market&rsquo;s own price. Open the three panels.
+              </p>
+            </div>
+            <ChevronRight
+              className="mt-1 h-5 w-5 shrink-0 text-ink-subtle transition-transform group-open:rotate-90"
+              aria-hidden="true"
+            />
+          </summary>
+          <div className="mt-5 border-t border-rule pt-5">{body}</div>
+        </details>
+      </section>
+    );
+  }
+
+  return (
+    <section aria-labelledby="history-heading" className="mt-10">
+      {heading}
+      {body}
     </section>
   );
 }

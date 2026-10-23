@@ -436,7 +436,7 @@ export function MethodologyToc({ sections }: MethodologyTocProps) {
 
         {/* Where the reader is. Phone only - the strip below carries it on a
             desktop. */}
-        <p className="min-w-0 flex-1 truncate text-[13px] text-ink-muted md:hidden">
+        <p className="line-clamp-2 min-w-0 flex-1 text-[13px] leading-snug text-ink-muted md:hidden">
           {active ? (
             <>
               <span className="num text-ink">{active.number}</span>

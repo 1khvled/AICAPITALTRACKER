@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowRight } from "lucide-react";
+import { ArrowDown, ArrowRight, ChevronRight } from "lucide-react";
 
 import rawDeals from "@/data/deals.json";
 import trajectoryHistory from "@/data/trajectory-history.json";
@@ -171,9 +171,9 @@ export default function HomePage() {
       <AdSlot placementId="home-leaderboard" />
 
       {/* ── 1c · The history: the model on resolved episodes, and the money ── */}
-      <Reveal>
-        <HistorySection />
-      </Reveal>
+      {/* Collapsed on the home page: the record is the evidence, not the answer.
+          One honest line, one tap to the three panels and their data tables. */}
+      <HistorySection collapsible />
 
       {/* ── 1b · Why the print moved (it belongs with the machinery) ───────── */}
       <Reveal>
@@ -226,7 +226,9 @@ export default function HomePage() {
             </Link>
           </div>
           <p className="mb-4 mt-1.5 max-w-2xl text-[15px] leading-relaxed text-ink-muted">
-            For researchers and quantitative analysts: the composite score (0–100, combining 8 financial risk factors and 1 real-use adoption damper; higher score means greater stress), Minsky fragility index (partitioning debt into hedge, speculative, and Ponzi regimes), and systemic contagion points that produce the {result.burstProbability.toFixed(1)}% print.
+            Every factor, its weight, and the points it adds to the {result.burstProbability.toFixed(1)}% print.
+            The composite stress score and the balance-sheet meters behind it are one tap below,
+            for readers who want to audit the arithmetic.
           </p>
         </Reveal>
 
@@ -239,23 +241,47 @@ export default function HomePage() {
           />
         </div>
 
-        <ProbabilityGauge
-          probability={result.burstProbability}
-          compositeScore={result.compositeScore}
-          band={result.band}
-          coverage={result.coverage}
-          topDrivers={result.topDriverIds}
-          fragilityIndex={result.fragilityIndex}
-          contributions={result.contributions}
-          initialInputs={DEFAULT_MODEL_INPUTS}
-        />
+        {/* The dial, the fragility meters and the full factor table used to sit
+            open here, ~5,800px of it on a phone, telling the same story as the
+            chart above a second and third time. They are the audit trail, so
+            they stay - one tap down. */}
+        <details className="group border-t border-rule pt-4">
+          <summary className="flex min-h-11 cursor-pointer list-none items-start justify-between gap-4 [&::-webkit-details-marker]:hidden">
+            <div>
+              <p className="label">For researchers</p>
+              <p className="mt-1 text-[15px] font-semibold text-ink">
+                The full machinery: stress dial, fragility meters, every factor reading
+              </p>
+              <p className="mt-0.5 text-[14px] leading-relaxed text-ink-muted">
+                Composite score, Minsky fragility, Merton and Altman solvency tiles, the observed
+                trajectory, and all {result.contributions.length} factor readings with their inputs.
+              </p>
+            </div>
+            <ChevronRight
+              className="mt-1 h-5 w-5 shrink-0 text-ink-subtle transition-transform group-open:rotate-90"
+              aria-hidden="true"
+            />
+          </summary>
+          <div className="mt-5 space-y-4">
+            <ProbabilityGauge
+              probability={result.burstProbability}
+              compositeScore={result.compositeScore}
+              band={result.band}
+              coverage={result.coverage}
+              topDrivers={result.topDriverIds}
+              fragilityIndex={result.fragilityIndex}
+              contributions={result.contributions}
+              initialInputs={DEFAULT_MODEL_INPUTS}
+            />
 
-        <DriverSection
-          drivers={detailDrivers}
-          damper={damper}
-          shownCount={detailDrivers.length}
-          totalCount={result.contributions.length}
-        />
+            <DriverSection
+              drivers={detailDrivers}
+              damper={damper}
+              shownCount={detailDrivers.length}
+              totalCount={result.contributions.length}
+            />
+          </div>
+        </details>
 
         <div className="mt-8">
           <AdSlot placementId="home-infeed-1" />
@@ -264,11 +290,6 @@ export default function HomePage() {
 
       {/* ── 3 · What would flip the answer ─────────────────────────────────── */}
       <FlipSection inputs={DEFAULT_MODEL_INPUTS} result={result} />
-
-      {/* Second in-feed unit — the deep page keeps two native blocks at most. */}
-      <div className="mt-8">
-        <AdSlot placementId="home-infeed-2" />
-      </div>
 
       {/* ── 4 · Receipts ───────────────────────────────────────────────────── */}
       <ReceiptsBand
@@ -414,28 +435,22 @@ export default function HomePage() {
       {/* ── 6 · Your own call ───────────────────────────────────────────────── */}
       {/* The model publishes its number; the reader may disagree. This is the
           invitation to say so and keep a private scoreboard against it. */}
-      <section aria-labelledby="your-call-heading" className="mt-10">
-        <div className="card card-flush shadow-card">
-          <div className="card-header flex-wrap gap-x-4 gap-y-2">
-            <div className="min-w-0">
-              <p className="label">Your call</p>
-              <h2 id="your-call-heading" className="mt-1 text-[15px] font-bold tracking-tight text-ink">
-                Put your own number on the record
-              </h2>
-            </div>
-            <Link href="/your-call" className="btn btn-primary min-h-11 shrink-0">
-              Make your call
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-          </div>
-          <div className="px-4 py-4">
-            <p className="prose prose-p max-w-reading text-[15px]">
-              The model prints {result.burstProbability.toFixed(1)}% from the inputs it can verify.
-              If you think that is wrong, say so: your number is stored on this device, scored
-              against the model&rsquo;s own print as the window resolves, and never uploaded.
-            </p>
-          </div>
-        </div>
+      <section
+        aria-labelledby="your-call-heading"
+        className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-rule pt-4"
+      >
+        <h2 id="your-call-heading" className="sr-only">
+          Your call
+        </h2>
+        <p className="max-w-reading text-[14px] leading-relaxed text-ink-muted">
+          Think {result.burstProbability.toFixed(1)}% is wrong? Put your own number on the
+          record &mdash; stored on this device, scored against the model&rsquo;s print, never
+          uploaded.
+        </p>
+        <Link href="/your-call" className="btn min-h-11 shrink-0">
+          Make your call
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
       </section>
 
       <AdSlot placementId="home-footer" />

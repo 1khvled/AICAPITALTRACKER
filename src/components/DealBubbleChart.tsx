@@ -2397,13 +2397,13 @@ export function DealBubbleChart({
             <div className="border-t border-rule bg-surface px-3 py-2.5">
               <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 sm:grid-cols-3 md:flex md:flex-wrap md:items-center md:gap-x-4">
                 {Object.entries(CATEGORY_CONFIG).slice(0, 6).map(([key, config]) => (
-                  <div key={key} className="flex items-center gap-1.5 text-[12px] text-ink-muted">
+                  <div key={key} className="flex items-start gap-1.5 text-[12px] leading-snug text-ink-muted">
                     <span
                       className="h-2 w-2 shrink-0 rounded-full"
                       style={{ backgroundColor: config.accentHex }}
                       aria-hidden="true"
                     />
-                    <span className="truncate">{config.name}</span>
+                    <span className="min-w-0">{config.name}</span>
                   </div>
                 ))}
               </div>
@@ -2534,13 +2534,13 @@ export function DealBubbleChart({
             <div className="border-t border-rule bg-surface pt-2.5">
               <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 sm:grid-cols-3 md:flex md:flex-wrap md:items-center md:gap-x-4">
                 {Object.entries(CATEGORY_CONFIG).slice(0, 6).map(([key, config]) => (
-                  <div key={key} className="flex items-center gap-1.5 text-[12px] text-ink-muted">
+                  <div key={key} className="flex items-start gap-1.5 text-[12px] leading-snug text-ink-muted">
                     <span
                       className="h-2 w-2 shrink-0 rounded-full"
                       style={{ backgroundColor: config.accentHex }}
                       aria-hidden="true"
                     />
-                    <span className="truncate">{config.name}</span>
+                    <span className="min-w-0">{config.name}</span>
                   </div>
                 ))}
               </div>

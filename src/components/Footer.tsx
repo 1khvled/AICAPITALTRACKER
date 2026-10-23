@@ -98,9 +98,9 @@ export function Footer({
         {/* Site-wide billboard. Renders nothing until a zone script is set. */}
         <AdSlot placementId="global-footer-billboard" className="border-b border-rule py-8" />
 
-        <div className="grid grid-cols-1 gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 py-12 lg:grid-cols-4 lg:gap-10">
           {/* What this is */}
-          <div className="min-w-0">
+          <div className="col-span-2 min-w-0 lg:col-span-1">
             <div className="flex items-center gap-2">
               <span className="flex h-6 w-6 items-center justify-center rounded border border-rule-strong">
                 <span className="font-mono text-[14px] font-bold text-ink">AI</span>

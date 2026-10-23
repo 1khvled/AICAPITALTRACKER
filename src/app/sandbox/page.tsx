@@ -585,7 +585,7 @@ export default function SandboxPage() {
             <p className="num mt-1 text-xl font-semibold text-risk-700">
               {LIVE_CDS_BPS} bp
             </p>
-            <p className="mt-0.5 truncate text-ink-subtle">vs {LIVE_CDS_BASELINE_BPS} bp baseline</p>
+            <p className="mt-0.5 text-ink-subtle">vs {LIVE_CDS_BASELINE_BPS} bp baseline</p>
           </div>
 
           <div className="panel space-y-1">
@@ -593,7 +593,7 @@ export default function SandboxPage() {
             <p className="num mt-1 text-xl font-semibold text-caution-700">
               {LIVE_DEBT_SHARE_PCT.toFixed(1)}%
             </p>
-            <p className="num mt-0.5 truncate text-ink-subtle">
+            <p className="num mt-0.5 text-ink-subtle">
               ${LIVE_TRACKED_DEBT_B.toFixed(1)}B / ${LIVE_LEDGER_TOTAL_T.toFixed(2)}T
             </p>
           </div>
@@ -611,10 +611,10 @@ export default function SandboxPage() {
             <p className="num mt-1 text-xl font-semibold text-ink">
               {LIVE_CROWD_2026_PCT.toFixed(1)}%
             </p>
-            <p className="num mt-0.5 truncate text-ink-subtle">
+            <p className="num mt-0.5 text-ink-subtle">
               Dec-2026 · ${LIVE_CROWD_VOLUME_M.toFixed(2)}M volume
             </p>
-            <p className="num mt-0.5 truncate text-ink-subtle">
+            <p className="num mt-0.5 text-ink-subtle">
               Jun-2027: {LIVE_CROWD_2027_PCT.toFixed(1)}%
             </p>
           </div>
@@ -624,7 +624,7 @@ export default function SandboxPage() {
             <p className="num mt-1 text-xl font-semibold text-ink">
               {baselineMonteCarlo.valueAtRisk95Pct}%
             </p>
-            <p className="num mt-0.5 truncate text-ink-subtle">
+            <p className="num mt-0.5 text-ink-subtle">
               CVaR: {baselineMonteCarlo.conditionalValueAtRisk95Pct}%
             </p>
           </div>

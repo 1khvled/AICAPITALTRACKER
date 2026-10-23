@@ -210,7 +210,7 @@ export function MarketTickerTape() {
     {
       id: "plain-debt",
       label: "AI debt raised",
-      value: `${(debtPaceUsd / 1e9).toFixed(0)}B a year`,
+      value: `$${(debtPaceUsd / 1e9).toFixed(0)}B a year`,
       href: "/how-much-ai-debt-there-is",
     },
     {
@@ -229,9 +229,13 @@ export function MarketTickerTape() {
     },
   ];
 
-  const renderItem = (item: TickerItem, duplicate: boolean) => {
+  const renderItem = (item: TickerItem, duplicate: boolean, wrap = false) => {
     const body = (
-      <span className="flex shrink-0 items-baseline gap-2 whitespace-nowrap px-3 py-1.5 text-[14px]">
+      <span
+        className={`flex items-baseline gap-2 px-3 py-1.5 text-[14px] ${
+          wrap ? "min-w-0 flex-wrap gap-y-0.5" : "shrink-0 whitespace-nowrap"
+        }`}
+      >
         <span className="label !text-[13px]">{item.label}</span>
         <span className="num text-ink">{item.value}</span>
         {item.change ? (
@@ -254,6 +258,9 @@ export function MarketTickerTape() {
     // from screen readers and skipped by the keyboard.
     const tabIndex = duplicate ? -1 : undefined;
 
+    const itemClass = `-my-1.5 min-h-11 border-r border-rule py-1.5 transition-colors hover:bg-surface-3${
+      wrap ? " min-w-0" : ""
+    }`;
     return item.isExternal ? (
       <a
         key={item.id}
@@ -261,17 +268,12 @@ export function MarketTickerTape() {
         target="_blank"
         rel="noopener noreferrer"
         tabIndex={tabIndex}
-        className="-my-1.5 min-h-11 border-r border-rule py-1.5 transition-colors hover:bg-surface-3"
+        className={itemClass}
       >
         {body}
       </a>
     ) : (
-      <Link
-        key={item.id}
-        href={item.href}
-        tabIndex={tabIndex}
-        className="-my-1.5 min-h-11 border-r border-rule py-1.5 transition-colors hover:bg-surface-3"
-      >
+      <Link key={item.id} href={item.href} tabIndex={tabIndex} className={itemClass}>
         {body}
       </Link>
     );
@@ -291,7 +293,7 @@ export function MarketTickerTape() {
             <span className="label flex shrink-0 items-center border-r border-rule px-3 py-1.5">
               What the site is tracking
             </span>
-            {plainItems.map((item) => renderItem(item, false))}
+            {plainItems.map((item) => renderItem(item, false, true))}
           </div>
         </div>
       </div>

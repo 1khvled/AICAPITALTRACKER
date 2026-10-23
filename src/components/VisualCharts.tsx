@@ -956,17 +956,17 @@ export function CapitalCompositionChart() {
                   : "border-rule bg-surface hover:border-rule-strong"
               }`}
             >
-              <span className="mb-1.5 flex items-center justify-between">
-                <span className="flex items-center gap-2">
+              <span className="mb-1.5 flex items-start justify-between gap-2">
+                <span className="flex min-w-0 items-center gap-2">
                   <span
                     className="h-2.5 w-2.5 shrink-0 rounded-full"
                     style={{ backgroundColor: seg.color }}
                   />
-                  <span className="max-w-[130px] truncate text-[14px] font-medium text-ink">
+                  <span className="min-w-0 text-[14px] font-medium leading-snug text-ink">
                     {seg.label}
                   </span>
                 </span>
-                <span className="num text-[14px] font-semibold text-ink-subtle">
+                <span className="num shrink-0 text-[14px] font-semibold text-ink-subtle">
                   {seg.share.toFixed(1)}%
                 </span>
               </span>
@@ -2378,7 +2378,7 @@ export function CdsTrajectoryChart() {
               s.isWarning ? "border-risk-200 bg-risk-50" : "border-rule bg-surface-2"
             }`}
           >
-            <dt className="truncate text-[14px] text-ink-subtle">{s.label}</dt>
+            <dt className="text-[14px] leading-snug text-ink-subtle">{s.label}</dt>
             <dd className="num text-2xl font-semibold text-ink">
               {s.value} <span className="text-[14px] text-ink-subtle">bp</span>
             </dd>

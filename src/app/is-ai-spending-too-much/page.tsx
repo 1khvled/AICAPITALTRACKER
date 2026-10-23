@@ -219,7 +219,7 @@ export default function IsAiSpendingTooMuchPage() {
                   </text>
                   <text
                     x={x + barW / 2}
-                    y={colSvgHeight - 14}
+                    y={colSvgHeight - 16}
                     textAnchor="middle"
                     className="text-[13px] font-semibold fill-ink"
                   >
@@ -227,7 +227,7 @@ export default function IsAiSpendingTooMuchPage() {
                   </text>
                   <text
                     x={x + barW / 2}
-                    y={colSvgHeight - 2}
+                    y={colSvgHeight - 4}
                     textAnchor="middle"
                     className="text-[13px] fill-ink-muted"
                   >

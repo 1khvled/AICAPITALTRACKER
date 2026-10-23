@@ -239,9 +239,9 @@ export default function WillOpenAiIpoPage() {
                     fill={i === 0 ? "var(--c-accent)" : "var(--c-cat-steel)"}
                   />
                   <text
-                    x={465}
+                    x={svgWidth - 12}
                     y={y + 16}
-                    textAnchor="start"
+                    textAnchor="end"
                     className="num font-mono text-[13px] font-bold fill-ink"
                   >
                     {d.contract.probabilityPct.toFixed(1)}%{" "}

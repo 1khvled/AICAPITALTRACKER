@@ -313,7 +313,7 @@ export function PolymarketCharts() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 space-y-2">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-              <span className="pill pill-safe">Live Autonomous Telemetry (00:00 UTC Daily)</span>
+              <span className="pill pill-safe">Daily update · 00:00 UTC</span>
               <span className="pill">POLYMARKET GAMMA API</span>
               <span className="num text-[14px] font-semibold text-ink">
                 ${(totalVolume / 1_000_000).toFixed(2)}M+ Real Volume
