@@ -129,8 +129,6 @@ export function AnswerBlock({
         ? `${delta90 >= 0 ? "+" : ""}${delta90.toFixed(1)} pts since ${formatAsOf(firstObservedDate)}`
         : `${delta90 >= 0 ? "+" : ""}${delta90.toFixed(1)} pts`;
 
-  const provenance = [asOf ? `As of ${asOf}` : null, deltaText].filter(Boolean).join(" · ");
-
   // 2026-10-19 (lane 2b): the same-day revision range — the width of the prints that
   // resolved on the as-of day before the inputs settled. Disclosed next to the print.
   const revisionRangeText =
@@ -150,8 +148,17 @@ export function AnswerBlock({
         <span className={`pill transition-colors duration-300 ${BAND_TONE[band].pillTone}`}>
           {BAND_LABEL[band]}
         </span>
-        {provenance && (
-          <span className="num text-[14px] text-ink-faint">{provenance}</span>
+        {(asOf || deltaText) && (
+          <span className="num text-[14px] text-ink-faint">
+            {asOf ? (
+              <>
+                As of{" "}
+                <span className="whitespace-nowrap">{asOf}</span>
+                {deltaText ? " · " : null}
+              </>
+            ) : null}
+            {deltaText ? <span className="whitespace-nowrap">{deltaText}</span> : null}
+          </span>
         )}
       </div>
 
