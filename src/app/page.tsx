@@ -1,10 +1,11 @@
 import React from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowRight, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronRight } from "lucide-react";
 
 import rawDeals from "@/data/deals.json";
 import trajectoryHistory from "@/data/trajectory-history.json";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
+import { MODEL_FACTORS, marketImplied12mBand } from "@/lib/model/factors";
 import { AdSlot } from "@/components/AdSlot";
 import { ProbabilityGauge } from "@/components/ProbabilityGauge";
 import { Reveal } from "@/components/Reveal";
@@ -14,10 +15,17 @@ import { DriverSection } from "@/components/home/DriverSection";
 import { FlipSection } from "@/components/home/FlipSection";
 import { ReceiptsBand } from "@/components/home/ReceiptsBand";
 import { ModelNote } from "@/components/home/ModelNote";
-import { formatAsOf, formatTrillions, formatBillions } from "@/components/home/copy";
-import { WhatChangedChart } from "@/components/home/WhatChangedChart";
-import { FactorContributionChart } from "@/components/home/FactorContributionChart";
-import { marketImplied12mBand } from "@/lib/model/factors";
+import { DeskSection } from "@/components/home/DeskSection";
+import { PrintScrubber, type ScrubPoint } from "@/components/home/PrintScrubber";
+import { ScrollyDrivers, type DeskDriverRow } from "@/components/home/ScrollyDrivers";
+import { DeskPosition } from "@/components/home/DeskPosition";
+import {
+  BAND_LABEL,
+  factorPlain,
+  formatAsOf,
+  formatTrillions,
+  formatBillions,
+} from "@/components/home/copy";
 import liveInputs from "@/data/live-inputs.json";
 import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 import {
@@ -29,14 +37,17 @@ import type { PlainAnswerEntry } from "@/components/home/AnswerBlock";
 
 interface TrajectoryPointLite {
   date?: string;
+  dayLabel?: string;
   probability?: number;
+  compositeScore?: number;
+  deltaVsYesterday?: string;
   originalPrintPct?: number;
   /** True when the pipeline seeded the point instead of observing it. */
   backfilled?: boolean;
 }
 
-const HEADLINE_DRIVER_COUNT = 3;
-const DETAIL_DRIVER_COUNT = 5;
+/** The published explanation for each factor, keyed by id. */
+const EXPLAIN_BY_ID = new Map(MODEL_FACTORS.map((factor) => [factor.id, factor.explain]));
 
 export default function HomePage() {
   // Same call, same inputs, same output as every other surface on the site.
@@ -71,7 +82,7 @@ export default function HomePage() {
     .sort((a: any, b: any) => (b.volumeUsd || 0) - (a.volumeUsd || 0))
     .slice(0, 4);
 
-  // ── Published 90-day trajectory: the "as of" date and the 90-day move ──────
+  // ── Published trajectory: the "as of" date and the published move ─────────
   const history = Array.isArray(trajectoryHistory)
     ? (trajectoryHistory as unknown as TrajectoryPointLite[])
     : [];
@@ -85,6 +96,41 @@ export default function HomePage() {
   // The count is disclosed next to the 90-day delta so the move is never read as 90 days
   // of recorded market history.
   const backfilledCount = history.filter((p) => p.backfilled === true).length;
+  const observedCount = history.filter((p) => p.backfilled !== true).length;
+
+  const scrubPoints: ScrubPoint[] = [];
+  for (const point of history) {
+    if (typeof point.date !== "string") continue;
+    if (typeof point.probability !== "number") continue;
+    if (typeof point.compositeScore !== "number") continue;
+    // The chart is labelled "observed", so seeded points never enter it.
+    // The note below discloses any that the file carries.
+    if (point.backfilled === true) continue;
+    scrubPoints.push({
+      date: point.date,
+      dayLabel: point.dayLabel,
+      probability: point.probability,
+      compositeScore: point.compositeScore,
+      deltaVsYesterday: point.deltaVsYesterday,
+    });
+  }
+
+  const lastMovePts =
+    scrubPoints.length >= 2
+      ? Math.round(
+          (scrubPoints[scrubPoints.length - 1].probability -
+            scrubPoints[scrubPoints.length - 2].probability) *
+            10
+        ) / 10
+      : null;
+  const scrubIntro =
+    lastMovePts === null
+      ? `The print is not a daily ticker with a hundred points behind it. It is ${scrubPoints.length} observed prints. Drag the line to read any day.`
+      : lastMovePts === 0
+        ? `The print is not a daily ticker with a hundred points behind it. It is ${scrubPoints.length} observed prints; the latest was unchanged. Drag the line to read any day.`
+        : `The print is not a daily ticker with a hundred points behind it. It is ${scrubPoints.length} observed prints; the latest moved ${
+            lastMovePts > 0 ? "+" : "−"
+          }${Math.abs(lastMovePts).toFixed(1)} points. Drag the line to read any day.`;
 
   // ── Factor split: what pushes the score up, and the one that pushes it down ─
   const riskFactors = result.contributions
@@ -96,6 +142,22 @@ export default function HomePage() {
   const detailDrivers = [...riskFactors].sort((a, b) => a.earnedPoints - b.earnedPoints);
 
   const pricedFactors = result.contributions.filter((factor) => factor.reading.coverage > 0).length;
+
+  // The scroll-driven briefing consumes the model's own factors, not a copy.
+  const driverRows: DeskDriverRow[] = result.contributions.map((factor) => {
+    const plain = factorPlain(factor.id);
+    return {
+      id: factor.id,
+      short: plain.short,
+      gloss: plain.gloss,
+      explain: EXPLAIN_BY_ID.get(factor.id) ?? "",
+      points: factor.earnedPoints,
+      weightPct: factor.weightPct,
+      score: factor.reading.score,
+      reading: factor.reading.reading,
+      kind: factor.kind,
+    };
+  });
 
   // ── The index of plain answers, each with its OWN headline number ────────
   // Every figure below is computed from the ledger, the live model inputs or
@@ -144,108 +206,117 @@ export default function HomePage() {
     },
   ];
 
+  const scrubNote =
+    backfilledCount > 0
+      ? `${observedCount} observed prints shown; ${backfilledCount} earlier ${
+          backfilledCount === 1 ? "point is" : "points are"
+        } backfilled and excluded from this chart.`
+      : `${observedCount} observed prints, ${backfilledCount} backfilled. The line is the published file, exactly.`;
+
   return (
-    <div className="space-y-10 sm:space-y-14">
-      {/* ── 1 · The answer, above the fold (in plain English) ──────────────── */}
-      <AnswerBlock
-        probability={result.burstProbability}
-        band={result.band}
-        asOf={asOf}
-        delta90={delta90}
-        backfilledCount={backfilledCount}
-        trackedLabel={trackedLabel}
-        debtLabel={debtLabel}
-        dealsCount={totalDeals}
-        debtDealsCount={debtDeals.length}
-        pricedFactors={pricedFactors}
-        totalFactors={result.contributions.length}
-        notThis={[
-          "It is not a certainty, market timing signal, or trading recommendation. It calculates statistical odds of an infrastructure correction from filed debt and corporate cash flows.",
-          "It does not predict that artificial intelligence technology is overhyped or unviable; it measures whether the current corporate borrowing and hardware build-out can sustain itself without defaults or severe cutbacks.",
-          "The published range beside it is an input-sensitivity range (showing how far the score shifts when interest rates or credit default swaps change), not a statistical confidence interval.",
-        ]}
-        plainAnswers={plainAnswers}
-      />
+    <div className="space-y-12 sm:space-y-16">
+      {/* ── 01 · The answer, above the fold (in plain English) ──────────────── */}
+      <section id="print" className="desk-grid">
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
+          <span className="index-tag">01 / The print</span>
+          <div className="desk-meta">
+            <span>AI Capital Tracker</span>
+            <span>Desk note {asOf ?? "undated"}</span>
+            {result.modelVersion ? <span>Model v{result.modelVersion}</span> : null}
+            <span>
+              {pricedFactors}/{result.contributions.length} factors priced
+            </span>
+          </div>
+        </div>
+
+        <AnswerBlock
+          probability={result.burstProbability}
+          band={result.band}
+          asOf={asOf}
+          delta90={delta90}
+          backfilledCount={backfilledCount}
+          trackedLabel={trackedLabel}
+          debtLabel={debtLabel}
+          dealsCount={totalDeals}
+          debtDealsCount={debtDeals.length}
+          pricedFactors={pricedFactors}
+          totalFactors={result.contributions.length}
+          notThis={[
+            "It is not a certainty, market timing signal, or trading recommendation. It calculates statistical odds of an infrastructure correction from filed debt and corporate cash flows.",
+            "It does not predict that artificial intelligence technology is overhyped or unviable; it measures whether the current corporate borrowing and hardware build-out can sustain itself without defaults or severe cutbacks.",
+            "The published range beside it is an input-sensitivity range (showing how far the score shifts when interest rates or credit default swaps change), not a statistical confidence interval.",
+          ]}
+          plainAnswers={plainAnswers}
+        />
+      </section>
 
       {/* Leaderboard sits BELOW the answer — this page's promise is "the answer, above the fold" */}
       <AdSlot placementId="home-leaderboard" />
 
-      {/* ── 1c · The history: the model on resolved episodes, and the money ── */}
-      {/* Collapsed on the home page: the record is the evidence, not the answer.
-          One honest line, one tap to the three panels and their data tables. */}
-      <HistorySection collapsible />
+      {/* ── 02 · The move: every published print, and why it moved ──────────── */}
+      <DeskSection
+        id="move"
+        index="02"
+        title="The move"
+        meta={`${scrubPoints.length} points / observed`}
+        intro={scrubIntro}
+      >
+        <PrintScrubber points={scrubPoints} note={scrubNote} />
 
-      {/* ── 1b · Why the print moved (it belongs with the machinery) ───────── */}
-      <Reveal>
-        <div className="panel space-y-4 rule-accent-left pl-4">
-          <WhatChangedChart />
-          <p className="label flex items-center gap-1.5 pt-2">
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--c-accent)]" aria-hidden="true" />
-            Why the print moved
-          </p>
-          <p className="text-[15px] leading-relaxed text-ink-muted">
-            The print moved because the credit reading was found to be scoring two very different situations the same way, and it now separates them.
-            {firstPoint?.originalPrintPct && (
-              <span>
-                {" "}The model recalibrated from{" "}
-                <strong className="font-semibold text-ink">
-                  {firstPoint.originalPrintPct.toFixed(1)}%
-                </strong>{" "}
-                to{" "}
-                <strong className="font-semibold text-ink">
-                  {result.burstProbability.toFixed(1)}%
-                </strong>{" "}
-                with no change in underlying market data, restoring sensitivity above extreme credit spreads so the published band follows the market.
-              </span>
-            )}
-            {" "}
-            <Link href="/methodology#sigmoid" className="text-ink underline decoration-rule underline-offset-4 hover:decoration-ink">
-              See the method
-            </Link>
-            .
-          </p>
-        </div>
-      </Reveal>
-
-      {/* ── 2 · Demoted machinery: factor weights, composite scores & models ─ */}
-      <section id="breakdown" aria-labelledby="breakdown-heading">
         <Reveal>
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <h2
-              id="breakdown-heading"
-              className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-2xl"
-            >
-              The quantitative machinery
-            </h2>
-            <Link
-              href="/methodology"
-              className="inline-flex min-h-[44px] items-center gap-1 text-[13px] font-medium text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
-            >
-              See full mathematical methodology &amp; formulas
-              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </Link>
+          <div className="panel mt-4 max-w-3xl space-y-2 rule-accent-left pl-4">
+            <p className="label">Why the print moved</p>
+            <p className="max-w-2xl text-[15px] leading-relaxed text-ink-muted">
+              The print moved because the credit reading was found to be scoring two very different
+              situations the same way, and it now separates them.
+              {firstPoint?.originalPrintPct && (
+                <span>
+                  {" "}
+                  The model recalibrated from{" "}
+                  <strong className="font-semibold text-ink">
+                    {firstPoint.originalPrintPct.toFixed(1)}%
+                  </strong>{" "}
+                  to{" "}
+                  <strong className="font-semibold text-ink">
+                    {result.burstProbability.toFixed(1)}%
+                  </strong>{" "}
+                  with no change in underlying market data, restoring sensitivity above extreme
+                  credit spreads so the published band follows the market.
+                </span>
+              )}{" "}
+              <Link
+                href="/methodology#sigmoid"
+                className="text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
+              >
+                See the method
+              </Link>
+              .
+            </p>
           </div>
-          <p className="mb-4 mt-1.5 max-w-2xl text-[15px] leading-relaxed text-ink-muted">
-            Every factor, its weight, and the points it adds to the {result.burstProbability.toFixed(1)}% print.
-            The composite stress score and the balance-sheet meters behind it are one tap below,
-            for readers who want to audit the arithmetic.
-          </p>
         </Reveal>
+      </DeskSection>
 
-        {/* Factor contributions chart: demoted from hero to machinery section */}
-        <div className="mb-6">
-          <FactorContributionChart
-            contributions={result.contributions}
-            compositeScore={result.compositeScore}
-            systemicContagionPoints={result.systemicContagionPoints}
-          />
+      {/* ── 03 · The machine: scroll the factors, then the flip list ────────── */}
+      <DeskSection
+        id="machine"
+        index="03"
+        title="What moves the number"
+        meta={`composite ${result.compositeScore.toFixed(1)} / 100`}
+        intro="The print is a weighted sum, not a vibe. Four readings carry most of the risk; one pulls it down. Scroll — the instrument follows the chapter you are reading."
+      >
+        <ScrollyDrivers
+          rows={driverRows}
+          composite={result.compositeScore}
+          probability={result.burstProbability}
+        />
+
+        <div className="mt-6">
+          <FlipSection inputs={DEFAULT_MODEL_INPUTS} result={result} />
         </div>
 
-        {/* The dial, the fragility meters and the full factor table used to sit
-            open here, ~5,800px of it on a phone, telling the same story as the
-            chart above a second and third time. They are the audit trail, so
-            they stay - one tap down. */}
-        <details className="group border-t border-rule pt-4">
+        {/* The dial and the full factor table are the audit trail, so they
+            stay — one tap down, after the reader has seen the argument. */}
+        <details id="breakdown" className="group mt-8 scroll-mt-24 border-t border-rule pt-4">
           <summary className="flex min-h-11 cursor-pointer list-none items-start justify-between gap-4 [&::-webkit-details-marker]:hidden">
             <div>
               <p className="label">For researchers</p>
@@ -286,38 +357,46 @@ export default function HomePage() {
         <div className="mt-8">
           <AdSlot placementId="home-infeed-1" />
         </div>
-      </section>
+      </DeskSection>
 
-      {/* ── 3 · What would flip the answer ─────────────────────────────────── */}
-      <FlipSection inputs={DEFAULT_MODEL_INPUTS} result={result} />
+      {/* ── 04 · The record: the receipts, then the history ─────────────────── */}
+      <DeskSection
+        id="record"
+        index="04"
+        title="The record"
+        meta={`${totalDeals} deals / ${debtDeals.length} debt facilities`}
+        intro="Everything below is a tracked filing, not an estimate. The long history of bubbles — and how this model would have scored them — is one tap down."
+      >
+        <ReceiptsBand
+          trackedLabel={trackedLabel}
+          dealsCount={totalDeals}
+          totalDisclosedUsd={totalDisclosedUsd}
+          totalDebtUsd={totalDebtUsd}
+          debtLabel={debtLabel}
+        />
 
-      {/* ── 4 · Receipts ───────────────────────────────────────────────────── */}
-      <ReceiptsBand
-        trackedLabel={trackedLabel}
-        dealsCount={totalDeals}
-        totalDisclosedUsd={totalDisclosedUsd}
-        totalDebtUsd={totalDebtUsd}
-        debtLabel={debtLabel}
-      />
+        <div className="mt-4">
+          <HistorySection collapsible />
+        </div>
 
-      <AdSlot placementId="home-mid" className="mt-8" />
+        <AdSlot placementId="home-mid" className="mt-8" />
+      </DeskSection>
 
-      <ModelNote asOf={asOf} />
-
-      {/* ── 5 · What the market is pricing ──────────────────────────────────── */}
-      {/* The one live price for this exact question, next to the model's own
-          print. The gap between them is published, not hidden. */}
-      <section aria-labelledby="market-price-heading" className="mt-10">
+      {/* ── 05 · The market and your own number ─────────────────────────────── */}
+      <DeskSection
+        id="market"
+        index="05"
+        title="The market"
+        meta={`${marketRead.centralPct.toFixed(1)}% implied / 12mo`}
+        intro="What money is betting on this question, and where you sit next to it. The gap between the model and the crowd is published, not hidden."
+      >
         <div className="card card-flush shadow-card">
           <div className="card-header flex-wrap gap-x-4 gap-y-2">
             <div className="min-w-0">
               <p className="label">The market&rsquo;s price</p>
-              <h2
-                id="market-price-heading"
-                className="mt-1 text-[15px] font-bold tracking-tight text-ink"
-              >
+              <h3 className="mt-1 text-[15px] font-bold tracking-tight text-ink">
                 What money is betting on this question
-              </h2>
+              </h3>
             </div>
             <Link href="/prediction-markets" className="btn min-h-11 shrink-0">
               Full board
@@ -366,16 +445,18 @@ export default function HomePage() {
             <p className="prose prose-p mt-3 max-w-reading text-[15px]">
               The market reads this question faster and with less machinery than we do, and it is
               published here because a research site that hides its disagreement with the crowd is
-              not doing research. Prediction-market odds reflect the real-money trading price of contracts on Polymarket, not an analyst&rsquo;s opinion. It enters our model as one factor of eight, and its resolution criteria are not identical to ours.
+              not doing research. Prediction-market odds reflect the real-money trading price of
+              contracts on Polymarket, not an analyst&rsquo;s opinion. It enters our model as one
+              factor of eight, and its resolution criteria are not identical to ours.
             </p>
 
             {/* ── What the market is betting on: Live tradeable contracts ── */}
             {tradeableMarkets.length > 0 && (
-              <div className="mt-6 border-t border-rule pt-5 space-y-3">
+              <div className="mt-6 space-y-3 border-t border-rule pt-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p className="label">Live contracts in plain words</p>
-                    <h3 className="text-[16px] font-bold text-ink mt-0.5">
+                    <h3 className="mt-0.5 text-[16px] font-bold text-ink">
                       What the market is betting on
                     </h3>
                   </div>
@@ -386,16 +467,17 @@ export default function HomePage() {
                   {tradeableMarkets.map((m: any) => (
                     <a
                       key={m.id}
-                      href={m.referralUrl || `https://polymarket.com/event/${m.eventSlug}?r=${POLYMARKET_REFERRAL_CODE}`}
+                      href={
+                        m.referralUrl ||
+                        `https://polymarket.com/event/${m.eventSlug}?r=${POLYMARKET_REFERRAL_CODE}`
+                      }
                       target="_blank"
                       rel="noopener noreferrer sponsored"
-                      className="panel block p-3.5 transition-all hover:border-ink focus:outline-hidden focus:ring-1 focus:ring-ink"
+                      className="panel block p-3.5 transition-all hover:border-ink focus:outline-none focus-visible:ring-1 focus-visible:ring-ink"
                     >
-                      <p className="text-[14px] font-semibold text-ink leading-snug">
-                        {m.question}
-                      </p>
+                      <p className="text-[14px] font-semibold leading-snug text-ink">{m.question}</p>
                       <div className="mt-2.5 flex items-baseline justify-between border-t border-rule pt-2">
-                        <span className="text-[12px] uppercase font-semibold text-ink-faint">
+                        <span className="text-[12px] font-semibold uppercase text-ink-faint">
                           The market says
                         </span>
                         <span className="num text-[16px] font-bold text-accent-strong dark:text-accent-ink">
@@ -404,7 +486,11 @@ export default function HomePage() {
                       </div>
                       {m.volumeUsd > 0 && (
                         <div className="mt-0.5 text-right text-[12px] text-ink-subtle">
-                          ${(m.volumeUsd / 1e6 >= 1 ? `${(m.volumeUsd / 1e6).toFixed(1)}M` : `${Math.round(m.volumeUsd / 1e3)}k`)} traded
+                          $
+                          {m.volumeUsd / 1e6 >= 1
+                            ? `${(m.volumeUsd / 1e6).toFixed(1)}M`
+                            : `${Math.round(m.volumeUsd / 1e3)}k`}{" "}
+                          traded
                         </div>
                       )}
                     </a>
@@ -424,34 +510,26 @@ export default function HomePage() {
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </a>
               <span className="max-w-reading">
-                Outbound links carry our referral code (<strong className="font-mono text-ink">{POLYMARKET_REFERRAL_CODE}</strong>) and we may be paid a referral fee if you trade.
-                Referral arrangements never change a number or model probability on this site.
+                Outbound links carry our referral code (
+                <strong className="font-mono text-ink">{POLYMARKET_REFERRAL_CODE}</strong>) and we
+                may be paid a referral fee if you trade. Referral arrangements never change a number
+                or model probability on this site.
               </span>
             </p>
           </div>
         </div>
-      </section>
 
-      {/* ── 6 · Your own call ───────────────────────────────────────────────── */}
-      {/* The model publishes its number; the reader may disagree. This is the
-          invitation to say so and keep a private scoreboard against it. */}
-      <section
-        aria-labelledby="your-call-heading"
-        className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-rule pt-4"
-      >
-        <h2 id="your-call-heading" className="sr-only">
-          Your call
-        </h2>
-        <p className="max-w-reading text-[14px] leading-relaxed text-ink-muted">
-          Think {result.burstProbability.toFixed(1)}% is wrong? Put your own number on the
-          record &mdash; stored on this device, scored against the model&rsquo;s print, never
-          uploaded.
-        </p>
-        <Link href="/your-call" className="btn min-h-11 shrink-0">
-          Make your call
-          <ArrowRight className="h-4 w-4" aria-hidden="true" />
-        </Link>
-      </section>
+        <div className="mt-6">
+          <DeskPosition
+            modelPct={result.burstProbability}
+            marketPct={marketRead.centralPct}
+            marketLabel="Market-implied 12m"
+            bandLabel={BAND_LABEL[result.band]}
+          />
+        </div>
+      </DeskSection>
+
+      <ModelNote asOf={asOf} />
 
       <AdSlot placementId="home-footer" />
     </div>

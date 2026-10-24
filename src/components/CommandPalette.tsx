@@ -461,7 +461,7 @@ export function CommandPalette() {
         onClick={openPalette}
         aria-label="Search the tracker"
         title="Search — ⌘K"
-        className="flex h-11 items-center gap-2 rounded-md border border-white/15 px-2.5 text-[13px] font-medium text-header-muted transition-colors hover:bg-white/5 hover:text-white md:px-3"
+        className="flex h-11 w-11 items-center justify-center gap-2 rounded-md border border-white/15 px-0 text-[13px] font-medium text-header-muted transition-colors hover:bg-white/5 hover:text-white md:w-auto md:justify-start md:px-3"
       >
         <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
         <span className="hidden md:inline">Search</span>

@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { MotionProvider } from "@/components/MotionProvider";
 import { MarketTickerTape } from "@/components/MarketTickerTape";
 import { MobileActionBar } from "@/components/MobileActionBar";
+import { ScrollProgress } from "@/components/ScrollProgress";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import rawDeals from "@/data/deals.json";
 
@@ -228,6 +229,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-dvh bg-canvas font-sans text-ink antialiased">
+        <ScrollProgress />
         <MotionProvider>
           <ThemeProvider>
             <div className="flex min-h-dvh flex-col">

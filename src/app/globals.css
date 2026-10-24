@@ -68,6 +68,11 @@
   --c-accent-ink: #E0A968;
   --c-accent-btn-ink: #0B0D12;
 
+  /* Semantic data colours as RGB triples, so chart fills can use alpha.
+     Light-theme values are the 600 steps of the Tailwind risk/safe scales. */
+  --c-risk: 183 53 47;
+  --c-safe: 11 127 88;
+
   /* Categorical chart palette (neutral data: deals, sectors, periods) */
   --c-cat-teal: #0F6E6A;
   --c-cat-navy: #3A4E7A;
@@ -445,7 +450,7 @@ header :where(a, button, input, select, textarea, summary, [tabindex]):focus-vis
 .card {
   background-color: rgb(var(--c-surface));
   border: 1px solid rgb(var(--c-rule));
-  border-radius: 8px;
+  border-radius: 2px;
   padding: 1.25rem;
 }
 .card-flush {
@@ -467,7 +472,7 @@ header :where(a, button, input, select, textarea, summary, [tabindex]):focus-vis
 .panel {
   background-color: rgb(var(--c-surface-2));
   border: 1px solid rgb(var(--c-rule));
-  border-radius: 8px;
+  border-radius: 2px;
   padding: 1rem;
 }
 .panel-flush {
@@ -519,7 +524,7 @@ html.dark .rule-safe-left {
   background-color: rgb(var(--c-surface-2));
   border: 1px solid rgb(var(--c-rule));
   border-left: 3px solid rgb(var(--c-ink-faint));
-  border-radius: 6px;
+  border-radius: 2px;
   padding: 0.875rem 1rem;
   font-size: 0.9375rem;
   line-height: 1.6;
@@ -573,7 +578,7 @@ html.dark .notice-caution {
   border: 1px solid rgb(var(--c-rule));
   background-color: rgb(var(--c-surface-2));
   color: rgb(var(--c-ink-muted));
-  border-radius: 999px;
+  border-radius: 2px;
   padding: 0.125rem 0.5rem;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, system-ui, "Segoe UI", Arial, sans-serif;
   font-size: 0.8125rem; /* 13px — was 11px (2026-10-19 size-floor pass) */
@@ -649,7 +654,7 @@ html.dark .pill-ink {
   border: 1px solid rgb(var(--c-rule));
   background-color: rgb(var(--c-surface));
   color: rgb(var(--c-ink-muted));
-  border-radius: 6px;
+  border-radius: 2px;
   padding: 0.125rem 0.5rem;
   font-size: 0.8125rem; /* 13px — was 12px (2026-10-19 size-floor pass) */
   font-weight: 500;
@@ -734,7 +739,7 @@ html.dark .chip-caution {
   border: 1px solid rgb(var(--c-rule-strong));
   background-color: rgb(var(--c-surface));
   color: rgb(var(--c-ink));
-  border-radius: 6px;
+  border-radius: 2px;
   padding: 0.5rem 0.875rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -938,7 +943,7 @@ html.dark .btn-primary:hover {
 /* Skeletons — reserved boxes for loading states. */
 .skeleton {
   background-color: rgb(var(--c-surface-3));
-  border-radius: 6px;
+  border-radius: 2px;
   animation: skeletonPulse 1.6s ease-in-out infinite;
 }
 .skeleton-line {
@@ -1956,3 +1961,195 @@ html:not([data-news-density="compact"]) .news-view-compact {
 html:not([data-news-density="compact"]) .news-view-comfortable {
   display: block !important;
 }
+
+/* ============================================================================
+   THE DESK - 2026-10-23 redesign layer
+   ----------------------------------------------------------------------------
+   A technical-briefing skin on top of the existing broadsheet system:
+   a scroll-progress hairline, a blueprint grid behind the hero, ruler rules,
+   squared readouts and the sticky scrollytelling panel.
+
+   House rules still apply: hairline borders, ink neutrals, semantic colour
+   only, monospace for figures, and every new animation is transform/opacity
+   only and is removed under prefers-reduced-motion.
+   ========================================================================== */
+
+:root {
+  --c-grid: 12 14 17;
+  --grid-line: 0.03;
+}
+html.dark {
+  --c-grid: 244 245 247;
+  --grid-line: 0.04;
+  --c-risk: 224 112 106;
+  --c-safe: 52 172 128;
+}
+
+/* Reading progress. Native scroll-driven animation: no scroll listener, no
+   rAF loop, no layout read. Browsers without support simply never show it. */
+.scroll-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--c-accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  z-index: 60;
+  pointer-events: none;
+}
+@supports (animation-timeline: scroll()) {
+  .scroll-progress {
+    animation: desk-progress linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+@keyframes desk-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Blueprint grid. One hairline cell, faded out before the section ends so it
+   reads as drafting paper rather than wallpaper. */
+.desk-grid {
+  position: relative;
+  isolation: isolate;
+}
+.desk-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 -1px 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgb(var(--c-grid) / var(--grid-line)) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(var(--c-grid) / var(--grid-line)) 1px, transparent 1px);
+  background-size: 88px 88px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0px, #000 660px, transparent 1400px);
+  mask-image: linear-gradient(to bottom, #000 0px, #000 660px, transparent 1400px);
+}
+.desk-grid > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Section masthead: a heavier rule, an index number, a title, a right-hand
+   status. Every numbered block on the desk uses this one shape. */
+.desk-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1.5rem;
+  border-top: 1px solid rgb(var(--c-rule-strong));
+  padding-top: 0.625rem;
+}
+.index-tag {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  letter-spacing: 0.1em;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--c-ink-faint));
+  text-transform: uppercase;
+}
+.desk-meta {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: rgb(var(--c-ink-faint));
+  text-transform: uppercase;
+}
+.desk-meta > span + span::before {
+  content: "/";
+  margin-right: 0.5rem;
+  margin-left: 0.5rem;
+  color: rgb(var(--c-rule-strong));
+}
+
+/* Readout: label above a tabular figure. */
+.readout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.readout-key {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(var(--c-ink-faint));
+}
+.readout-value {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  font-weight: 600;
+}
+
+/* Scrollytelling: a step is a rule on the left that warms when it is the
+   active chapter. No movement, no shadow. */
+.step {
+  border-left: 2px solid rgb(var(--c-rule));
+  padding: 0.25rem 0 0.25rem 1rem;
+  transition: border-color 180ms ease-out;
+}
+.step[data-active="true"] {
+  border-left-color: var(--c-accent);
+}
+.step[data-active="true"] .index-tag {
+  /* accent-strong, not accent: the 12px tag needs 4.5:1, and it is theme-aware. */
+  color: var(--c-accent-strong);
+}
+
+/* Position marker on the 0-100 risk line. The line itself is positioned by
+   the caller; the pins are absolute against it. */
+.position-line {
+  height: 2px;
+  background: rgb(var(--c-rule-strong));
+}
+.position-pin {
+  position: absolute;
+  top: 50%;
+  width: 2px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+  background: rgb(var(--c-ink-faint));
+}
+.position-pin[data-kind="model"] { background: var(--c-accent); }
+.position-pin[data-kind="market"] { background: rgb(var(--c-ink-faint)); }
+.position-pin[data-kind="you"] { background: rgb(var(--c-ink)); height: 20px; width: 3px; }
+
+/* Chart draw-in, progressive: with JavaScript the line draws when the plot
+   enters the viewport; without JS the finished line is simply there. */
+html.js-reveal .plot .plot-draw {
+  clip-path: inset(0 100% 0 0);
+}
+html.js-reveal .plot[data-drawn="true"] .plot-draw {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+html.js-reveal .plot .plot-dot,
+html.js-reveal .plot .plot-crosshair {
+  opacity: 0;
+}
+html.js-reveal .plot[data-drawn="true"] .plot-dot,
+html.js-reveal .plot[data-drawn="true"] .plot-crosshair {
+  opacity: 1;
+  transition: opacity 280ms ease-out 420ms;
+}
+
+/* The desk squares off the terminal chrome too: icon buttons, the nav marker
+   and the brand tile all drop to the same 2px corner as the cards. */
+header.sticky :is(.rounded-md, .rounded-lg) {
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-progress { display: none; }
+  .step { transition: none; }
+  html.js-reveal .plot .plot-draw { clip-path: none; }
+  html.js-reveal .plot .plot-dot,
+  html.js-reveal .plot .plot-crosshair { opacity: 1; transition: none; }
+}
+

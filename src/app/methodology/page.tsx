@@ -445,7 +445,7 @@ return (
             <span className="bg-surface-2/80 px-2 py-0.5 rounded border border-rule">Logistic Sigmoid</span>
           </div>
 
-          <div className="p-4 bg-ink rounded-xl border border-ink font-mono text-base sm:text-xl text-center text-safe-600 overflow-x-auto">
+          <div className="p-4 bg-ink rounded-xl border border-rule-strong font-mono text-base sm:text-xl text-center text-safe-400 dark:text-safe-900 overflow-x-auto">
             <code>{"\\mathcal{P}(\\text{burst}) = \\frac{1}{1 + \\exp\\left(-\\frac{S - S_0}{k}\\right)} \\times 100\\%"}</code>
           </div>
 
@@ -629,7 +629,7 @@ return (
                   <span
                     className={`text-[14px] font-mono px-2.5 py-1 rounded-lg font-bold ${
                       f.kind === "damper"
-                        ? "bg-safe-50 text-safe-700 bg-safe-50/60 text-safe-600 border border-safe-200 border-safe-500"
+                        ? "bg-safe-50/60 text-safe-600 border border-safe-200 dark:bg-safe-900/40 dark:text-safe-300 dark:border-safe-700/50"
                         : "border-ink bg-ink text-canvas font-semibold"
                     }`}
                   >
@@ -686,7 +686,7 @@ return (
             <span className="bg-risk-50/80 px-2 py-0.5 rounded border border-risk-500">Nonlinear Synergy</span>
           </div>
 
-          <div className="p-4 bg-ink rounded-xl border border-ink font-mono text-sm sm:text-lg text-center text-risk-600 overflow-x-auto">
+          <div className="p-4 bg-ink rounded-xl border border-rule-strong font-mono text-sm sm:text-lg text-center text-risk-400 dark:text-risk-900 overflow-x-auto">
             <code>{"\\Delta S_{\\text{contagion}} = \\sqrt[3]{\\max(0, s_{\\text{CDS}} - 0.35) \\times \\max(0, s_{\\text{Debt}} - 0.30) \\times \\max(0, s_{\\text{Macro}} - 0.30)} \\times 16.0"}</code>
           </div>
 
@@ -966,10 +966,10 @@ return (
                     <span
                       className={`px-2.5 py-1 rounded text-[14px] font-bold ${
                         b.band === "Critical"
-                          ? "bg-risk-50 text-risk-700 bg-risk-50/60 text-risk-600 border border-risk-200 border-risk-500"
+                          ? "bg-risk-50/60 text-risk-600 border border-risk-200 dark:bg-risk-900/40 dark:text-risk-300 dark:border-risk-700/50"
                           : b.band === "High Stress"
-                          ? "bg-caution-50 text-caution-700 bg-caution-50/60 text-caution-600 border border-caution-200 border-caution-500"
-                          : "bg-safe-50 text-safe-700 bg-safe-50/60 text-safe-600 border border-safe-200 border-safe-500"
+                          ? "bg-caution-50/60 text-caution-600 border border-caution-200 dark:bg-caution-900/40 dark:text-caution-300 dark:border-caution-700/50"
+                          : "bg-safe-50/60 text-safe-600 border border-safe-200 dark:bg-safe-900/40 dark:text-safe-300 dark:border-safe-700/50"
                       }`}
                     >
                       {b.band}
@@ -1240,7 +1240,7 @@ return (
                 25,000-Path Monte Carlo Engine &amp; Cholesky Correlated Tail Risk
               </h3>
             </div>
-            <span className="px-3 py-1 rounded-full text-[13px] font-mono font-bold bg-safe-500/20 text-safe-600 border border-safe-300/30">
+            <span className="px-3 py-1 rounded-full text-[13px] font-mono font-bold bg-safe-500/20 text-safe-700 border border-safe-300/30">
               N = 25,000 Paths (Cholesky Factorized) · {SNAPSHOT_LABEL}
             </span>
           </div>
@@ -1257,38 +1257,38 @@ return (
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-2 font-mono text-[14px]">
-            <div className="p-3 rounded-xl bg-ink border border-ink space-y-1">
+            <div className="p-3 rounded-xl bg-surface-2 border border-rule space-y-1">
               <span className="label block">Median Prob</span>
               <span className="text-base font-semibold text-ink">{latestModel.monteCarlo.medianProbabilityPct}%</span>
               <span className="num text-ink-faint block">Mean: {latestModel.monteCarlo.meanProbabilityPct}%</span>
             </div>
-            <div className="p-3 rounded-xl bg-ink border border-ink space-y-1">
+            <div className="p-3 rounded-xl bg-surface-2 border border-rule space-y-1">
               <span className="label block">Std Dev</span>
               <span className="text-base font-semibold text-ink">{latestModel.monteCarlo.stdDevPct}</span>
               <span className="num text-ink-faint block">Skew: {latestModel.monteCarlo.skewness}</span>
             </div>
-            <div className="p-3 rounded-xl bg-ink border border-ink space-y-1">
+            <div className="p-3 rounded-xl bg-surface-2 border border-rule space-y-1">
               <span className="label block">90% shock range</span>
               <span className="text-base font-semibold text-safe-600">
                 [{latestModel.monteCarlo.ci90Pct[0]}% – {latestModel.monteCarlo.ci90Pct[1]}%]
               </span>
               <span className="num text-ink-faint block">Not a confidence interval</span>
             </div>
-            <div className="p-3 rounded-xl bg-ink border border-ink space-y-1">
+            <div className="p-3 rounded-xl bg-surface-2 border border-rule space-y-1">
               <span className="label block">95% shock range</span>
               <span className="text-base font-semibold text-safe-600">
                 [{latestModel.monteCarlo.ci95Pct[0]}% – {latestModel.monteCarlo.ci95Pct[1]}%]
               </span>
               <span className="num text-ink-faint block">Floor: {latestModel.monteCarlo.bandLowPct}%</span>
             </div>
-            <div className="p-3 rounded-xl bg-ink border border-ink space-y-1">
+            <div className="p-3 rounded-xl bg-surface-2 border border-rule space-y-1">
               <span className="label block">95% VaR / CVaR</span>
               <span className="text-base font-semibold text-caution-600">
                 {latestModel.monteCarlo.valueAtRisk95Pct}% / {latestModel.monteCarlo.conditionalValueAtRisk95Pct}%
               </span>
               <span className="num text-ink-faint block">Worst 5% tail mean</span>
             </div>
-            <div className="p-3 rounded-xl bg-ink border border-ink space-y-1">
+            <div className="p-3 rounded-xl bg-surface-2 border border-rule space-y-1">
               <span className="label block">99% VaR / CVaR</span>
               <span className="text-base font-semibold text-risk-600">
                 {latestModel.monteCarlo.valueAtRisk99Pct}% / {latestModel.monteCarlo.conditionalValueAtRisk99Pct}%
@@ -1822,7 +1822,7 @@ return (
           </div>
 
           <div className="bg-surface-2 rounded-lg border border-rule-strong overflow-hidden">
-            <div className="px-4 py-2.5 bg-ink border-b border-ink flex items-center justify-between text-[14px] text-ink-subtle">
+            <div className="px-4 py-2.5 bg-ink border-b border-canvas/15 flex items-center justify-between text-[14px] text-canvas/70">
               <span>architecture-diagram.mermaid</span>
               <span>graph TD / flowchart TD</span>
             </div>
@@ -2074,38 +2074,38 @@ return (
 
           {/* Shiller ECY Formula and Telemetry Box */}
           <div className="p-6 rounded-lg bg-ink text-canvas border border-rule/30 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-ink pb-3">
-              <span className="font-mono text-[13px] uppercase tracking-wider text-ink-muted font-bold">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-canvas/15 pb-3">
+              <span className="font-mono text-[13px] uppercase tracking-wider text-canvas/70 font-bold">
                 Excess CAPE Yield Mathematical Formulation
               </span>
-              <span className="text-[14px] font-mono px-2.5 py-0.5 rounded bg-surface-3/20 text-ink border border-rule/40">
+              <span className="text-[14px] font-mono px-2.5 py-0.5 rounded bg-canvas/10 text-canvas border border-canvas/20">
                 Regime: {shiller.equityRiskPremiumBand}
               </span>
             </div>
 
-            <div className="p-4 rounded-xl bg-ink border border-ink text-center font-mono text-sm sm:text-base text-ink font-bold">
+            <div className="p-4 rounded-xl bg-canvas/5 border border-canvas/15 text-center font-mono text-sm sm:text-base text-canvas font-bold">
               <code>{`\\text{ECY} = \\frac{1}{\\text{CAPE}_{\\text{AI}}} - \\left(y_{10\\text{y}} - \\pi^{\\text{TIPS}}_{\\text{10y BE}}\\right) = \\frac{1}{${shiller.aiCapeMultiple.toFixed(1)}} - (5.10\\% - 2.35\\%) = ${shiller.earningsYieldPct.toFixed(2)}\\% - ${shiller.real10yYieldPct.toFixed(2)}\\% = \\mathbf{${shiller.excessCapeYieldPct >= 0 ? "+" : ""}${shiller.excessCapeYieldPct.toFixed(2)}\\%}`}</code>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-[14px] pt-1">
-              <div className="p-3 rounded-xl bg-surface border border-ink">
+              <div className="p-3 rounded-xl bg-surface border border-rule">
                 <span className="label block">AI Tech CAPE Multiple</span>
                 <span className="text-lg font-semibold text-ink">{shiller.aiCapeMultiple.toFixed(1)}×</span>
                 <span className="num text-ink-faint block">Hist Median: {shiller.historicalMedianCape.toFixed(1)}×</span>
               </div>
-              <div className="p-3 rounded-xl bg-surface border border-ink">
+              <div className="p-3 rounded-xl bg-surface border border-rule">
                 <span className="label block">Real Earnings Yield (1/CAPE)</span>
                 <span className="text-lg font-semibold text-ink">{shiller.earningsYieldPct.toFixed(2)}%</span>
                 <span className="num text-ink-faint block">Unlevered Tech Return</span>
               </div>
-              <div className="p-3 rounded-xl bg-surface border border-ink">
+              <div className="p-3 rounded-xl bg-surface border border-rule">
                 <span className="label block">10Y Real Treasury Benchmark</span>
                 <span className="text-lg font-semibold text-ink-muted">{shiller.real10yYieldPct.toFixed(2)}%</span>
                 <span className="num text-ink-faint block">
                   {realYieldBasisLabel(docEcyInputs, "tips")}
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-surface border border-ink">
+              <div className="p-3 rounded-xl bg-surface border border-rule">
                 <span className="label block">Excess CAPE Yield (ERP)</span>
                 <span className="text-lg font-semibold text-caution-600">
                   {shiller.excessCapeYieldPct >= 0 ? `+${shiller.excessCapeYieldPct.toFixed(2)}%` : `${shiller.excessCapeYieldPct.toFixed(2)}%`}
@@ -2114,15 +2114,15 @@ return (
               </div>
             </div>
 
-            <p className="text-[14px] text-ink-muted leading-relaxed pt-1">
-              <strong>Institutional Interpretation:</strong> At <code className="text-ink">{shiller.excessCapeYieldPct >= 0 ? "+" : ""}{shiller.excessCapeYieldPct.toFixed(2)}%</code>, the technology equity risk premium is
+            <p className="text-[14px] text-canvas/75 leading-relaxed pt-1">
+              <strong>Institutional Interpretation:</strong> At <code className="text-canvas">{shiller.excessCapeYieldPct >= 0 ? "+" : ""}{shiller.excessCapeYieldPct.toFixed(2)}%</code>, the technology equity risk premium is
               significantly compressed below historical bull-market cushions of +3.50%. Investors receive only {Math.round(shiller.excessCapeYieldPct * 100)} bps of annual excess expected yield
               over risk-free inflation-hedged Treasuries for absorbing hardware obsolescence and generative software disruption risk.
               Any incremental +50 bps upward drift in 10-year yields compresses the equity risk premium toward zero.
             </p>
 
-            <p className="text-[14px] text-ink-faint leading-relaxed pt-1 border-t border-rule/40">
-              <strong className="text-ink-muted">Basis disclosure (published once):</strong> the real
+            <p className="text-[14px] text-canvas/60 leading-relaxed pt-1 border-t border-canvas/15">
+              <strong className="text-canvas/80">Basis disclosure (published once):</strong> the real
               10-year yield used above is {realYieldBasisLabel(docEcyInputs, "tips")} ={" "}
               {realYieldTipsPct(docEcyInputs).toFixed(2)}%, which gives the published ECY of{" "}
               {docEcyTips >= 0 ? "+" : ""}
@@ -2472,8 +2472,8 @@ return (
                     <td className="p-3.5">
                       <span className={`px-2 py-0.5 rounded text-ink font-bold ${
                         test.actualBurstObserved
-                          ? "bg-risk-50 text-risk-700 bg-risk-50 text-risk-600 border border-risk-200 border-risk-500"
-                          : "bg-safe-50 text-safe-700 bg-safe-50 text-safe-600 border border-safe-200 border-safe-500"
+                          ? "bg-risk-50/60 text-risk-600 border border-risk-200 dark:bg-risk-900/40 dark:text-risk-300 dark:border-risk-700/50"
+                          : "bg-safe-50/60 text-safe-600 border border-safe-200 dark:bg-safe-900/40 dark:text-safe-300 dark:border-safe-700/50"
                       }`}>
                         {test.actualBurstObserved ? "Crisis Observed (1.0)" : "In Progress (0.0)"}
                       </span>

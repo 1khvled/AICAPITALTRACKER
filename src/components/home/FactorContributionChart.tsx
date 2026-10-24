@@ -114,10 +114,10 @@ export function FactorContributionChart({
               </div>
 
               {/* Bar track */}
-              <div className="relative h-6 w-full rounded bg-surface-3/80 overflow-hidden">
+              <div className="relative h-6 w-full overflow-hidden bg-surface-3/80">
                 <div
-                  className="h-full rounded bg-[var(--c-risk)]/90 transition-all duration-300"
-                  style={{ width: `${widthPct}%` }}
+                  className="h-full transition-all duration-300"
+                  style={{ width: `${widthPct}%`, backgroundColor: "rgb(var(--c-risk) / 0.9)" }}
                 />
                 <span className="absolute inset-y-0 left-2 flex items-center num font-mono text-[12px] font-bold text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]">
                   +{factor.earnedPoints.toFixed(1)}

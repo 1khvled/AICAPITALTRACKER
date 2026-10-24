@@ -164,13 +164,15 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
           {/* Brand */}
           <Link
             href="/"
-            className="flex min-h-11 shrink-0 items-center gap-2.5 py-1"
+            className="flex min-h-11 min-w-11 shrink-0 items-center gap-2.5 py-1"
             aria-label="AI Capital Tracker, home"
           >
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-white/15 bg-white/5">
               <span className="font-mono text-[14px] font-bold tracking-tight text-white">AI</span>
             </span>
-            <span className="truncate text-[14px] font-semibold tracking-tight text-white sm:text-sm">
+            {/* On phones the tile is the mark: dropping the wordmark is what
+                lets the readout and controls share the first row. */}
+            <span className="hidden truncate text-[14px] font-semibold tracking-tight text-white sm:inline sm:text-sm">
               AI Capital Tracker
             </span>
           </Link>
@@ -222,7 +224,7 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
               <Link
                 href="/"
                 title="Current 12-month bubble burst probability"
-                className="flex min-h-11 items-center gap-2 border-l border-white/10 pl-3"
+                className="flex min-h-11 items-center gap-2 border-l border-white/10 pl-3 lg:hidden 2xl:flex"
               >
                 <span className="hidden text-[13px] font-medium uppercase tracking-[0.14em] text-header-muted lg:inline">
                   12-mo risk
