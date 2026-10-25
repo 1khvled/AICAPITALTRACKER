@@ -1,9 +1,9 @@
 {
-  "last_synced_at": "2026-10-24T03:50:41.723Z",
+  "last_synced_at": "2026-10-25T03:49:32.630Z",
   "verified_at": "2026-10-19",
   "source": "https://openrouter.ai/api/v1/models",
   "license": "Public OpenRouter Model Catalog (Free / Keyless)",
-  "total_models_available": 469,
+  "total_models_available": 467,
   "verification_note": "Live OpenRouter fetch Oct 19, 2026 returned 470 model listings (spec preview said 471; live count wins). All prices re-verified against the live keyless API; deflation multiples recomputed on the INPUT-price basis vs GPT-4's $30/1M input (Mar 2023 launch rate, still listed today). GPT-4 input $30/1M, output $60/1M (OpenRouter live + OpenAI Mar 14 2023 launch rate).",
   "benchmark_baseline": {
     "model": "OpenAI GPT-4 Original",

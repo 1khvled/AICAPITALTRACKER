@@ -1,5 +1,32 @@
 [
   {
+    "timestamp": "2026-10-25T03:49:35.332Z",
+    "status": "SUCCESS",
+    "execution_time_ms": 2884,
+    "sources_scanned": [
+      "OpenRouter Public Models Pricing API",
+      "Polymarket Gamma Events API",
+      "Yahoo Finance Institutional Quotes (21 Tech Tickers & Macro Indicators)",
+      "SEC EDGAR Submissions (Oracle CIK 0001341439)",
+      "AI Capital Tracker Verified Primary Ledger (deals.json)"
+    ],
+    "burst_probability": 31.2,
+    "composite_score": 47.9,
+    "risk_band": "guarded",
+    "merton_dd": 5.13,
+    "altman_z": 8.41,
+    "token_decline_multiple": "1500x",
+    "polymarket_yes_prob": 0.0935,
+    "disclosed_volume_usd": 2872873160000,
+    "debt_share_pct": "7.5%",
+    "deals_count": 169,
+    "delta_vs_previous": {
+      "burst_probability_delta": 0,
+      "polymarket_prob_delta": -0.002,
+      "disclosed_volume_delta_usd": 0
+    }
+  },
+  {
     "timestamp": "2026-10-24T03:50:44.569Z",
     "status": "SUCCESS",
     "execution_time_ms": 2980,
@@ -780,33 +807,6 @@
       "burst_probability_delta": -0.1,
       "polymarket_prob_delta": -0.006,
       "disclosed_volume_delta_usd": 0
-    }
-  },
-  {
-    "timestamp": "2026-10-18T22:12:09.308Z",
-    "status": "SUCCESS",
-    "execution_time_ms": 6676,
-    "sources_scanned": [
-      "OpenRouter Public Models Pricing API",
-      "Polymarket Gamma Events API",
-      "Yahoo Finance Institutional Quotes (21 Tech Tickers & Macro Indicators)",
-      "SEC EDGAR Submissions (Oracle CIK 0001341439)",
-      "AI Capital Tracker Verified Primary Ledger (deals.json)"
-    ],
-    "burst_probability": 64,
-    "composite_score": 60.2,
-    "risk_band": "elevated",
-    "merton_dd": 5.37,
-    "altman_z": 8.41,
-    "token_decline_multiple": "25x",
-    "polymarket_yes_prob": 0.103,
-    "disclosed_volume_usd": 2858307802026,
-    "debt_share_pct": "8.0%",
-    "deals_count": 169,
-    "delta_vs_previous": {
-      "burst_probability_delta": 22.8,
-      "polymarket_prob_delta": 0,
-      "disclosed_volume_delta_usd": 47550000000
     }
   }
 ]
