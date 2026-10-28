@@ -126,19 +126,34 @@ export function AnswerBlock({
     delta90 === null
       ? null
       : firstObservedDate
-        ? `${delta90 >= 0 ? "+" : ""}${delta90.toFixed(1)} pts since ${formatAsOf(firstObservedDate)}`
-        : `${delta90 >= 0 ? "+" : ""}${delta90.toFixed(1)} pts`;
+        ? `${delta90 > 0 ? "+" : delta90 < 0 ? "−" : ""}${Math.abs(delta90).toFixed(1)} pts since ${formatAsOf(firstObservedDate)}`
+        : `${delta90 > 0 ? "+" : delta90 < 0 ? "−" : ""}${Math.abs(delta90).toFixed(1)} pts`;
 
   // 2026-10-19 (lane 2b): the same-day revision range — the width of the prints that
   // resolved on the as-of day before the inputs settled. Disclosed next to the print.
-  const revisionRangeText =
-    LATEST_OBSERVED &&
-    typeof LATEST_OBSERVED.date === "string" &&
-    typeof LATEST_OBSERVED.probability === "number" &&
-    typeof LATEST_OBSERVED.revision_min_pct === "number" &&
-    typeof LATEST_OBSERVED.revision_max_pct === "number"
-      ? `Today's canonical print settled at ${LATEST_OBSERVED.probability.toFixed(1)}% within a same-day revision range of ${LATEST_OBSERVED.revision_min_pct}–${LATEST_OBSERVED.revision_max_pct}%${typeof LATEST_OBSERVED.revision_runs === "number" ? ` over ${LATEST_OBSERVED.revision_runs} resolved runs` : ""} (input corrections pending resolved windows).`
-      : null;
+  const revisionRangeText = (() => {
+    if (
+      !LATEST_OBSERVED ||
+      typeof LATEST_OBSERVED.date !== "string" ||
+      typeof LATEST_OBSERVED.probability !== "number" ||
+      typeof LATEST_OBSERVED.revision_min_pct !== "number" ||
+      typeof LATEST_OBSERVED.revision_max_pct !== "number"
+    ) {
+      return null;
+    }
+    const runs =
+      typeof LATEST_OBSERVED.revision_runs === "number" ? LATEST_OBSERVED.revision_runs : null;
+    const runLabel = runs === null ? "" : runs === 1 ? " in 1 resolved run" : ` in ${runs} resolved runs`;
+    const min = LATEST_OBSERVED.revision_min_pct;
+    const max = LATEST_OBSERVED.revision_max_pct;
+    const range =
+      min === max
+        ? `${min.toFixed(1)}%`
+        : `${min.toFixed(1)}–${max.toFixed(1)}%`;
+    const rangeLabel = min === max ? "" : `, within a same-day range of ${range}`;
+    const pending = min === max ? "" : " (input corrections pending resolved windows)";
+    return `Today's canonical print settled at ${LATEST_OBSERVED.probability.toFixed(1)}%${runLabel}${rangeLabel}${pending}.`;
+  })();
 
   return (
     <section id="answer" aria-labelledby="answer-heading" className="max-w-4xl">
@@ -149,15 +164,20 @@ export function AnswerBlock({
           {BAND_LABEL[band]}
         </span>
         {(asOf || deltaText) && (
-          <span className="num text-[14px] text-ink-faint">
+          <span className="num flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px] text-ink-faint">
             {asOf ? (
+              <span>
+                As of <span className="whitespace-nowrap">{asOf}</span>
+              </span>
+            ) : null}
+            {deltaText ? (
               <>
-                As of{" "}
-                <span className="whitespace-nowrap">{asOf}</span>
-                {deltaText ? " · " : null}
+                <span className="hidden sm:inline" aria-hidden="true">
+                  ·
+                </span>
+                <span className="whitespace-nowrap">{deltaText}</span>
               </>
             ) : null}
-            {deltaText ? <span className="whitespace-nowrap">{deltaText}</span> : null}
           </span>
         )}
       </div>
@@ -204,7 +224,7 @@ export function AnswerBlock({
           <span className="font-semibold text-accent-strong dark:text-accent-ink">{BAND_LABEL[band]} risk:</span>{" "}
           {BAND_VERDICT[band]}
         </p>
-        <p className="mt-1 text-[14px] text-ink-subtle">
+        <p className="mt-1 text-[15px] text-ink-subtle">
           In plain English: Big Tech giants (Microsoft, Alphabet, Amazon, Meta) earn enough operating cash flow to fund chip purchases today, but heavy corporate borrowing and extreme lab valuations leave little margin for error if AI adoption slows.
         </p>
       </div>
@@ -299,11 +319,14 @@ export function AnswerBlock({
 
       {/* The provenance of the print. It stays on the page and stays honest -
           it just does not stand between the reader and the answer any more. */}
-      <details className="mt-5 max-w-2xl border-t border-rule pt-3">
+      <details className="group mt-5 max-w-2xl border-t border-rule pt-3">
         <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-[14px] text-ink-muted [&::-webkit-details-marker]:hidden">
           <Info className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden="true" />
           <span className="font-semibold text-ink">How this print was produced</span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden="true" />
+          <ChevronDown
+            className="h-4 w-4 shrink-0 text-ink-faint transition-transform group-open:rotate-180"
+            aria-hidden="true"
+          />
         </summary>
         <div className="mt-2 space-y-1.5 text-[12px] leading-relaxed text-ink-faint">
           <p>
@@ -313,7 +336,10 @@ export function AnswerBlock({
           </p>
           {revisionRangeText && <p>{revisionRangeText}</p>}
           {backfilledCount > 0 && (
-            <p>{backfilledCount} seeded backfill points are still present in the history file</p>
+            <p>
+              {backfilledCount} seeded backfill {backfilledCount === 1 ? "point is" : "points are"} still
+              present in the history file.
+            </p>
           )}
         </div>
       </details>

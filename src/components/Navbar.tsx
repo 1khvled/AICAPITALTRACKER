@@ -180,7 +180,7 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
           {/* Primary navigation — five destinations, nothing else */}
           <nav
             aria-label="Primary"
-            className="order-3 -mx-1 hidden w-full min-w-0 overflow-x-auto scrollbar-none sm:order-none sm:mx-0 sm:block sm:w-auto sm:overflow-visible"
+            className="order-3 -mx-1 hidden w-full min-w-0 overflow-x-auto scrollbar-none sm:order-3 sm:mx-0 sm:block sm:w-full sm:overflow-x-auto lg:order-none lg:w-auto lg:overflow-visible"
           >
             <ul ref={navListRef} className="relative flex items-center gap-0.5 px-1 sm:gap-1">
               {marker ? (
@@ -219,7 +219,7 @@ export function Navbar({ burstProbability, band }: NavbarProps) {
           </nav>
 
           {/* Live reading + theme control */}
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="order-2 flex shrink-0 items-center gap-2">
             {hasProbability ? (
               <Link
                 href="/"

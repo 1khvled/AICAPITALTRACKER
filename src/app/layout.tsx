@@ -10,6 +10,8 @@ import { MobileActionBar } from "@/components/MobileActionBar";
 import { ScrollProgress } from "@/components/ScrollProgress";
 import { evaluateBubbleModel, DEFAULT_MODEL_INPUTS } from "@/lib/model/engine";
 import rawDeals from "@/data/deals.json";
+import trajectoryHistory from "@/data/trajectory-history.json";
+import { formatAsOf } from "@/components/home/copy";
 
 /**
  * Type system.
@@ -59,6 +61,23 @@ const jetbrainsMono = JetBrains_Mono({
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aicapitaltracker.com";
 
+/** Published ledger totals, used in metadata so the description cannot drift. */
+const totalDisclosedUsdAll = rawDeals.reduce((sum, deal) => sum + (deal.amount_usd || 0), 0);
+const totalDebtUsdAll = rawDeals
+  .filter((deal) => deal.is_debt)
+  .reduce((sum, deal) => sum + (deal.amount_usd || 0), 0);
+const totalDisclosedLabel = `$${(totalDisclosedUsdAll / 1e12).toFixed(2)}T`;
+const totalDebtLabel = `$${(totalDebtUsdAll / 1e9).toFixed(1)}B`;
+
+/** Latest published print date, shared by the footer and the metadata. */
+const latestTrajectory = Array.isArray(trajectoryHistory)
+  ? (trajectoryHistory[trajectoryHistory.length - 1] as { date?: string } | undefined)
+  : undefined;
+const latestAsOf =
+  latestTrajectory && typeof latestTrajectory.date === "string"
+    ? formatAsOf(latestTrajectory.date)
+    : null;
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -74,8 +93,7 @@ export const metadata: Metadata = {
     default: "Will the AI Bubble Burst? — 12-Month Outlook & Spending Tracker | AI Capital Tracker",
     template: "%s | AI Capital Tracker",
   },
-  description:
-    "An independent research desk tracking $2.87T in AI spending and $214.9B in debt to calculate one number: the chance the AI bubble bursts within 12 months. No hype, just verified filings.",
+  description: `An independent research desk tracking ${totalDisclosedLabel} in AI spending and ${totalDebtLabel} in debt to calculate one number: the chance the AI bubble bursts within 12 months. No hype, just verified filings.`,
   keywords: [
     "AI bubble",
     "AI bubble burst probability",
@@ -105,8 +123,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Will the AI Bubble Burst? — 12-Month Outlook & Spending Tracker | AI Capital Tracker",
-    description:
-      "A receipt-backed model that tracks $2.87T of AI spending, $214.9B of debt, and turns SEC filings and credit spreads into a 12-month bubble burst probability.",
+    description: `A receipt-backed model that tracks ${totalDisclosedLabel} of AI spending, ${totalDebtLabel} of debt, and turns SEC filings and credit spreads into a 12-month bubble burst probability.`,
     url: baseUrl,
     siteName: "AI Capital Tracker",
     locale: "en_US",
@@ -251,6 +268,8 @@ export default function RootLayout({
               burstProbability={model.burstProbability}
               dealCount={dealCount}
               totalDisclosedTrillions={(totalDisclosedUsd / 1e12).toFixed(2)}
+              asOf={latestAsOf}
+              modelVersion={model.modelVersion}
             />
             {/* Phones only: the thumb bar for search, verdict, ledger and markets */}
             <MobileActionBar />

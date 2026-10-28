@@ -119,7 +119,7 @@ export function WhatChangedChart() {
           </h4>
         </div>
         <div className="flex items-center gap-2">
-          <span className="pill text-[12px] font-mono">v{latest.modelVersion ?? "2.7.0"}</span>
+          <span className="pill font-mono">v{latest.modelVersion ?? "2.7.0"}</span>
           <span className="num text-[13px] font-semibold text-ink">
             Today: {latest.probability.toFixed(1)}% ({probDayDelta >= 0 ? "+" : ""}{probDayDelta.toFixed(1)} pts)
           </span>

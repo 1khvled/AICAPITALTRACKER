@@ -6,7 +6,7 @@ import { useInView, usePrefersReducedMotion } from "@/components/Reveal";
 /**
  * PrintScrubber — the published run, as a chart you can drag.
  *
- * Five observed daily prints is not enough to justify a 90-day curve, so the
+ * The observed daily prints are not enough to justify a 90-day curve, so the
  * chart says exactly what it is: every observed print in the file, in order.
  * Drag across it (or use the arrow keys) and the readout above follows.
  *
@@ -87,9 +87,16 @@ export function PrintScrubber({ points, note }: PrintScrubberProps) {
   const dayMove = (() => {
     const i = points.findIndex((p) => p.date === active.date);
     if (i <= 0) return null;
-    if (active.deltaVsYesterday) return active.deltaVsYesterday;
-    const delta = Math.round((active.probability - points[i - 1].probability) * 10) / 10;
-    return `${delta >= 0 ? "+" : ""}${delta.toFixed(1)} pts`;
+    const deltaText = active.deltaVsYesterday
+      ? active.deltaVsYesterday
+      : (() => {
+          const delta = Math.round((active.probability - points[i - 1].probability) * 10) / 10;
+          return `${delta >= 0 ? "+" : "−"}${Math.abs(delta).toFixed(1)} pts`;
+        })();
+    return {
+      text: deltaText.replace(/^-/, "−"),
+      priorDate: points[i - 1].date,
+    };
   })();
 
   const polyline = geometry.coords.map((c) => `${c.x.toFixed(2)},${c.y.toFixed(2)}`).join(" ");
@@ -105,7 +112,7 @@ export function PrintScrubber({ points, note }: PrintScrubberProps) {
         <div>
           <p className="label">Observed run</p>
           <p id={`${chartId}-title`} className="text-[15px] font-semibold text-ink">
-            Every published print, in order
+            Every published 12-month print, in order
           </p>
         </div>
         <span className="desk-meta">
@@ -130,10 +137,10 @@ export function PrintScrubber({ points, note }: PrintScrubberProps) {
         </span>
         {dayMove ? (
           <span className="num text-[13px] text-ink-muted">
-            {dayMove} vs prior print
+            {dayMove.text} vs {formatDate(dayMove.priorDate)}
           </span>
         ) : null}
-        <span className="desk-meta ml-auto hidden sm:flex">drag / arrow keys</span>
+        <span className="desk-meta ml-auto hidden sm:flex">hover / drag / arrow keys</span>
       </div>
 
       <div className="px-4 pb-3 pt-4">
@@ -160,6 +167,7 @@ export function PrintScrubber({ points, note }: PrintScrubberProps) {
             aria-valuemax={count - 1}
             aria-valuenow={Math.min(activeIndex, count - 1)}
             aria-valuetext={`${formatDate(active.date)}: ${active.probability.toFixed(1)} percent`}
+            aria-orientation="horizontal"
             aria-describedby={`${chartId}-desc`}
             data-drawn={drawn}
             className="plot relative h-[180px] cursor-ew-resize select-none touch-pan-y"

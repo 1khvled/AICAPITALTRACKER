@@ -49,6 +49,11 @@ interface TrajectoryPointLite {
 /** The published explanation for each factor, keyed by id. */
 const EXPLAIN_BY_ID = new Map(MODEL_FACTORS.map((factor) => [factor.id, factor.explain]));
 
+/** "+8.4 pts" / "−3.2 pts" — typographic minus, one decimal. */
+function formatPts(value: number): string {
+  return `${value > 0 ? "+" : value < 0 ? "−" : ""}${Math.abs(value).toFixed(1)} pts`;
+}
+
 export default function HomePage() {
   // Same call, same inputs, same output as every other surface on the site.
   const result = evaluateBubbleModel(DEFAULT_MODEL_INPUTS);
@@ -88,10 +93,14 @@ export default function HomePage() {
     : [];
   const latestPoint = history[history.length - 1];
   const firstPoint = history[0];
+  const observedHistory = history.filter((point) => point.backfilled !== true);
+  const firstObservedPoint = observedHistory[0] ?? firstPoint;
+  const latestObservedPoint = observedHistory[observedHistory.length - 1] ?? latestPoint;
   const asOf = latestPoint?.date ? formatAsOf(latestPoint.date) : null;
   const delta90 =
-    typeof latestPoint?.probability === "number" && typeof firstPoint?.probability === "number"
-      ? Math.round((latestPoint.probability - firstPoint.probability) * 10) / 10
+    typeof latestObservedPoint?.probability === "number" &&
+    typeof firstObservedPoint?.probability === "number"
+      ? Math.round((latestObservedPoint.probability - firstObservedPoint.probability) * 10) / 10
       : null;
   // The count is disclosed next to the 90-day delta so the move is never read as 90 days
   // of recorded market history.
@@ -123,14 +132,15 @@ export default function HomePage() {
             10
         ) / 10
       : null;
+  const priorScrubPoint = scrubPoints.length >= 2 ? scrubPoints[scrubPoints.length - 2] : null;
   const scrubIntro =
     lastMovePts === null
       ? `The print is not a daily ticker with a hundred points behind it. It is ${scrubPoints.length} observed prints. Drag the line to read any day.`
       : lastMovePts === 0
         ? `The print is not a daily ticker with a hundred points behind it. It is ${scrubPoints.length} observed prints; the latest was unchanged. Drag the line to read any day.`
-        : `The print is not a daily ticker with a hundred points behind it. It is ${scrubPoints.length} observed prints; the latest moved ${
-            lastMovePts > 0 ? "+" : "−"
-          }${Math.abs(lastMovePts).toFixed(1)} points. Drag the line to read any day.`;
+        : `The print is not a daily ticker with a hundred points behind it. It is ${scrubPoints.length} observed prints; the latest moved ${formatPts(
+            lastMovePts,
+          )}. Drag the line to read any day.`;
 
   // ── Factor split: what pushes the score up, and the one that pushes it down ─
   const riskFactors = result.contributions
@@ -211,7 +221,7 @@ export default function HomePage() {
       ? `${observedCount} observed prints shown; ${backfilledCount} earlier ${
           backfilledCount === 1 ? "point is" : "points are"
         } backfilled and excluded from this chart.`
-      : `${observedCount} observed prints, ${backfilledCount} backfilled. The line is the published file, exactly.`;
+      : `${observedCount} observed prints; no backfilled points. The line is the published file, exactly.`;
 
   return (
     <div className="space-y-12 sm:space-y-16">
@@ -242,18 +252,20 @@ export default function HomePage() {
           pricedFactors={pricedFactors}
           totalFactors={result.contributions.length}
           notThis={[
-            "It is not a certainty, market timing signal, or trading recommendation. It calculates statistical odds of an infrastructure correction from filed debt and corporate cash flows.",
-            "It does not predict that artificial intelligence technology is overhyped or unviable; it measures whether the current corporate borrowing and hardware build-out can sustain itself without defaults or severe cutbacks.",
-            "The published range beside it is an input-sensitivity range (showing how far the score shifts when interest rates or credit default swaps change), not a statistical confidence interval.",
+            "Not a certainty, a market-timing signal, or a trading recommendation.",
+            "It measures whether the build-out can sustain itself, not whether AI is overhyped or unviable.",
+            "It is an input-sensitivity reading: it moves when rates, credit spreads, or the crowd price move, but it is not a statistical confidence interval.",
           ]}
           plainAnswers={plainAnswers}
         />
       </section>
 
-      {/* Leaderboard sits BELOW the answer — this page's promise is "the answer, above the fold" */}
+      {/* Leaderboard sits BELOW the answer — this page's promise is "the answer, above the fold".
+          The home page carries two units only: this one and the footer. The native in-feed
+          and mid MPU were removed because their four-tile creatives broke the reading flow. */}
       <AdSlot placementId="home-leaderboard" />
 
-      {/* ── 02 · The move: every published print, and why it moved ──────────── */}
+      {/* ── 02 · The move: every published print, and the two changes behind it ── */}
       <DeskSection
         id="move"
         index="02"
@@ -264,26 +276,44 @@ export default function HomePage() {
         <PrintScrubber points={scrubPoints} note={scrubNote} />
 
         <Reveal>
-          <div className="panel mt-4 max-w-3xl space-y-2 rule-accent-left pl-4">
-            <p className="label">Why the print moved</p>
-            <p className="max-w-2xl text-[15px] leading-relaxed text-ink-muted">
-              The print moved because the credit reading was found to be scoring two very different
-              situations the same way, and it now separates them.
-              {firstPoint?.originalPrintPct && (
-                <span>
-                  {" "}
-                  The model recalibrated from{" "}
-                  <strong className="font-semibold text-ink">
-                    {firstPoint.originalPrintPct.toFixed(1)}%
-                  </strong>{" "}
-                  to{" "}
-                  <strong className="font-semibold text-ink">
-                    {result.burstProbability.toFixed(1)}%
-                  </strong>{" "}
-                  with no change in underlying market data, restoring sensitivity above extreme
-                  credit spreads so the published band follows the market.
-                </span>
-              )}{" "}
+          <div className="panel mt-4 max-w-3xl rule-accent-left pl-4">
+            <p className="label">What changed</p>
+            <dl className="mt-2 grid gap-4 sm:grid-cols-2">
+              <div>
+                <dt className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-faint">
+                  Latest observed move
+                </dt>
+                <dd className="num mt-1 text-[20px] font-semibold text-ink">
+                  {lastMovePts === null ? "—" : formatPts(lastMovePts)}
+                </dd>
+                <dd className="mt-1 text-[14px] leading-snug text-ink-subtle">
+                  {priorScrubPoint && latestPoint?.date
+                    ? `from ${formatAsOf(priorScrubPoint.date)} to ${formatAsOf(latestPoint.date)}`
+                    : "No prior observed print"}
+                </dd>
+              </div>
+              {firstObservedPoint &&
+              typeof firstObservedPoint.originalPrintPct === "number" &&
+              typeof firstObservedPoint.probability === "number" ? (
+                <div>
+                  <dt className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-faint">
+                    Model recalibration
+                  </dt>
+                  <dd className="num mt-1 text-[20px] font-semibold text-ink">
+                    {firstObservedPoint.originalPrintPct.toFixed(1)}% →{" "}
+                    {firstObservedPoint.probability.toFixed(1)}%
+                  </dd>
+                  <dd className="mt-1 text-[14px] leading-snug text-ink-subtle">
+                    v2.7.0 credit-ramp correction on{" "}
+                    {firstObservedPoint.date ? formatAsOf(firstObservedPoint.date) : "the first observed print"}.
+                    A model change, not a market move.
+                  </dd>
+                </div>
+              ) : null}
+            </dl>
+            <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-ink-muted">
+              The line above is the published file. The recalibration explains why the first v2.7
+              print sits far below the v2.6 print; it does not explain the latest day.{" "}
               <Link
                 href="/methodology#sigmoid"
                 className="text-ink underline decoration-rule underline-offset-4 hover:decoration-ink"
@@ -353,10 +383,6 @@ export default function HomePage() {
             />
           </div>
         </details>
-
-        <div className="mt-8">
-          <AdSlot placementId="home-infeed-1" />
-        </div>
       </DeskSection>
 
       {/* ── 04 · The record: the receipts, then the history ─────────────────── */}
@@ -378,8 +404,6 @@ export default function HomePage() {
         <div className="mt-4">
           <HistorySection collapsible />
         </div>
-
-        <AdSlot placementId="home-mid" className="mt-8" />
       </DeskSection>
 
       {/* ── 05 · The market and your own number ─────────────────────────────── */}
@@ -460,7 +484,7 @@ export default function HomePage() {
                       What the market is betting on
                     </h3>
                   </div>
-                  <span className="pill text-[12px]">Polymarket live book</span>
+                  <span className="pill">Polymarket live book</span>
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -530,8 +554,6 @@ export default function HomePage() {
       </DeskSection>
 
       <ModelNote asOf={asOf} />
-
-      <AdSlot placementId="home-footer" />
     </div>
   );
 }

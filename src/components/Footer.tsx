@@ -23,6 +23,10 @@ export interface FooterProps {
   dealCount?: number;
   /** Disclosed capital in trillions, e.g. "2.87". */
   totalDisclosedTrillions?: string;
+  /** Latest published print date, e.g. "28 Oct 2026". */
+  asOf?: string | null;
+  /** Model version that produced the current print, e.g. "2.7.0". */
+  modelVersion?: string;
 }
 
 const DIRECTORY: { title: string; links: { label: string; href: string; note?: string }[] }[] = [
@@ -70,6 +74,8 @@ export function Footer({
   burstProbability,
   dealCount,
   totalDisclosedTrillions,
+  asOf,
+  modelVersion,
 }: FooterProps) {
   const probability =
     typeof burstProbability === "number" && !Number.isNaN(burstProbability)
@@ -83,6 +89,7 @@ export function Footer({
       ? totalDisclosedTrillions
       : (ledgerTotalUsd / 1e12).toFixed(2);
   const deals = typeof dealCount === "number" ? dealCount : rawDeals.length;
+  const asOfLabel = asOf ?? "the latest print";
   const directory = DIRECTORY.map((column) => ({
     ...column,
     links: column.links.map((link) =>
@@ -167,7 +174,7 @@ export function Footer({
                 </span>
               </li>
               <li>
-                <Link href="/api-docs" className="font-medium text-ink underline decoration-rule underline-offset-4 hover:decoration-ink">
+                <Link href="/api-docs" className="inline-flex min-h-[44px] items-center font-medium text-ink underline decoration-rule underline-offset-4 hover:decoration-ink">
                   API documentation
                 </Link>
                 <span className="mt-0.5 block text-[14px] text-ink-subtle">
@@ -220,7 +227,7 @@ export function Footer({
           <p className="mt-1.5">
             Every probability, fragility score and simulation here is an
             informational output computed from public SEC filings, market prices
-            and prediction-market quotes as of October 2026. Nothing on this site
+            and prediction-market quotes as of {asOfLabel}. Nothing on this site
             is financial, investment, legal, tax or credit advice. Equity,
             credit and prediction-market positions can lose money. Do your own
             due diligence or talk to a licensed professional before you act.
@@ -230,25 +237,42 @@ export function Footer({
         {/* Bottom rule */}
         <div className="flex flex-col gap-4 border-t border-rule py-6 text-[14px] sm:flex-row sm:items-center sm:justify-between">
           <p className="num text-ink-subtle">
-            Data as of October 2026 · {deals} sourced deals · ${capital}T disclosed
+            <span className="block sm:inline">Data as of {asOfLabel}</span>
+            <span className="hidden sm:inline" aria-hidden="true">
+              {" · "}
+            </span>
+            <span className="block sm:inline">{deals} sourced deals</span>
+            <span className="hidden sm:inline" aria-hidden="true">
+              {" · "}
+            </span>
+            <span className="block sm:inline">${capital}T disclosed</span>
           </p>
           <ul className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <li>
-              <Link href="/methodology" className="hover:text-ink">
+              <Link
+                href="/methodology"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center hover:text-ink"
+              >
                 Method
               </Link>
             </li>
             <li>
-              <Link href="/api-docs" className="hover:text-ink">
+              <Link
+                href="/api-docs"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center hover:text-ink"
+              >
                 API
               </Link>
             </li>
             <li>
-              <Link href="/news" className="hover:text-ink">
+              <Link
+                href="/news"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center hover:text-ink"
+              >
                 News
               </Link>
             </li>
-            <li className="num text-ink-subtle">v{CHANGELOG[0]?.version ?? "2.7.0"}</li>
+            <li className="num text-ink-subtle">v{modelVersion ?? CHANGELOG[0]?.version ?? "2.7.0"}</li>
           </ul>
         </div>
       </div>
