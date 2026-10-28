@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-10-27T04:15:28.251Z",
+  "timestamp": "2026-10-28T04:45:29.969Z",
   "model_version": "2.7.0",
-  "burstProbability": 34,
-  "compositeScore": 49,
+  "burstProbability": 30.8,
+  "compositeScore": 47.7,
   "band": "guarded",
   "coverage": 1,
   "fragilityIndex": 52,
@@ -57,8 +57,8 @@
       "weightPct": 12,
       "earnedPoints": 8.2,
       "reading": {
-        "score": 0.6870666666666667,
-        "reading": "US10Y 4.99% (neutral 3.75%); CPI 3.7% YoY; HY-OAS 338bp; Fed Funds 3.75%",
+        "score": 0.6806666666666668,
+        "reading": "US10Y 4.99% (neutral 3.75%); CPI 3.7% YoY; HY-OAS 330bp; Fed Funds 3.75%",
         "coverage": 1
       }
     },
@@ -81,8 +81,8 @@
       "weightPct": 10,
       "earnedPoints": 4.6,
       "reading": {
-        "score": 0.4602120025,
-        "reading": "Annualized pace: $975B/yr; 10.1% backlog; 29d since last mega deal",
+        "score": 0.4627120025,
+        "reading": "Annualized pace: $975B/yr; 10.1% backlog; 30d since last mega deal",
         "coverage": 1
       }
     },
@@ -91,10 +91,10 @@
       "label": "Crowd odds (prediction markets)",
       "kind": "risk",
       "weightPct": 9,
-      "earnedPoints": 0.9,
+      "earnedPoints": 0.7,
       "reading": {
-        "score": 0.095,
-        "reading": "Polymarket crowd: 9.5% YES ($9.29M volume)",
+        "score": 0.0775,
+        "reading": "Polymarket crowd: 7.8% YES ($9.31M volume)",
         "coverage": 1
       }
     },
@@ -115,10 +115,10 @@
       "label": "Real-use damper",
       "kind": "damper",
       "weightPct": 10,
-      "earnedPoints": -4.1,
+      "earnedPoints": -5.2,
       "reading": {
-        "score": 0.41165535292617383,
-        "reading": "Users +50% YoY, inference 214× cheaper, training cost rising",
+        "score": 0.5222222222222223,
+        "reading": "Users +50% YoY, inference 670× cheaper, training cost rising",
         "coverage": 1
       }
     }
@@ -173,84 +173,84 @@
   },
   "monteCarlo": {
     "iterationsCount": 25000,
-    "meanProbabilityPct": 35.1,
-    "medianProbabilityPct": 28.3,
-    "stdDevPct": 20,
-    "variance": 398.1,
+    "meanProbabilityPct": 32.5,
+    "medianProbabilityPct": 25.5,
+    "stdDevPct": 19.7,
+    "variance": 386.7,
     "ci90Pct": [
-      15.5,
-      65
+      13.7,
+      61.8
     ],
     "ci95Pct": [
-      12.6,
-      77.3
+      11.2,
+      74.8
     ],
     "ciType": "input-sensitivity range (not a probability interval)",
-    "bandLowPct": 12.6,
+    "bandLowPct": 11.2,
     "simulatedShockCorrelations": {
-      "cdsHy": 0.803
+      "cdsHy": 0.804
     },
     "innovationKurtosis": 8.48,
     "innovationExcessKurtosis": 5.48,
-    "valueAtRisk95Pct": 77.3,
-    "conditionalValueAtRisk95Pct": 86.9,
-    "valueAtRisk99Pct": 93.4,
-    "conditionalValueAtRisk99Pct": 95.3,
-    "skewness": 1.08,
-    "kurtosis": 3.5,
+    "valueAtRisk95Pct": 74.8,
+    "conditionalValueAtRisk95Pct": 85.3,
+    "valueAtRisk99Pct": 92.5,
+    "conditionalValueAtRisk99Pct": 94.7,
+    "skewness": 1.2,
+    "kurtosis": 3.85,
     "histogram": [
       {
         "range": "0%–10%",
-        "count": 543,
-        "percentage": 2.2
+        "count": 845,
+        "percentage": 3.4
       },
       {
         "range": "10%–20%",
-        "count": 5371,
-        "percentage": 21.5
+        "count": 7170,
+        "percentage": 28.7
       },
       {
         "range": "20%–30%",
-        "count": 7450,
-        "percentage": 29.8
+        "count": 6641,
+        "percentage": 26.6
       },
       {
         "range": "30%–40%",
-        "count": 3543,
-        "percentage": 14.2
+        "count": 3290,
+        "percentage": 13.2
       },
       {
         "range": "40%–50%",
-        "count": 2776,
-        "percentage": 11.1
+        "count": 2539,
+        "percentage": 10.2
       },
       {
         "range": "50%–60%",
-        "count": 2014,
-        "percentage": 8.1
+        "count": 1752,
+        "percentage": 7
       },
       {
         "range": "60%–70%",
-        "count": 1408,
-        "percentage": 5.6
+        "count": 1159,
+        "percentage": 4.6
       },
       {
         "range": "70%–80%",
-        "count": 831,
-        "percentage": 3.3
+        "count": 694,
+        "percentage": 2.8
       },
       {
         "range": "80%–90%",
-        "count": 639,
-        "percentage": 2.6
+        "count": 545,
+        "percentage": 2.2
       },
       {
         "range": "90%–100%",
-        "count": 425,
-        "percentage": 1.7
+        "count": 365,
+        "percentage": 1.5
       }
     ],
-    "executionTimeMs": 325
+    "executionTimeMs": 352
   },
   "_corrections": [
     "2026-10-19 (fix lane A, pass 11): re-evaluated against the corrected src/data/live-inputs.json — macro.highYieldSpreadBps 329 → 323bp (FRED BAMLH0A0HYM2, Oct 15 2026; the published level was the HYG-inverse proxy) and adoption.apiPriceDeclineMultiple 798 → 670× (input basis: GPT-4 $30/1M Mar 2023 → DeepSeek V4.1 Flash $0.0448/1M, OpenRouter Oct 19 2026). The HY-OAS correction moves the macro_rates factor 0.7202 → 0.7154, the composite 63.4 → 63.3 and the burst probability 71.7% → 71.6% (band unchanged: HIGH).",
