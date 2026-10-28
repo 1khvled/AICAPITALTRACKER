@@ -19,15 +19,32 @@
 import { spawn } from "node:child_process";
 import http from "node:http";
 import fs from "node:fs";
+import path from "node:path";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 
+// Resolve Playwright from the project, a caller-supplied path, or the global
+// npm tree. No machine-specific absolute paths: the old list leaked a local
+// username and broke on every other checkout.
+const globalMcpCore = process.env.APPDATA
+  ? path.join(
+      process.env.APPDATA,
+      "npm",
+      "node_modules",
+      "@playwright",
+      "mcp",
+      "node_modules",
+      "playwright-core",
+    )
+  : null;
+
 const PLAYWRIGHT_PATHS = [
-  "C:/Users/Abdelli/AppData/Roaming/npm/node_modules/@playwright/mcp/node_modules/playwright-core",
+  process.env.PLAYWRIGHT_CORE_PATH,
+  globalMcpCore,
   "playwright",
   "playwright-core",
-];
+].filter(Boolean);
 
 let playwright = null;
 for (const p of PLAYWRIGHT_PATHS) {
@@ -38,22 +55,52 @@ for (const p of PLAYWRIGHT_PATHS) {
 }
 
 if (!playwright) {
-  console.error("❌ Could not load playwright-core. Please verify playwright installation.");
+  console.error("Could not load playwright-core. Install Playwright or set PLAYWRIGHT_CORE_PATH.");
   process.exit(1);
 }
 
-const CHROMIUM_EXECUTABLES = [
-  "C:/Users/Abdelli/AppData/Local/ms-playwright/chromium-1248/chrome-win64/chrome.exe",
-  "C:/Users/Abdelli/AppData/Local/ms-playwright/chromium-1223/chrome-win64/chrome.exe",
-];
+/**
+ * Find a Chromium binary without hardcoding a user directory or browser
+ * revision. An explicit CHROMIUM_EXECUTABLE_PATH wins; otherwise scan the
+ * standard Playwright browser cache, then ask Playwright itself.
+ */
+function findChromium() {
+  const explicit = process.env.CHROMIUM_EXECUTABLE_PATH;
+  if (explicit && fs.existsSync(explicit)) return explicit;
 
-let executablePath = null;
-for (const p of CHROMIUM_EXECUTABLES) {
-  if (fs.existsSync(p)) {
-    executablePath = p;
-    break;
+  const roots = [
+    process.env.PLAYWRIGHT_BROWSERS_PATH,
+    process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, "ms-playwright") : null,
+  ].filter(Boolean);
+
+  for (const root of roots) {
+    if (!fs.existsSync(root)) continue;
+    const revisions = fs
+      .readdirSync(root)
+      .filter((name) => name.startsWith("chromium-"))
+      .sort()
+      .reverse();
+    for (const revision of revisions) {
+      for (const relative of [
+        "chrome-win64/chrome.exe",
+        "chrome-win/chrome.exe",
+        "chrome-linux/chrome",
+        "chrome-mac/Chromium.app/Contents/MacOS/Chromium",
+      ]) {
+        const candidate = path.join(root, revision, relative);
+        if (fs.existsSync(candidate)) return candidate;
+      }
+    }
+  }
+
+  try {
+    return playwright.chromium.executablePath();
+  } catch {
+    return null;
   }
 }
+
+const executablePath = findChromium();
 
 const PORT = 3188;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
