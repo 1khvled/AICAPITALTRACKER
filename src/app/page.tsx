@@ -31,6 +31,7 @@ import { POLYMARKET_REFERRAL_CODE } from "@/data/polymarket-data";
 import {
   OPENAI_NAMED_DEALS,
   OPENAI_NAMED_TOTAL_USD,
+  formatVolumeUsd,
   liveContracts,
 } from "@/components/answer-pages/answerData";
 import type { PlainAnswerEntry } from "@/components/home/AnswerBlock";
@@ -70,21 +71,50 @@ export default function HomePage() {
 
   // ── The crowd's live price (the daily Polymarket snapshot) ─────────────────
   const crowd = liveInputs.crowd;
+  const crowdMarkets = (crowd?.markets ?? []) as any[];
   const crowd2027 = crowd.bubble2027Probability ?? crowd.yesProbability ?? 0;
-  const crowdVolumeUsd = crowd.volumeUsd ?? 0;
+  /**
+   * The Jun 2027 contract is the one the 12-month read is scaled from. Its own
+   * volume belongs beside its own price; the aggregate volume covers all 16
+   * tracked contracts and must not be attributed to this one.
+   */
+  const bubble2027Market =
+    crowdMarkets.find((m: any) => m.slug === "ai-bubble-burst-by-june-30-2027") ??
+    crowdMarkets.find(
+      (m: any) =>
+        m.eventSlug === "ai-bubble-burst-by" && /june 30,? 2027/i.test(m.question ?? ""),
+    );
+  const bubble2027VolumeUsd = bubble2027Market?.volumeUsd ?? 0;
+  const bubble2027VolumeLabel =
+    bubble2027VolumeUsd > 0
+      ? `${formatVolumeUsd(bubble2027VolumeUsd)} traded on that contract`
+      : "volume not published for that contract";
   /**
    * ONE gap, one comparison object: the model print against the market-implied
-   * 12-month read (the tracked contracts with their horizon correction
-   * applied). The raw contract prices are shown beside it as context - they ask
-   * a dated, differently-scoped question.
+   * 12-month read (the Jun 2027 contract with its horizon correction applied).
+   * The raw contract prices are shown beside it as context - they ask dated,
+   * differently-scoped questions.
    */
   const marketRead = marketImplied12mBand(crowd2027 * 100);
   const crowdGap = result.burstProbability - marketRead.centralPct;
+  const gapSentence =
+    crowdGap > 0
+      ? "How far the model sits above the market-implied 12-month read"
+      : crowdGap < 0
+      ? "How far the model sits below the market-implied 12-month read"
+      : "The model and the market-implied 12-month read are level";
 
-  // ── Top active prediction contracts for the homepage affiliate module ─────
-  const tradeableMarkets = ((crowd?.markets ?? []) as any[])
+  // ── Active prediction contracts for the homepage affiliate module ─────────
+  // Bubble contracts come first: they are the contracts the read above is
+  // built from. The rest of the book follows by volume.
+  const tradeableMarkets = crowdMarkets
     .filter((m: any) => m.active && !m.closed && m.yesProbabilityPct > 0)
-    .sort((a: any, b: any) => (b.volumeUsd || 0) - (a.volumeUsd || 0))
+    .sort((a: any, b: any) => {
+      const aBubble = a.eventSlug === "ai-bubble-burst-by" ? 1 : 0;
+      const bBubble = b.eventSlug === "ai-bubble-burst-by" ? 1 : 0;
+      if (aBubble !== bBubble) return bBubble - aBubble;
+      return (b.volumeUsd || 0) - (a.volumeUsd || 0);
+    })
     .slice(0, 4);
 
   // ── Published trajectory: the "as of" date and the published move ─────────
@@ -448,9 +478,9 @@ export default function HomePage() {
                   {marketRead.centralPct.toFixed(1)}%
                 </dd>
                 <dd className="mt-1 text-[14px] leading-snug text-ink-subtle">
-                  The tracked contracts with their horizon correction &middot; raw Jun 2027
-                  contract {(crowd2027 * 100).toFixed(1)}% &middot; $
-                  {(crowdVolumeUsd / 1e6).toFixed(2)}M traded
+                  Jun 2027 contract: {(crowd2027 * 100).toFixed(1)}% raw, scaled by a{" "}
+                  {marketRead.alphaCentral.toFixed(1)}&times; horizon correction &middot;{" "}
+                  {bubble2027VolumeLabel}
                 </dd>
               </div>
               <div className="panel">
@@ -458,12 +488,9 @@ export default function HomePage() {
                   The gap
                 </dt>
                 <dd className="num mt-1 text-[17px] font-semibold text-ink">
-                  {crowdGap >= 0 ? "+" : ""}
-                  {crowdGap.toFixed(1)} pts
+                  {formatPts(crowdGap)}
                 </dd>
-                <dd className="mt-1 text-[14px] leading-snug text-ink-subtle">
-                  How far the model sits above the market-implied 12-month read
-                </dd>
+                <dd className="mt-1 text-[14px] leading-snug text-ink-subtle">{gapSentence}</dd>
               </div>
             </dl>
             <p className="prose prose-p mt-3 max-w-reading text-[15px]">
@@ -486,6 +513,13 @@ export default function HomePage() {
                   </div>
                   <span className="pill">Polymarket live book</span>
                 </div>
+
+                <p className="max-w-3xl text-[14px] leading-relaxed text-ink-subtle">
+                  These cards ask different, dated questions. The 2026 contract prices a shorter
+                  window; the 12-month read above is the Jun 2027 contract at{" "}
+                  {(crowd2027 * 100).toFixed(1)}%, scaled by {marketRead.alphaCentral.toFixed(1)}
+                  &times;. Each card shows its own volume.
+                </p>
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {tradeableMarkets.map((m: any) => (

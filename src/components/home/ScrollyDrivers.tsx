@@ -81,6 +81,10 @@ export function ScrollyDrivers({ rows, composite, probability }: ScrollyDriversP
   // control. The smaller readings are accounted for in the footer and live in
   // the full table below.
   const maxPoints = Math.max(...chapters.map((row) => Math.abs(row.points)), 1);
+  // A shared 0-10 point scale (or the next 5-point step if a reading exceeds
+  // it). Normalising to the largest bar made +8.5 and +7.0 look identical;
+  // this keeps the bars comparable to each other and to the printed points.
+  const scaleMax = Math.max(10, Math.ceil(maxPoints / 5) * 5);
   const chapterIds = new Set(chapters.map((row) => row.id));
   const restRows = rows.filter((row) => !chapterIds.has(row.id));
   const restPoints = restRows.reduce((sum, row) => sum + row.points, 0);
@@ -121,8 +125,10 @@ export function ScrollyDrivers({ rows, composite, probability }: ScrollyDriversP
             <ul className="space-y-3">
               {chapters.map((row) => {
                 const active = row.id === activeId;
-                const width = Math.max(3, (Math.abs(row.points) / maxPoints) * 100);
-                const tone = row.kind === "damper" ? "rgb(var(--c-safe))" : "rgb(var(--c-risk))";
+                const isDamper = row.kind === "damper";
+                const width = Math.max(3, (Math.abs(row.points) / scaleMax) * 100);
+                const tone = isDamper ? "rgb(var(--c-safe))" : "rgb(var(--c-risk))";
+                const pointsLabel = `${row.points >= 0 ? "+" : "−"}${Math.abs(row.points).toFixed(1)}`;
                 return (
                   <li key={row.id}>
                     <button
@@ -130,7 +136,9 @@ export function ScrollyDrivers({ rows, composite, probability }: ScrollyDriversP
                       onClick={() => jumpTo(row.id)}
                       aria-pressed={active}
                       aria-controls={`chapter-${row.id}`}
-                      className="group block min-h-11 w-full py-2 text-left"
+                      className={`group block min-h-11 w-full border-l-2 py-2 pl-2 text-left ${
+                        active ? "border-l-ink" : "border-l-transparent"
+                      }`}
                     >
                       <span className="flex items-baseline justify-between gap-3">
                         <span
@@ -141,18 +149,19 @@ export function ScrollyDrivers({ rows, composite, probability }: ScrollyDriversP
                           {row.short}
                         </span>
                         <span className="num shrink-0 text-[13px] tabular-nums text-ink-faint">
-                          {row.points >= 0 ? "+" : "−"}
-                          {Math.abs(row.points).toFixed(1)}
+                          {pointsLabel}
                         </span>
                       </span>
-                      <span className="mt-1 block h-[6px] w-full bg-surface-3">
+                      <span
+                        className="relative mt-1 block h-[6px] w-full bg-surface-3"
+                        aria-hidden="true"
+                      >
                         <span
-                          className="block h-full"
+                          className="absolute top-0 h-full"
                           style={{
                             width: `${width}%`,
                             backgroundColor: tone,
-                            opacity: active ? 1 : 0.32,
-                            transition: reduced ? "none" : "opacity 180ms ease-out",
+                            [isDamper ? "right" : "left"]: 0,
                           }}
                         />
                       </span>
@@ -161,8 +170,17 @@ export function ScrollyDrivers({ rows, composite, probability }: ScrollyDriversP
                 );
               })}
             </ul>
-            <p className="mt-4 border-t border-rule pt-2 text-[12px] leading-relaxed text-ink-faint">
-              Points are the model&rsquo;s own contribution, not a forecast. Click a line to open its
+            <div
+              className="mt-2 flex items-center justify-between pl-2 text-[12px] text-ink-faint"
+              aria-hidden="true"
+            >
+              <span>0</span>
+              <span>{scaleMax / 2} pts</span>
+              <span>{scaleMax} pts</span>
+            </div>
+            <p className="mt-3 border-t border-rule pt-2 text-[12px] leading-relaxed text-ink-faint">
+              Points are the model&rsquo;s own contribution, not a forecast. Bars share a 0&ndash;
+              {scaleMax} point scale; the damper fills from the right. Click a line to open its
               chapter.
             </p>
             {restRows.length > 0 ? (
@@ -179,8 +197,10 @@ export function ScrollyDrivers({ rows, composite, probability }: ScrollyDriversP
       <ol className="space-y-2 pb-16">
         {chapters.map((row, index) => {
           const active = row.id === activeId;
-          const width = Math.max(4, (Math.abs(row.points) / maxPoints) * 100);
-          const tone = row.kind === "damper" ? "rgb(var(--c-safe))" : "rgb(var(--c-risk))";
+          const isDamper = row.kind === "damper";
+          const width = Math.max(4, (Math.abs(row.points) / scaleMax) * 100);
+          const tone = isDamper ? "rgb(var(--c-safe))" : "rgb(var(--c-risk))";
+          const pointsLabel = `${row.points >= 0 ? "+" : "−"}${Math.abs(row.points).toFixed(1)}`;
           return (
             <li
               key={row.id}
@@ -200,8 +220,7 @@ export function ScrollyDrivers({ rows, composite, probability }: ScrollyDriversP
                       {String(chapters.length).padStart(2, "0")}
                     </span>
                     <span className="num text-[13px] tabular-nums text-ink-faint">
-                      {row.points >= 0 ? "+" : "−"}
-                      {Math.abs(row.points).toFixed(1)} pts · weight {row.weightPct}%
+                      {pointsLabel} pts · weight {row.weightPct}%
                     </span>
                   </div>
 
@@ -210,16 +229,23 @@ export function ScrollyDrivers({ rows, composite, probability }: ScrollyDriversP
                   </h3>
                   <p className="mt-1 text-[13px] font-medium text-ink-subtle">{row.gloss}</p>
 
-                  {/* Phone reading: this chapter's own bar. */}
+                  {/* Phone contribution: this chapter's own bar, same scale as the panel. */}
                   <div className="mt-3 flex items-center gap-2 lg:hidden">
-                    <span className="h-[6px] w-full max-w-[220px] bg-surface-3">
+                    <span
+                      className="relative h-[6px] w-full max-w-[220px] bg-surface-3"
+                      aria-hidden="true"
+                    >
                       <span
-                        className="block h-full"
-                        style={{ width: `${width}%`, backgroundColor: tone }}
+                        className="absolute top-0 h-full"
+                        style={{
+                          width: `${width}%`,
+                          backgroundColor: tone,
+                          [isDamper ? "right" : "left"]: 0,
+                        }}
                       />
                     </span>
                     <span className="num shrink-0 text-[12px] text-ink-faint">
-                      reading {Math.min(100, Math.round(row.score * 100))}/100
+                      0&ndash;{scaleMax} pts
                     </span>
                   </div>
 

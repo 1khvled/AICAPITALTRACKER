@@ -164,7 +164,7 @@ export function AnswerBlock({
           {BAND_LABEL[band]}
         </span>
         {(asOf || deltaText) && (
-          <span className="num flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px] text-ink-faint">
+          <span className="num flex w-full flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-ink-faint sm:w-auto sm:text-[14px]">
             {asOf ? (
               <span>
                 As of <span className="whitespace-nowrap">{asOf}</span>

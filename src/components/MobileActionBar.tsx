@@ -3,19 +3,19 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, BookOpen, Home, Layers, Search, Target } from "lucide-react";
+import { BarChart3, Layers, Search, Target } from "lucide-react";
 import { OPEN_PALETTE_EVENT } from "@/components/CommandPalette";
 
 /**
  * Mobile action bar.
  *
- * A phone has no ⌘K and no hover, so the keyboard-first chrome leaves a reader
- * with nothing but a burger menu. This bar puts the things a reader opens the
- * site for one thumb-tap away — search, the verdict, the ledger, the markets,
- * the guides and their own call — pinned to the bottom edge, above the safe
- * area.
+ * A phone has no keyboard and no hover, so the keyboard-first chrome leaves a
+ * reader with nothing but a burger menu. This bar puts the actions a reader
+ * opens the site for one thumb-tap away: search, the ledger, the markets and
+ * their own call. The burger keeps the full menu; the bar deliberately does
+ * not repeat its secondary destinations.
  *
- * It is phones only (`sm:hidden`): on a desktop the top chrome already does
+ * It is phones only (sm:hidden): on a desktop the top chrome already does
  * the job, and a second navigation bar would just be a second answer to the
  * same question.
  */
@@ -29,11 +29,9 @@ interface BarItem {
 
 const ITEMS: BarItem[] = [
   { id: "search", label: "Search", icon: Search },
-  { id: "/", label: "Verdict", href: "/", icon: Home },
   { id: "/ledger", label: "Ledger", href: "/ledger", icon: Layers },
   { id: "/markets", label: "Markets", href: "/markets", icon: BarChart3 },
   { id: "/your-call", label: "Your call", href: "/your-call", icon: Target },
-  { id: "/guides", label: "Guides", href: "/guides", icon: BookOpen },
 ];
 
 export function MobileActionBar() {

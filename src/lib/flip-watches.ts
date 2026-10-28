@@ -29,6 +29,8 @@ export interface FlipWatch {
   shock: string;
   /** What that move would do to the print. */
   effect: string;
+  /** The signed point move, used for ordering and the magnitude chip. */
+  delta: number;
   /** The boundary beyond which this factor stops responding. */
   threshold: string;
   /** Which way the shock moves the print. */
@@ -191,7 +193,9 @@ export function flipWatches(
     scenarios.push({
       id: "crowd",
       label: "Betting odds on a 2026 AI downturn",
-      value: `${(crowdProbability * 100).toFixed(1)}% YES${volume ? ` · $${(volume / 1e6).toFixed(2)}M traded` : ""}`,
+      value: `${(crowdProbability * 100).toFixed(1)}% YES${
+        volume ? ` · $${(volume / 1e6).toFixed(2)}M traded across the tracked book` : ""
+      }`,
       shock: "10 points more on the contract",
       threshold: "the crowd factor IS this price — there is no ramp to reach",
       note: "Crowd odds are a weak signal alone. They matter once they jump.",
@@ -222,6 +226,7 @@ export function flipWatches(
       value: scenario.value,
       shock: scenario.shock,
       effect: priced.effect,
+      delta: priced.delta,
       threshold: scenario.threshold,
       direction: priced.delta >= 0 ? "up" : "down",
       note: inert
@@ -231,11 +236,7 @@ export function flipWatches(
   }
 
   // Biggest lever first: the reading that moves the print most.
-  watches.sort((a, b) => {
-    const da = Math.abs(parseFloat(a.effect.match(/\(([+−-]?[\d.]+)/)?.[1] ?? "0"));
-    const db = Math.abs(parseFloat(b.effect.match(/\(([+−-]?[\d.]+)/)?.[1] ?? "0"));
-    return db - da;
-  });
+  watches.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
 
   return watches;
 }
