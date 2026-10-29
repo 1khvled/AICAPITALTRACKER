@@ -1,13 +1,46 @@
 [
   {
+    "id": "4703c066-5afe-3d19-a917-c14628b4635e",
+    "title": "Nvidia & AMD Bet $4B on Meta: Grab These ETFs to Own the AI Ecosystem",
+    "publisher": "Zacks",
+    "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-amd-bet-4b-meta-132300446.html",
+    "publishedAt": "2026-10-28T13:23:00.000Z",
+    "timeAgo": "16h ago",
+    "category": "Hyperscalers",
+    "impact": "High Impact",
+    "summary": "Live market intelligence reported by Zacks."
+  },
+  {
+    "id": "379ed5df-af17-3896-ad6a-8f9477db3b56",
+    "title": "Market Minute 10-23-26- Tech Tanks, While Defensive Stocks Surge",
+    "publisher": "MoneyShow",
+    "link": "https://finance.yahoo.com/markets/stocks/articles/market-minute-10-23-26-141500926.html",
+    "publishedAt": "2026-10-23T14:15:00.000Z",
+    "timeAgo": "135h ago",
+    "category": "General AI",
+    "impact": "High Impact",
+    "summary": "Live market intelligence reported by MoneyShow."
+  },
+  {
+    "id": "72eee01e-299c-3cb7-85bf-68a96c55441f",
+    "title": "AI ETFs- Niche Funds Proliferating in the Growing Industry",
+    "publisher": "MoneyShow",
+    "link": "https://finance.yahoo.com/markets/options/articles/ai-etfs-niche-funds-proliferating-050100255.html",
+    "publishedAt": "2026-10-22T05:01:00.000Z",
+    "timeAgo": "168h ago",
+    "category": "General AI",
+    "impact": "High Impact",
+    "summary": "Live market intelligence reported by MoneyShow."
+  },
+  {
     "id": "d52ac2da-a7a8-3a9d-a344-009a31147f46",
     "title": "Anthropic Wants an IPO. New York City Wants It to Slow Down.",
     "publisher": "Moby",
     "link": "https://finance.yahoo.com/technology/ai/articles/anthropic-wants-ipo-york-city-120200718.html",
     "publishedAt": "2026-10-17T14:48:07.000Z",
-    "timeAgo": "254h ago",
+    "timeAgo": "278h ago",
     "category": "Frontier Labs",
-    "impact": "High Impact",
+    "impact": "Market Sentiment",
     "summary": "Live market intelligence reported by Moby."
   },
   {
@@ -16,9 +49,9 @@
     "publisher": "Investor's Business Daily",
     "link": "https://finance.yahoo.com/m/7400be65-1675-35e1-a62d-17ae6fe9b185/coreweave-isn%27t-the-only.html",
     "publishedAt": "2026-10-16T11:33:20.000Z",
-    "timeAgo": "281h ago",
+    "timeAgo": "305h ago",
     "category": "General AI",
-    "impact": "High Impact",
+    "impact": "Market Sentiment",
     "summary": "Live market intelligence reported by Investor's Business Daily."
   },
   {
@@ -27,9 +60,9 @@
     "publisher": "Business Wire",
     "link": "https://finance.yahoo.com/technology/articles/global-x-launches-asia-semiconductor-123000992.html",
     "publishedAt": "2026-10-14T12:30:00.000Z",
-    "timeAgo": "328h ago",
+    "timeAgo": "352h ago",
     "category": "General AI",
-    "impact": "High Impact",
+    "impact": "Market Sentiment",
     "summary": "Live market intelligence reported by Business Wire."
   },
   {
@@ -38,7 +71,7 @@
     "publisher": "Zacks",
     "link": "https://finance.yahoo.com/technology/ai/articles/grab-etfs-capitalize-physical-ai-120900252.html",
     "publishedAt": "2026-10-14T12:09:00.000Z",
-    "timeAgo": "329h ago",
+    "timeAgo": "353h ago",
     "category": "General AI",
     "impact": "Market Sentiment",
     "summary": "Live market intelligence reported by Zacks."
@@ -49,7 +82,7 @@
     "publisher": "Motley Fool",
     "link": "https://finance.yahoo.com/markets/stocks/articles/ai-entering-next-phase-5-135000571.html",
     "publishedAt": "2026-10-06T13:50:00.000Z",
-    "timeAgo": "519h ago",
+    "timeAgo": "543h ago",
     "category": "General AI",
     "impact": "Market Sentiment",
     "summary": "Live market intelligence reported by Motley Fool."
@@ -60,7 +93,7 @@
     "publisher": "24/7 Wall St.",
     "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-8th-biggest-holding-most-124536387.html",
     "publishedAt": "2026-10-05T12:45:36.000Z",
-    "timeAgo": "544h ago",
+    "timeAgo": "568h ago",
     "category": "Silicon & Power",
     "impact": "Market Sentiment",
     "summary": "Live market intelligence reported by 24/7 Wall St.."
@@ -71,42 +104,9 @@
     "publisher": "Zacks",
     "link": "https://finance.yahoo.com/markets/stocks/articles/guide-ai-etf-investment-122900384.html",
     "publishedAt": "2026-10-02T12:29:00.000Z",
-    "timeAgo": "616h ago",
-    "category": "General AI",
-    "impact": "Market Sentiment",
-    "summary": "Live market intelligence reported by Zacks."
-  },
-  {
-    "id": "a670b2d0-0714-39e9-8486-6fb07332376f",
-    "title": "A Guide to AI ETF Investment",
-    "publisher": "Zacks",
-    "link": "https://finance.yahoo.com/markets/stocks/articles/guide-ai-etf-investment-121900735.html",
-    "publishedAt": "2026-10-02T12:19:00.000Z",
-    "timeAgo": "616h ago",
-    "category": "General AI",
-    "impact": "Market Sentiment",
-    "summary": "Live market intelligence reported by Zacks."
-  },
-  {
-    "id": "7b6b5da4-8c64-334f-ab98-a4c9d6554d5e",
-    "title": "Global X Launches New ETF Focusing on Large Language Models",
-    "publisher": "Business Wire",
-    "link": "https://finance.yahoo.com/technology/ai/articles/global-x-launches-etf-focusing-123000430.html",
-    "publishedAt": "2026-10-01T12:30:00.000Z",
     "timeAgo": "640h ago",
     "category": "General AI",
     "impact": "Market Sentiment",
-    "summary": "Live market intelligence reported by Business Wire."
-  },
-  {
-    "id": "e0b2b4a5-47f1-3ee6-9844-942a74db0934",
-    "title": "Best Performing ETFs of 2026 So Far",
-    "publisher": "etf.com",
-    "link": "https://finance.yahoo.com/markets/stocks/articles/best-performing-etfs-2026-far-003323612.html",
-    "publishedAt": "2026-10-01T00:33:23.000Z",
-    "timeAgo": "652h ago",
-    "category": "General AI",
-    "impact": "Market Sentiment",
-    "summary": "Live market intelligence reported by etf.com."
+    "summary": "Live market intelligence reported by Zacks."
   }
 ]
