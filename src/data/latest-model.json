@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-10-30T04:56:10.285Z",
+  "timestamp": "2026-10-31T04:42:36.287Z",
   "model_version": "2.7.0",
-  "burstProbability": 30.8,
-  "compositeScore": 47.7,
+  "burstProbability": 30.4,
+  "compositeScore": 47.6,
   "band": "guarded",
   "coverage": 1,
   "fragilityIndex": 51,
@@ -55,10 +55,10 @@
       "label": "Macro interest rates & inflation (US10Y)",
       "kind": "risk",
       "weightPct": 12,
-      "earnedPoints": 8,
+      "earnedPoints": 7.9,
       "reading": {
-        "score": 0.6678666666666667,
-        "reading": "US10Y 4.99% (neutral 3.75%); CPI 3.7% YoY; HY-OAS 314bp; Fed Funds 3.75%",
+        "score": 0.6554666666666666,
+        "reading": "US10Y 4.93% (neutral 3.75%); CPI 3.7% YoY; HY-OAS 326bp; Fed Funds 3.75%",
         "coverage": 1
       }
     },
@@ -81,8 +81,8 @@
       "weightPct": 10,
       "earnedPoints": 4.7,
       "reading": {
-        "score": 0.4677120025,
-        "reading": "Annualized pace: $975B/yr; 10.1% backlog; 32d since last mega deal",
+        "score": 0.4702120025,
+        "reading": "Annualized pace: $975B/yr; 10.1% backlog; 33d since last mega deal",
         "coverage": 1
       }
     },
@@ -93,8 +93,8 @@
       "weightPct": 9,
       "earnedPoints": 0.9,
       "reading": {
-        "score": 0.1,
-        "reading": "Polymarket crowd: 10.0% YES ($9.36M volume)",
+        "score": 0.0955,
+        "reading": "Polymarket crowd: 9.6% YES ($9.38M volume)",
         "coverage": 1
       }
     },
@@ -145,112 +145,112 @@
     "interpretation": "Superexponential capital commitment growth with accelerating log-periodic Capex-to-FCF oscillations, placing critical singularity window in early 2027."
   },
   "minsky": {
-    "hedgeSharePct": 55.4,
-    "speculativeSharePct": 31.7,
-    "ponziSharePct": 12.9,
-    "minskyFragilityIndex": 65.4,
+    "hedgeSharePct": 55.5,
+    "speculativeSharePct": 31.5,
+    "ponziSharePct": 13,
+    "minskyFragilityIndex": 65.5,
     "currentRegime": "Speculative Transition",
-    "refinancingFreezeProbabilityPct": 19.6,
+    "refinancingFreezeProbabilityPct": 19.7,
     "breakdown": {
-      "hedgeDebtUsd": 119049281600,
-      "speculativeDebtUsd": 68120256800,
-      "ponziDebtUsd": 27720861600
+      "hedgeDebtUsd": 119264172000,
+      "speculativeDebtUsd": 67690476000,
+      "ponziDebtUsd": 27935752000
     },
-    "interpretation": "Speculative Transition: 31.7% of debt requires continuous market rollover, and 12.9% relies on equity subsidies. While hyperscalers remain Hedge units (55.4%), peripheral cloud providers and foundation labs face a 19.6% probability of refinancing freeze.",
-    "fragilityIndex": 65.4,
+    "interpretation": "Speculative Transition: 31.5% of debt requires continuous market rollover, and 13.0% relies on equity subsidies. While hyperscalers remain Hedge units (55.5%), peripheral cloud providers and foundation labs face a 19.7% probability of refinancing freeze.",
+    "fragilityIndex": 65.5,
     "regime": "Speculative Transition",
-    "ponziDebtSharePct": 12.9
+    "ponziDebtSharePct": 13
   },
   "shillerCape": {
     "aiCapeMultiple": 32.4,
     "historicalMedianCape": 17.2,
     "earningsYieldPct": 3.09,
-    "real10yYieldPct": 2.64,
-    "excessCapeYieldPct": 0.45,
+    "real10yYieldPct": 2.58,
+    "excessCapeYieldPct": 0.51,
     "equityRiskPremiumBand": "Compressed (<1.5%)",
     "equityRiskPremiumStatus": "Compressed (<1.5%)",
-    "interpretation": "Excess CAPE Yield of +0.45% is in the Compressed band (<1.5%), indicating that AI and mega-cap tech equities offer a wafer-thin risk premium over real Treasuries (2.64%). Tech valuation multiples (CAPE 32.4x vs historical median 17.2x) leave negligible safety margin against interest rate or earnings growth disappointments."
+    "interpretation": "Excess CAPE Yield of +0.51% is in the Compressed band (<1.5%), indicating that AI and mega-cap tech equities offer a wafer-thin risk premium over real Treasuries (2.58%). Tech valuation multiples (CAPE 32.4x vs historical median 17.2x) leave negligible safety margin against interest rate or earnings growth disappointments."
   },
   "monteCarlo": {
     "iterationsCount": 25000,
-    "meanProbabilityPct": 32.8,
-    "medianProbabilityPct": 25.9,
+    "meanProbabilityPct": 32.5,
+    "medianProbabilityPct": 25.5,
     "stdDevPct": 19.7,
     "variance": 387.6,
     "ci90Pct": [
-      14,
-      62.2
+      13.7,
+      61.9
     ],
     "ci95Pct": [
-      11.4,
-      75.2
+      11.2,
+      74.8
     ],
     "ciType": "input-sensitivity range (not a probability interval)",
-    "bandLowPct": 11.4,
+    "bandLowPct": 11.2,
     "simulatedShockCorrelations": {
-      "cdsHy": 0.806
+      "cdsHy": 0.805
     },
     "innovationKurtosis": 8.48,
     "innovationExcessKurtosis": 5.48,
-    "valueAtRisk95Pct": 75.2,
-    "conditionalValueAtRisk95Pct": 85.6,
-    "valueAtRisk99Pct": 92.7,
-    "conditionalValueAtRisk99Pct": 94.8,
-    "skewness": 1.19,
-    "kurtosis": 3.83,
+    "valueAtRisk95Pct": 74.8,
+    "conditionalValueAtRisk95Pct": 85.4,
+    "valueAtRisk99Pct": 92.5,
+    "conditionalValueAtRisk99Pct": 94.7,
+    "skewness": 1.2,
+    "kurtosis": 3.85,
     "histogram": [
       {
         "range": "0%–10%",
-        "count": 777,
-        "percentage": 3.1
+        "count": 832,
+        "percentage": 3.3
       },
       {
         "range": "10%–20%",
-        "count": 6894,
-        "percentage": 27.6
+        "count": 7170,
+        "percentage": 28.7
       },
       {
         "range": "20%–30%",
-        "count": 6854,
-        "percentage": 27.4
+        "count": 6686,
+        "percentage": 26.7
       },
       {
         "range": "30%–40%",
-        "count": 3322,
-        "percentage": 13.3
+        "count": 3274,
+        "percentage": 13.1
       },
       {
         "range": "40%–50%",
-        "count": 2569,
-        "percentage": 10.3
+        "count": 2520,
+        "percentage": 10.1
       },
       {
         "range": "50%–60%",
-        "count": 1770,
-        "percentage": 7.1
+        "count": 1753,
+        "percentage": 7
       },
       {
         "range": "60%–70%",
-        "count": 1167,
-        "percentage": 4.7
+        "count": 1144,
+        "percentage": 4.6
       },
       {
         "range": "70%–80%",
-        "count": 719,
-        "percentage": 2.9
+        "count": 710,
+        "percentage": 2.8
       },
       {
         "range": "80%–90%",
-        "count": 557,
+        "count": 544,
         "percentage": 2.2
       },
       {
         "range": "90%–100%",
-        "count": 371,
+        "count": 367,
         "percentage": 1.5
       }
     ],
-    "executionTimeMs": 261
+    "executionTimeMs": 318
   },
   "_corrections": [
     "2026-10-19 (fix lane A, pass 11): re-evaluated against the corrected src/data/live-inputs.json — macro.highYieldSpreadBps 329 → 323bp (FRED BAMLH0A0HYM2, Oct 15 2026; the published level was the HYG-inverse proxy) and adoption.apiPriceDeclineMultiple 798 → 670× (input basis: GPT-4 $30/1M Mar 2023 → DeepSeek V4.1 Flash $0.0448/1M, OpenRouter Oct 19 2026). The HY-OAS correction moves the macro_rates factor 0.7202 → 0.7154, the composite 63.4 → 63.3 and the burst probability 71.7% → 71.6% (band unchanged: HIGH).",

@@ -1,11 +1,33 @@
 [
   {
+    "id": "8fee6438-3848-3d09-a484-035c8e63a482",
+    "title": "AITX's RAD Targets $1.49 Billion Mobile Surveillance Tower Market with RAIA",
+    "publisher": "TMX Newsfile",
+    "link": "https://finance.yahoo.com/technology/ai/articles/aitxs-rad-targets-1-49-124000946.html",
+    "publishedAt": "2026-10-30T12:40:00.000Z",
+    "timeAgo": "16h ago",
+    "category": "General AI",
+    "impact": "High Impact",
+    "summary": "Live market intelligence reported by TMX Newsfile."
+  },
+  {
+    "id": "755572b9-30bf-3956-b82a-8e69a18a4a38",
+    "title": "Jim Cramer sees more pain for beaten-down AI stocks: ‘I think it’s too soon to say the coast is clear’",
+    "publisher": "Moneywise",
+    "link": "https://finance.yahoo.com/technology/ai/articles/jim-cramer-sees-more-pain-101500280.html",
+    "publishedAt": "2026-10-30T10:15:00.000Z",
+    "timeAgo": "18h ago",
+    "category": "General AI",
+    "impact": "High Impact",
+    "summary": "Live market intelligence reported by Moneywise."
+  },
+  {
     "id": "4703c066-5afe-3d19-a917-c14628b4635e",
     "title": "Nvidia & AMD Bet $4B on Meta: Grab These ETFs to Own the AI Ecosystem",
     "publisher": "Zacks",
     "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-amd-bet-4b-meta-132300446.html",
     "publishedAt": "2026-10-28T13:23:00.000Z",
-    "timeAgo": "40h ago",
+    "timeAgo": "63h ago",
     "category": "Hyperscalers",
     "impact": "High Impact",
     "summary": "Live market intelligence reported by Zacks."
@@ -16,9 +38,9 @@
     "publisher": "GlobeNewswire",
     "link": "https://finance.yahoo.com/technology/ai/articles/aitx-defines-four-internal-breakeven-124000548.html",
     "publishedAt": "2026-10-26T12:40:00.000Z",
-    "timeAgo": "88h ago",
+    "timeAgo": "112h ago",
     "category": "General AI",
-    "impact": "High Impact",
+    "impact": "Market Sentiment",
     "summary": "Live market intelligence reported by GlobeNewswire."
   },
   {
@@ -27,9 +49,9 @@
     "publisher": "MoneyShow",
     "link": "https://finance.yahoo.com/markets/stocks/articles/market-minute-10-23-26-141500926.html",
     "publishedAt": "2026-10-23T14:15:00.000Z",
-    "timeAgo": "159h ago",
+    "timeAgo": "182h ago",
     "category": "General AI",
-    "impact": "High Impact",
+    "impact": "Market Sentiment",
     "summary": "Live market intelligence reported by MoneyShow."
   },
   {
@@ -38,7 +60,7 @@
     "publisher": "TMX Newsfile",
     "link": "https://finance.yahoo.com/technology/ai/articles/aitxs-rad-secures-orders-across-124000979.html",
     "publishedAt": "2026-10-22T12:40:00.000Z",
-    "timeAgo": "184h ago",
+    "timeAgo": "208h ago",
     "category": "General AI",
     "impact": "Market Sentiment",
     "summary": "Live market intelligence reported by TMX Newsfile."
@@ -49,7 +71,7 @@
     "publisher": "MoneyShow",
     "link": "https://finance.yahoo.com/markets/options/articles/ai-etfs-niche-funds-proliferating-050100255.html",
     "publishedAt": "2026-10-22T05:01:00.000Z",
-    "timeAgo": "192h ago",
+    "timeAgo": "216h ago",
     "category": "General AI",
     "impact": "Market Sentiment",
     "summary": "Live market intelligence reported by MoneyShow."
@@ -60,7 +82,7 @@
     "publisher": "TMX Newsfile",
     "link": "https://finance.yahoo.com/technology/ai/articles/aitx-q2-fy2027-revenue-excluding-124000412.html",
     "publishedAt": "2026-10-21T12:40:00.000Z",
-    "timeAgo": "208h ago",
+    "timeAgo": "232h ago",
     "category": "General AI",
     "impact": "Market Sentiment",
     "summary": "Live market intelligence reported by TMX Newsfile."
@@ -71,7 +93,7 @@
     "publisher": "TMX Newsfile",
     "link": "https://finance.yahoo.com/technology/ai/articles/aitx-projects-monthly-operating-cash-124000166.html",
     "publishedAt": "2026-10-20T12:40:00.000Z",
-    "timeAgo": "232h ago",
+    "timeAgo": "256h ago",
     "category": "General AI",
     "impact": "Market Sentiment",
     "summary": "Live market intelligence reported by TMX Newsfile."
@@ -82,31 +104,9 @@
     "publisher": "InvestorsHub",
     "link": "https://finance.yahoo.com/technology/ai/articles/aitx-expands-security-distribution-strategy-153235981.html",
     "publishedAt": "2026-10-19T15:32:35.000Z",
-    "timeAgo": "253h ago",
+    "timeAgo": "277h ago",
     "category": "General AI",
     "impact": "Market Sentiment",
     "summary": "Live market intelligence reported by InvestorsHub."
-  },
-  {
-    "id": "52235a7a-cf2d-3db3-bda6-98554036d6d7",
-    "title": "AITX's RAD Engages Security Industry Veteran Tom Reilly to Drive Strategy for New Integrator and Distribution Channels",
-    "publisher": "TMX Newsfile",
-    "link": "https://finance.yahoo.com/technology/ai/articles/aitxs-rad-engages-security-industry-124000935.html",
-    "publishedAt": "2026-10-19T12:40:00.000Z",
-    "timeAgo": "256h ago",
-    "category": "General AI",
-    "impact": "Market Sentiment",
-    "summary": "Live market intelligence reported by TMX Newsfile."
-  },
-  {
-    "id": "d52ac2da-a7a8-3a9d-a344-009a31147f46",
-    "title": "Anthropic Wants an IPO. New York City Wants It to Slow Down.",
-    "publisher": "Moby",
-    "link": "https://finance.yahoo.com/technology/ai/articles/anthropic-wants-ipo-york-city-120200718.html",
-    "publishedAt": "2026-10-17T14:48:07.000Z",
-    "timeAgo": "302h ago",
-    "category": "Frontier Labs",
-    "impact": "Market Sentiment",
-    "summary": "Live market intelligence reported by Moby."
   }
 ]
